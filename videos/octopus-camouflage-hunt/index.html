@@ -52,8 +52,9 @@
         <!-- 360x640 caption layer, upscaled 3x -->
         <canvas data-hf-id="hf-epyc" id="ui" width="360" height="640"></canvas>
       </section>
-      <!-- synthesised by scripts/synth_audio.py: ambience bed + SFX, no music -->
-      <audio data-hf-id="hf-trw4" id="soundtrack" src="assets/audio/soundtrack.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+      <!-- built by scripts/synth_audio.py: Kokoro am_onyx narration + ducked ambience/SFX, no music -->
+      <audio data-hf-id="hf-trw4" id="narration" src="assets/audio/narration.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="30" data-track-index="2"></audio>
     </div>
     <script>
       // ---------------------------------------------------------------
@@ -654,9 +655,9 @@
       var CAPTIONS = [
         { a: 0, b: 3.6, lines: [["WHERE IS THE", 3, C.paper], ["OCTOPUS?", 3, C.paper]], icon: true, popIn: true },
         { a: 5.0, b: 8.2, lines: [["SOMETHING", 3, C.paper], ["IS WATCHING", 3, C.paper]] },
-        { a: 10.0, b: 13.4, lines: [["SKIN WITH", 2, C.paper], ["~10,000", 3, C.gold], ["COLOUR CELLS", 2, C.paper]] },
+        { a: 10.0, b: 13.9, lines: [["SKIN WITH", 2, C.paper], ["~10,000", 3, C.gold], ["COLOUR CELLS", 2, C.paper]] },
         { a: 14.4, b: 17.2, lines: [["IT CHANGES", 3, C.paper], ["TEXTURE TOO", 3, C.paper]] },
-        { a: 19.3, b: 22.0, lines: [["IN UNDER", 2, C.paper], ["0.2 SECONDS", 3, C.gold]] },
+        { a: 19.3, b: 22.8, lines: [["IN UNDER", 2, C.paper], ["0.2 SECONDS", 3, C.gold]] },
         { a: 23.0, b: 26.2, lines: [["AND IT'S", 2, C.paper], ["COLOURBLIND", 3, C.paper]] },
         { a: 28.9, b: 31, lines: [["WHERE IS THE", 3, C.paper], ["OCTOPUS?", 3, C.paper]], icon: true, popIn: true },
       ];

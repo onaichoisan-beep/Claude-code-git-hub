@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "preferences": {
+    "voice": {
+      "value": "am_onyx",
+      "confirmed_in": [
+        "octopus-camouflage-hunt"
+      ],
+      "updated_at": "2026-10-21T15:58:01.411Z"
+    }
+  },
+  "sightings": {}
+}

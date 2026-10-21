@@ -16,7 +16,7 @@ build: single continuous-take composition (one shared pixel world + camera); see
 - poster: 2s
 - transition_in: cut
 - status: animated
-- voiceover: ""
+- voiceover: (see SCRIPT.md)
 - camera: wide, slow drift right
 - sfx: underwater ambience bed (whole video)
 
@@ -29,7 +29,7 @@ Hook as a question over an empty-looking reef. The octopus is already on screen,
 - poster: 7s
 - transition_in: camera push-in (continuous)
 - status: animated
-- voiceover: ""
+- voiceover: (see SCRIPT.md)
 - camera: push in and pan toward the rock, keeping the crab and rock in frame
 - sfx: crab clicks
 
@@ -42,7 +42,7 @@ Stakes: prey and predator in one frame. The open eye is the first hint that the 
 - poster: 11s
 - transition_in: camera macro zoom (continuous)
 - status: animated
-- voiceover: ""
+- voiceover: (see SCRIPT.md)
 - camera: deep zoom onto the octopus's mantle until cells fill the frame
 - sfx: soft bubbly pops as cells flex
 
@@ -55,7 +55,7 @@ Mechanism 1, like the Morpho wing-scale zoom. Each sac is a dot of pigment ringe
 - poster: 15s
 - transition_in: camera pull-back to profile (continuous)
 - status: animated
-- voiceover: ""
+- voiceover: (see SCRIPT.md)
 - camera: partial pull-back, horizon of skin against water
 - sfx: low creak
 
@@ -68,7 +68,7 @@ Mechanism 2. Colour alone isn't enough; the outline breaks up too.
 - poster: 19.5s
 - transition_in: camera pull-back + impact shake (continuous)
 - status: animated
-- voiceover: ""
+- voiceover: (see SCRIPT.md)
 - camera: medium two-shot, 3-frame shake on the strike
 - sfx: whoosh + snap on the strike
 
@@ -81,7 +81,7 @@ The payoff of the hunt. The reveal colour is the video's accent, used here for t
 - poster: 23.5s
 - transition_in: continuous hold
 - status: animated
-- voiceover: ""
+- voiceover: (see SCRIPT.md)
 - camera: slow push-in on the octopus eye
 - sfx: single low tone
 
@@ -94,7 +94,7 @@ The counter-intuitive fact. It matches colours it can't see, which keeps viewers
 - poster: 28.5s
 - transition_in: camera pull-back to the opening framing (continuous)
 - status: animated
-- voiceover: ""
+- voiceover: (see SCRIPT.md)
 - camera: return to frame 1 framing
 - sfx: bubbles
 
