@@ -25,13 +25,25 @@
       #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
       .video-wrapper { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; }
       .video-wrapper video { width: 100%; height: 100%; object-fit: cover; }
+      #video-zoom { position: absolute; inset: 0; transform-origin: 50% 32%; }
+      #flash { position: absolute; inset: 0; background: var(--mint); opacity: 0; pointer-events: none; mix-blend-mode: soft-light; }
+      svg.lines { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: visible; pointer-events: none; }
+      svg.lines path, svg.lines rect, svg.lines circle { fill: none; stroke: var(--mint); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+      svg.lines .thin { stroke-width: 2.5; opacity: 0.8; }
+      svg.lines .dash { stroke-dasharray: 10 12; }
+      svg.lines .dotf { fill: var(--mint); stroke: none; }
+      .panel { border-color: transparent !important; }
+      .panel svg.edge { position: absolute; left: -3px; top: -3px; width: 940px; height: 640px; overflow: visible; pointer-events: none; }
+      .panel svg.edge rect { fill: none; stroke: var(--mint); stroke-width: 3; }
+      .stack-cap { position: relative; height: 140px; }
+      .stack-cap > div { position: absolute; left: 0; right: 0; top: 0; }
 
       /* Navy wash at the bottom so captions read over the footage (like the reference) */
       #wash {
         position: absolute; inset: 0; pointer-events: none;
         background:
-          linear-gradient(to top, rgba(2, 26, 54, 0.96) 0%, rgba(5, 50, 100, 0.78) 26%, rgba(5, 50, 100, 0) 50%),
-          linear-gradient(to bottom, rgba(5, 50, 100, 0.35) 0%, rgba(5, 50, 100, 0) 14%);
+          linear-gradient(to top, rgba(2, 26, 54, 0.62) 0%, rgba(5, 50, 100, 0.38) 24%, rgba(5, 50, 100, 0) 46%),
+          linear-gradient(to bottom, rgba(5, 50, 100, 0.18) 0%, rgba(5, 50, 100, 0) 12%);
       }
 
       .card-host { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none; overflow: hidden; opacity: 0; }
@@ -39,7 +51,8 @@
       .w { display: inline-block; }
 
       /* ---------- shared caption type ---------- */
-      .cap { position: absolute; left: 60px; right: 60px; top: 1190px; text-align: center; color: var(--mint); }
+      .cap { position: absolute; left: 60px; right: 60px; top: 1190px; text-align: center; color: var(--mint); text-shadow: 0 2px 14px rgba(2, 26, 54, 0.75), 0 0 2px rgba(2, 26, 54, 0.5); }
+      .full .cap { text-shadow: none; }
       .sm { font-weight: 700; font-size: 32px; letter-spacing: -0.01em; line-height: 1.2; }
       .kw { font-family: "Instrument Serif", serif; font-style: italic; font-size: 80px; line-height: 1; margin-top: 4px; letter-spacing: -0.01em; }
       .kw .up { font-style: normal; }
@@ -86,7 +99,7 @@
       .ring { width: 190px; height: 190px; border-radius: 50%; border: 2px solid var(--mint-35); background: var(--mint-12); display: flex; align-items: center; justify-content: center; }
       .ring svg { width: 110px; height: 110px; }
       .subj .lbl { color: var(--mint); font-weight: 700; font-size: 28px; }
-      .link { position: absolute; left: 150px; right: 150px; top: 270px; height: 2px; background: var(--mint-35); transform-origin: left center; }
+      
 
       /* card-04 components grid */
       .grid { position: absolute; inset: 40px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 22px; }
@@ -126,8 +139,8 @@
         color: var(--mint); font-family: "Instrument Serif", serif; font-size: 68px; line-height: 92px; text-align: center;
       }
       .numrow .kw { margin-top: 0; }
-      .dots { display: flex; justify-content: center; gap: 14px; margin-top: 22px; }
-      .dots span { width: 14px; height: 14px; border-radius: 50%; background: var(--mint); }
+      .branch path { fill: none; stroke: var(--mint); stroke-width: 3; stroke-linecap: round; }
+      .branch circle { fill: var(--mint); transform-box: fill-box; transform-origin: center; }
 
       /* card-05 */
       .swoosh { display: block; margin: 0 auto; width: 380px; height: 30px; }
@@ -145,9 +158,10 @@
   <body>
     <div id="stage" data-composition-id="talking-head-recut" data-start="0" data-duration="27.5" data-fps="30" data-width="1080" data-height="1920">
       <div class="video-wrapper" id="video-wrap">
-        <video id="bg-video" src="input-video.mp4" playsinline data-has-audio="true" data-start="0" data-duration="27.5" data-track-index="1"></video>
+        <div id="video-zoom"><video id="bg-video" src="input-video.mp4" playsinline data-has-audio="true" data-start="0" data-duration="27.5" data-track-index="1"></video></div>
       </div>
       <div id="wash" class="clip" data-start="0" data-duration="27.5" data-track-index="2"></div>
+      <div id="flash" class="clip" data-start="0" data-duration="27.5" data-track-index="9"></div>
 
       <!-- card-01 · hook -->
       <div id="card-01" class="card-host clip" data-card-id="card-01" data-start="0.2" data-duration="3.64" data-track-index="3">
@@ -156,9 +170,28 @@
             <svg class="ic" viewBox="0 0 100 100"><path d="M50 30 Q36 22 16 26 V76 Q36 72 50 80 Q64 72 84 76 V26 Q64 22 50 30 Z M50 30 V80" /></svg>
             <span>1st Year <i>MBBS</i> Guide</span>
           </div>
+          <svg class="lines" viewBox="0 0 1080 1920">
+            <!-- corner brackets framing the speaker -->
+            <g data-out="1.85">
+              <path data-draw="0.35" d="M150 330 V260 H220" /><path data-draw="0.45" d="M860 260 H930 V330" />
+              <path data-draw="0.55" d="M930 1060 V1130 H860" /><path data-draw="0.65" d="M220 1130 H150 V1060" />
+            </g>
+            <!-- underline under First Year MBBS -->
+            <path data-draw="1.6" data-out="1.85" class="thin" d="M330 1322 Q540 1308 750 1320" />
+            <!-- hand-drawn loop around "Books" -->
+            <path data-draw="3.05" d="M500 1226 C580 1222 612 1250 610 1272 C608 1302 560 1318 490 1316 C410 1314 372 1296 376 1268 C380 1240 440 1224 520 1230" />
+          </svg>
           <div class="cap">
-            <div class="sm"><span class="w" data-t="1.95">Confused</span> <span class="w" data-t="2.45">about</span></div>
-            <div class="kw"><span class="w" data-t="2.64">Which</span> <span class="w" data-t="3.0">Books</span> <span class="w" data-t="3.34">to Study?</span></div>
+            <div class="stack-cap">
+              <div data-out="1.88">
+                <div class="sm"><span class="w" data-t="0.25">Just</span> <span class="w" data-t="0.4">entered</span></div>
+                <div class="kw"><span class="w" data-t="0.8">First</span> <span class="w" data-t="1.17">Year</span> <span class="w" data-t="1.46"><span class="up">MBBS</span></span></div>
+              </div>
+              <div>
+                <div class="sm"><span class="w" data-t="1.92">and</span> <span class="w" data-t="2.0">confused</span> <span class="w" data-t="2.49">about</span></div>
+                <div class="kw"><span class="w" data-t="2.64">Which</span> <span class="w" data-t="3.0">Books</span> <span class="w" data-t="3.34">to Study?</span></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -168,8 +201,9 @@
         <div class="card full" data-card-id="card-02">
           <span class="plus" style="left:52px;top:228px">+</span><span class="plus" style="right:52px;top:228px">+</span>
           <div class="panel" data-t="3.9" data-fx="rise">
+            <svg class="edge" viewBox="0 0 940 640"><rect data-draw="3.9" x="1.5" y="1.5" width="937" height="637" rx="27" /></svg>
             <div class="chip"><i>01</i>Subjects</div>
-            <div class="link" data-t="4.5" data-fx="grow"></div>
+            <svg class="lines" viewBox="0 0 940 640" style="width:940px;height:640px"><path id="flow-02" data-draw="4.5" class="thin dash" d="M150 272 H790" /></svg>
             <div class="subjects">
               <div class="subj" data-t="5.33" data-fx="pop">
                 <div class="ring">
@@ -212,9 +246,11 @@
               <div class="num" data-t="8.74" data-fx="pop">4</div>
               <div class="kw"><span class="w" data-t="9.02">Major</span> <span class="w" data-t="9.37">Components</span></div>
             </div>
-            <div class="dots">
-              <span data-t="9.55" data-fx="pop"></span><span data-t="9.65" data-fx="pop"></span><span data-t="9.75" data-fx="pop"></span><span data-t="9.85" data-fx="pop"></span>
-            </div>
+            <svg class="branch" viewBox="0 0 520 90" style="display:block;margin:10px auto 0;width:520px;height:90px;overflow:visible">
+              <path data-draw="9.45" d="M260 0 V30 M60 30 H460 M60 30 V70 M193 30 V70 M327 30 V70 M460 30 V70" />
+              <circle data-t="9.7" data-fx="fade" cx="60" cy="78" r="8" /><circle data-t="9.78" data-fx="fade" cx="193" cy="78" r="8" />
+              <circle data-t="9.86" data-fx="fade" cx="327" cy="78" r="8" /><circle data-t="9.94" data-fx="fade" cx="460" cy="78" r="8" />
+            </svg>
           </div>
         </div>
       </div>
@@ -224,6 +260,7 @@
         <div class="card full" data-card-id="card-04">
           <span class="plus" style="left:52px;top:228px">+</span><span class="plus" style="right:52px;top:228px">+</span>
           <div class="panel" data-t="10.25" data-fx="rise">
+            <svg class="edge" viewBox="0 0 940 640"><rect data-draw="10.25" x="1.5" y="1.5" width="937" height="637" rx="27" /></svg>
             <div class="chip"><i>02</i>Anatomy</div>
             <div class="grid">
               <div class="tile" data-on="10.44">
@@ -274,6 +311,10 @@
             <div class="kw"><span class="w" data-t="15.83">actually</span> <span class="w" data-t="16.33">choose?</span></div>
             <svg class="swoosh" viewBox="0 0 380 30"><path data-draw="16.55" d="M8 20 Q140 4 372 14" /></svg>
           </div>
+          <svg class="lines" viewBox="0 0 1080 1920">
+            <path data-draw="16.45" d="M800 1240 L828 1218 M806 1272 L846 1270 M800 1304 L828 1326" />
+            <path data-draw="14.4" class="thin dash" d="M120 1170 H960" />
+          </svg>
         </div>
       </div>
 
@@ -282,6 +323,7 @@
         <div class="card full" data-card-id="card-06">
           <span class="plus" style="left:52px;top:228px">+</span><span class="plus" style="right:52px;top:228px">+</span>
           <div class="panel" data-t="17.1" data-fx="rise">
+            <svg class="edge" viewBox="0 0 940 640"><rect data-draw="17.1" x="1.5" y="1.5" width="937" height="637" rx="27" /></svg>
             <div class="chip"><i>03</i>Textbooks</div>
             <div class="books">
               <div class="bcol">
@@ -297,6 +339,7 @@
                 </div>
               </div>
               <div class="amp" data-t="19.2" data-fx="pop">&amp;</div>
+              <svg class="lines" viewBox="0 0 940 640" style="width:940px;height:640px"><path data-draw="19.0" class="thin dash" d="M240 150 Q470 40 700 150" /><path data-draw="19.5" class="thin" d="M686 132 L700 150 L678 156" /></svg>
               <div class="bcol">
                 <svg class="stack" viewBox="0 0 200 200">
                   <g data-t="19.31" data-fx="drop"><rect class="b3" x="28" y="152" width="144" height="28" rx="4" /><line class="b3l" x1="46" y1="160" x2="46" y2="172" /></g>
@@ -326,6 +369,7 @@
       <!-- card-07 · call to action -->
       <div id="card-07" class="card-host clip" data-card-id="card-07" data-start="22.75" data-duration="4.75" data-track-index="3">
         <div class="card" data-card-id="card-07">
+          <svg class="lines" viewBox="0 0 1080 1920"><path data-draw="23.0" data-dir="up" class="dash" d="M900 1170 C1010 900 1000 420 800 210" /><path data-draw="23.55" d="M836 214 L800 210 L808 246" /></svg>
           <div class="pill light" id="cta-pill" data-t="22.86" data-fx="pop">
             <svg class="ic" viewBox="0 0 100 100" style="--mint:#053264"><path d="M20 24 H80 Q86 24 86 30 V62 Q86 68 80 68 H46 L32 82 V68 H20 Q14 68 14 62 V30 Q14 24 20 24 Z" /><path d="M32 46 H68" /></svg>
             <span>Comment <i>“Books”</i></span>
@@ -341,6 +385,34 @@
           </div>
         </div>
       </div>
+
+      <!-- sound effects (bundled HyperFrames library), kept under the voice -->
+      <audio id="sfx-01" class="clip" src="sfx/pop.mp3" data-start="0.3" data-duration="0.72" data-track-index="10" data-volume="0.28"></audio>
+      <audio id="sfx-02" class="clip" src="sfx/whoosh-short.mp3" data-start="0.8" data-duration="0.57" data-track-index="11" data-volume="0.22"></audio>
+      <audio id="sfx-03" class="clip" src="sfx/click-soft.mp3" data-start="3.05" data-duration="0.37" data-track-index="10" data-volume="0.35"></audio>
+      <audio id="sfx-04" class="clip" src="sfx/whoosh.mp3" data-start="3.84" data-duration="0.57" data-track-index="10" data-volume="0.32"></audio>
+      <audio id="sfx-05" class="clip" src="sfx/pop.mp3" data-start="5.33" data-duration="0.72" data-track-index="10" data-volume="0.3"></audio>
+      <audio id="sfx-06" class="clip" src="sfx/pop.mp3" data-start="5.92" data-duration="0.72" data-track-index="11" data-volume="0.3"></audio>
+      <audio id="sfx-07" class="clip" src="sfx/pop.mp3" data-start="6.78" data-duration="0.72" data-track-index="10" data-volume="0.3"></audio>
+      <audio id="sfx-08" class="clip" src="sfx/whoosh-short.mp3" data-start="7.8" data-duration="0.57" data-track-index="10" data-volume="0.3"></audio>
+      <audio id="sfx-09" class="clip" src="sfx/ping.mp3" data-start="8.74" data-duration="1.32" data-track-index="10" data-volume="0.22"></audio>
+      <audio id="sfx-10" class="clip" src="sfx/whoosh.mp3" data-start="10.25" data-duration="0.57" data-track-index="10" data-volume="0.32"></audio>
+      <audio id="sfx-11" class="clip" src="sfx/click.mp3" data-start="10.44" data-duration="0.37" data-track-index="11" data-volume="0.28"></audio>
+      <audio id="sfx-12" class="clip" src="sfx/click.mp3" data-start="11.2" data-duration="0.37" data-track-index="10" data-volume="0.28"></audio>
+      <audio id="sfx-13" class="clip" src="sfx/click.mp3" data-start="12.06" data-duration="0.37" data-track-index="10" data-volume="0.28"></audio>
+      <audio id="sfx-14" class="clip" src="sfx/click.mp3" data-start="13.1" data-duration="0.37" data-track-index="10" data-volume="0.28"></audio>
+      <audio id="sfx-15" class="clip" src="sfx/whoosh-short.mp3" data-start="14.3" data-duration="0.57" data-track-index="10" data-volume="0.3"></audio>
+      <audio id="sfx-16" class="clip" src="sfx/sparkle.mp3" data-start="16.4" data-duration="1.80" data-track-index="10" data-volume="0.2"></audio>
+      <audio id="sfx-17" class="clip" src="sfx/whoosh.mp3" data-start="17.05" data-duration="0.57" data-track-index="11" data-volume="0.32"></audio>
+      <audio id="sfx-18" class="clip" src="sfx/pop.mp3" data-start="17.84" data-duration="0.72" data-track-index="11" data-volume="0.3"></audio>
+      <audio id="sfx-19" class="clip" src="sfx/pop.mp3" data-start="19.31" data-duration="0.72" data-track-index="10" data-volume="0.3"></audio>
+      <audio id="sfx-20" class="clip" src="sfx/ping.mp3" data-start="20.64" data-duration="1.32" data-track-index="10" data-volume="0.22"></audio>
+      <audio id="sfx-21" class="clip" src="sfx/whoosh-short.mp3" data-start="22.75" data-duration="0.57" data-track-index="10" data-volume="0.3"></audio>
+      <audio id="sfx-22" class="clip" src="sfx/pop.mp3" data-start="22.86" data-duration="0.72" data-track-index="11" data-volume="0.3"></audio>
+      <audio id="sfx-23" class="clip" src="sfx/click-soft.mp3" data-start="25.82" data-duration="0.37" data-track-index="10" data-volume="0.4"></audio>
+      <audio id="sfx-24" class="clip" src="sfx/click-soft.mp3" data-start="25.99" data-duration="0.37" data-track-index="11" data-volume="0.4"></audio>
+      <audio id="sfx-25" class="clip" src="sfx/click-soft.mp3" data-start="26.56" data-duration="0.37" data-track-index="10" data-volume="0.4"></audio>
+      <audio id="sfx-26" class="clip" src="sfx/chime.mp3" data-start="26.75" data-duration="0.75" data-track-index="11" data-volume="0.22"></audio>
 
       <script src="vendor/gsap.min.js"></script>
       <script>
@@ -364,6 +436,7 @@
             rise: [{ opacity: 0, y: 40, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "power3.out" }],
             pop: [{ opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.7)" }],
             grow: [{ scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "power2.inOut" }],
+            fade: [{ opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }],
             drop: [{ opacity: 0, y: -70 }, { opacity: 1, y: 0, duration: 0.45, ease: "back.out(1.4)" }],
           };
           stage.querySelectorAll("[data-t]").forEach((el) => {
@@ -374,8 +447,15 @@
             tl.to(el, { opacity: 0, y: -12, filter: "blur(6px)", duration: 0.2, ease: "power2.in" }, q(parseFloat(el.dataset.out)));
           });
 
-          // Line drawings
+          // Line drawings (dashed lines reveal with a clip and keep flowing)
           stage.querySelectorAll("[data-draw]").forEach((el) => {
+            const t0 = q(parseFloat(el.dataset.draw));
+            if (el.classList.contains("dash")) {
+              const from = el.dataset.dir === "up" ? "inset(100% 0% 0% 0%)" : "inset(0% 100% 0% 0%)";
+              tl.fromTo(el, { clipPath: from }, { clipPath: "inset(0% 0% 0% 0%)", duration: 0.7, ease: "power2.inOut" }, t0);
+              tl.fromTo(el, { strokeDashoffset: 0 }, { strokeDashoffset: -88, duration: 2.2, ease: "none" }, t0);
+              return;
+            }
             const L = el.getTotalLength();
             tl.fromTo(el, { strokeDasharray: L, strokeDashoffset: L }, { strokeDashoffset: 0, duration: 0.6, ease: "power2.inOut" }, q(parseFloat(el.dataset.draw)));
           });
@@ -391,6 +471,30 @@
             const t = q(parseFloat(el.dataset.on));
             tl.to(el, { opacity: 1, borderColor: "#ccffbc", backgroundColor: "rgba(204,255,188,0.10)", duration: 0.3, ease: "power2.out" }, t);
             tl.fromTo(el.querySelector("svg"), { scale: 0.7, rotation: -8 }, { scale: 1, rotation: 0, duration: 0.45, ease: "back.out(1.8)" }, t);
+          });
+
+          // Video effects: slow push-ins and word-timed punch-ins on the footage
+          const Z = "#video-zoom";
+          tl.fromTo(Z, { scale: 1 }, { scale: 1.07, duration: 3.6, ease: "none" }, 0);
+          tl.set(Z, { scale: 1.15 }, q(7.8));
+          tl.to(Z, { scale: 1.1, duration: 2.4, ease: "power1.out" }, q(7.8));
+          tl.set(Z, { scale: 1.0 }, q(14.3));
+          tl.to(Z, { scale: 1.04, duration: 1.5, ease: "none" }, q(14.3));
+          tl.to(Z, { scale: 1.13, duration: 0.25, ease: "power3.out" }, q(15.83));
+          tl.to(Z, { scale: 1.16, duration: 0.9, ease: "none" }, q(16.1));
+          tl.set(Z, { scale: 1.14 }, q(22.75));
+          tl.to(Z, { scale: 1.0, duration: 0.6, ease: "power3.out" }, q(22.75));
+          tl.to(Z, { scale: 1.06, duration: 4.1, ease: "none" }, q(23.4));
+
+          // Soft mint light flash on every cut back to the camera
+          [7.8, 14.3, 22.75].forEach((t) => {
+            tl.fromTo("#flash", { opacity: 0.55 }, { opacity: 0, duration: 0.45, ease: "power2.out" }, q(t));
+          });
+
+          // Full-screen cards zoom-blur in
+          stage.querySelectorAll(".card.full").forEach((c) => {
+            const t = q(parseFloat(c.parentElement.dataset.start));
+            tl.fromTo(c, { scale: 1.08, filter: "blur(14px)" }, { scale: 1, filter: "blur(0px)", duration: 0.45, ease: "power3.out" }, t);
           });
 
           // Gentle pulse on the CTA pill
