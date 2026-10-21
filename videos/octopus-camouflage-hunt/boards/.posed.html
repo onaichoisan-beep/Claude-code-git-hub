@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Octopus Camouflage — The Hunt</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #04121a;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #04121a;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <!-- 180x320 pixel world, upscaled 6x -->
+        <canvas id="world" width="180" height="320"></canvas>
+        <!-- 360x640 caption layer, upscaled 3x -->
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+    </div>
+    <script>
+      // ---------------------------------------------------------------
+      // Palette (frame.md). Every world pixel is snapped to one of these.
+      // ---------------------------------------------------------------
+      var C = {
+        abyss: "#04121a", deep: "#06202b", water1: "#0a2f3c", water2: "#0e4250",
+        water3: "#145a66", water4: "#1d7a80", shaft: "#3fa6a0", glow: "#8fd9c8",
+        sandDark: "#3a3a33", sand: "#6d6650", sandLight: "#a39a74",
+        rockDark: "#2b3436", rock: "#4a5654", rockLight: "#6f7d76", moss: "#3f6a4a",
+        coralDeep: "#7a2f4c", coral: "#d9607a", coralLight: "#f29aa6", anemone: "#f2c46d", kelp: "#2f6b3f",
+        octoDark: "#7a1f1a", octo: "#d8462b", octoLight: "#ff8a4a",
+        crab: "#e0703a", crabDark: "#8a3a22",
+        ink: "#06050a", paper: "#f1eef4", gold: "#ffd23f",
+      };
+      function hex(h) {
+        return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+      }
+      var PAL = Object.keys(C).map(function (k) { return hex(C[k]); });
+      function mix(a, b, t) {
+        var x = hex(a), y = hex(b);
+        t = Math.max(0, Math.min(1, t));
+        return "rgb(" + Math.round(x[0] + (y[0] - x[0]) * t) + "," + Math.round(x[1] + (y[1] - x[1]) * t) + "," + Math.round(x[2] + (y[2] - x[2]) * t) + ")";
+      }
+
+      // ---------------------------------------------------------------
+      // Deterministic helpers
+      // ---------------------------------------------------------------
+      function rng(seed) {
+        return function () {
+          seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
+          var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      function hash1(n) {
+        var x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+        return x - Math.floor(x);
+      }
+      function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+      function sstep(a, b, x) { var t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); }
+      function ease(t) { return 0.5 - 0.5 * Math.cos(Math.PI * clamp01(t)); }
+      function ramp(t, a, b) { return ease((t - a) / (b - a)); }
+
+      // ---------------------------------------------------------------
+      // Camera: [time, x, y, zoom]. Zoom eases in log space and the
+      // position follows the zoom so the camera dives toward its target.
+      // ---------------------------------------------------------------
+      var CAM = [
+        [0, 100, 212, 1.5],
+        [4, 104, 214, 1.55],
+        [8.5, 108, 228, 2.1],
+        [11, 126, 233, 22],
+        [13.6, 126.6, 233.4, 24],
+        [15, 128, 224, 6],
+        [17.4, 129, 224, 6.4],
+        [18.8, 112, 234, 2.5],
+        [22.2, 113, 234, 2.6],
+        [25.8, 116, 236, 4.2],
+        [29.2, 100, 212, 1.5],
+        [30, 100, 212, 1.5],
+      ];
+      function camera(t) {
+        var i = 0;
+        while (i < CAM.length - 2 && t > CAM[i + 1][0]) i++;
+        var a = CAM[i], b = CAM[i + 1];
+        var e = ease((t - a[0]) / (b[0] - a[0]));
+        var z = Math.exp(Math.log(a[3]) + (Math.log(b[3]) - Math.log(a[3])) * e);
+        var k = e;
+        if (Math.abs(Math.log(b[3] / a[3])) > 0.1) k = (1 - a[3] / z) / (1 - a[3] / b[3]);
+        var cam = { x: a[1] + (b[1] - a[1]) * k, y: a[2] + (b[2] - a[2]) * k, z: z };
+        // impact shake on the strike
+        var s = 1 - clamp01((t - 19.2) / 0.45);
+        if (t >= 19.2 && s > 0) {
+          var f = Math.floor(t * 30);
+          cam.x += (hash1(f) - 0.5) * 5 * s / cam.z;
+          cam.y += (hash1(f + 99) - 0.5) * 5 * s / cam.z;
+        }
+        return cam;
+      }
+
+      // ---------------------------------------------------------------
+      // Story state
+      // ---------------------------------------------------------------
+      function state(t) {
+        // camo: 1 = looks exactly like rock, 0 = full octopus orange-red
+        var camo = 1;
+        if (t >= 19.2) camo = 1 - ramp(t, 19.2, 19.36);
+        if (t >= 23.2) camo = ramp(t, 23.2, 25.8);
+        // eye: a quick blink in the hook, opens when the crab arrives
+        var eye = 0;
+        if (t > 2.5 && t < 3.1) eye = Math.sin(Math.PI * (t - 2.5) / 0.6) * 0.8;
+        if (t >= 5.4) eye = ramp(t, 5.4, 5.8) * (1 - ramp(t, 27.4, 28.2));
+        // papillae: rest = rocky lumps; texture beat smooths then spikes
+        var pap = 1;
+        if (t > 14.8 && t < 18.6) pap = 1 - 0.85 * ramp(t, 14.8, 15.6) + 1.65 * ramp(t, 15.9, 16.7) - 0.8 * ramp(t, 17.4, 18.6);
+        // arms
+        var arms = 0;
+        if (t >= 19.2) arms = 1 - Math.pow(1 - clamp01((t - 19.2) / 0.38), 3);
+        if (t >= 26.6) arms *= 1 - ramp(t, 26.6, 28.0);
+        // crab path
+        var crab = null;
+        if (t >= 4 && t < 28) {
+          var walk = t < 8.5 ? ramp(t, 4, 8.5) : 1;
+          var x = 30 + 50 * walk;
+          if (t >= 8.5) x = 80 + 14 * clamp01((t - 8.5) / 10);
+          var y = 250;
+          var held = 0;
+          if (t >= 19.45) {
+            held = ramp(t, 19.45, 19.8);
+            x = x + (106 - x) * held;
+            y = 250 - 4 * held;
+          }
+          if (t >= 26.6) {
+            var tuck = ramp(t, 26.6, 27.8);
+            x = 106 + 18 * tuck;
+            y = 246 - 2 * tuck;
+          }
+          crab = { x: x, y: y, held: held, walking: t < 19.2 && (t < 8.5 || t > 9) };
+        }
+        return { camo: camo, eye: eye, pap: pap, arms: arms, crab: crab };
+      }
+
+      // ---------------------------------------------------------------
+      // Canvases
+      // ---------------------------------------------------------------
+      var W = 180, H = 320;
+      var world = document.getElementById("world");
+      var wctx = world.getContext("2d");
+      var buf = document.createElement("canvas");
+      buf.width = W; buf.height = H;
+      var g = buf.getContext("2d", { willReadFrequently: true });
+      var ui = document.getElementById("ui");
+      var u = ui.getContext("2d", { willReadFrequently: true });
+
+      function setLayer(cam, f) {
+        // parallax layer: f = 1 is the main world plane
+        var z = Math.pow(cam.z, f);
+        var cx = 90 + (cam.x - 90) * f, cy = 160 + (cam.y - 160) * f;
+        g.setTransform(z, 0, 0, z, W / 2 - cx * z, H / 2 - cy * z);
+      }
+      function disc(x, y, r, col) {
+        g.fillStyle = col; g.beginPath(); g.arc(x, y, Math.max(r, 0.01), 0, 6.2832); g.fill();
+      }
+      function ell(x, y, rx, ry, col) {
+        g.fillStyle = col; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, 6.2832); g.fill();
+      }
+
+      // ----- background (screen space) -----
+      var BOKEH = (function () {
+        var r = rng(7), a = [];
+        for (var i = 0; i < 11; i++) a.push({ x: r() * 200 - 10, y: r() * 260, r: 5 + r() * 12, s: r() * 6, a: 0.08 + r() * 0.1 });
+        return a;
+      })();
+      function drawBackground(t, cam) {
+        g.setTransform(1, 0, 0, 1, 0, 0);
+        var depth = clamp01((cam.y - 160) / 120);
+        var gr = g.createLinearGradient(0, 0, 0, H);
+        gr.addColorStop(0, mix(C.water4, C.water3, depth));
+        gr.addColorStop(0.45, C.water2);
+        gr.addColorStop(1, C.deep);
+        g.fillStyle = gr; g.fillRect(0, 0, W, H);
+        // posterized halo rings from the surface light
+        var hx = 132 - (cam.x - 90) * 0.15, hy = 14 - (cam.y - 160) * 0.1;
+        var rings = [[64, 0.1], [46, 0.14], [32, 0.2], [20, 0.3], [11, 0.55], [5, 0.9]];
+        for (var i = 0; i < rings.length; i++) {
+          g.globalAlpha = rings[i][1];
+          disc(hx, hy, rings[i][0] * (1 + 0.03 * Math.sin(t * 1.3 + i)), i > 3 ? C.glow : C.shaft);
+        }
+        g.globalAlpha = 1;
+        // bokeh
+        for (var j = 0; j < BOKEH.length; j++) {
+          var b = BOKEH[j];
+          var bx = ((b.x - (cam.x - 90) * 0.25 + t * 1.2 + 400) % 220) - 20;
+          var by = b.y + Math.sin(t * 0.5 + b.s) * 4 - (cam.y - 160) * 0.15;
+          g.globalAlpha = b.a;
+          disc(bx, by, b.r, C.glow);
+        }
+        g.globalAlpha = 1;
+      }
+
+      // ----- far reef silhouettes (parallax 0.4) -----
+      function drawFar(t, cam) {
+        setLayer(cam, 0.4);
+        var r = rng(21);
+        g.fillStyle = C.water1;
+        g.beginPath(); g.moveTo(-200, 400);
+        for (var x = -200; x <= 400; x += 6) g.lineTo(x, 214 + Math.sin(x * 0.07) * 6 + r() * 8);
+        g.lineTo(400, 400); g.closePath(); g.fill();
+        for (var i = 0; i < 9; i++) {
+          var cx = -60 + i * 38 + r() * 20, h = 18 + r() * 26;
+          g.fillStyle = C.water1;
+          for (var k = 0; k < 4; k++) {
+            g.fillRect(cx + k * 3 - 5, 214 - h * (0.5 + 0.5 * Math.sin(k * 1.7 + i)), 2, h);
+          }
+        }
+      }
+
+      // ----- sand, coral, kelp (main plane) -----
+      var SAND = (function () {
+        var r = rng(3), a = [];
+        for (var i = 0; i < 90; i++) a.push({ x: r() * 260 - 40, y: 251 + r() * 80, w: 2 + r() * 6, c: r() });
+        return a;
+      })();
+      function drawSand(t) {
+        g.fillStyle = C.sand;
+        g.beginPath(); g.moveTo(-60, 400);
+        for (var x = -60; x <= 260; x += 4) g.lineTo(x, 250 + Math.sin(x * 0.05) * 1.5);
+        g.lineTo(260, 400); g.closePath(); g.fill();
+        g.fillStyle = C.sandLight;
+        for (var x2 = -60; x2 <= 260; x2 += 4) g.fillRect(x2, 250 + Math.sin(x2 * 0.05) * 1.5, 4, 1);
+        for (var i = 0; i < SAND.length; i++) {
+          var s = SAND[i];
+          g.fillStyle = s.c < 0.6 ? C.sandDark : s.c < 0.85 ? C.sandLight : C.coralLight;
+          g.fillRect(s.x, s.y, s.c < 0.85 ? s.w : 1, 1);
+        }
+        // caustic flicker on the sand
+        g.globalAlpha = 0.22;
+        for (var j = 0; j < 14; j++) {
+          var cx = ((j * 23 + t * 6) % 300) - 50, cy = 256 + (j % 5) * 9;
+          g.fillStyle = C.sandLight;
+          g.fillRect(cx + Math.sin(t * 2 + j) * 3, cy, 5 + (j % 3) * 2, 1);
+        }
+        g.globalAlpha = 1;
+      }
+      function drawKelp(t, x0, h, seed) {
+        for (var y = 0; y < h; y += 1) {
+          var sway = Math.sin(t * 1.1 + y * 0.06 + seed) * (y / h) * 7;
+          var w = 2.4 - (y / h) * 1.2;
+          g.fillStyle = (Math.floor(y / 5) % 3 === 0) ? C.moss : C.kelp;
+          g.fillRect(x0 + sway - w / 2, 252 - y, w, 1.2);
+          if (y % 14 === 7) { g.fillStyle = C.kelp; g.fillRect(x0 + sway + 1, 252 - y, 4, 2); }
+        }
+      }
+      function branch(x, y, ang, len, w, depth, r, t) {
+        if (depth === 0 || len < 2) return;
+        var sw = Math.sin(t * 0.9 + x * 0.1) * 0.03 * (5 - depth);
+        var x2 = x + Math.cos(ang + sw) * len, y2 = y + Math.sin(ang + sw) * len;
+        g.strokeStyle = depth > 2 ? C.coral : C.coralLight;
+        g.lineWidth = w; g.lineCap = "round";
+        g.beginPath(); g.moveTo(x, y); g.lineTo(x2, y2); g.stroke();
+        branch(x2, y2, ang - 0.45 - r() * 0.3, len * 0.72, w * 0.75, depth - 1, r, t);
+        branch(x2, y2, ang + 0.4 + r() * 0.3, len * 0.7, w * 0.75, depth - 1, r, t);
+      }
+      function drawCoral(t) {
+        // sea fan behind
+        g.globalAlpha = 0.85;
+        g.strokeStyle = C.coralDeep; g.lineWidth = 0.8;
+        for (var i = 0; i < 12; i++) {
+          var a = -Math.PI / 2 + (i - 5.5) * 0.11;
+          g.beginPath(); g.moveTo(44, 250); g.lineTo(44 + Math.cos(a) * 40, 250 + Math.sin(a) * 40); g.stroke();
+        }
+        for (var k = 1; k < 5; k++) { g.beginPath(); g.arc(44, 250, k * 9, -Math.PI / 2 - 0.66, -Math.PI / 2 + 0.66); g.stroke(); }
+        g.globalAlpha = 1;
+        // branching coral
+        branch(22, 252, -Math.PI / 2 - 0.15, 16, 3, 5, rng(11), t);
+        branch(62, 252, -Math.PI / 2 + 0.2, 12, 2.5, 4, rng(12), t);
+        // brain coral dome
+        ell(36, 251, 14, 9, C.coralDeep);
+        ell(35, 249, 12, 6.5, C.coral);
+        g.strokeStyle = C.coralDeep; g.lineWidth = 0.7;
+        for (var j = 0; j < 5; j++) { g.beginPath(); g.ellipse(35, 252, 2 + j * 2.4, 1 + j * 1.3, 0, Math.PI, 2 * Math.PI); g.stroke(); }
+        disc(31, 245, 0.8, C.coralLight);
+        // anemone on the right
+        for (var n = 0; n < 9; n++) {
+          var base = 166 + n * 1.6;
+          var len = 9 + (n % 3) * 2;
+          g.strokeStyle = n % 2 ? C.anemone : C.coralLight; g.lineWidth = 1;
+          g.beginPath(); g.moveTo(base, 251);
+          g.quadraticCurveTo(base + Math.sin(t * 1.6 + n) * 3, 251 - len * 0.6, base + Math.sin(t * 1.6 + n + 1) * 5, 251 - len);
+          g.stroke();
+        }
+        ell(173, 251, 8, 2.5, C.coralDeep);
+      }
+
+      // ----- rocks & the octopus -----
+      function blotches(seed, cx, cy, rx, ry) {
+        var r = rng(seed), a = [];
+        for (var i = 0; i < 70; i++) {
+          var ang = r() * 6.2832, d = Math.sqrt(r());
+          a.push({ x: cx + Math.cos(ang) * rx * d, y: cy + Math.sin(ang) * ry * d, r: 0.8 + r() * 2.4, k: r(), n: r() });
+        }
+        return a;
+      }
+      var OCTO = { x: 126, y: 238, rx: 18, ry: 13 };
+      var ROCK = { x: 156, y: 244, rx: 13, ry: 9 };
+      var FG = { x: 34, y: 312, rx: 46, ry: 16 };
+      var OCTO_B = blotches(41, OCTO.x, OCTO.y - 3, OCTO.rx, OCTO.ry);
+      var ROCK_B = blotches(42, ROCK.x, ROCK.y - 2, ROCK.rx, ROCK.ry);
+      var FG_B = blotches(43, FG.x, FG.y, FG.rx, FG.ry);
+      var BUMPS = (function () {
+        var r = rng(51), a = [];
+        for (var i = 0; i < 15; i++) a.push({ a: Math.PI + 0.18 + (i / 14) * (Math.PI - 0.36), h: 0.8 + r() * 0.7, w: 0.09 + r() * 0.05 });
+        return a;
+      })();
+      function rockCol(k) { return k < 0.35 ? C.rock : k < 0.6 ? C.rockDark : k < 0.8 ? C.rockLight : k < 0.94 ? C.moss : C.coralLight; }
+      function octoCol(k) { return k < 0.45 ? C.octo : k < 0.75 ? C.octoDark : C.octoLight; }
+      function skin(k, n, camo) {
+        // each patch flips at its own moment -> mottled flicker transition
+        var local = sstep(n * 0.55, n * 0.55 + 0.45, camo);
+        return mix(octoCol(k), rockCol(k), local);
+      }
+      function domePath(o, pap) {
+        g.beginPath();
+        var steps = 64;
+        for (var i = 0; i <= steps; i++) {
+          var a = Math.PI + (i / steps) * Math.PI;
+          var bump = 0;
+          for (var j = 0; j < BUMPS.length; j++) {
+            var d = (a - BUMPS[j].a) / BUMPS[j].w;
+            var spike = sstep(1, 1.6, pap);
+            var sharp = Math.exp(-d * d) * (1 - spike) + Math.max(0, 1 - Math.abs(d) * 0.8) * spike;
+            bump += sharp * BUMPS[j].h * pap * (1.6 + 1.4 * spike);
+          }
+          var x = o.x + Math.cos(a) * (o.rx + bump), y = o.y + Math.sin(a) * (o.ry + bump);
+          if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
+        }
+        // lumpy base (tucked arm curls)
+        for (var b = 0; b <= 8; b++) {
+          var bx = o.x + o.rx - b * (o.rx * 2 / 8);
+          g.lineTo(bx, o.y + 9 + Math.sin(b * 2.1) * 1.6);
+        }
+        g.closePath();
+      }
+      function drawRock(o, bl, seed) {
+        g.save();
+        g.beginPath(); g.ellipse(o.x, o.y, o.rx, o.ry, 0, Math.PI, 2 * Math.PI);
+        g.lineTo(o.x - o.rx, o.y + 5); g.lineTo(o.x + o.rx, o.y + 5); g.closePath();
+        g.fillStyle = C.rock; g.fill(); g.clip();
+        for (var i = 0; i < bl.length; i++) disc(bl[i].x, bl[i].y, bl[i].r, rockCol(bl[i].k));
+        ell(o.x - o.rx * 0.35, o.y - o.ry * 0.7, o.rx * 0.45, o.ry * 0.25, C.rockLight);
+        g.restore();
+      }
+      function drawOctopus(t, s) {
+        var o = OCTO;
+        g.save();
+        domePath(o, s.pap);
+        g.fillStyle = mix(C.octo, C.rock, s.camo); g.fill();
+        g.clip();
+        for (var i = 0; i < OCTO_B.length; i++) {
+          var b = OCTO_B[i];
+          disc(b.x, b.y, b.r, skin(b.k, b.n, s.camo));
+        }
+        // top highlight + shaded underside
+        g.globalAlpha = 0.9;
+        ell(o.x - 7, o.y - 10, 7, 2.5, mix(C.octoLight, C.rockLight, s.camo));
+        g.globalAlpha = 0.6;
+        ell(o.x, o.y + 9, o.rx + 2, 4, mix(C.octoDark, C.rockDark, s.camo));
+        g.globalAlpha = 1;
+        // breathing siphon pulse
+        g.restore();
+      }
+      // chromatophore cells, only resolvable in the macro dive
+      var CELLS = (function () {
+        var r = rng(77), a = [];
+        for (var y = 222; y <= 246; y += 0.85) {
+          for (var x = 112; x <= 140; x += 0.85) {
+            var jx = (r() - 0.5) * 0.35, jy = (r() - 0.5) * 0.35;
+            var k = r();
+            a.push({ x: x + jx + ((Math.round(y / 0.85) % 2) * 0.42), y: y + jy, s: r(), col: k < 0.4 ? C.crabDark : k < 0.65 ? C.octo : k < 0.85 ? C.anemone : C.octoDark });
+          }
+        }
+        return a;
+      })();
+      function drawCells(t, s, cam) {
+        var vis = clamp01((cam.z - 7) / 5);
+        if (vis <= 0) return;
+        var o = OCTO;
+        g.save();
+        domePath(o, s.pap); g.clip();
+        g.globalAlpha = vis;
+        g.fillStyle = C.sandLight; g.fillRect(o.x - 30, o.y - 30, 60, 60);
+        var halfW = 90 / cam.z + 1, halfH = 160 / cam.z + 1;
+        for (var i = 0; i < CELLS.length; i++) {
+          var c = CELLS[i];
+          if (Math.abs(c.x - cam.x) > halfW || Math.abs(c.y - cam.y) > halfH) continue;
+          var d = Math.hypot(c.x - 126, c.y - 233);
+          var wave = 0.5 + 0.5 * Math.sin(t * 2.6 - d * 1.1 + c.s * 6.28);
+          var big = Math.exp(-Math.pow((d - (t - 11.4) * 4), 2) / 3);
+          var open = clamp01(0.2 + 0.6 * wave + 0.6 * big);
+          disc(c.x, c.y, 0.36, C.rockDark);
+          disc(c.x, c.y, 0.3, C.sandLight);
+          g.strokeStyle = C.rockDark; g.lineWidth = 0.035;
+          for (var m = 0; m < 6; m++) {
+            var a = m * 1.047 + c.s;
+            g.beginPath(); g.moveTo(c.x + Math.cos(a) * 0.1, c.y + Math.sin(a) * 0.1);
+            g.lineTo(c.x + Math.cos(a) * 0.33, c.y + Math.sin(a) * 0.33); g.stroke();
+          }
+          disc(c.x, c.y, 0.07 + 0.22 * open, c.col);
+          if (open > 0.7) disc(c.x - 0.06, c.y - 0.06, 0.03, C.paper);
+        }
+        g.globalAlpha = 1;
+        g.restore();
+      }
+      function drawEye(t, s, crab) {
+        if (s.eye <= 0.02) return;
+        var ex = 114, ey = 233;
+        var col = s.camo;
+        ell(ex, ey, 3.6, 3 * s.eye + 0.4, mix(C.octoDark, C.rockDark, col));
+        ell(ex, ey, 2.7, 2.1 * s.eye, C.anemone);
+        var look = crab ? Math.max(-0.8, Math.min(0.8, (crab.x - ex) / 30)) : 0;
+        g.fillStyle = C.ink;
+        g.fillRect(ex - 1.4 + look, ey - 0.45 * s.eye, 2.8, Math.max(0.6, 0.9 * s.eye));
+        if (s.eye > 0.5) { g.fillStyle = C.paper; g.fillRect(ex + 1, ey - 1.4, 0.8, 0.8); }
+      }
+      var ARMS = (function () {
+        var r = rng(88), a = [];
+        for (var i = 0; i < 8; i++) a.push({ bx: 112 + i * 3.6, ang: (i / 8) * 6.2832 + r() * 0.4, rr: 4 + r() * 3.5, ph: r() * 6 });
+        return a;
+      })();
+      function drawArms(t, s) {
+        if (s.arms <= 0.01 || !s.crab) return;
+        var cx = s.crab.x, cy = s.crab.y - 2;
+        for (var i = 0; i < ARMS.length; i++) {
+          var A = ARMS[i];
+          var bx = A.bx, by = 245;
+          var wig = Math.sin(t * 3 + A.ph) * 0.6;
+          var tx = cx + Math.cos(A.ang + t * 0.8) * (A.rr + wig), ty = cy + Math.sin(A.ang + t * 0.8) * (A.rr * 0.55 + wig);
+          var qx = (bx + tx) / 2 + Math.sin(A.ph) * 4, qy = Math.min(by, ty) - 10 + i % 3 * 2;
+          var n = 26;
+          for (var k = 0; k <= n * s.arms; k++) {
+            var u = k / n, iu = 1 - u;
+            var x = iu * iu * bx + 2 * iu * u * qx + u * u * tx;
+            var y = iu * iu * by + 2 * iu * u * qy + u * u * ty;
+            var rad = 2.3 * (1 - u) + 0.45;
+            disc(x, y, rad, mix(i % 2 ? C.octoDark : C.octo, C.rock, s.camo));
+            if (k % 3 === 1 && rad > 0.8) disc(x, y + rad * 0.6, rad * 0.35, mix(C.octoLight, C.rockLight, s.camo));
+          }
+        }
+      }
+
+      // ----- the crab (pixel sprite) -----
+      var CRAB = [
+        ["....e.....e....", "....k.....k....", "cc..ooooooo..cc", "cc.oOOOOOOOo.cc", ".cooOOOOOOOOoc.", "..ooooooooooo..", ".k.k.k...k.k.k.", "k..k..k.k..k..k"],
+        ["....e.....e....", "....k.....k....", "cc..ooooooo..cc", "cc.oOOOOOOOo.cc", ".cooOOOOOOOOoc.", "..ooooooooooo..", "..k.k.k.k.k.k..", ".k..k..k..k..k."],
+      ];
+      var CRABCOL = { e: C.paper, k: C.crabDark, c: C.crab, o: C.crab, O: C.octoLight };
+      function drawCrab(t, c) {
+        if (!c) return;
+        var fr = c.walking ? Math.floor(t * 10) % 2 : 0;
+        var spr = CRAB[fr];
+        var ox = Math.round(c.x) - 7, oy = Math.round(c.y) - 6 + (c.walking && fr ? -0.5 : 0);
+        var snap = c.held > 0 ? 0 : (c.walking ? 0 : Math.floor(t * 4) % 2);
+        for (var y = 0; y < spr.length; y++) {
+          for (var x = 0; x < spr[y].length; x++) {
+            var ch = spr[y][x];
+            if (ch === ".") continue;
+            var dy = (ch === "c" && snap && y < 3) ? -1 : 0;
+            g.fillStyle = CRABCOL[ch];
+            g.fillRect(ox + x, oy + y + dy, 1, 1);
+          }
+        }
+        g.fillStyle = C.ink; g.fillRect(ox + 4, oy, 1, 0.5); g.fillRect(ox + 10, oy, 1, 0.5);
+      }
+
+      // ----- foreground rock with the hidden creator tag -----
+      var MINI = {
+        "@": ["111", "101", "111", "100", "011"], Y: ["101", "101", "010", "010", "010"], O: ["111", "101", "101", "101", "111"],
+        U: ["101", "101", "101", "101", "111"], R: ["110", "101", "110", "101", "101"], H: ["101", "101", "111", "101", "101"],
+        A: ["010", "101", "111", "101", "101"], N: ["101", "111", "111", "111", "101"], D: ["110", "101", "101", "101", "110"],
+        L: ["100", "100", "100", "100", "111"], E: ["111", "100", "110", "100", "111"],
+      };
+      function drawFG(t) {
+        drawRock(FG, FG_B);
+        var txt = "@YOURHANDLE", x0 = 8, y0 = 304;
+        for (var i = 0; i < txt.length; i++) {
+          var gl = MINI[txt[i]];
+          for (var y = 0; y < 5; y++) for (var x = 0; x < 3; x++) if (gl[y][x] === "1") {
+            g.fillStyle = C.rockDark; g.fillRect(x0 + i * 4 + x, y0 + y, 1, 1);
+          }
+        }
+      }
+
+      // ----- foreground particles (screen space) -----
+      var SNOW = (function () {
+        var r = rng(5), a = [];
+        for (var i = 0; i < 60; i++) a.push({ x: r() * W, y: r() * H, v: 1 + r() * 3, c: r() });
+        return a;
+      })();
+      var BUBBLES = (function () {
+        var r = rng(9), a = [];
+        for (var i = 0; i < 14; i++) a.push({ x: r() < 0.5 ? 20 + r() * 30 : 160 + r() * 16, d: r() * 9, r: 0.6 + r() * 1.2 });
+        return a;
+      })();
+      function drawBubbles(t) {
+        for (var i = 0; i < BUBBLES.length; i++) {
+          var b = BUBBLES[i];
+          var p = ((t + b.d) % 9) / 9;
+          var y = 250 - p * 240, x = b.x + Math.sin(t * 3 + i) * 1.5;
+          g.strokeStyle = C.glow; g.lineWidth = 0.5;
+          g.beginPath(); g.arc(x, y, b.r, 0, 6.2832); g.stroke();
+          g.fillStyle = C.paper; g.fillRect(x - b.r * 0.5, y - b.r * 0.5, 0.5, 0.5);
+        }
+      }
+      function drawOverlay(t, cam) {
+        g.setTransform(1, 0, 0, 1, 0, 0);
+        // light shafts
+        g.fillStyle = C.shaft;
+        for (var i = 0; i < 4; i++) {
+          var x = 20 + i * 44 - (cam.x - 90) * 0.2 + Math.sin(t * 0.4 + i) * 6;
+          var w = 10 + 5 * Math.sin(t * 0.7 + i * 2);
+          g.globalAlpha = 0.07 + 0.03 * Math.sin(t * 0.9 + i);
+          g.beginPath(); g.moveTo(x, -10); g.lineTo(x + w, -10); g.lineTo(x + w + 90, H); g.lineTo(x + 90, H); g.closePath(); g.fill();
+        }
+        // marine snow
+        for (var j = 0; j < SNOW.length; j++) {
+          var s = SNOW[j];
+          var sx = ((s.x - (cam.x - 90) * 0.5 * s.v + Math.sin(t * 0.6 + j) * 3) % W + W) % W;
+          var sy = ((s.y + t * s.v * 2 - (cam.y - 160) * 0.3 * s.v) % H + H) % H;
+          g.globalAlpha = 0.35 + 0.4 * s.c;
+          g.fillStyle = s.c > 0.85 ? C.paper : C.glow;
+          g.fillRect(Math.floor(sx), Math.floor(sy), 1, 1);
+        }
+        // vignette
+        g.globalAlpha = 1;
+        var vg = g.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.65);
+        vg.addColorStop(0, "rgba(4,18,26,0)");
+        vg.addColorStop(1, "rgba(4,18,26,0.7)");
+        g.fillStyle = vg; g.fillRect(0, 0, W, H);
+        // strike flash
+        if (t >= 19.2 && t < 19.3) { g.globalAlpha = 0.35; g.fillStyle = C.octoLight; g.fillRect(0, 0, W, H); }
+        g.globalAlpha = 1;
+      }
+
+      // ---------------------------------------------------------------
+      // Palette lock + 4x4 Bayer dither
+      // ---------------------------------------------------------------
+      var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+      var QCACHE = new Int16Array(64 * 64 * 64).fill(-1);
+      function nearest(r, gg, b) {
+        var best = 0, bd = 1e12;
+        for (var i = 0; i < PAL.length; i++) {
+          var p = PAL[i], dr = r - p[0], dg = gg - p[1], db = b - p[2];
+          var d = 2 * dr * dr + 4 * dg * dg + 3 * db * db;
+          if (d < bd) { bd = d; best = i; }
+        }
+        return best;
+      }
+      function quantize() {
+        var img = g.getImageData(0, 0, W, H), d = img.data;
+        for (var y = 0; y < H; y++) {
+          for (var x = 0; x < W; x++) {
+            var i = (y * W + x) * 4;
+            var off = (BAYER[(y & 3) * 4 + (x & 3)] / 16 - 0.47) * 26;
+            var r = d[i] + off, gg = d[i + 1] + off, b = d[i + 2] + off;
+            r = r < 0 ? 0 : r > 255 ? 255 : r; gg = gg < 0 ? 0 : gg > 255 ? 255 : gg; b = b < 0 ? 0 : b > 255 ? 255 : b;
+            var key = ((r >> 2) << 12) | ((gg >> 2) << 6) | (b >> 2);
+            var q = QCACHE[key];
+            if (q < 0) { q = nearest(r, gg, b); QCACHE[key] = q; }
+            var p = PAL[q];
+            d[i] = p[0]; d[i + 1] = p[1]; d[i + 2] = p[2]; d[i + 3] = 255;
+          }
+        }
+        wctx.putImageData(img, 0, 0);
+      }
+
+      // ---------------------------------------------------------------
+      // Captions: 5x7 bitmap font on the 360x640 layer
+      // ---------------------------------------------------------------
+      var FONT = {
+        A: "01110100011000111111100011000110001", B: "11110100011000111110100011000111110", C: "01110100011000010000100001000101110",
+        D: "11110100011000110001100011000111110", E: "11111100001000011110100001000011111", F: "11111100001000011110100001000010000",
+        G: "01110100011000010111100011000101111", H: "10001100011000111111100011000110001", I: "01110001000010000100001000010001110",
+        J: "00111000100001000010000101001001100", K: "10001100101010011000101001001010001", L: "10000100001000010000100001000011111",
+        M: "10001110111010110101100011000110001", N: "10001100011100110101100111000110001", O: "01110100011000110001100011000101110",
+        P: "11110100011000111110100001000010000", Q: "01110100011000110001101011001001101", R: "11110100011000111110101001001010001",
+        S: "01111100001000001110000010000111110", T: "11111001000010000100001000010000100", U: "10001100011000110001100011000101110",
+        V: "10001100011000110001100010101000100", W: "10001100011000110101101011010101010", X: "10001100010101000100010101000110001",
+        Y: "10001100010101000100001000010000100", Z: "11111000010001000100010001000011111",
+        "0": "01110100011001110101110011000101110", "1": "00100011000010000100001000010001110", "2": "01110100010000100010001000100011111",
+        "3": "11111000100010000010000011000101110", "4": "00010001100101010010111110001000010", "5": "11111100001111000001000011000101110",
+        "6": "00110010001000011110100011000101110", "7": "11111000010001000100010000100001000", "8": "01110100011000101110100011000101110",
+        "9": "01110100011000101111000010001001100",
+        "?": "01110100010000100010001000000000100", ".": "00000000000000000000000000110001100", ",": "00000000000000000000011000010001000",
+        "'": "00100001000100000000000000000000000", "~": "00000000000100010101000100000000000", "!": "00100001000010000100001000000000100",
+        " ": "00000000000000000000000000000000000",
+      };
+      var HEADPHONES = ["0111110", "1000001", "1000001", "1100011", "1100011", "1100011"];
+      var CAPTIONS = [
+        { a: 0, b: 3.6, lines: [["WHERE IS THE", 3, C.paper], ["OCTOPUS?", 3, C.paper]], icon: true, popIn: true },
+        { a: 5.0, b: 8.2, lines: [["SOMETHING", 3, C.paper], ["IS WATCHING", 3, C.paper]] },
+        { a: 10.0, b: 13.4, lines: [["SKIN WITH", 2, C.paper], ["~10,000", 3, C.gold], ["COLOUR CELLS", 2, C.paper]] },
+        { a: 14.4, b: 17.2, lines: [["IT CHANGES", 3, C.paper], ["TEXTURE TOO", 3, C.paper]] },
+        { a: 19.3, b: 22.0, lines: [["IN UNDER", 2, C.paper], ["0.2 SECONDS", 3, C.gold]] },
+        { a: 23.0, b: 26.2, lines: [["AND IT'S", 2, C.paper], ["COLOURBLIND", 3, C.paper]] },
+        { a: 28.9, b: 31, lines: [["WHERE IS THE", 3, C.paper], ["OCTOPUS?", 3, C.paper]], icon: true, popIn: true },
+      ];
+      var DISSOLVE = 0.4;
+      function drawCaption(cap, t) {
+        var top = 34, padX = 5, padY = 4, gap = 4;
+        var widths = cap.lines.map(function (l) { return l[0].length * 6 * l[1] - l[1]; });
+        var w = Math.max.apply(null, widths) + padX * 2;
+        var h = padY * 2 - gap;
+        cap.lines.forEach(function (l) { h += 7 * l[1] + gap; });
+        var x0 = Math.round(180 - w / 2);
+        u.fillStyle = "rgba(6,5,10,0.92)";
+        u.fillRect(x0, top, w, h);
+        var y = top + padY;
+        cap.lines.forEach(function (l, li) {
+          var s = l[1], lx = Math.round(180 - widths[li] / 2);
+          u.fillStyle = l[2];
+          for (var ci = 0; ci < l[0].length; ci++) {
+            var gl = FONT[l[0][ci]] || FONT[" "];
+            for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(lx + ci * 6 * s + (p % 5) * s, y + Math.floor(p / 5) * s, s, s);
+          }
+          y += 7 * s + gap;
+        });
+        var bottom = top + h;
+        if (cap.icon) {
+          var iw = 7 * 2 + 6, ix = 180 - iw / 2, iy = bottom + 5;
+          u.fillStyle = "rgba(6,5,10,0.92)"; u.fillRect(ix, iy, iw, 18);
+          u.fillStyle = C.paper;
+          for (var r = 0; r < 6; r++) for (var c = 0; c < 7; c++) if (HEADPHONES[r][c] === "1") u.fillRect(ix + 3 + c * 2, iy + 3 + r * 2, 2, 2);
+          bottom = iy + 18;
+        }
+        // dither-dissolve: Bayer-ordered pixels drop out, the rest dim
+        var p = clamp01((t - (cap.b - DISSOLVE)) / DISSOLVE);
+        if (!cap.popIn || cap.a > 0) {
+          var pin = clamp01((t - cap.a) / 0.25);
+          if (cap.popIn && cap.a > 0) p = Math.max(p, 1 - pin);
+        }
+        if (p > 0) {
+          var img = u.getImageData(x0, top, w, bottom - top), d = img.data;
+          for (var yy = 0; yy < img.height; yy++) for (var xx = 0; xx < img.width; xx++) {
+            var k = (yy * img.width + xx) * 4;
+            var th = BAYER[(((top + yy) >> 1) & 3) * 4 + (((x0 + xx) >> 1) & 3)] / 16;
+            if (th < p * 1.15) d[k + 3] = 0;
+            else d[k + 3] = d[k + 3] * (1 - p * 0.5);
+          }
+          u.putImageData(img, x0, top);
+        }
+      }
+      function drawUI(t) {
+        u.clearRect(0, 0, 360, 640);
+        for (var i = 0; i < CAPTIONS.length; i++) {
+          var c = CAPTIONS[i];
+          if (t >= c.a && t < c.b) drawCaption(c, t);
+        }
+      }
+
+      // ---------------------------------------------------------------
+      // Frame
+      // ---------------------------------------------------------------
+      function render(t) {
+        var cam = camera(t), s = state(t);
+        g.globalAlpha = 1;
+        drawBackground(t, cam);
+        drawFar(t, cam);
+        setLayer(cam, 1);
+        drawKelp(t, 14, 120, 0); drawKelp(t, 84, 90, 2); drawKelp(t, 176, 140, 4);
+        drawSand(t);
+        drawCoral(t);
+        drawRock(ROCK, ROCK_B);
+        drawBubbles(t);
+        drawCrab(t, s.crab && s.crab.held < 0.5 ? s.crab : null);
+        drawOctopus(t, s);
+        drawCells(t, s, cam);
+        drawEye(t, s, s.crab);
+        drawCrab(t, s.crab && s.crab.held >= 0.5 && t < 27.8 ? s.crab : null);
+        drawArms(t, s);
+        setLayer(cam, 1.15);
+        drawFG(t);
+        drawOverlay(t, cam);
+        quantize();
+        drawUI(t);
+      }
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 30, duration: 30, ease: "none", onUpdate: function () { render(proxy.t); } }, 0);
+      render(0);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
