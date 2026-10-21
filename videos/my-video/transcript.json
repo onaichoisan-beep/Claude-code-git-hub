@@ -1,0 +1,428 @@
+[
+  {
+    "text": "Just",
+    "start": 0.23,
+    "end": 0.28,
+    "id": "w0"
+  },
+  {
+    "text": "entered",
+    "start": 0.37,
+    "end": 0.8,
+    "id": "w1"
+  },
+  {
+    "text": "first",
+    "start": 0.8,
+    "end": 1.17,
+    "id": "w2"
+  },
+  {
+    "text": "year",
+    "start": 1.17,
+    "end": 1.46,
+    "id": "w3"
+  },
+  {
+    "text": "MBBS",
+    "start": 1.46,
+    "end": 1.71,
+    "id": "w4"
+  },
+  {
+    "text": "and",
+    "start": 1.74,
+    "end": 2,
+    "id": "w5"
+  },
+  {
+    "text": "confused",
+    "start": 2,
+    "end": 2.46,
+    "id": "w6"
+  },
+  {
+    "text": "about",
+    "start": 2.49,
+    "end": 2.64,
+    "id": "w7"
+  },
+  {
+    "text": "which",
+    "start": 2.64,
+    "end": 2.95,
+    "id": "w8"
+  },
+  {
+    "text": "books",
+    "start": 3.01,
+    "end": 3.34,
+    "id": "w9"
+  },
+  {
+    "text": "to",
+    "start": 3.34,
+    "end": 3.42,
+    "id": "w10"
+  },
+  {
+    "text": "study.",
+    "start": 3.49,
+    "end": 3.84,
+    "id": "w11"
+  },
+  {
+    "text": "You",
+    "start": 3.84,
+    "end": 4.2,
+    "id": "w12"
+  },
+  {
+    "text": "have",
+    "start": 4.2,
+    "end": 4.23,
+    "id": "w13"
+  },
+  {
+    "text": "three",
+    "start": 4.23,
+    "end": 4.5,
+    "id": "w14"
+  },
+  {
+    "text": "main",
+    "start": 4.52,
+    "end": 4.73,
+    "id": "w15"
+  },
+  {
+    "text": "subjects,",
+    "start": 4.73,
+    "end": 5.33,
+    "id": "w16"
+  },
+  {
+    "text": "anatomy,",
+    "start": 5.33,
+    "end": 5.92,
+    "id": "w17"
+  },
+  {
+    "text": "physiology",
+    "start": 5.92,
+    "end": 6.55,
+    "id": "w18"
+  },
+  {
+    "text": "and",
+    "start": 6.65,
+    "end": 6.78,
+    "id": "w19"
+  },
+  {
+    "text": "biochemistry.",
+    "start": 6.78,
+    "end": 7.62,
+    "id": "w20"
+  },
+  {
+    "text": "Anatomy",
+    "start": 7.85,
+    "end": 8.11,
+    "id": "w21"
+  },
+  {
+    "text": "itself",
+    "start": 8.11,
+    "end": 8.53,
+    "id": "w22"
+  },
+  {
+    "text": "has",
+    "start": 8.53,
+    "end": 8.74,
+    "id": "w23"
+  },
+  {
+    "text": "four",
+    "start": 8.74,
+    "end": 9.02,
+    "id": "w24"
+  },
+  {
+    "text": "major",
+    "start": 9.02,
+    "end": 9.37,
+    "id": "w25"
+  },
+  {
+    "text": "components",
+    "start": 9.37,
+    "end": 10.12,
+    "id": "w26"
+  },
+  {
+    "text": "like",
+    "start": 10.12,
+    "end": 10.33,
+    "id": "w27"
+  },
+  {
+    "text": "grass",
+    "start": 10.44,
+    "end": 10.69,
+    "id": "w28"
+  },
+  {
+    "text": "anatomy,",
+    "start": 10.69,
+    "end": 11.2,
+    "id": "w29"
+  },
+  {
+    "text": "embryology,",
+    "start": 11.2,
+    "end": 12.06,
+    "id": "w30"
+  },
+  {
+    "text": "histology",
+    "start": 12.06,
+    "end": 12.72,
+    "id": "w31"
+  },
+  {
+    "text": "and",
+    "start": 12.72,
+    "end": 13.1,
+    "id": "w32"
+  },
+  {
+    "text": "osteology.",
+    "start": 13.1,
+    "end": 14.26,
+    "id": "w33"
+  },
+  {
+    "text": "But",
+    "start": 14.26,
+    "end": 14.62,
+    "id": "w34"
+  },
+  {
+    "text": "which",
+    "start": 14.62,
+    "end": 14.74,
+    "id": "w35"
+  },
+  {
+    "text": "textbooks",
+    "start": 14.74,
+    "end": 15.27,
+    "id": "w36"
+  },
+  {
+    "text": "should",
+    "start": 15.37,
+    "end": 15.66,
+    "id": "w37"
+  },
+  {
+    "text": "you",
+    "start": 15.66,
+    "end": 15.83,
+    "id": "w38"
+  },
+  {
+    "text": "actually",
+    "start": 15.83,
+    "end": 16.33,
+    "id": "w39"
+  },
+  {
+    "text": "choose?",
+    "start": 16.33,
+    "end": 16.92,
+    "id": "w40"
+  },
+  {
+    "text": "There",
+    "start": 17.15,
+    "end": 17.2,
+    "id": "w41"
+  },
+  {
+    "text": "are",
+    "start": 17.28,
+    "end": 17.38,
+    "id": "w42"
+  },
+  {
+    "text": "standard",
+    "start": 17.38,
+    "end": 17.84,
+    "id": "w43"
+  },
+  {
+    "text": "international",
+    "start": 17.84,
+    "end": 18.59,
+    "id": "w44"
+  },
+  {
+    "text": "textbooks",
+    "start": 18.59,
+    "end": 19.14,
+    "id": "w45"
+  },
+  {
+    "text": "and",
+    "start": 19.14,
+    "end": 19.31,
+    "id": "w46"
+  },
+  {
+    "text": "Indian",
+    "start": 19.31,
+    "end": 19.63,
+    "id": "w47"
+  },
+  {
+    "text": "author",
+    "start": 19.74,
+    "end": 20.01,
+    "id": "w48"
+  },
+  {
+    "text": "textbooks,",
+    "start": 20.01,
+    "end": 20.63,
+    "id": "w49"
+  },
+  {
+    "text": "commonly",
+    "start": 20.64,
+    "end": 21.02,
+    "id": "w50"
+  },
+  {
+    "text": "used",
+    "start": 21.02,
+    "end": 21.2,
+    "id": "w51"
+  },
+  {
+    "text": "in",
+    "start": 21.3,
+    "end": 21.31,
+    "id": "w52"
+  },
+  {
+    "text": "Indian",
+    "start": 21.32,
+    "end": 21.66,
+    "id": "w53"
+  },
+  {
+    "text": "Medical",
+    "start": 21.66,
+    "end": 22.07,
+    "id": "w54"
+  },
+  {
+    "text": "College.",
+    "start": 22.07,
+    "end": 22.5,
+    "id": "w55"
+  },
+  {
+    "text": "Comment",
+    "start": 22.86,
+    "end": 22.91,
+    "id": "w56"
+  },
+  {
+    "text": "books",
+    "start": 22.91,
+    "end": 23.21,
+    "id": "w57"
+  },
+  {
+    "text": "and",
+    "start": 23.21,
+    "end": 23.39,
+    "id": "w58"
+  },
+  {
+    "text": "I",
+    "start": 23.39,
+    "end": 23.45,
+    "id": "w59"
+  },
+  {
+    "text": "will",
+    "start": 23.45,
+    "end": 23.69,
+    "id": "w60"
+  },
+  {
+    "text": "share",
+    "start": 23.69,
+    "end": 23.99,
+    "id": "w61"
+  },
+  {
+    "text": "the",
+    "start": 23.99,
+    "end": 24.17,
+    "id": "w62"
+  },
+  {
+    "text": "recommended",
+    "start": 24.17,
+    "end": 24.75,
+    "id": "w63"
+  },
+  {
+    "text": "textbook's",
+    "start": 24.83,
+    "end": 25.4,
+    "id": "w64"
+  },
+  {
+    "text": "name",
+    "start": 25.4,
+    "end": 25.62,
+    "id": "w65"
+  },
+  {
+    "text": "for",
+    "start": 25.65,
+    "end": 25.82,
+    "id": "w66"
+  },
+  {
+    "text": "all",
+    "start": 25.82,
+    "end": 25.92,
+    "id": "w67"
+  },
+  {
+    "text": "these",
+    "start": 25.99,
+    "end": 26.24,
+    "id": "w68"
+  },
+  {
+    "text": "three",
+    "start": 26.56,
+    "end": 26.6,
+    "id": "w69"
+  },
+  {
+    "text": "subjects.",
+    "start": 26.6,
+    "end": 27.3,
+    "id": "w70"
+  }
+]
