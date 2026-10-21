@@ -15,7 +15,7 @@ build: single continuous-take composition (one shared pixel world + camera); see
 - duration: 4s
 - poster: 2s
 - transition_in: cut
-- status: built
+- status: animated
 - voiceover: ""
 - camera: wide, slow drift right
 - sfx: underwater ambience bed (whole video)
@@ -28,7 +28,7 @@ Hook as a question over an empty-looking reef. The octopus is already on screen,
 - duration: 4.5s
 - poster: 7s
 - transition_in: camera push-in (continuous)
-- status: built
+- status: animated
 - voiceover: ""
 - camera: push in and pan toward the rock, keeping the crab and rock in frame
 - sfx: crab clicks
@@ -41,7 +41,7 @@ Stakes: prey and predator in one frame. The open eye is the first hint that the 
 - duration: 5s
 - poster: 11s
 - transition_in: camera macro zoom (continuous)
-- status: built
+- status: animated
 - voiceover: ""
 - camera: deep zoom onto the octopus's mantle until cells fill the frame
 - sfx: soft bubbly pops as cells flex
@@ -54,7 +54,7 @@ Mechanism 1, like the Morpho wing-scale zoom. Each sac is a dot of pigment ringe
 - duration: 4s
 - poster: 15s
 - transition_in: camera pull-back to profile (continuous)
-- status: built
+- status: animated
 - voiceover: ""
 - camera: partial pull-back, horizon of skin against water
 - sfx: low creak
@@ -67,7 +67,7 @@ Mechanism 2. Colour alone isn't enough; the outline breaks up too.
 - duration: 4.5s
 - poster: 19.5s
 - transition_in: camera pull-back + impact shake (continuous)
-- status: built
+- status: animated
 - voiceover: ""
 - camera: medium two-shot, 3-frame shake on the strike
 - sfx: whoosh + snap on the strike
@@ -80,7 +80,7 @@ The payoff of the hunt. The reveal colour is the video's accent, used here for t
 - duration: 4.5s
 - poster: 23.5s
 - transition_in: continuous hold
-- status: built
+- status: animated
 - voiceover: ""
 - camera: slow push-in on the octopus eye
 - sfx: single low tone
@@ -93,7 +93,7 @@ The counter-intuitive fact. It matches colours it can't see, which keeps viewers
 - duration: 3.5s
 - poster: 28.5s
 - transition_in: camera pull-back to the opening framing (continuous)
-- status: built
+- status: animated
 - voiceover: ""
 - camera: return to frame 1 framing
 - sfx: bubbles

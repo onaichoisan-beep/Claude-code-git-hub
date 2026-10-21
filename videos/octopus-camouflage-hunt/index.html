@@ -38,7 +38,7 @@
     </style>
   </head>
   <body>
-    <div
+    <div data-hf-id="hf-coex"
       id="root"
       data-composition-id="main"
       data-start="0"
@@ -46,12 +46,14 @@
       data-width="1080"
       data-height="1920"
     >
-      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+      <section data-hf-id="hf-lz4h" id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
         <!-- 180x320 pixel world, upscaled 6x -->
-        <canvas id="world" width="180" height="320"></canvas>
+        <canvas data-hf-id="hf-sz62" id="world" width="180" height="320" data-layout-allow-overflow></canvas>
         <!-- 360x640 caption layer, upscaled 3x -->
-        <canvas id="ui" width="360" height="640"></canvas>
+        <canvas data-hf-id="hf-epyc" id="ui" width="360" height="640"></canvas>
       </section>
+      <!-- synthesised by scripts/synth_audio.py: ambience bed + SFX, no music -->
+      <audio data-hf-id="hf-trw4" id="soundtrack" src="assets/audio/soundtrack.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
     </div>
     <script>
       // ---------------------------------------------------------------
@@ -402,7 +404,24 @@
         g.globalAlpha = 0.6;
         ell(o.x, o.y + 9, o.rx + 2, 4, mix(C.octoDark, C.rockDark, s.camo));
         g.globalAlpha = 1;
-        // breathing siphon pulse
+        g.restore();
+      }
+      var SPECK = (function () {
+        var r = rng(61), a = [];
+        for (var i = 0; i < 520; i++) a.push({ x: 106 + r() * 40, y: 222 + r() * 27, r: 0.25 + r() * 0.5, k: r(), n: r() });
+        return a;
+      })();
+      function drawSpeckle(t, s, cam) {
+        var vis = sstep(2.4, 4.5, cam.z) * (1 - sstep(8, 12, cam.z));
+        if (vis <= 0) return;
+        g.save();
+        domePath(OCTO, s.pap); g.clip();
+        g.globalAlpha = vis;
+        for (var i = 0; i < SPECK.length; i++) {
+          var p = SPECK[i];
+          disc(p.x, p.y, p.r, skin(p.k, p.n, s.camo));
+        }
+        g.globalAlpha = 1;
         g.restore();
       }
       // chromatophore cells, only resolvable in the macro dive
@@ -460,7 +479,7 @@
       }
       var ARMS = (function () {
         var r = rng(88), a = [];
-        for (var i = 0; i < 8; i++) a.push({ bx: 112 + i * 3.6, ang: (i / 8) * 6.2832 + r() * 0.4, rr: 4 + r() * 3.5, ph: r() * 6 });
+        for (var i = 0; i < 8; i++) a.push({ bx: 112 + i * 3.6, ang: (i / 8) * 6.2832 + r() * 0.4, rr: 6.5 + r() * 4, ph: r() * 6 });
         return a;
       })();
       function drawArms(t, s) {
@@ -494,7 +513,8 @@
         if (!c) return;
         var fr = c.walking ? Math.floor(t * 10) % 2 : 0;
         var spr = CRAB[fr];
-        var ox = Math.round(c.x) - 7, oy = Math.round(c.y) - 6 + (c.walking && fr ? -0.5 : 0);
+        var S = 1.5;
+        var ox = c.x - 7 * S, oy = c.y + 1 - 8 * S + (c.walking && fr ? -0.5 : 0);
         var snap = c.held > 0 ? 0 : (c.walking ? 0 : Math.floor(t * 4) % 2);
         for (var y = 0; y < spr.length; y++) {
           for (var x = 0; x < spr[y].length; x++) {
@@ -502,10 +522,10 @@
             if (ch === ".") continue;
             var dy = (ch === "c" && snap && y < 3) ? -1 : 0;
             g.fillStyle = CRABCOL[ch];
-            g.fillRect(ox + x, oy + y + dy, 1, 1);
+            g.fillRect(ox + x * S, oy + (y + dy) * S, S, S);
           }
         }
-        g.fillStyle = C.ink; g.fillRect(ox + 4, oy, 1, 0.5); g.fillRect(ox + 10, oy, 1, 0.5);
+        g.fillStyle = C.ink; g.fillRect(ox + 4 * S, oy, S, 0.75); g.fillRect(ox + 10 * S, oy, S, 0.75);
       }
 
       // ----- foreground rock with the hidden creator tag -----
@@ -573,7 +593,7 @@
         vg.addColorStop(1, "rgba(4,18,26,0.7)");
         g.fillStyle = vg; g.fillRect(0, 0, W, H);
         // strike flash
-        if (t >= 19.2 && t < 19.3) { g.globalAlpha = 0.35; g.fillStyle = C.octoLight; g.fillRect(0, 0, W, H); }
+        if (t >= 19.2 && t < 19.27) { g.globalAlpha = 0.16; g.fillStyle = C.paper; g.fillRect(0, 0, W, H); }
         g.globalAlpha = 1;
       }
 
@@ -707,11 +727,12 @@
         drawCoral(t);
         drawRock(ROCK, ROCK_B);
         drawBubbles(t);
-        drawCrab(t, s.crab && s.crab.held < 0.5 ? s.crab : null);
+        drawCrab(t, s.crab && (s.crab.held < 0.5 || t >= 26.6) && t < 27.8 ? s.crab : null);
         drawOctopus(t, s);
+        drawSpeckle(t, s, cam);
         drawCells(t, s, cam);
         drawEye(t, s, s.crab);
-        drawCrab(t, s.crab && s.crab.held >= 0.5 && t < 27.8 ? s.crab : null);
+        drawCrab(t, s.crab && s.crab.held >= 0.5 && t < 26.6 ? s.crab : null);
         drawArms(t, s);
         setLayer(cam, 1.15);
         drawFG(t);
