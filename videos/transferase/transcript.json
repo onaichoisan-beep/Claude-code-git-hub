@@ -1,0 +1,409 @@
+[
+ {
+  "start": 0.0,
+  "end": 6.56,
+  "text": " AST and ALT on a blood report? Remember this. Transferases are enzymes that transfers functional",
+  "words": [
+   {
+    "w": " AST",
+    "s": 0.0,
+    "e": 0.94
+   },
+   {
+    "w": " and",
+    "s": 0.94,
+    "e": 1.32
+   },
+   {
+    "w": " ALT",
+    "s": 1.32,
+    "e": 1.74
+   },
+   {
+    "w": " on",
+    "s": 1.74,
+    "e": 1.92
+   },
+   {
+    "w": " a",
+    "s": 1.92,
+    "e": 2.1
+   },
+   {
+    "w": " blood",
+    "s": 2.1,
+    "e": 2.28
+   },
+   {
+    "w": " report?",
+    "s": 2.28,
+    "e": 2.72
+   },
+   {
+    "w": " Remember",
+    "s": 2.88,
+    "e": 3.22
+   },
+   {
+    "w": " this.",
+    "s": 3.22,
+    "e": 3.76
+   },
+   {
+    "w": " Transferases",
+    "s": 4.12,
+    "e": 4.4
+   },
+   {
+    "w": " are",
+    "s": 4.4,
+    "e": 4.68
+   },
+   {
+    "w": " enzymes",
+    "s": 4.68,
+    "e": 5.0
+   },
+   {
+    "w": " that",
+    "s": 5.0,
+    "e": 5.38
+   },
+   {
+    "w": " transfers",
+    "s": 5.38,
+    "e": 6.04
+   },
+   {
+    "w": " functional",
+    "s": 6.04,
+    "e": 6.56
+   }
+  ]
+ },
+ {
+  "start": 6.56,
+  "end": 12.1,
+  "text": " groups from one molecule to another. For example, AST and ALT transfers a minor group during",
+  "words": [
+   {
+    "w": " groups",
+    "s": 6.56,
+    "e": 6.86
+   },
+   {
+    "w": " from",
+    "s": 6.86,
+    "e": 7.14
+   },
+   {
+    "w": " one",
+    "s": 7.14,
+    "e": 7.36
+   },
+   {
+    "w": " molecule",
+    "s": 7.36,
+    "e": 7.74
+   },
+   {
+    "w": " to",
+    "s": 7.74,
+    "e": 7.96
+   },
+   {
+    "w": " another.",
+    "s": 7.96,
+    "e": 8.36
+   },
+   {
+    "w": " For",
+    "s": 8.48,
+    "e": 8.64
+   },
+   {
+    "w": " example,",
+    "s": 8.64,
+    "e": 9.2
+   },
+   {
+    "w": " AST",
+    "s": 9.52,
+    "e": 9.9
+   },
+   {
+    "w": " and",
+    "s": 9.9,
+    "e": 10.22
+   },
+   {
+    "w": " ALT",
+    "s": 10.22,
+    "e": 10.58
+   },
+   {
+    "w": " transfers",
+    "s": 10.58,
+    "e": 11.02
+   },
+   {
+    "w": " a",
+    "s": 11.02,
+    "e": 11.28
+   },
+   {
+    "w": " minor",
+    "s": 11.28,
+    "e": 11.48
+   },
+   {
+    "w": " group",
+    "s": 11.48,
+    "e": 11.7
+   },
+   {
+    "w": " during",
+    "s": 11.7,
+    "e": 12.1
+   }
+  ]
+ },
+ {
+  "start": 12.1,
+  "end": 16.94,
+  "text": " trans-semination reactions. That's why their levels are commonly measured when investigation",
+  "words": [
+   {
+    "w": " trans",
+    "s": 12.1,
+    "e": 12.46
+   },
+   {
+    "w": "-semination",
+    "s": 12.46,
+    "e": 12.9
+   },
+   {
+    "w": " reactions.",
+    "s": 12.9,
+    "e": 13.44
+   },
+   {
+    "w": " That's",
+    "s": 13.8,
+    "e": 14.12
+   },
+   {
+    "w": " why",
+    "s": 14.12,
+    "e": 14.3
+   },
+   {
+    "w": " their",
+    "s": 14.3,
+    "e": 14.58
+   },
+   {
+    "w": " levels",
+    "s": 14.58,
+    "e": 14.8
+   },
+   {
+    "w": " are",
+    "s": 14.8,
+    "e": 15.08
+   },
+   {
+    "w": " commonly",
+    "s": 15.08,
+    "e": 15.46
+   },
+   {
+    "w": " measured",
+    "s": 15.46,
+    "e": 15.9
+   },
+   {
+    "w": " when",
+    "s": 15.9,
+    "e": 16.22
+   },
+   {
+    "w": " investigation",
+    "s": 16.22,
+    "e": 16.94
+   }
+  ]
+ },
+ {
+  "start": 16.94,
+  "end": 22.42,
+  "text": " liver injury. Another example is hexokinase which transfers a phosphate group from ATP",
+  "words": [
+   {
+    "w": " liver",
+    "s": 16.94,
+    "e": 17.24
+   },
+   {
+    "w": " injury.",
+    "s": 17.24,
+    "e": 17.64
+   },
+   {
+    "w": " Another",
+    "s": 18.18,
+    "e": 18.44
+   },
+   {
+    "w": " example",
+    "s": 18.44,
+    "e": 18.88
+   },
+   {
+    "w": " is",
+    "s": 18.88,
+    "e": 19.12
+   },
+   {
+    "w": " hexokinase",
+    "s": 19.12,
+    "e": 19.84
+   },
+   {
+    "w": " which",
+    "s": 19.84,
+    "e": 20.1
+   },
+   {
+    "w": " transfers",
+    "s": 20.1,
+    "e": 20.56
+   },
+   {
+    "w": " a",
+    "s": 20.56,
+    "e": 20.88
+   },
+   {
+    "w": " phosphate",
+    "s": 20.88,
+    "e": 21.24
+   },
+   {
+    "w": " group",
+    "s": 21.24,
+    "e": 21.64
+   },
+   {
+    "w": " from",
+    "s": 21.64,
+    "e": 22.04
+   },
+   {
+    "w": " ATP",
+    "s": 22.04,
+    "e": 22.42
+   }
+  ]
+ },
+ {
+  "start": 22.42,
+  "end": 28.22,
+  "text": " to glucose forming glucose 6-phosphate. This conveys us the second enzyme classification",
+  "words": [
+   {
+    "w": " to",
+    "s": 22.42,
+    "e": 22.7
+   },
+   {
+    "w": " glucose",
+    "s": 22.7,
+    "e": 23.26
+   },
+   {
+    "w": " forming",
+    "s": 23.26,
+    "e": 23.64
+   },
+   {
+    "w": " glucose",
+    "s": 23.64,
+    "e": 24.04
+   },
+   {
+    "w": " 6",
+    "s": 24.04,
+    "e": 24.3
+   },
+   {
+    "w": "-phosphate.",
+    "s": 24.3,
+    "e": 24.92
+   },
+   {
+    "w": " This",
+    "s": 25.04,
+    "e": 25.54
+   },
+   {
+    "w": " conveys",
+    "s": 25.54,
+    "e": 26.16
+   },
+   {
+    "w": " us",
+    "s": 26.16,
+    "e": 26.52
+   },
+   {
+    "w": " the",
+    "s": 26.52,
+    "e": 26.76
+   },
+   {
+    "w": " second",
+    "s": 26.76,
+    "e": 27.16
+   },
+   {
+    "w": " enzyme",
+    "s": 27.16,
+    "e": 27.52
+   },
+   {
+    "w": " classification",
+    "s": 27.52,
+    "e": 28.22
+   }
+  ]
+ },
+ {
+  "start": 28.22,
+  "end": 30.1,
+  "text": " group that is transferases.",
+  "words": [
+   {
+    "w": " group",
+    "s": 28.22,
+    "e": 28.72
+   },
+   {
+    "w": " that",
+    "s": 28.72,
+    "e": 29.26
+   },
+   {
+    "w": " is",
+    "s": 29.26,
+    "e": 29.5
+   },
+   {
+    "w": " transferases.",
+    "s": 29.5,
+    "e": 30.1
+   }
+  ]
+ }
+]

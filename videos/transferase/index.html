@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<title>Transferases</title>
+<script src="assets/gsap.min.js"></script>
+<style>
+@font-face { font-family: "Anton"; src: url(assets/Anton.woff2) format("woff2"); }
+@font-face { font-family: "Plex"; src: url(assets/PlexMono.woff2) format("woff2"); font-weight: 500; }
+@font-face { font-family: "Plex"; src: url(assets/PlexMonoBold.woff2) format("woff2"); font-weight: 700; }
+
+:root {
+  --paper: #D9C9A3; --paper-lt: #EFE5CC; --ink: #2B1D14; --red: #C0392B;
+  --cream: #EDE3CC; --dark: #1E1B18; --teal: #4E9C86;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='360'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .18 0 0 0 0 .1 0 0 0 .32 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --stain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1080' height='1920'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.004' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .24 0 0 0 0 .1 0 0 0 .45 -.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
+  --grain-lt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='360'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .95 0 0 0 0 .85 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+body { margin: 0; background: #000; }
+#root { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--dark); font-family: "Anton", sans-serif; color: var(--ink); }
+
+.scene { position: absolute; inset: 0; overflow: hidden; z-index: 1; }
+.inner { position: absolute; inset: 0; }
+
+/* canvases */
+.paper {
+  background:
+    radial-gradient(ellipse 75% 60% at 50% 45%, rgba(255,248,228,.32) 0%, rgba(0,0,0,0) 60%, rgba(70,45,20,.38) 100%),
+    linear-gradient(90deg, transparent 32.9%, rgba(90,65,30,.16) 33.2%, rgba(255,250,235,.22) 33.5%, transparent 33.9%,
+                           transparent 66.1%, rgba(90,65,30,.16) 66.4%, rgba(255,250,235,.22) 66.7%, transparent 67.1%),
+    var(--stain), var(--grain), var(--paper);
+}
+.dark {
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 38%, rgba(70,62,52,.55) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,.55) 100%),
+    linear-gradient(90deg, transparent 49.8%, rgba(255,240,210,.06) 50%, transparent 50.2%),
+    var(--grain-lt), var(--dark);
+  color: var(--cream);
+}
+.holes { position: absolute; left: 30px; top: 40px; bottom: 0; width: 26px;
+  background: radial-gradient(circle, rgba(35,24,14,.5) 6px, rgba(35,24,14,.18) 7px, transparent 8px) 0 0 / 26px 175px repeat-y; }
+.dark .holes { background: radial-gradient(circle, rgba(0,0,0,.75) 6px, rgba(255,255,255,.06) 7px, transparent 8px) 0 0 / 26px 175px repeat-y; }
+
+/* header strip */
+.hdr { position: absolute; left: 92px; right: 66px; top: 64px; height: 40px; border-bottom: 2px solid rgba(43,29,20,.5);
+  font: 500 22px "Plex", monospace; letter-spacing: .22em; text-transform: uppercase; }
+.hdr .lab { position: absolute; left: 0; top: 0; }
+.hdr .fig { position: absolute; right: 0; top: 0; opacity: 0; }
+.dark .hdr, .cam .hdr { border-color: rgba(237,227,204,.4); }
+
+/* two-tier headlines */
+.hl { position: absolute; left: 92px; right: 66px; top: 134px; text-transform: uppercase; }
+.hl .s { font-size: 64px; line-height: 1.05; white-space: nowrap; }
+.hl .b { font-size: 150px; line-height: .98; color: var(--red); white-space: nowrap; }
+.hl .m { font-size: 118px; }
+.w { display: inline-block; opacity: 0; }
+
+/* paper bits */
+.card { position: absolute; background: var(--grain), var(--paper-lt); box-shadow: 0 14px 28px rgba(40,25,10,.35), 0 2px 4px rgba(40,25,10,.3); }
+.tape { position: absolute; width: 130px; height: 38px; background: rgba(240,230,190,.62); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.mono { font-family: "Plex", monospace; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; }
+.stamp { position: absolute; border: 8px solid var(--red); color: var(--red); padding: 6px 26px 2px; font-size: 92px; line-height: 1.05;
+  text-transform: uppercase; letter-spacing: .04em; opacity: 0; mix-blend-mode: multiply; border-radius: 10px;
+}
+.stamp.inv { mix-blend-mode: normal; background: rgba(30,27,24,.15); }
+.namebar { position: absolute; left: 0; opacity: 0; }
+.namebar .top { background: var(--red); color: var(--cream); font-size: 100px; line-height: 1; padding: 18px 40px 14px 92px; white-space: nowrap; }
+.namebar .sub { display: inline-block; background: var(--ink); color: var(--cream); font: 500 28px "Plex", monospace; letter-spacing: .2em; padding: 12px 30px 12px 92px; }
+.tag { position: absolute; background: var(--grain), #E9DDBF; border: 2px solid rgba(43,29,20,.55); border-radius: 6px 26px 26px 6px; padding: 14px 30px 12px 44px;
+  font: 700 26px "Plex", monospace; letter-spacing: .14em; color: var(--ink); opacity: 0; box-shadow: 0 8px 16px rgba(0,0,0,.28); }
+.tag::before { content: ""; position: absolute; left: 14px; top: 50%; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%; background: var(--dark); box-shadow: inset 0 0 0 3px rgba(255,255,255,.25); }
+.tag small { display: block; font-weight: 500; font-size: 20px; opacity: .7; }
+svg { overflow: visible; }
+.draw { fill: none; stroke-dasharray: 1; stroke-dashoffset: 1; }
+
+/* captions */
+#caps { position: absolute; left: 0; right: 0; top: 960px; height: 0; z-index: 10; }
+.cap { position: absolute; left: 50%; top: 0; width: 980px; margin-left: -490px; text-align: center; opacity: 0; }
+.cap .strip { display: inline-block; max-width: 940px; padding: 18px 34px 12px; background: var(--grain), #F4ECD7; rotate: -1deg;
+  box-shadow: 0 10px 24px rgba(20,12,4,.35); font-size: 66px; line-height: 1.12; text-transform: uppercase; color: var(--ink); }
+.cap .cw { display: inline-block; margin: 0 .12em; opacity: .3; position: relative; }
+
+/* facecam */
+#camwrap { position: absolute; inset: 0; z-index: 2; filter: sepia(.16) saturate(.9) contrast(1.05); }
+.camvid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cam { z-index: 3; color: var(--cream); }
+.cam .vign { position: absolute; inset: 0; background: radial-gradient(ellipse 85% 70% at 50% 45%, rgba(0,0,0,0) 55%, rgba(25,15,5,.55) 100%); }
+.strip-top { position: absolute; left: -10px; right: -10px; top: 0; height: 460px; filter: drop-shadow(0 12px 14px rgba(0,0,0,.45)); }
+.strip-top .pp { position: absolute; inset: 0; color: var(--ink); }
+.strip-top .pp .hdr { border-color: rgba(43,29,20,.5); }
+
+#pip { position: absolute; left: 70px; top: 470px; width: 360px; height: 360px; border-radius: 50%; overflow: hidden; z-index: 4; opacity: 0;
+  box-shadow: 0 0 0 12px #3a332b, 0 0 0 16px #8d806c, 0 18px 40px rgba(0,0,0,.5); }
+#pip video { position: absolute; left: -130px; top: -215px; width: 640px; height: 1138px; filter: sepia(.2) saturate(.9); }
+#pipLabel { position: absolute; left: 92px; top: 862px; z-index: 4; opacity: 0; color: var(--ink); font-size: 22px; }
+
+/* flip display */
+.flaps { position: absolute; display: flex; gap: 14px; }
+.flap { position: relative; width: 156px; height: 210px; border-radius: 12px; background: linear-gradient(#2a2622, #1a1714 50%, #24201c 50.5%, #15120f);
+  box-shadow: 0 14px 30px rgba(0,0,0,.6), inset 0 0 0 2px rgba(255,255,255,.05); overflow: hidden; opacity: 0; }
+.flap::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 3px; background: #0b0908; }
+.flap span { position: absolute; inset: 0; text-align: center; font-size: 168px; line-height: 210px; color: var(--cream); opacity: 0; }
+.flap.hot span { color: #ff8f7f; }
+
+/* EC index */
+.ec { position: absolute; left: 92px; width: 900px; height: 60px; display: flex; align-items: center; opacity: 0; }
+.ec .no { width: 150px; height: 52px; background: var(--ink); color: var(--cream); font: 700 28px "Plex", monospace; letter-spacing: .1em; display: flex; align-items: center; justify-content: center; border-radius: 8px 0 0 8px; }
+.ec .nm { flex: 1; height: 52px; background: var(--grain), var(--paper-lt); font-size: 40px; line-height: 56px; padding-left: 26px; text-transform: uppercase; box-shadow: 0 4px 10px rgba(40,25,10,.25); }
+.ec.one .no { background: var(--red); }
+
+.lab-row { display: grid; grid-template-columns: 300px 230px 1fr; align-items: center; height: 74px; border-top: 2px dashed rgba(43,29,20,.3); font: 500 30px "Plex", monospace; letter-spacing: .04em; opacity: 0; }
+.lab-row .hi { color: var(--red); font-weight: 700; }
+.chip { position: absolute; border-radius: 50%; font: 700 30px "Plex", monospace; text-align: center; color: #fff; background: var(--red); box-shadow: 0 0 22px rgba(255,90,68,.8); opacity: 0; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="30.9">
+
+  <!-- ============ A · HOOK: the blood report ============ -->
+  <section id="sA" class="scene clip paper" data-start="0" data-duration="3.9" data-track-index="1">
+    <div class="inner" id="sA-in">
+      <div class="holes"></div>
+      <div class="hdr"><span class="lab">Hook</span><span class="fig" id="sA-f1">Fig. 1</span></div>
+      <div class="hl">
+        <div class="s"><span class="w" id="a-w1">AST</span> <span class="w" id="a-w2">&amp;</span> <span class="w" id="a-w3">ALT</span> <span class="w" id="a-w4">on a</span></div>
+        <div class="b m"><span class="w" id="a-w5">Blood report?</span></div>
+      </div>
+      <div class="card" id="a-rep" style="left:92px; top:440px; width:896px; height:500px; rotate:-1.2deg; opacity:0; background: var(--grain), #F4EEDD">
+        <div class="tape" style="left:380px; top:-18px; rotate:2deg"></div>
+        <div class="mono" style="position:absolute; left:48px; top:36px; font-size:22px; font-weight:700; color:#7a6a58">Pathology lab · sample report</div>
+        <div style="position:absolute; left:48px; top:72px; font-size:58px">LIVER FUNCTION TEST</div>
+        <div style="position:absolute; left:48px; right:48px; top:168px">
+          <div class="lab-row" style="opacity:1; font-size:22px; font-weight:700; color:#7a6a58; height:46px; border-top:none">
+            <span>TEST</span><span>RESULT</span><span>REF. RANGE</span></div>
+          <div class="lab-row" id="a-r1"><span>AST (SGOT)</span><span class="hi">112 U/L ↑</span><span>5–40</span></div>
+          <div class="lab-row" id="a-r2"><span>ALT (SGPT)</span><span class="hi">148 U/L ↑</span><span>7–56</span></div>
+          <div class="lab-row" id="a-r3"><span>Bilirubin</span><span>0.8 mg/dL</span><span>0.3–1.2</span></div>
+        </div>
+      </div>
+      <svg viewBox="0 0 900 190" style="position:absolute; left:100px; top:636px; width:900px; height:180px">
+        <path id="a-circ" class="draw" pathLength="1" d="M470 8 C 800 2 892 40 884 92 C 876 160 640 184 420 180 C 170 176 14 150 16 92 C 18 36 180 8 520 14" stroke="#C0392B" stroke-width="7" stroke-linecap="round"/>
+      </svg>
+      <div class="tag" id="a-tag" style="left:110px; top:1230px; rotate:-2deg">LFT<small>liver panel</small></div>
+      <div class="stamp" id="a-stamp" style="left:300px; top:1400px; rotate:-6deg">Remember this</div>
+    </div>
+  </section>
+
+  <!-- ============ C · TRANSAMINATION (dark) ============ -->
+  <section id="sC" class="scene clip dark" data-start="8.4" data-duration="5.3" data-track-index="1">
+    <div class="inner" id="sC-in">
+      <div class="holes"></div>
+      <div class="hdr"><span class="lab">Example 1</span><span class="fig" id="sC-f1">Fig. 1</span><span class="fig" id="sC-f2">Fig. 2</span></div>
+      <div class="hl" id="c-h0"><div class="s"><span class="w" id="c-w0">For example</span></div></div>
+      <div class="hl" id="c-h1">
+        <div class="s"><span class="w" id="c-w1">AST</span> <span class="w" id="c-w2">&amp;</span> <span class="w" id="c-w3">ALT</span> <span class="w" id="c-w4">move an</span></div>
+        <div class="b m"><span class="w" id="c-w5">Amino group</span></div>
+      </div>
+      <div class="mono" id="c-enz" style="position:absolute; left:340px; width:400px; top:470px; text-align:center; font-size:26px; font-weight:700; color:#ff8f7f; opacity:0">AST · ALT</div>
+      <div id="c-l" style="position:absolute; left:120px; top:560px; width:260px; height:260px; opacity:0">
+        <div id="c-l-b" style="position:absolute; inset:0; border-radius:50%; background: radial-gradient(circle at 35% 30%, #6a5f52, #2e2924 70%); box-shadow: 0 0 0 4px rgba(237,227,204,.6), 0 20px 40px rgba(0,0,0,.6)"></div>
+        <div class="mono" style="position:absolute; left:0; right:0; top:96px; text-align:center; font-size:26px; font-weight:700; line-height:1.3">Amino<br/>acid</div>
+        <div class="mono" id="c-l2" style="position:absolute; left:-30px; right:-30px; top:290px; text-align:center; font-size:28px; color:#ff8f7f; opacity:0">→ keto acid</div>
+      </div>
+      <div id="c-r" style="position:absolute; left:700px; top:560px; width:260px; height:260px; opacity:0">
+        <div style="position:absolute; inset:0; border-radius:50%; background: radial-gradient(circle at 35% 30%, #6a5f52, #2e2924 70%); box-shadow: 0 0 0 4px rgba(237,227,204,.6), 0 20px 40px rgba(0,0,0,.6)"></div>
+        <div id="c-r-glow" style="position:absolute; inset:0; border-radius:50%; background: radial-gradient(circle at 35% 30%, #7fd1b9, #2c6b5a 70%); opacity:0"></div>
+        <div class="mono" style="position:absolute; left:0; right:0; top:96px; text-align:center; font-size:26px; font-weight:700; line-height:1.3">Keto<br/>acid</div>
+        <div class="mono" id="c-r2" style="position:absolute; left:-30px; right:-30px; top:290px; text-align:center; font-size:28px; color:#7fd1b9; opacity:0">→ amino acid</div>
+      </div>
+      <svg viewBox="0 0 400 140" style="position:absolute; left:340px; top:500px; width:400px; height:140px">
+        <path id="c-arc" class="draw" pathLength="1" d="M10 130 C 110 0, 290 0, 390 130" stroke="#EDE3CC" stroke-width="5" stroke-dasharray="0.03 0.02" stroke-linecap="round"/>
+      </svg>
+      <div class="chip" id="c-nh2" style="left:300px; top:560px; width:110px; height:110px; line-height:110px">NH₂</div>
+      <div class="stamp" id="c-stamp" style="left:110px; top:1270px; rotate:-4deg; font-size:84px">Transamination</div>
+      <div class="mono" id="c-eq" style="position:absolute; left:92px; right:66px; top:1470px; text-align:center; font-size:25px; color:var(--cream); opacity:0">amino acid + keto acid ⇄ keto acid + amino acid</div>
+    </div>
+  </section>
+
+  <!-- ============ E · HEXOKINASE (paper) ============ -->
+  <section id="sE" class="scene clip paper" data-start="18.1" data-duration="6.9" data-track-index="1">
+    <div class="inner" id="sE-in">
+      <div class="holes"></div>
+      <div class="hdr"><span class="lab">Example 2</span><span class="fig" id="sE-f1">Fig. 1</span><span class="fig" id="sE-f2">Fig. 2</span></div>
+      <div class="hl">
+        <div class="s"><span class="w" id="e-w1">Another example</span></div>
+        <div class="b"><span class="w" id="e-w2">Hexokinase</span></div>
+      </div>
+      <svg id="e-enz" viewBox="0 0 500 420" style="position:absolute; left:470px; top:440px; width:520px; height:437px; opacity:0">
+        <defs><radialGradient id="eg" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#c9644f"/><stop offset=".55" stop-color="#93362a"/><stop offset="1" stop-color="#5a1f18"/></radialGradient></defs>
+        <path d="M240 26 C 350 14 462 78 470 170 L 360 214 L 468 262 C 452 352 372 404 262 400 C 146 396 40 340 32 230 C 24 118 120 38 240 26 Z" fill="url(#eg)" stroke="#2B1D14" stroke-width="5" style="filter: drop-shadow(0 16px 18px rgba(40,20,10,.45))"/>
+        <g fill="rgba(255,220,200,.18)"><circle cx="150" cy="140" r="22"/><circle cx="210" cy="96" r="14"/><circle cx="120" cy="260" r="18"/><circle cx="260" cy="320" r="24"/><circle cx="330" cy="120" r="16"/><circle cx="200" cy="200" r="30"/></g>
+        <text x="175" y="250" font-family="Anton" font-size="84" fill="#EDE3CC">HK</text>
+      </svg>
+      <div class="tag" id="e-tag" style="left:560px; top:860px; rotate:-3deg">Specimen 02<small>EC 2.7.1.1</small></div>
+      <div class="tag" id="e-tag2" style="left:80px; top:620px; rotate:2deg">Kinase ✓<small>moves phosphate</small></div>
+
+      <div class="flaps" id="e-flaps" style="left:92px; top:1200px"></div>
+      <div class="mono" id="e-adp" style="position:absolute; left:92px; top:1430px; font-size:28px; font-weight:700; opacity:0">ATP → ADP</div>
+      <svg id="e-glc" viewBox="0 0 300 260" style="position:absolute; left:690px; top:1180px; width:300px; height:260px; opacity:0">
+        <polygon points="150,10 280,75 280,185 150,250 20,185 20,75" fill="#EFE5CC" stroke="#2B1D14" stroke-width="7" style="filter: drop-shadow(0 10px 14px rgba(40,25,10,.35))"/>
+        <text x="150" y="146" text-anchor="middle" font-family="Anton" font-size="52" fill="#2B1D14">GLUCOSE</text>
+      </svg>
+      <div class="chip" id="e-p" style="left:600px; top:1210px; width:90px; height:90px; line-height:90px; font-size:40px">P</div>
+      <div class="tag" id="e-g6p" style="left:560px; top:1480px; rotate:-2deg; color:#C0392B">Glucose-6-phosphate<small>trapped inside the cell</small></div>
+    </div>
+  </section>
+
+  <!-- ============ F · THE FILE (paper) ============ -->
+  <section id="sG" class="scene clip paper" data-start="25.0" data-duration="5.9" data-track-index="1">
+    <div class="inner" id="sG-in">
+      <div class="holes"></div>
+      <div class="hdr"><span class="lab">The file</span><span class="fig" id="sG-f1">Fig. 1</span><span class="fig" id="sG-f2">Fig. 2</span></div>
+      <div class="hl" id="g-h1"><div class="s"><span class="w" id="g-w1">This</span> <span class="w" id="g-w2">conveys</span> <span class="w" id="g-w3">us</span></div></div>
+      <div class="hl" id="g-h2">
+        <div class="s"><span class="w" id="g-w4">The second</span> <span class="w" id="g-w5">enzyme</span></div>
+        <div class="b m"><span class="w" id="g-w6">Classification</span></div>
+      </div>
+      <div id="g-list"></div>
+      <svg id="g-csvg" viewBox="0 0 960 110" style="position:absolute; left:58px; top:476px; width:960px; height:110px">
+        <path id="g-circ" class="draw" pathLength="1" d="M520 8 C 820 4 950 30 940 58 C 930 96 640 106 400 102 C 150 98 12 84 14 54 C 16 22 200 6 560 12" stroke="#C0392B" stroke-width="7" stroke-linecap="round"/>
+      </svg>
+      <div class="mono" id="g-cls" style="position:absolute; left:92px; top:1195px; font-size:30px; font-weight:700; opacity:0">Group</div>
+      <div class="flaps" id="g-flaps" style="left:92px; top:1245px"></div>
+      <div class="stamp" id="g-stamp" style="left:150px; top:1520px; rotate:-4deg; font-size:110px">Transferases</div>
+    </div>
+  </section>
+
+  <!-- ============ facecam (your footage) ============ -->
+  <div id="camwrap">
+    <video id="camB" class="camvid" src="assets/facecam.mp4" muted playsinline data-start="3.9" data-duration="4.5" data-media-start="3.9" data-track-index="0"></video>
+    <video id="camD" class="camvid" src="assets/facecam.mp4" muted playsinline data-start="13.7" data-duration="4.4" data-media-start="13.7" data-track-index="0"></video>
+  </div>
+
+  <!-- B overlay · THE CLASS -->
+  <section id="sB" class="scene clip cam" data-start="3.9" data-duration="4.5" data-track-index="2">
+    <div class="vign"></div>
+    <div class="strip-top"><div class="pp paper" id="sB-strip">
+      <div class="holes"></div>
+      <div class="hdr"><span class="lab">The class</span><span class="fig" id="sB-f1">Fig. 1</span></div>
+      <div class="hl">
+        <div class="s"><span class="w" id="b-w1">They transfer</span></div>
+        <div class="b m"><span class="w" id="b-w2">Functional</span> <span class="w" id="b-w3">groups</span></div>
+      </div>
+    </div></div>
+    <div class="card" id="b-card" style="left:190px; top:1150px; width:700px; height:180px; rotate:-1deg; opacity:0">
+      <div style="position:absolute; left:60px; top:30px; width:120px; height:120px; border-radius:50%; background:#3a332b; color:var(--cream); font-size:64px; line-height:124px; text-align:center">A</div>
+      <div style="position:absolute; left:520px; top:30px; width:120px; height:120px; border-radius:50%; background:#3a332b; color:var(--cream); font-size:64px; line-height:124px; text-align:center">B</div>
+      <svg viewBox="0 0 300 60" style="position:absolute; left:200px; top:60px; width:300px; height:60px"><path id="b-arrow" class="draw" pathLength="1" d="M10 30 L280 30 M256 12 L284 30 L256 48" stroke="#2B1D14" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="chip" id="b-x" style="left:345px; top:1162px; width:76px; height:76px; line-height:76px; font-size:34px">X</div>
+    <div class="namebar" id="b-name" style="top:1640px">
+      <div class="top">TRANSFERASES</div>
+      <div class="sub">Enzyme class · EC 2</div>
+    </div>
+  </section>
+
+  <!-- D overlay · THE LIVER CLUE -->
+  <section id="sD" class="scene clip cam" data-start="13.7" data-duration="4.4" data-track-index="2">
+    <div class="vign"></div>
+    <div class="strip-top"><div class="pp paper" id="sD-strip">
+      <div class="holes"></div>
+      <div class="hdr"><span class="lab">The clue</span><span class="fig" id="sD-f1">Fig. 1</span></div>
+      <div class="hl">
+        <div class="s"><span class="w" id="d-w1">Measured</span> <span class="w" id="d-w2">when investigating</span></div>
+        <div class="b m"><span class="w" id="d-w3">Liver injury</span></div>
+      </div>
+    </div></div>
+    <div id="d-tube" style="position:absolute; left:110px; top:1580px; width:96px; height:260px; opacity:0">
+      <div style="position:absolute; inset:0; border:6px solid var(--cream); border-top:none; border-radius:0 0 48px 48px; background:rgba(20,15,10,.35); overflow:hidden">
+        <div id="d-fill" style="position:absolute; left:0; right:0; bottom:0; height:100%; background:linear-gradient(#e0583f,#9d2a1d); transform-origin:50% 100%"></div>
+      </div>
+      <div style="position:absolute; left:-14px; right:-14px; top:-10px; height:16px; border-radius:6px; background:var(--cream)"></div>
+    </div>
+    <div class="tag" id="d-tag" style="left:230px; top:1650px; rotate:-2deg">Serum AST · ALT ↑<small>leak into blood</small></div>
+    <svg id="d-liver" viewBox="0 0 400 240" style="position:absolute; left:640px; top:1560px; width:380px; height:228px; opacity:0">
+      <defs><radialGradient id="lg" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#b55a45"/><stop offset="1" stop-color="#6a2419"/></radialGradient></defs>
+      <path d="M22 118 C 30 38 170 6 310 26 C 392 38 404 92 362 132 C 300 194 180 226 92 214 C 40 206 14 172 22 118 Z" fill="url(#lg)" stroke="#2B1D14" stroke-width="5"/>
+      <path id="d-crack" class="draw" pathLength="1" d="M200 40 L180 90 L214 112 L176 160 L198 206" stroke="#1E1B18" stroke-width="6" stroke-linejoin="round"/>
+      <text x="290" y="110" font-family="Anton" font-size="40" fill="#EDE3CC">LIVER</text>
+    </svg>
+  </section>
+
+  <!-- PIP: presenter in a viewport -->
+  <div id="pip">
+    <video id="camE" src="assets/facecam.mp4" muted playsinline data-start="18.1" data-duration="1.9" data-media-start="18.1" data-track-index="3"></video>
+  </div>
+  <div id="pipLabel" class="mono" style="font-weight:700">● Live · presenter</div>
+
+  <div id="caps"></div>
+
+  <audio id="vo" src="assets/voice.wav" data-start="0" data-duration="30.9" data-track-index="5" data-volume="1"></audio>
+  <audio id="bed" src="assets/music.wav" data-start="0" data-duration="30.9" data-track-index="6" data-volume="1"></audio>
+  <audio id="sfx" src="assets/sfx.wav" data-start="0" data-duration="30.9" data-track-index="7" data-volume="0.55"></audio>
+</div>
+
+<script>
+const tl = gsap.timeline({ paused: true });
+const q = (s) => document.querySelector(s);
+
+// ---------- motion helpers ----------
+function word(sel, t) { tl.fromTo(sel, { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.22, ease: "back.out(2)" }, t); }
+function punch(sel, t) { tl.fromTo(sel, { opacity: 0, scale: 1.12, y: 18 }, { opacity: 1, scale: 1, y: 0, duration: 0.26, ease: "power3.out" }, t); }
+function pop(sel, t, from = {}) { tl.fromTo(sel, { opacity: 0, scale: 0.55, ...from }, { opacity: 1, scale: 1, x: 0, y: 0, duration: 0.42, ease: "back.out(2.2)" }, t); }
+function drop(sel, t) { tl.fromTo(sel, { opacity: 0, y: -90, rotation: -6 }, { opacity: 1, y: 0, rotation: 0, duration: 0.45, ease: "back.out(1.6)" }, t); }
+function slam(sel, t) {
+  tl.fromTo(sel, { opacity: 0, scale: 1.7 }, { opacity: 0.95, scale: 1, duration: 0.16, ease: "power3.in" }, t);
+  tl.to(sel, { scale: 1.1, duration: 0.06, ease: "power1.out", yoyo: true, repeat: 1 }, t + 0.16);
+}
+function draw(sel, t, d = 0.45) { tl.fromTo(sel, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: d, ease: "power2.inOut" }, t); }
+function out(sel, t, d = 0.18) { tl.to(sel, { opacity: 0, duration: d, ease: "power1.in" }, t); }
+function fig(ids, times) { ids.forEach((id, i) => { tl.set(id, { opacity: 1 }, times[i]); if (i < ids.length - 1) tl.set(id, { opacity: 0 }, times[i + 1]); }); }
+function pushIn(sel, t, d, s0 = 1, s1 = 1.05) { tl.fromTo(sel, { scale: s0 }, { scale: s1, duration: d, ease: "none" }, t); }
+// arc travel: x linear, y rises then falls
+function hop(sel, t, d, dx, dy, lift) {
+  tl.fromTo(sel, { x: 0 }, { x: dx, duration: d, ease: "power1.inOut" }, t);
+  tl.fromTo(sel, { y: 0 }, { y: dy / 2 - lift, duration: d / 2, ease: "sine.out" }, t);
+  tl.to(sel, { y: dy, duration: d / 2, ease: "sine.in" }, t + d / 2);
+}
+
+// split-flap builder: every tile rolls through a few letters before landing
+const FLAP_POOL = "AXR7KQ2ZMB9";
+function buildFlaps(host, seqs) {
+  return seqs.map((seq) => {
+    const tile = document.createElement("div");
+    tile.className = "flap";
+    seq.forEach((ch) => { const s = document.createElement("span"); s.textContent = ch; tile.appendChild(s); });
+    q(host).appendChild(tile);
+    return tile;
+  });
+}
+function flapRoll(tile, t, from, to, step = 0.055) {
+  const spans = tile.querySelectorAll("span");
+  for (let i = from; i <= to; i++) {
+    const at = t + (i - from) * step;
+    if (i > 0) tl.set(spans[i - 1], { opacity: 0 }, at);
+    tl.fromTo(spans[i], { opacity: 1, scaleY: 0.1 }, { scaleY: 1, duration: step, ease: "none" }, at);
+  }
+}
+function rollSeq(target, n) { const out = []; for (let i = 0; i < n; i++) out.push(FLAP_POOL[(i * 5 + target.charCodeAt(0)) % FLAP_POOL.length]); out.push(target); return out; }
+
+// torn bottom edge on the facecam paper strips (fixed points: deterministic)
+function tear(el) {
+  const pts = ["0% 0%", "100% 0%"];
+  for (let i = 40; i >= 0; i--) {
+    const x = (i / 40) * 100;
+    const y = 92 + ((i * 37) % 11) * 0.7 - ((i * 13) % 5) * 0.6;
+    pts.push(x.toFixed(1) + "% " + y.toFixed(1) + "%");
+  }
+  el.style.clipPath = "polygon(" + pts.join(",") + ")";
+}
+// enzyme-class index cards; row `hi` stays lit, the rest dim at tHi
+const EC_NAMES = ["Oxidoreductases", "Transferases", "Hydrolases", "Lyases", "Isomerases", "Ligases", "Translocases"];
+function ecList(hi, tIn, tHi) {
+  EC_NAMES.forEach((nm, i) => {
+    const row = document.createElement("div");
+    row.className = "ec" + (i === hi ? " one" : "");
+    row.style.top = (420 + i * 72) + "px";
+    row.innerHTML = '<div class="no">EC ' + (i + 1) + '</div><div class="nm">' + nm + "</div>";
+    q("#g-list").appendChild(row);
+    tl.fromTo(row, { opacity: 0, x: -120 }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, tIn + i * 0.16);
+    if (i !== hi) tl.to(row, { opacity: 0.32, duration: 0.3 }, tHi);
+  });
+}
+
+// word-by-word captions on a paper strip; `spots` = [[time, top], ...] moves the band per scene
+function captions(phrases, end, spots) {
+  const capLayer = q("#caps");
+  const allWords = phrases.flat();
+  phrases.forEach((phrase, i) => {
+    const cap = document.createElement("div");
+    cap.className = "cap";
+    const strip = document.createElement("div");
+    strip.className = "strip";
+    cap.appendChild(strip);
+    phrase.forEach(([w, t]) => {
+      const s = document.createElement("span");
+      s.className = "cw";
+      s.textContent = w;
+      strip.appendChild(s);
+      const idx = allWords.findIndex((x) => x[1] === t);
+      const next = idx < allWords.length - 1 ? allWords[idx + 1][1] : end - 0.2;
+      tl.fromTo(s, { opacity: 0.3, color: "#2B1D14" }, { opacity: 1, color: "#C0392B", duration: 0.08 }, t);
+      tl.to(s, { color: "#2B1D14", duration: 0.08 }, next);
+    });
+    const start = phrase[0][1];
+    const stop = i < phrases.length - 1 ? phrases[i + 1][0][1] : end;
+    tl.fromTo(cap, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.1, ease: "power2.out" }, Math.max(0, start - 0.04));
+    tl.set(cap, { opacity: 0 }, stop - 0.04);
+    capLayer.appendChild(cap);
+  });
+  spots.forEach(([t, top]) => tl.set("#caps", { top }, t));
+}
+
+tear(q("#sB-strip")); tear(q("#sD-strip"));
+
+// ================= A · HOOK =================
+pushIn("#sA-in", 0, 3.9);
+fig(["#sA-f1"], [0]);
+word("#a-w1", 0.0); word("#a-w2", 0.94); word("#a-w3", 1.32); word("#a-w4", 1.74);
+punch("#a-w5", 2.1);
+tl.fromTo("#a-rep", { opacity: 0, y: 140, rotation: 4 }, { opacity: 1, y: 0, rotation: 0, duration: 0.45, ease: "power3.out" }, 0.0);
+word("#a-r1", 0.3); word("#a-r2", 1.32); word("#a-r3", 1.9);
+draw("#a-circ", 2.88, 0.45);
+drop("#a-tag", 2.4);
+slam("#a-stamp", 3.22);
+
+// ================= B · THE CLASS (facecam) =================
+pushIn("#camwrap", 3.9, 4.5, 1.0, 1.06);
+fig(["#sB-f1"], [3.9]);
+tl.fromTo("#sB-strip", { y: -460 }, { y: 0, duration: 0.3, ease: "power3.out" }, 3.9);
+tl.fromTo("#b-name", { opacity: 0, x: -700 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out" }, 4.12);
+word("#b-w1", 5.38); punch("#b-w2", 6.04); punch("#b-w3", 6.56);
+pop("#b-card", 7.0); pop("#b-x", 7.14);
+draw("#b-arrow", 7.6, 0.3);
+hop("#b-x", 7.96, 0.5, 460, 0, 70);
+
+// ================= C · TRANSAMINATION =================
+pushIn("#sC-in", 8.4, 5.3);
+fig(["#sC-f1", "#sC-f2"], [8.4, 11.28]);
+word("#c-w0", 8.48); out("#c-h0", 9.35, 0.1);
+word("#c-w1", 9.52); word("#c-w2", 9.9); word("#c-w3", 10.22); word("#c-w4", 10.58); punch("#c-w5", 11.28);
+pop("#c-l", 8.6); pop("#c-r", 8.8);
+pop("#c-nh2", 9.2);
+tl.fromTo("#c-enz", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 9.52);
+draw("#c-arc", 10.58, 0.5);
+hop("#c-nh2", 11.48, 0.8, 470, -70, 160);
+tl.to("#c-l-b", { filter: "grayscale(1) brightness(.7)", duration: 0.3 }, 12.2);
+tl.to("#c-r-glow", { opacity: 1, duration: 0.3 }, 12.3);
+word("#c-l2", 12.3); word("#c-r2", 12.45);
+slam("#c-stamp", 12.1);
+word("#c-eq", 12.9);
+
+// ================= D · THE CLUE (facecam) =================
+pushIn("#camwrap", 13.7, 4.4, 1.04, 1.1);
+fig(["#sD-f1"], [13.7]);
+tl.fromTo("#sD-strip", { y: -460 }, { y: 0, duration: 0.3, ease: "power3.out" }, 13.7);
+word("#d-w1", 15.46); word("#d-w2", 15.9); punch("#d-w3", 16.94);
+pop("#d-tube", 14.58);
+tl.fromTo("#d-fill", { scaleY: 0.15 }, { scaleY: 0.85, duration: 1.4, ease: "power2.out" }, 14.8);
+drop("#d-tag", 15.08);
+pop("#d-liver", 16.94);
+draw("#d-crack", 17.24, 0.35);
+
+// ================= E · HEXOKINASE =================
+pushIn("#sE-in", 18.1, 6.9);
+fig(["#sE-f1", "#sE-f2"], [18.1, 20.88]);
+word("#e-w1", 18.18); punch("#e-w2", 19.12);
+tl.fromTo("#pip", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.8)" }, 18.1);
+tl.fromTo("#pipLabel", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 18.35);
+tl.to("#pip", { opacity: 0, scale: 0.4, duration: 0.25, ease: "power2.in" }, 19.75);
+out("#pipLabel", 19.7, 0.15);
+tl.fromTo("#e-enz", { opacity: 0, scale: 0.6, rotation: -10 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.5, ease: "back.out(1.7)" }, 19.12);
+tl.fromTo("#e-enz", { y: 0 }, { y: -12, duration: 1.2, ease: "sine.inOut", yoyo: true, repeat: 4 }, 19.7);
+drop("#e-tag", 19.5);
+pop("#e-tag2", 20.1);
+const eTiles = buildFlaps("#e-flaps", [rollSeq("A", 4), rollSeq("T", 4).concat(["Q", "D"]), rollSeq("P", 4)]);
+eTiles.forEach((tile, i) => { tl.fromTo(tile, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.25, ease: "back.out(2)" }, 19.25 + i * 0.05); flapRoll(tile, 19.3 + i * 0.07, 0, 4); });
+pop("#e-p", 20.88);
+pop("#e-glc", 22.5);
+hop("#e-p", 22.6, 0.7, 190, -40, 120);
+flapRoll(eTiles[1], 23.26, 4, 6);
+word("#e-adp", 23.4);
+drop("#e-g6p", 24.04);
+
+// ================= F · THE FILE =================
+pushIn("#sG-in", 25.0, 5.9, 1, 1.06);
+fig(["#sG-f1", "#sG-f2"], [25.0, 26.76]);
+word("#g-w1", 25.04); word("#g-w2", 25.54); word("#g-w3", 26.16);
+out("#g-h1", 26.38, 0.1);
+word("#g-w4", 26.52); word("#g-w5", 27.16); punch("#g-w6", 27.52);
+ecList(1, 25.1, 26.76);
+draw("#g-circ", 26.95, 0.45);
+tl.fromTo("#g-cls", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 28.1);
+const gTiles = buildFlaps("#g-flaps", [rollSeq("0", 6), rollSeq("2", 6)]);
+gTiles.forEach((tile, i) => { tl.fromTo(tile, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.2 }, 28.15); flapRoll(tile, 28.22 + i * 0.08, 0, 6); });
+slam("#g-stamp", 29.5);
+
+// ================= captions (your words, word by word) =================
+captions([
+  [["AST", 0.0], ["and", 0.94], ["ALT", 1.32]],
+  [["on", 1.74], ["a", 1.92], ["blood", 2.1], ["report?", 2.28]],
+  [["Remember", 2.88], ["this.", 3.22]],
+  [["Transferases", 4.12], ["are", 4.4], ["enzymes", 4.68]],
+  [["that", 5.0], ["transfers", 5.38], ["functional", 6.04], ["groups", 6.56]],
+  [["from", 6.86], ["one", 7.14], ["molecule", 7.36], ["to", 7.74], ["another.", 7.96]],
+  [["For", 8.48], ["example,", 8.64], ["AST", 9.52], ["and", 9.9], ["ALT", 10.22]],
+  [["transfers", 10.58], ["an", 11.02], ["amino", 11.28], ["group", 11.48]],
+  [["during", 11.7], ["transamination", 12.1], ["reactions.", 12.9]],
+  [["That's", 13.8], ["why", 14.12], ["their", 14.3], ["levels", 14.58]],
+  [["are", 14.8], ["commonly", 15.08], ["measured", 15.46]],
+  [["when", 15.9], ["investigating", 16.22], ["liver", 16.94], ["injury.", 17.24]],
+  [["Another", 18.18], ["example", 18.44], ["is", 18.88], ["hexokinase,", 19.12]],
+  [["which", 19.84], ["transfers", 20.1], ["a", 20.56], ["phosphate", 20.88], ["group", 21.24]],
+  [["from", 21.64], ["ATP", 22.04], ["to", 22.42], ["glucose,", 22.7]],
+  [["forming", 23.26], ["glucose", 23.64], ["6-phosphate.", 24.04]],
+  [["This", 25.04], ["conveys", 25.54], ["us", 26.16], ["the", 26.52], ["second", 26.76]],
+  [["enzyme", 27.16], ["classification", 27.52], ["group", 28.22]],
+  [["that", 28.72], ["is", 29.26], ["transferases.", 29.5]],
+], 30.8, [[0, 1000], [3.9, 1440], [8.4, 1015], [13.7, 1440], [18.1, 1060], [25.0, 1015]]);
+
+window.__timelines["main"] = tl;
+</script>
+</body>
+</html>

@@ -1,0 +1,472 @@
+{
+  "ok": false,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 9,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "gsap_repeated_fromto_without_baseline",
+        "severity": "warning",
+        "message": "2 tl.fromTo() calls target \"#camwrap\" with no stable baseline. The last-authored fromTo \"from\" values become the element's resting state for any seek before the first tween actually runs, because GSAP applies fromTo from-values at authoring time (immediateRender), not at tween position.",
+        "selector": "#camwrap",
+        "dataAttributes": {},
+        "sourceFile": "/home/user/Claude-code-git-hub/videos/transferase/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Add `immediateRender: false` to every fromTo except the earliest-positioned one (at 3.9s), so pre-first-tween seeks keep its \"from\" values. A hiding `tl.set(..., 0)` baseline trips gsap_timeline_set_initial_hide, and a `gsap.set` authored before the fromTo calls is overwritten by them."
+      },
+      {
+        "code": "composition_file_too_large",
+        "severity": "warning",
+        "message": "This HTML composition file has 400 lines. Smaller sub-compositions are easier to read, iterate on, and diff.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "/home/user/Claude-code-git-hub/videos/transferase/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Split coherent scenes or layers into separate .html files under compositions/, then mount them from the parent with data-composition-src so each file stays small enough to inspect, revise, and validate independently."
+      },
+      {
+        "code": "timeline_track_too_dense",
+        "severity": "warning",
+        "message": "Track 1 has 4 timed elements in this HTML file. Smaller sub-compositions keep timelines easier to read, iterate on, and diff.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "/home/user/Claude-code-git-hub/videos/transferase/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move coherent scene groups into separate .html files under compositions/ and mount them from the parent with data-composition-src so the timeline stays easier to inspect, revise, and validate."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"sA\"> is a timeline element that contains nested <div id=\"sA-in\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#sA",
+        "dataAttributes": {},
+        "sourceFile": "/home/user/Claude-code-git-hub/videos/transferase/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"sA\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"sC\"> is a timeline element that contains nested <div id=\"sC-in\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#sC",
+        "dataAttributes": {},
+        "sourceFile": "/home/user/Claude-code-git-hub/videos/transferase/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"sC\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"sE\"> is a timeline element that contains nested <div id=\"sE-in\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#sE",
+        "dataAttributes": {},
+        "sourceFile": "/home/user/Claude-code-git-hub/videos/transferase/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"sE\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"sG\"> is a timeline element that contains nested <div id=\"sG-in\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#sG",
+        "dataAttributes": {},
+        "sourceFile": "/home/user/Claude-code-git-hub/videos/transferase/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"sG\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"sB\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#sB",
+        "dataAttributes": {},
+        "sourceFile": "/home/user/Claude-code-git-hub/videos/transferase/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"sB\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"sD\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#sD",
+        "dataAttributes": {},
+        "sourceFile": "/home/user/Claude-code-git-hub/videos/transferase/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"sD\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      }
+    ],
+    "filesScanned": 1
+  },
+  "runtime": {
+    "ok": false,
+    "errorCount": 1,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "page_error",
+        "severity": "error",
+        "message": "Cannot read properties of null (reading 'style')",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "main",
+          "data-start": "0",
+          "data-width": "1080",
+          "data-height": "1920",
+          "data-duration": "30.9"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1080,
+          "height": 1920
+        },
+        "time": 0
+      }
+    ]
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 2,
+    "findings": [
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 5.15,
+        "selector": "#sB > div:nth-of-type(2)",
+        "message": "Element extends outside a clipping layout container.",
+        "rect": {
+          "left": -10,
+          "top": 0,
+          "right": 1090,
+          "bottom": 460,
+          "width": 1100,
+          "height": 460
+        },
+        "containerSelector": "#sB",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1080,
+          "bottom": 1920,
+          "width": 1080,
+          "height": 1920
+        },
+        "overflow": {
+          "left": 10,
+          "right": 10
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -10,
+          "y": 0,
+          "width": 1100,
+          "height": 460
+        },
+        "firstSeen": 5.15,
+        "lastSeen": 5.15,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          5.15
+        ]
+      },
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 15.45,
+        "selector": "#sD > div:nth-of-type(2)",
+        "message": "Element extends outside a clipping layout container.",
+        "rect": {
+          "left": -10,
+          "top": 0,
+          "right": 1090,
+          "bottom": 460,
+          "width": 1100,
+          "height": 460
+        },
+        "containerSelector": "#sD",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1080,
+          "bottom": 1920,
+          "width": 1080,
+          "height": 1920
+        },
+        "overflow": {
+          "left": 10,
+          "right": 10
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -10,
+          "y": 0,
+          "width": 1100,
+          "height": 460
+        },
+        "firstSeen": 15.45,
+        "lastSeen": 15.45,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          15.45
+        ]
+      }
+    ],
+    "duration": 30.9,
+    "samples": [
+      1.717,
+      5.15,
+      8.583,
+      12.017,
+      15.45,
+      18.883,
+      22.317,
+      25.75,
+      29.183
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 2,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      1.717,
+      8.583,
+      15.45,
+      22.317,
+      29.183
+    ],
+    "checked": 5,
+    "passed": 5
+  },
+  "craft": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 4,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "dead_stretch",
+        "severity": "warning",
+        "message": "Nothing on screen changes for 3.86 s (0.00–3.86 s): start the next move within 3 s, or put data-hold on the element whose stillness is deliberate; see references/motion.md.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "seconds": 3.863,
+        "floorSeconds": 3,
+        "until": 3.863
+      },
+      {
+        "code": "text_below_floor",
+        "severity": "warning",
+        "message": "Type floor is 28 px (2.6% of the 1080 px short side, what a phone can read) and 6 text elements stay under it for 0.5 s or more, the smallest \"Hook\" at 22 px: set reading text to at least 28 px, or put data-layout-ignore on text that is texture rather than reading; see references/look.md.",
+        "text": "Hook",
+        "selector": "#sA-in > div:nth-of-type(2) > span:nth-of-type(1)",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 92,
+          "y": 64,
+          "width": 72.17,
+          "height": 29
+        },
+        "time": 0,
+        "times": [
+          0,
+          3.987,
+          8.473,
+          13.706,
+          18.191,
+          25.044
+        ],
+        "fontPx": 22,
+        "floorPx": 28,
+        "seconds": 3.988,
+        "elements": [
+          {
+            "selector": "#sA-in > div:nth-of-type(2) > span:nth-of-type(1)",
+            "text": "Hook",
+            "fontPx": 22,
+            "time": 0,
+            "seconds": 3.988
+          },
+          {
+            "selector": "#sB-strip > div:nth-of-type(2) > span:nth-of-type(1)",
+            "text": "The class",
+            "fontPx": 22,
+            "time": 3.987,
+            "seconds": 4.486
+          },
+          {
+            "selector": "#sC-in > div:nth-of-type(2) > span:nth-of-type(1)",
+            "text": "Example 1",
+            "fontPx": 22,
+            "time": 8.473,
+            "seconds": 5.233
+          },
+          {
+            "selector": "#sD-strip > div:nth-of-type(2) > span:nth-of-type(1)",
+            "text": "The clue",
+            "fontPx": 22,
+            "time": 13.706,
+            "seconds": 4.486
+          },
+          {
+            "selector": "#sE-in > div:nth-of-type(2) > span:nth-of-type(1)",
+            "text": "Example 2",
+            "fontPx": 22,
+            "time": 18.191,
+            "seconds": 6.853
+          },
+          {
+            "selector": "#sG-in > div:nth-of-type(2) > span:nth-of-type(1)",
+            "text": "The file",
+            "fontPx": 22,
+            "time": 25.044,
+            "seconds": 5.856
+          }
+        ]
+      },
+      {
+        "code": "dead_stretch",
+        "severity": "warning",
+        "message": "Nothing on screen changes for 5.11 s (8.47–13.58 s): start the next move within 3 s, or put data-hold on the element whose stillness is deliberate; see references/motion.md.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 8.473,
+        "seconds": 5.108,
+        "floorSeconds": 3,
+        "until": 13.581
+      },
+      {
+        "code": "dead_stretch",
+        "severity": "warning",
+        "message": "Nothing on screen changes for 4.98 s (19.93–24.92 s): start the next move within 3 s, or put data-hold on the element whose stillness is deliberate; see references/motion.md.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 19.935,
+        "seconds": 4.984,
+        "floorSeconds": 3,
+        "until": 24.919
+      }
+    ],
+    "enabled": true,
+    "step": 0.125,
+    "samples": 248
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}
