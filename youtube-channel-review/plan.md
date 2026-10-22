@@ -29,6 +29,19 @@ Started 2026-10-22. Read this at the start of every planning session.
 - [ ] Film the first week of second year for **"Second Year MBBS Starts: Following Along"**.
 - [ ] Be ready to film and post on the day the first-year results come out.
 
+## Footage inventory
+
+Clips shared on 2026-10-22. All are vertical, so they work as-is for Shorts. In the 16:9 recap, put them over a blurred background.
+
+| Clip | What it shows | Length | Use |
+|---|---|---|---|
+| IMG_9328.mov | Low-angle selfie walking outdoors in apron + backpack, blue sky | 4.7s | Recap hook; "walk to class" Short |
+| IMG_1364.mov | iPad playing a physiology lecture ("Types of Nociceptors") | 3.6s | Study B-roll. Mute it and keep it short, since the lecturer's video isn't mine |
+| IMG_1366.mov | Rotating a 3D eye anatomy model on iPad | 6.2s | Study B-roll; "how I study anatomy on iPad" |
+| seminar .mp4 | Presenting a uterus anatomy seminar at the podium (filmed by a friend) | 24s | "My first MBBS seminar" Short; recap Subjects section. Only 480p, so ask the friend for the original file |
+
+Still to film: college gate/building, hostel room, notes close-ups, a short talking-head intro and outro.
+
 ## Recap video outline
 
 **Title:** My First Year of MBBS at NMCH (Honest Recap)
