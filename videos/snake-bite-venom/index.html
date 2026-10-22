@@ -2,7 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1920, height=1080" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Snake Bite — Venom Inside You</title>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <style>
       * {
@@ -12,25 +13,27 @@
       }
       html,
       body {
-        margin: 0;
-        width: 1920px;
-        height: 1080px;
+        background: #2a7fd4;
         overflow: hidden;
-        background: #0a0a0a;
       }
       #root {
+        position: relative;
         width: 100%;
         height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        overflow: hidden;
+        background: #2a7fd4;
       }
-      #title {
-        color: #f4f4f5;
-        font-size: 72px;
-        font-weight: 600;
-        letter-spacing: -0.03em;
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
       }
     </style>
   </head>
@@ -39,17 +42,814 @@
       id="root"
       data-composition-id="main"
       data-start="0"
-      data-duration="10"
-      data-width="1920"
-      data-height="1080"
+      data-duration="30"
+      data-width="1080"
+      data-height="1920"
     >
-      <h1 id="title" class="clip" data-start="0" data-duration="10" data-track-index="0">Title</h1>
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <!-- 180x320 pixel world, upscaled 6x -->
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <!-- 360x640 caption layer, upscaled 3x -->
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: Kokoro am_onyx narration + ducked SFX, no music -->
+      <audio id="narration" src="assets/audio/narration.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="30" data-track-index="2"></audio>
     </div>
     <script>
-      const tl = gsap.timeline({ paused: true });
-      // Example: tl.fromTo("#title", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6 }, 0);
+      // ---------------------------------------------------------------
+      // Palette (frame.md, bright revision). Every pixel snaps to one of these.
+      // ---------------------------------------------------------------
+      var C = {
+        skyTop: "#2a7fd4", sky: "#5aaee8", skyLight: "#9ad4f4", haze: "#ffe6b0", sun: "#fff6c8", sunGlow: "#ffd27a",
+        mesaDark: "#a8442a", mesa: "#d9643a", mesaLight: "#f39a5a",
+        sandDark: "#c47a3a", sand: "#e8a858", sandLight: "#f8d08a", rockDark: "#8a4a30", rock: "#c06a40",
+        cactusDark: "#23803a", cactus: "#3cb44a", cactusLight: "#86e060",
+        snakeDark: "#5a3a22", snake: "#c89a5a", snakeLight: "#f0d090", cream: "#fff2c8", eye: "#ffd040", mouth: "#ff7a9a", tongue: "#ff3050",
+        jeans: "#2f5fc8", jeansLight: "#5a8af0", skin: "#ffc29a", skinShade: "#e8956a", sock: "#f8f4ec", boot: "#8a5230", bootDark: "#5a3218", lace: "#ffd060",
+        air: "#bfe8ff", airLight: "#e6f7ff", epi: "#ffd0aa", epiLight: "#ffe6cc", derm: "#ff9e9e", dermLine: "#f27a8c",
+        cap: "#e8303a", capLight: "#ff6a6a", fat: "#ffe08a", fatLine: "#f0b040", muscle: "#d8404a", muscleLine: "#a82a3a", nerve: "#fff070",
+        fang: "#fffaf0", fangShade: "#d8cfc0",
+        plasma: "#ffc890", plasmaLight: "#ffe2b8", rbc: "#e8202a", rbcLight: "#ff6a5a", rbcDark: "#a8101e",
+        wall: "#f07aa0", wallDark: "#b84a78", nucleus: "#8a2a7a", tissue: "#7a2a5a", plate: "#ffe040", damaged: "#6a3a3a",
+        venom: "#5cff2a", venomDark: "#1c9a1c", venomGlow: "#c8ff9a", bound: "#a0a8a0",
+        antibody: "#5ae8ff", antibodyLight: "#e0fbff", antibodyDark: "#1a8ab0",
+        ink: "#06050a", paper: "#f1eef4", gold: "#ffd23f", white: "#ffffff",
+      };
+      function hex(h) {
+        return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+      }
+      var PAL = Object.keys(C).map(function (k) { return hex(C[k]); });
+      function mix(a, b, t) {
+        var x = hex(a), y = hex(b);
+        t = Math.max(0, Math.min(1, t));
+        return "rgb(" + Math.round(x[0] + (y[0] - x[0]) * t) + "," + Math.round(x[1] + (y[1] - x[1]) * t) + "," + Math.round(x[2] + (y[2] - x[2]) * t) + ")";
+      }
+
+      // ---------------------------------------------------------------
+      // Deterministic helpers
+      // ---------------------------------------------------------------
+      function rng(seed) {
+        return function () {
+          seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
+          var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      function hash1(n) {
+        var x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+        return x - Math.floor(x);
+      }
+      function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+      function sstep(a, b, x) { var t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); }
+      function ease(t) { return 0.5 - 0.5 * Math.cos(Math.PI * clamp01(t)); }
+      function ramp(t, a, b) { return ease((t - a) / (b - a)); }
+      function easeOut(t) { t = clamp01(t); return 1 - Math.pow(1 - t, 3); }
+
+      // ---------------------------------------------------------------
+      // Cameras: [time, x, y, zoom] per scene. Zoom eases in log space and
+      // position follows the zoom so big zooms dive toward their target.
+      // ---------------------------------------------------------------
+      function camAt(keys, t) {
+        if (t <= keys[0][0]) return { x: keys[0][1], y: keys[0][2], z: keys[0][3] };
+        var L = keys[keys.length - 1];
+        if (t >= L[0]) return { x: L[1], y: L[2], z: L[3] };
+        var i = 0;
+        while (t > keys[i + 1][0]) i++;
+        var a = keys[i], b = keys[i + 1];
+        var e = ease((t - a[0]) / (b[0] - a[0]));
+        var z = Math.exp(Math.log(a[3]) + (Math.log(b[3]) - Math.log(a[3])) * e);
+        var k = e;
+        if (Math.abs(Math.log(b[3] / a[3])) > 0.1) k = (1 - a[3] / z) / (1 - a[3] / b[3]);
+        return { x: a[1] + (b[1] - a[1]) * k, y: a[2] + (b[2] - a[2]) * k, z: z };
+      }
+      var BITE = { x: 134, y: 231 };
+      var CAM_DESERT = [
+        [0, 90, 160, 1], [3.4, 92, 166, 1.08], [4.9, 106, 212, 1.9], [6.9, 112, 214, 2.2], [8.75, BITE.x, BITE.y, 40],
+      ];
+      var CAM_DESERT_END = [
+        [26.85, BITE.x, BITE.y, 40], [29.2, 90, 160, 1], [30, 90, 160, 1],
+      ];
+      var CAM_SKIN = [
+        [8.45, 90, 130, 40], [9.8, 90, 168, 1.0], [12.6, 90, 172, 1.06], [13.75, 90, 200, 40],
+      ];
+      var CAM_BLOOD = [
+        [13.45, 90, 160, 40], [14.7, 90, 160, 1.0], [18.2, 92, 160, 1.05], [19.3, 96, 212, 1.7], [21.2, 100, 214, 1.75],
+        [22.3, 90, 160, 1.12], [26.3, 94, 160, 1.22], [27.15, 94, 262, 40],
+      ];
+
+      // ---------------------------------------------------------------
+      // Canvases
+      // ---------------------------------------------------------------
+      var W = 180, H = 320;
+      var world = document.getElementById("world");
+      var wctx = world.getContext("2d");
+      var buf = document.createElement("canvas");
+      buf.width = W; buf.height = H;
+      var g = buf.getContext("2d", { willReadFrequently: true });
+      var ui = document.getElementById("ui");
+      var u = ui.getContext("2d", { willReadFrequently: true });
+
+      function setCam(cam, f) {
+        f = f === undefined ? 1 : f;
+        var z = Math.pow(cam.z, f);
+        var cx = 90 + (cam.x - 90) * f, cy = 160 + (cam.y - 160) * f;
+        g.setTransform(z, 0, 0, z, W / 2 - cx * z, H / 2 - cy * z);
+      }
+      function screen() { g.setTransform(1, 0, 0, 1, 0, 0); }
+      function disc(x, y, r, col) {
+        g.fillStyle = col; g.beginPath(); g.arc(x, y, Math.max(r, 0.01), 0, 6.2832); g.fill();
+      }
+      function ell(x, y, rx, ry, rot, col) {
+        g.fillStyle = col; g.beginPath(); g.ellipse(x, y, Math.max(rx, 0.01), Math.max(ry, 0.01), rot, 0, 6.2832); g.fill();
+      }
+      function line(x1, y1, x2, y2, w, col) {
+        g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round";
+        g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke();
+      }
+      function vignette(alpha) {
+        screen();
+        var vg = g.createRadialGradient(W / 2, H / 2, H * 0.32, W / 2, H / 2, H * 0.7);
+        vg.addColorStop(0, "rgba(0,0,0,0)");
+        vg.addColorStop(1, "rgba(40,10,30," + alpha + ")");
+        g.fillStyle = vg; g.fillRect(0, 0, W, H);
+      }
+
+      // =================================================================
+      // SCENE 1 — THE DESERT
+      // =================================================================
+      var CLOUDS = (function () {
+        var r = rng(2), a = [];
+        for (var i = 0; i < 5; i++) a.push({ x: r() * 220 - 20, y: 20 + r() * 70, w: 18 + r() * 22, s: 0.6 + r() * 0.8 });
+        return a;
+      })();
+      var DUST = (function () {
+        var r = rng(4), a = [];
+        for (var i = 0; i < 40; i++) a.push({ x: r() * W, y: r() * H, v: 2 + r() * 6, c: r() });
+        return a;
+      })();
+      var PEBBLES = (function () {
+        var r = rng(6), a = [];
+        for (var i = 0; i < 120; i++) a.push({ x: r() * 300 - 60, y: 201 + r() * 130, w: 1 + r() * 4, c: r() });
+        return a;
+      })();
+      function snakeState(t) {
+        var s = 0;
+        if (t >= 4.9) s = 0.85 * easeOut((t - 4.9) / 0.32);
+        if (t >= 5.22) s = 0.85 + 0.12 * ((t - 5.22) / (6.85 - 5.22));
+        if (t >= 6.85) s = 0.97 + 0.03 * clamp01((t - 6.85) / 0.05);
+        if (t >= 6.9) s = 1;
+        if (t >= 26.9) s = 1 - ramp(t, 27.2, 28.0);
+        var open = t >= 4.85 && t < 27.6 ? sstep(4.85, 5.05, t) : 0;
+        return { s: s, open: open };
+      }
+      function hikerOffset(t) {
+        if (t < 3.4) return 70;
+        if (t < 4.9) return 70 * (1 - easeOut((t - 3.4) / 1.5));
+        if (t < 28.5) return 0;
+        return 85 * ramp(t, 28.5, 29.6);
+      }
+      function spiral(uu) {
+        var ang = Math.PI * 0.2 + uu * Math.PI * 3.4;
+        var r = 20 - 9 * uu;
+        return { x: 64 + Math.cos(ang) * r, y: 266 + Math.sin(ang) * r * 0.45 - uu * 7 };
+      }
+      function neckPoint(v, st, t) {
+        var p0 = spiral(1);
+        var bob = (1 - st.s) * Math.sin(t * 2.2) * 1.2;
+        var h0 = { x: 80, y: 230 + bob }, c0 = { x: 58, y: 240 };
+        var h1 = { x: 121, y: 233 }, c1 = { x: 96, y: 236 };
+        var hx = h0.x + (h1.x - h0.x) * st.s, hy = h0.y + (h1.y - h0.y) * st.s;
+        var cx = c0.x + (c1.x - c0.x) * st.s, cy = c0.y + (c1.y - c0.y) * st.s;
+        var iv = 1 - v;
+        return { x: iv * iv * p0.x + 2 * iv * v * cx + v * v * hx, y: iv * iv * p0.y + 2 * iv * v * cy + v * v * hy };
+      }
+      function patternCol(L) {
+        var ph = ((L % 7) + 7) % 7 / 7;
+        if (ph > 0.3 && ph < 0.7) return C.snakeDark;
+        if ((ph > 0.22 && ph <= 0.3) || (ph >= 0.7 && ph < 0.78)) return C.cream;
+        return C.snake;
+      }
+      function drawSnake(t) {
+        var st = snakeState(t);
+        // gather body discs (tail -> head) with arc length for the pattern
+        var pts = [], L = 0, prev = null;
+        for (var i = 0; i <= 90; i++) {
+          var p = spiral(i / 90);
+          if (prev) L += Math.hypot(p.x - prev.x, p.y - prev.y);
+          pts.push({ x: p.x, y: p.y, r: 2.4 + 1.6 * Math.min(1, i / 25), L: L });
+          prev = p;
+        }
+        for (var j = 1; j <= 40; j++) {
+          var q = neckPoint(j / 40, st, t);
+          L += Math.hypot(q.x - prev.x, q.y - prev.y);
+          pts.push({ x: q.x, y: q.y, r: 4 - 1.2 * (j / 40), L: L, neck: true });
+          prev = q;
+        }
+        // coil: back-to-front by depth, neck always on top
+        var coil = pts.filter(function (p) { return !p.neck; }).sort(function (a, b) { return a.y - b.y; });
+        var neck = pts.filter(function (p) { return p.neck; });
+        // shadow
+        ell(68, 270, 26, 5, 0, C.sandDark);
+        drawRattle(t);
+        coil.concat(neck).forEach(function (p) {
+          disc(p.x, p.y + 0.6, p.r + 0.6, C.snakeDark);
+          var col = patternCol(p.L);
+          disc(p.x, p.y, p.r, col);
+          if (col === C.snake) disc(p.x - 0.6, p.y - p.r * 0.45, p.r * 0.45, C.snakeLight);
+        });
+        // speed lines during the lunge
+        if (t > 4.9 && t < 6.9) {
+          var a = 0.9 * (1 - clamp01((t - 5.3) / 1.6));
+          g.globalAlpha = Math.max(0.25, a);
+          for (var k = 0; k < 5; k++) {
+            var y = 226 + k * 3.4, x = 84 + (k % 2) * 6;
+            line(x, y, x + 22 - k * 2, y + 1, 0.8, C.white);
+          }
+          g.globalAlpha = 1;
+        }
+        drawHead(t, st);
+      }
+      function drawRattle(t) {
+        var tail = spiral(0);
+        var buzz = Math.sin(t * 95) * 0.9;
+        for (var ghost = -1; ghost <= 1; ghost++) {
+          g.globalAlpha = ghost === 0 ? 1 : 0.4;
+          for (var i = 0; i < 6; i++) {
+            var x = tail.x - 3 + buzz * ghost * 1.5 + Math.sin(t * 95 + i) * 0.5, y = tail.y - 3 - i * 2.6;
+            ell(x, y, 2.4 - i * 0.12, 1.4, 0, i % 2 ? C.cream : C.snakeLight);
+            line(x - 2, y + 1, x + 2, y + 1, 0.4, C.snakeDark);
+          }
+        }
+        g.globalAlpha = 1;
+      }
+      function drawHead(t, st) {
+        var a = neckPoint(0.94, st, t), b = neckPoint(1, st, t);
+        var th = Math.atan2(b.y - a.y, b.x - a.x);
+        var dx = Math.cos(th), dy = Math.sin(th), px = -dy, py = dx;
+        var hx = b.x + dx * 3, hy = b.y + dy * 3;
+        var open = st.open;
+        // lower jaw swings down when striking
+        var jaw = th + 0.75 * open;
+        ell(hx + Math.cos(jaw) * 2 + px * 1.6, hy + Math.sin(jaw) * 2 + py * 1.6, 5, 1.8, jaw, C.snakeLight);
+        if (open > 0.1) {
+          ell(hx + dx * 1.5 + px * 1.2, hy + dy * 1.5 + py * 1.2, 4.2, 1.8 * open, th + 0.35 * open, C.mouth);
+          // fangs
+          for (var f = 0; f < 2; f++) {
+            var fx = hx + dx * (4.4 - f * 1.4), fy = hy + dy * (4.4 - f * 1.4);
+            line(fx, fy, fx + dx * 0.8 + px * 3 * open, fy + dy * 0.8 + py * 3 * open, 0.9, C.fang);
+          }
+        }
+        // upper head: wedge-shaped pit viper skull
+        ell(hx, hy, 6.2, 3.8, th - 0.35 * open, C.snakeDark);
+        ell(hx - px * 0.2, hy - py * 0.2, 5.5, 3.2, th - 0.35 * open, C.snake);
+        ell(hx - px * 1.2 - dx, hy - py * 1.2 - dy, 3.2, 1.3, th - 0.35 * open, C.snakeLight);
+        // dark stripe + eye
+        var ex = hx + dx * 1.2 - px * 1.4, ey = hy + dy * 1.2 - py * 1.4;
+        line(ex - dx * 3, ey - dy * 3, ex + dx * 2, ey + dy * 2, 1.4, C.snakeDark);
+        disc(ex, ey, 1.25, C.eye);
+        g.fillStyle = C.ink; g.fillRect(ex - 0.25, ey - 1, 0.5, 2);
+        g.fillStyle = C.white; g.fillRect(ex + 0.3, ey - 0.9, 0.4, 0.4);
+        // heat pit
+        disc(hx + dx * 3.8 - px * 0.6, hy + dy * 3.8 - py * 0.6, 0.45, C.ink);
+        // forked tongue flicks while coiled
+        var flick = (t % 1.6) / 1.6;
+        if (st.s < 0.05 && flick < 0.22) {
+          var len = 4 * Math.sin(Math.PI * flick / 0.22);
+          var tx = hx + dx * 6, ty = hy + dy * 6;
+          line(tx, ty, tx + dx * len, ty + dy * len, 0.6, C.tongue);
+          line(tx + dx * len, ty + dy * len, tx + dx * (len + 1.4) + px, ty + dy * (len + 1.4) + py, 0.5, C.tongue);
+          line(tx + dx * len, ty + dy * len, tx + dx * (len + 1.4) - px, ty + dy * (len + 1.4) - py, 0.5, C.tongue);
+        }
+      }
+      function drawHiker(t) {
+        var off = hikerOffset(t);
+        if (off > 80) return;
+        var walking = (t > 3.4 && t < 4.9) || t > 28.5;
+        var bob = walking ? Math.abs(Math.sin(t * 9)) * 2.2 : 0;
+        var flinch = t > 6.9 && t < 7.4 ? Math.sin((t - 6.9) / 0.5 * Math.PI) * 1.5 : 0;
+        var x = 124 + off, y = -bob - flinch;
+        // jeans leg (from above the frame)
+        g.fillStyle = C.jeans; g.fillRect(x + 2, 120 + y, 24, 106);
+        g.fillStyle = C.jeansLight; g.fillRect(x + 4, 120 + y, 4, 104);
+        g.fillStyle = C.jeansLight; g.fillRect(x + 1, 222 + y, 26, 4);
+        // bare ankle (the bite target)
+        g.fillStyle = C.skin; g.fillRect(x + 4, 226 + y, 20, 10);
+        g.fillStyle = C.skinShade; g.fillRect(x + 18, 226 + y, 6, 10);
+        // sock + boot (toe pointing left, toward the snake)
+        g.fillStyle = C.sock; g.fillRect(x + 3, 236 + y, 22, 4);
+        g.fillStyle = C.boot;
+        g.beginPath(); g.moveTo(x + 1, 239 + y); g.lineTo(x + 27, 239 + y); g.lineTo(x + 28, 258 + y);
+        g.lineTo(x - 12, 258 + y); g.quadraticCurveTo(x - 13, 248 + y, x + 1, 246 + y); g.closePath(); g.fill();
+        g.fillStyle = C.bootDark; g.fillRect(x - 13, 257 + y, 42, 3);
+        for (var i = 0; i < 3; i++) { g.fillStyle = C.lace; g.fillRect(x + 4 + i * 4, 241 + y + i, 2, 1); }
+        // two puncture dots appear after the bite
+        if (t > 7.0 && t < 29.6) {
+          g.fillStyle = C.rbc;
+          g.fillRect(x + 7, 230 + y, 1, 1); g.fillRect(x + 10, 231 + y, 1, 1);
+        }
+      }
+      function drawCactus(x, base, h, s) {
+        g.fillStyle = C.cactusDark;
+        g.fillRect(x - 4 * s, base - h, 8 * s, h);
+        g.fillStyle = C.cactus;
+        g.fillRect(x - 3 * s, base - h, 5 * s, h);
+        g.fillStyle = C.cactusLight;
+        g.fillRect(x - 2 * s, base - h + 2, 1.4 * s, h - 4);
+        // arms
+        g.fillStyle = C.cactus;
+        g.fillRect(x - 11 * s, base - h * 0.55, 7 * s, 4 * s); g.fillRect(x - 11 * s, base - h * 0.85, 4 * s, h * 0.32);
+        g.fillRect(x + 4 * s, base - h * 0.4, 7 * s, 4 * s); g.fillRect(x + 8 * s, base - h * 0.7, 4 * s, h * 0.32);
+        disc(x - 0.5 * s, base - h, 3 * s, C.cactus);
+      }
+      function drawDesert(t, cam) {
+        screen();
+        // sky
+        var gr = g.createLinearGradient(0, 0, 0, H);
+        var lift = clamp01((cam.y - 160) / 100);
+        gr.addColorStop(0, C.skyTop);
+        gr.addColorStop(0.4 - 0.2 * lift, C.sky);
+        gr.addColorStop(0.62 - 0.25 * lift, C.skyLight);
+        gr.addColorStop(0.75 - 0.25 * lift, C.haze);
+        g.fillStyle = gr; g.fillRect(0, 0, W, H);
+        // sun + posterized halo
+        var sx = 138 - (cam.x - 90) * 0.12, sy = 58 - (cam.y - 160) * 0.12;
+        var rings = [[44, mix(C.sky, C.skyLight, 0.6)], [33, C.skyLight], [23, mix(C.skyLight, C.haze, 0.6)], [15, C.sunGlow], [9, C.sun]];
+        for (var i = 0; i < rings.length; i++) disc(sx, sy, rings[i][0] * (1 + 0.03 * Math.sin(t * 1.4 + i)), rings[i][1]);
+        // clouds drift
+        CLOUDS.forEach(function (c) {
+          var x = ((c.x + t * 2 * c.s - (cam.x - 90) * 0.2) % 240 + 240) % 240 - 30;
+          var y = c.y - (cam.y - 160) * 0.15;
+          ell(x, y, c.w * 0.5, 3.5, 0, C.white);
+          ell(x + c.w * 0.25, y - 2, c.w * 0.3, 3.5, 0, C.white);
+          ell(x, y + 1.5, c.w * 0.5, 2, 0, C.skyLight);
+        });
+        // mesas (parallax)
+        setCam(cam, 0.45);
+        g.fillStyle = C.mesaDark;
+        g.beginPath(); g.moveTo(-120, 205); g.lineTo(-60, 205); g.lineTo(-52, 160); g.lineTo(-8, 160); g.lineTo(0, 190);
+        g.lineTo(40, 190); g.lineTo(46, 172); g.lineTo(78, 172); g.lineTo(86, 205); g.lineTo(140, 205); g.lineTo(150, 150);
+        g.lineTo(200, 150); g.lineTo(212, 205); g.lineTo(320, 205); g.lineTo(320, 260); g.lineTo(-120, 260); g.closePath(); g.fill();
+        g.fillStyle = C.mesa;
+        g.fillRect(-52, 160, 40, 45); g.fillRect(46, 172, 28, 33); g.fillRect(150, 150, 46, 55);
+        g.fillStyle = C.mesaLight;
+        g.fillRect(-52, 160, 40, 3); g.fillRect(46, 172, 28, 3); g.fillRect(150, 150, 46, 3);
+        for (var b = 0; b < 4; b++) { g.fillStyle = C.mesaDark; g.fillRect(150, 162 + b * 9, 46, 1); g.fillRect(-52, 170 + b * 9, 40, 1); }
+        // ground
+        setCam(cam, 1);
+        g.fillStyle = C.sand; g.fillRect(-200, 200, 600, 300);
+        g.fillStyle = C.sandLight; g.fillRect(-200, 200, 600, 2);
+        PEBBLES.forEach(function (p) {
+          g.fillStyle = p.c < 0.55 ? C.sandDark : p.c < 0.85 ? C.sandLight : C.rock;
+          g.fillRect(p.x, p.y, p.c < 0.85 ? p.w : 1.5, 1);
+        });
+        drawCactus(22, 214, 62, 1);
+        drawCactus(168, 206, 28, 0.6);
+        // rock beside the snake
+        ell(36, 266, 16, 9, 0, C.rockDark);
+        ell(34, 263, 14, 7, 0, C.rock);
+        ell(29, 259, 6, 2, 0, C.mesaLight);
+        // creator tag scratched into the rock
+        g.fillStyle = C.rockDark; g.fillRect(24, 265, 1, 1); g.fillRect(27, 265, 6, 1); g.fillRect(35, 265, 3, 1);
+        drawSnake(t);
+        drawHiker(t);
+        // impact flash ring at the bite
+        if (t > 6.9 && t < 7.4) {
+          var p = (t - 6.9) / 0.5;
+          g.globalAlpha = 1 - p;
+          g.strokeStyle = C.white; g.lineWidth = 1.2;
+          g.beginPath(); g.arc(BITE.x - 4, BITE.y, 3 + p * 14, 0, 6.2832); g.stroke();
+          g.globalAlpha = 1;
+        }
+        // drifting dust
+        screen();
+        DUST.forEach(function (d, i) {
+          var x = ((d.x + t * d.v - (cam.x - 90) * 0.5) % W + W) % W;
+          var y = ((d.y + Math.sin(t + i) * 4 - (cam.y - 160) * 0.3) % H + H) % H;
+          g.globalAlpha = 0.5 + 0.4 * d.c;
+          g.fillStyle = d.c > 0.7 ? C.white : C.sandLight;
+          g.fillRect(Math.floor(x), Math.floor(y), 1, 1);
+        });
+        g.globalAlpha = 1;
+        vignette(0.25);
+      }
+
+      // =================================================================
+      // SCENE 2 — SKIN CUT-AWAY
+      // =================================================================
+      var FAT = (function () {
+        var r = rng(31), a = [];
+        for (var i = 0; i < 40; i++) a.push({ x: -40 + i * 7 + r() * 4, y: 228 + r() * 36, r: 5 + r() * 4 });
+        return a;
+      })();
+      var CLOUD = (function () {
+        var r = rng(33), a = [];
+        for (var i = 0; i < 26; i++) a.push({ a: r() * 6.28, d: Math.sqrt(r()), s: r() });
+        return a;
+      })();
+      var FANGS = [{ x: 46, lean: 0.12 }, { x: 134, lean: -0.12 }];
+      function fangPath(f, sink, s) {
+        // s: 0 (root, above frame) .. 1 (tip)
+        var tipY = 152 + 42 * sink;
+        var y = -30 + (tipY + 30) * s;
+        var x = f.x - f.lean * 60 * (1 - s) * (1 - s) + f.lean * 10;
+        return { x: x, y: y };
+      }
+      function drawSkin(t, cam) {
+        screen();
+        g.fillStyle = C.air; g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        // air above the skin
+        var gr = g.createLinearGradient(0, -60, 0, 120);
+        gr.addColorStop(0, C.air); gr.addColorStop(1, C.airLight);
+        g.fillStyle = gr; g.fillRect(-200, -200, 600, 320);
+        // epidermis
+        g.fillStyle = C.epi; g.fillRect(-200, 120, 600, 22);
+        g.fillStyle = C.epiLight;
+        for (var x = -200; x < 400; x += 6) { g.fillRect(x, 120 + Math.sin(x * 0.3) * 0.8, 6, 2); g.fillRect(x, 124, 1, 16); }
+        // dermis
+        g.fillStyle = C.derm; g.fillRect(-200, 142, 600, 80);
+        g.strokeStyle = C.dermLine; g.lineWidth = 0.8;
+        for (var r = 0; r < 6; r++) {
+          g.beginPath();
+          for (var xx = -200; xx < 400; xx += 4) {
+            var yy = 150 + r * 12 + Math.sin(xx * 0.08 + r) * 2.5;
+            if (xx === -200) g.moveTo(xx, yy); else g.lineTo(xx, yy);
+          }
+          g.stroke();
+        }
+        // nerve
+        g.strokeStyle = C.nerve; g.lineWidth = 1.4;
+        g.beginPath();
+        for (var nx = -200; nx < 400; nx += 4) { var ny = 176 + Math.sin(nx * 0.05) * 4; if (nx === -200) g.moveTo(nx, ny); else g.lineTo(nx, ny); }
+        g.stroke();
+        // capillaries: main vessel + two loops
+        g.strokeStyle = C.cap; g.lineWidth = 7;
+        g.beginPath(); g.moveTo(-200, 200);
+        for (var cx = -200; cx < 400; cx += 4) g.lineTo(cx, 200 + Math.sin(cx * 0.04) * 2 * clamp01(Math.abs(cx - 90) / 40));
+        g.stroke();
+        [24, 156].forEach(function (lx) {
+          g.lineWidth = 3;
+          g.beginPath(); g.moveTo(lx - 6, 200); g.bezierCurveTo(lx - 6, 150, lx + 6, 150, lx + 6, 200); g.stroke();
+        });
+        g.strokeStyle = C.capLight; g.lineWidth = 1.2;
+        g.beginPath(); g.moveTo(-200, 197.5); g.lineTo(400, 197.5); g.stroke();
+        // cells flowing in the capillary
+        for (var k = 0; k < 30; k++) {
+          var fx = ((k * 13 + t * 22) % 300) - 60;
+          disc(fx, 200 + Math.sin(k) * 1.2, 1.2, C.rbcDark);
+        }
+        // fat
+        g.fillStyle = C.fatLine; g.fillRect(-200, 222, 600, 50);
+        FAT.forEach(function (f) { disc(f.x, f.y, f.r, C.fatLine); disc(f.x, f.y, f.r - 0.8, C.fat); disc(f.x - f.r * 0.35, f.y - f.r * 0.35, f.r * 0.25, C.epiLight); });
+        // muscle
+        g.fillStyle = C.muscle; g.fillRect(-200, 270, 600, 200);
+        g.fillStyle = C.muscleLine;
+        for (var m = 0; m < 12; m++) g.fillRect(-200, 274 + m * 5, 600, 1);
+        // layer labels are left to the narration; fangs + venom
+        var sink = ease((t - 8.45) / 1.6);
+        var flow = clamp01((t - 9.7) / 0.4);
+        FANGS.forEach(function (f, fi) {
+          // fang body
+          for (var i = 0; i <= 160; i++) {
+            var s = i / 160, p = fangPath(f, sink, s);
+            var w = 11 * Math.pow(1 - s, 0.8) + 1;
+            disc(p.x + 0.8, p.y, w * 0.5 + 0.5, C.fangShade);
+            disc(p.x, p.y, w * 0.5, C.fang);
+          }
+          // hollow channel with venom pulsing down
+          for (var j = 0; j <= 140; j++) {
+            var s2 = j / 160, q = fangPath(f, sink, s2);
+            var pulse = flow > 0 ? (Math.sin((s2 * 18 - t * 9)) > 0.2 ? 1 : 0) : 0;
+            disc(q.x, q.y, 1.4 * (1 - s2) + 0.5, pulse ? C.venom : C.fangShade);
+          }
+          // venom cloud blooming from the tip and drifting toward the capillary
+          var tip = fangPath(f, sink, 1);
+          var grow = ramp(t, 9.9, 12.9);
+          if (grow > 0) {
+            var R = 3 + 16 * grow;
+            var cxp = tip.x + (90 - tip.x) * 0.35 * grow, cyp = tip.y + (200 - tip.y) * 0.5 * grow;
+            CLOUD.forEach(function (c, ci) {
+              var a = c.a + t * 0.6 * (fi ? -1 : 1);
+              var px = cxp + Math.cos(a) * R * c.d, py = cyp + Math.sin(a) * R * c.d * 0.7;
+              disc(px, py, 1.4 + 2.2 * (1 - c.d) * grow, ci % 3 === 0 ? C.venomGlow : ci % 3 === 1 ? C.venom : C.venomDark);
+            });
+          }
+        });
+        // snake jaw silhouette above
+        ell(90, -36, 110, 30, 0, C.snakeDark);
+        ell(90, -40, 108, 26, 0, C.snake);
+        vignette(0.2);
+      }
+
+      // =================================================================
+      // SCENE 3 — INSIDE THE BLOOD VESSEL
+      // =================================================================
+      var LUMEN_TOP = 84, LUMEN_BOT = 236;
+      // heart-rate driven flow: phase table so the pulse is seekable
+      var RATE = function (t) {
+        if (t < 18) return 1.3;
+        if (t < 21.5) return 1.3 + 0.7 * ((t - 18) / 3.5);
+        if (t < 26.3) return 2.0 - 1.0 * clamp01((t - 21.5) / 3.5);
+        return 1.0;
+      };
+      var PHASE = (function () {
+        var a = new Float32Array(Math.ceil(30 * 120) + 2), ph = 0;
+        for (var i = 0; i < a.length; i++) { a[i] = ph; ph += RATE(i / 120) / 120; }
+        return a;
+      })();
+      function phaseAt(t) { var i = Math.max(0, Math.min(PHASE.length - 1, Math.floor(t * 120))); return PHASE[i]; }
+      function flowPos(t) {
+        // integrate speed = base * (1 + pulse); pulse peaks once per beat
+        var ph = phaseAt(t);
+        return t * 18 + ph * 14 + Math.sin(ph * 6.2832) * 2.2;
+      }
+      var RBC = (function () {
+        var r = rng(51), a = [];
+        for (var i = 0; i < 46; i++) a.push({ x: r() * 280, y: LUMEN_TOP + 10 + r() * (LUMEN_BOT - LUMEN_TOP - 20), s: 0.8 + r() * 0.4, rot: r() * 6.28, sp: 0.85 + r() * 0.3 });
+        return a;
+      })();
+      var VENOM = (function () {
+        var r = rng(53), a = [];
+        for (var i = 0; i < 26; i++) a.push({ x: r() * 280, y: LUMEN_TOP + 12 + r() * (LUMEN_BOT - LUMEN_TOP - 24), sp: 0.9 + r() * 0.3, w: r() * 6.28 });
+        return a;
+      })();
+      var WALLCELLS = (function () {
+        var a = [];
+        for (var i = 0; i < 40; i++) a.push({ x: -60 + i * 9, top: i % 2 });
+        return a;
+      })();
+      var CLOT = (function () {
+        var r = rng(57), p = [], th = [];
+        for (var i = 0; i < 9; i++) p.push({ x: 60 + r() * 60, y: 192 + r() * 26 });
+        for (var j = 0; j < 14; j++) { var a = Math.floor(r() * 9), b = Math.floor(r() * 9); if (a !== b) th.push({ a: a, b: b, k: r() }); }
+        return { p: p, th: th };
+      })();
+      function wrapX(x, cam) {
+        var span = 280, left = cam.x - 140;
+        return ((x - left) % span + span) % span + left;
+      }
+      function venomPos(v, i, t, cam) {
+        var x = wrapX(v.x + flowPos(t) * v.sp * 1.1, cam), y = v.y + Math.sin(t * 2 + v.w) * 3;
+        // wall attack: a group of particles latch onto the lower wall
+        if (i < 8) {
+          var latch = ramp(t, 18.9 + i * 0.12, 19.7 + i * 0.12);
+          var tx = 70 + i * 8, ty = LUMEN_BOT - 3;
+          var rel = 1 - ramp(t, 21.6, 22.6);
+          latch *= rel;
+          x = x + (tx - x) * latch; y = y + (ty - y) * latch;
+        }
+        return { x: x, y: y };
+      }
+      function drawVenomParticle(x, y, t, i, grey) {
+        var col = grey > 0.5 ? C.bound : C.venom;
+        if (grey < 0.5) disc(x, y, 3.4, C.venomGlow);
+        for (var k = 0; k < 6; k++) {
+          var a = k * 1.047 + t * 3 + i;
+          line(x, y, x + Math.cos(a) * 3.2, y + Math.sin(a) * 3.2, 0.8, grey > 0.5 ? C.bound : C.venomDark);
+        }
+        disc(x, y, 2, col);
+        disc(x - 0.6, y - 0.6, 0.6, grey > 0.5 ? C.white : C.venomGlow);
+      }
+      function drawAntibody(x, y, rot, t) {
+        var c = Math.cos(rot), s = Math.sin(rot);
+        function P(px, py) { return [x + px * c - py * s, y + px * s + py * c]; }
+        var a = P(0, 4), b = P(0, -0.5), l = P(-3.5, -4), r = P(3.5, -4);
+        g.strokeStyle = C.antibodyDark; g.lineWidth = 2.4; g.lineCap = "round";
+        g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.lineTo(l[0], l[1]); g.moveTo(b[0], b[1]); g.lineTo(r[0], r[1]); g.stroke();
+        g.strokeStyle = C.antibody; g.lineWidth = 1.4;
+        g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.lineTo(l[0], l[1]); g.moveTo(b[0], b[1]); g.lineTo(r[0], r[1]); g.stroke();
+        disc(l[0], l[1], 0.6, C.antibodyLight); disc(r[0], r[1], 0.6, C.antibodyLight);
+      }
+      function drawWall(t, top) {
+        var y0 = top ? LUMEN_TOP - 26 : LUMEN_BOT;
+        g.fillStyle = C.tissue; g.fillRect(-200, top ? -300 : LUMEN_BOT + 24, 600, 324);
+        g.fillStyle = C.wallDark; g.fillRect(-200, y0, 600, 26);
+        WALLCELLS.forEach(function (w, i) {
+          var dmg = 0;
+          if (!top && w.x > 60 && w.x < 140) dmg = ramp(t, 19.4 + (i % 5) * 0.25, 20.6 + (i % 5) * 0.25);
+          var col = mix(C.wall, C.damaged, dmg);
+          var shrink = 1 - 0.45 * dmg;
+          var cx = w.x + 4.5, cy = y0 + 13 + (w.top ? -2 : 2);
+          ell(cx, cy, 4.2 * shrink, 10 * shrink, 0, col);
+          disc(cx + 0.6, cy - 2, 1.6 * shrink, mix(C.nucleus, C.ink, dmg));
+          if (dmg > 0.35) {
+            line(cx - 3, cy - 6, cx + 2, cy + 1, 0.5, C.ink);
+            line(cx + 2, cy + 1, cx - 1, cy + 7, 0.5, C.ink);
+          }
+          // burst sparks when a cell pops
+          var pop = dmg > 0.5 && dmg < 0.9 ? (dmg - 0.5) / 0.4 : 0;
+          if (pop > 0) for (var k = 0; k < 5; k++) {
+            var a = k * 1.26 + i;
+            disc(cx + Math.cos(a) * 6 * pop, cy - 9 + Math.sin(a) * 4 * pop, 0.6, C.venomGlow);
+          }
+        });
+        g.fillStyle = C.wall; g.fillRect(-200, top ? LUMEN_TOP - 2 : LUMEN_BOT, 600, 2);
+      }
+      function drawBlood(t, cam) {
+        screen();
+        g.fillStyle = C.plasma; g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        // plasma with soft light bands
+        var gr = g.createLinearGradient(0, LUMEN_TOP, 0, LUMEN_BOT);
+        gr.addColorStop(0, C.plasma); gr.addColorStop(0.45, C.plasmaLight); gr.addColorStop(1, C.plasma);
+        g.fillStyle = gr; g.fillRect(-200, LUMEN_TOP, 600, LUMEN_BOT - LUMEN_TOP);
+        // clot: platelets linked by fibrin that the venom cuts apart
+        var form = ramp(t, 14.6, 15.6), cut = ramp(t, 15.9, 17.6), drift = clamp01((t - 17.2) / 2);
+        if (t > 14.2 && t < 20) {
+          CLOT.th.forEach(function (th) {
+            var a = CLOT.p[th.a], b = CLOT.p[th.b];
+            var broken = cut > th.k;
+            var reach = broken ? 0.5 * (1 - clamp01((cut - th.k) * 3)) : form;
+            var mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+            line(a.x + drift * 30, a.y, a.x + drift * 30 + (mx - a.x) * reach * (broken ? 1 : 2), a.y + (my - a.y) * reach * (broken ? 1 : 2), 1.4, C.plate);
+            if (broken) line(b.x + drift * 30, b.y, b.x + drift * 30 + (mx - b.x) * reach, b.y + (my - b.y) * reach, 1.4, C.plate);
+          });
+          CLOT.p.forEach(function (p, i) { ell(p.x + drift * (30 + i * 4), p.y, 3.2, 2.2, i, C.fatLine); ell(p.x + drift * (30 + i * 4) - 0.4, p.y - 0.4, 2.6, 1.6, i, C.plate); });
+        }
+        // red blood cells
+        var fp = flowPos(t);
+        RBC.forEach(function (c, i) {
+          var x = wrapX(c.x + fp * c.sp, cam), y = c.y + Math.sin(t * 1.5 + i) * 2;
+          var rot = c.rot + t * 0.8 * (i % 2 ? 1 : -1);
+          ell(x, y, 5.6 * c.s, 3.6 * c.s, rot, C.rbcDark);
+          ell(x - 0.3, y - 0.3, 5 * c.s, 3.1 * c.s, rot, C.rbc);
+          ell(x - 0.3, y - 0.3, 2.4 * c.s, 1.2 * c.s, rot, C.rbcDark);
+          ell(x - 1.5, y - 1.4, 1.4 * c.s, 0.6 * c.s, rot, C.rbcLight);
+        });
+        // venom + antibodies
+        VENOM.forEach(function (v, i) {
+          var p = venomPos(v, i, t, cam);
+          var ta = 22.3 + (i % 20) * 0.16;
+          var grey = i < 22 ? ramp(t, ta, ta + 0.4) : 0;
+          drawVenomParticle(p.x, p.y, t, i, grey);
+          if (i < 22 && t > ta - 1.2) {
+            var k = easeOut((t - (ta - 1.2)) / 1.2);
+            var sx = cam.x - 110, sy = p.y + (i % 2 ? -14 : 14);
+            var ax = sx + (p.x - 3 - sx) * k, ay = sy + (p.y - 2 - sy) * k;
+            drawAntibody(ax, ay, -0.6 + (1 - k) * 2, t);
+            if (k >= 1 && i % 3 === 0) drawAntibody(p.x + 3.5, p.y + 2, 2.5, t);
+          }
+        });
+        drawWall(t, true);
+        drawWall(t, false);
+        vignette(0.3);
+      }
+
+      // ---------------------------------------------------------------
+      // Palette lock + 4x4 Bayer dither
+      // ---------------------------------------------------------------
+      var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+      var QCACHE = new Int16Array(64 * 64 * 64).fill(-1);
+      function nearest(r, gg, b) {
+        var best = 0, bd = 1e12;
+        for (var i = 0; i < PAL.length; i++) {
+          var p = PAL[i], dr = r - p[0], dg = gg - p[1], db = b - p[2];
+          var d = 2 * dr * dr + 4 * dg * dg + 3 * db * db;
+          if (d < bd) { bd = d; best = i; }
+        }
+        return best;
+      }
+      function quantize(img) {
+        var d = img.data;
+        for (var y = 0; y < H; y++) {
+          for (var x = 0; x < W; x++) {
+            var i = (y * W + x) * 4;
+            var off = (BAYER[(y & 3) * 4 + (x & 3)] / 16 - 0.47) * 22;
+            var r = d[i] + off, gg = d[i + 1] + off, b = d[i + 2] + off;
+            r = r < 0 ? 0 : r > 255 ? 255 : r; gg = gg < 0 ? 0 : gg > 255 ? 255 : gg; b = b < 0 ? 0 : b > 255 ? 255 : b;
+            var key = ((r >> 2) << 12) | ((gg >> 2) << 6) | (b >> 2);
+            var q = QCACHE[key];
+            if (q < 0) { q = nearest(r, gg, b); QCACHE[key] = q; }
+            var p = PAL[q];
+            d[i] = p[0]; d[i + 1] = p[1]; d[i + 2] = p[2]; d[i + 3] = 255;
+          }
+        }
+        wctx.putImageData(img, 0, 0);
+      }
+
+      // ---------------------------------------------------------------
+      // Captions: small 5x7 bitmap text, centred in the middle of the frame
+      // ---------------------------------------------------------------
+      var FONT = {
+        A: "01110100011000111111100011000110001", B: "11110100011000111110100011000111110", C: "01110100011000010000100001000101110",
+        D: "11110100011000110001100011000111110", E: "11111100001000011110100001000011111", F: "11111100001000011110100001000010000",
+        G: "01110100011000010111100011000101111", H: "10001100011000111111100011000110001", I: "01110001000010000100001000010001110",
+        J: "00111000100001000010000101001001100", K: "10001100101010011000101001001010001", L: "10000100001000010000100001000011111",
+        M: "10001110111010110101100011000110001", N: "10001100011100110101100111000110001", O: "01110100011000110001100011000101110",
+        P: "11110100011000111110100001000010000", Q: "01110100011000110001101011001001101", R: "11110100011000111110101001001010001",
+        S: "01111100001000001110000010000111110", T: "11111001000010000100001000010000100", U: "10001100011000110001100011000101110",
+        V: "10001100011000110001100010101000100", W: "10001100011000110101101011010101010", X: "10001100010101000100010101000110001",
+        Y: "10001100010101000100001000010000100", Z: "11111000010001000100010001000011111",
+        "0": "01110100011001110101110011000101110", "1": "00100011000010000100001000010001110", "2": "01110100010000100010001000100011111",
+        "?": "01110100010000100010001000000000100", ".": "00000000000000000000000000110001100", ",": "00000000000000000000011000010001000",
+        "'": "00100001000100000000000000000000000", "!": "00100001000010000100001000000000100", ":": "00000011000110000000011000110000000",
+        " ": "00000000000000000000000000000000000",
+      };
+      // each line: list of [text, colour] segments; all text at scale 2
+      var CAPTIONS = [
+        { a: 0.5, b: 3.5, lines: [[["WHAT HAPPENS AFTER", C.paper]], [["ONE BITE?", C.gold]]] },
+        { a: 5.2, b: 6.95, lines: [[["FASTER THAN ", C.paper], ["A BLINK", C.gold]]] },
+        { a: 9.6, b: 12.9, lines: [[["HOLLOW FANGS", C.paper]], [["INJECT VENOM", C.gold]]] },
+        { a: 14.5, b: 18.0, lines: [[["BLOOD ", C.paper], ["CAN'T CLOT", C.gold]]] },
+        { a: 18.9, b: 21.4, lines: [[["TISSUE ", C.paper], ["BREAKS DOWN", C.gold]]] },
+        { a: 22.2, b: 25.9, lines: [[["ANTIVENOM IS", C.paper]], [["MADE IN ", C.paper], ["HORSES", C.gold]]] },
+        { a: 27.3, b: 29.4, lines: [[["BITTEN?", C.paper]], [["GET TO A ", C.paper], ["HOSPITAL", C.gold]]] },
+      ];
+      var DISSOLVE = 0.4, S = 2;
+      function lineText(l) { return l.map(function (s) { return s[0]; }).join(""); }
+      function drawCaption(cap, t) {
+        var padX = 5, padY = 4, gap = 4;
+        var widths = cap.lines.map(function (l) { return lineText(l).length * 6 * S - S; });
+        var w = Math.max.apply(null, widths) + padX * 2;
+        var h = padY * 2 + cap.lines.length * (7 * S + gap) - gap;
+        var x0 = Math.round(180 - w / 2), top = Math.round(320 - h / 2);
+        u.fillStyle = "rgba(6,5,10,0.9)";
+        u.fillRect(x0, top, w, h);
+        var y = top + padY;
+        cap.lines.forEach(function (l, li) {
+          var cx = Math.round(180 - widths[li] / 2);
+          l.forEach(function (seg) {
+            u.fillStyle = seg[1];
+            for (var ci = 0; ci < seg[0].length; ci++) {
+              var gl = FONT[seg[0][ci]] || FONT[" "];
+              for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(cx + (p % 5) * S, y + Math.floor(p / 5) * S, S, S);
+              cx += 6 * S;
+            }
+          });
+          y += 7 * S + gap;
+        });
+        // pop on; dither-dissolve out
+        var p = clamp01((t - (cap.b - DISSOLVE)) / DISSOLVE);
+        if (p > 0) {
+          var img = u.getImageData(x0, top, w, h), d = img.data;
+          for (var yy = 0; yy < h; yy++) for (var xx = 0; xx < w; xx++) {
+            var k = (yy * w + xx) * 4;
+            var th = BAYER[(((top + yy) >> 1) & 3) * 4 + (((x0 + xx) >> 1) & 3)] / 16;
+            if (th < p * 1.15) d[k + 3] = 0;
+            else d[k + 3] = d[k + 3] * (1 - p * 0.5);
+          }
+          u.putImageData(img, x0, top);
+        }
+      }
+      function drawUI(t) {
+        u.clearRect(0, 0, 360, 640);
+        CAPTIONS.forEach(function (c) { if (t >= c.a && t < c.b) drawCaption(c, t); });
+      }
+
+      // ---------------------------------------------------------------
+      // Frame: scenes joined by dither dissolves at full zoom
+      // ---------------------------------------------------------------
+      function shake(cam, t, t0, amp) {
+        var s = 1 - clamp01((t - t0) / 0.45);
+        if (t >= t0 && s > 0) {
+          var f = Math.floor(t * 30);
+          cam.x += (hash1(f) - 0.5) * amp * s / cam.z;
+          cam.y += (hash1(f + 99) - 0.5) * amp * s / cam.z;
+        }
+        return cam;
+      }
+      function scene(name, t) {
+        g.globalAlpha = 1;
+        if (name === "desert") {
+          var keys = t < 18 ? CAM_DESERT : CAM_DESERT_END;
+          drawDesert(t, shake(camAt(keys, t), t, 6.9, 6));
+        } else if (name === "skin") drawSkin(t, camAt(CAM_SKIN, t));
+        else drawBlood(t, camAt(CAM_BLOOD, t));
+        return g.getImageData(0, 0, W, H);
+      }
+      var CUTS = [[8.6, "desert", "skin"], [13.6, "skin", "blood"], [27.0, "blood", "desert"]];
+      function render(t) {
+        var img = null;
+        for (var i = 0; i < CUTS.length; i++) {
+          var c = CUTS[i];
+          if (Math.abs(t - c[0]) < 0.15) {
+            var p = (t - (c[0] - 0.15)) / 0.3;
+            var A = scene(c[1], t), B = scene(c[2], t), a = A.data, b = B.data;
+            for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
+              if (BAYER[(y & 3) * 4 + (x & 3)] / 16 < p) {
+                var k = (y * W + x) * 4;
+                a[k] = b[k]; a[k + 1] = b[k + 1]; a[k + 2] = b[k + 2];
+              }
+            }
+            img = A;
+          }
+        }
+        if (!img) {
+          var name = t < 8.6 ? "desert" : t < 13.6 ? "skin" : t < 27.0 ? "blood" : "desert";
+          img = scene(name, t);
+        }
+        // strike flash
+        quantize(img);
+        drawUI(t);
+      }
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 30, duration: 30, ease: "none", onUpdate: function () { render(proxy.t); } }, 0);
+      render(0);
       window.__timelines["main"] = tl;
-      tl.seek(0);
     </script>
   </body>
 </html>
