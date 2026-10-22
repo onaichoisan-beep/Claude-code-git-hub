@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Narasimha — The Perfect Loophole</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #3a1a6a;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #3a1a6a;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: cinematic sound effects only -->
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script>
+      var C = {
+        duskTop: "#3a1a6a", dusk: "#8a3a9a", duskMid: "#e0607a", duskLow: "#ffa04a", sunset: "#ffd060", sunCore: "#fff2b0",
+        stone: "#e8b878", stoneLight: "#ffd9a0", stoneDark: "#b07a48", stoneShadow: "#7a4a30", floor: "#c8905a", floorLight: "#e8b070",
+        gold: "#ffc83a", goldLight: "#fff09a", goldDark: "#c08a1a", gem: "#ff3a5a", gemBlue: "#3ad0ff",
+        mane: "#ff8a1a", maneDark: "#c0500a", maneLight: "#ffc04a", face: "#ffb84a", faceShade: "#e08a2a", mouthIn: "#a8102a", fang: "#fffaf0",
+        dskin: "#4a5ad8", dskinDark: "#2a3490", robe: "#d82a3a", robeDark: "#8a1020", demonEye: "#ff3a3a",
+        pskin: "#c8865a", pskinShade: "#9a5a3a", dhoti: "#fff6e0", aura: "#fff4b0", hairBlk: "#2a1a10", saffron: "#ff9a2a",
+        card: "#2a1440", cardLine: "#fff6e0", cross: "#ff3a3a", check: "#3cd070", checkDark: "#1f9a4a",
+        light: "#fff8d0", ink: "#06050a", paper: "#f1eef4", white: "#ffffff",
+      };
+      function bump(t, times, amt) {
+        var z = 1;
+        times.forEach(function (ti) { if (t >= ti) z += amt * Math.exp(-(t - ti) * 9); });
+        return z;
+      }
+
+      // ============================================================ CHARACTERS
+      var MANE = (function () { var a = []; for (var i = 0; i < 26; i++) a.push(i); return a; })();
+      function narasimhaFace(cx, cy, s, roar, t) {
+        // mane: flickering flame-like spikes
+        MANE.forEach(function (i) {
+          var a = i / 26 * 6.2832 + Math.sin(t * 6 + i) * 0.04;
+          var r1 = 30 * s, r2 = (48 + 6 * Math.sin(t * 9 + i * 1.7)) * s;
+          var col = i % 3 === 0 ? C.maneLight : i % 3 === 1 ? C.mane : C.maneDark;
+          poly([[cx + Math.cos(a - 0.2) * r1, cy + Math.sin(a - 0.2) * r1], [cx + Math.cos(a) * r2, cy + Math.sin(a) * r2], [cx + Math.cos(a + 0.2) * r1, cy + Math.sin(a + 0.2) * r1]], col);
+        });
+        disc(cx, cy, 36 * s, C.mane);
+        ell(cx, cy + 2 * s, 27 * s, 31 * s, 0, C.faceShade);
+        ell(cx, cy, 25 * s, 29 * s, 0, C.face);
+        // crown
+        poly([[cx - 18 * s, cy - 24 * s], [cx - 14 * s, cy - 46 * s], [cx - 6 * s, cy - 36 * s], [cx, cy - 54 * s], [cx + 6 * s, cy - 36 * s], [cx + 14 * s, cy - 46 * s], [cx + 18 * s, cy - 24 * s]], C.gold);
+        rect(cx - 18 * s, cy - 28 * s, 36 * s, 5 * s, C.goldDark);
+        disc(cx, cy - 40 * s, 3 * s, C.gem); disc(cx - 11 * s, cy - 34 * s, 2 * s, C.gemBlue); disc(cx + 11 * s, cy - 34 * s, 2 * s, C.gemBlue);
+        // tilak
+        rect(cx - 1 * s, cy - 22 * s, 2 * s, 8 * s, C.robe);
+        // brows + glowing eyes
+        poly([[cx - 18 * s, cy - 12 * s], [cx - 4 * s, cy - 6 * s - roar * 2 * s], [cx - 4 * s, cy - 9 * s], [cx - 18 * s, cy - 15 * s]], C.maneDark);
+        poly([[cx + 18 * s, cy - 12 * s], [cx + 4 * s, cy - 6 * s - roar * 2 * s], [cx + 4 * s, cy - 9 * s], [cx + 18 * s, cy - 15 * s]], C.maneDark);
+        ell(cx - 10 * s, cy - 3 * s, 5 * s, 3 * s, 0.15, C.white); ell(cx + 10 * s, cy - 3 * s, 5 * s, 3 * s, -0.15, C.white);
+        disc(cx - 9 * s, cy - 3 * s, 1.6 * s, C.ink); disc(cx + 9 * s, cy - 3 * s, 1.6 * s, C.ink);
+        // nose + muzzle
+        ell(cx, cy + 10 * s, 13 * s, 9 * s, 0, C.maneLight);
+        poly([[cx - 5 * s, cy + 3 * s], [cx + 5 * s, cy + 3 * s], [cx, cy + 8 * s]], C.mouthIn);
+        // mouth: roaring
+        var open = roar;
+        if (open > 0.05) {
+          ell(cx, cy + 17 * s, 10 * s, (3 + 9 * open) * s, 0, C.mouthIn);
+          [-6, -2, 2, 6].forEach(function (fx, k) {
+            var top = k === 0 || k === 3;
+            poly([[cx + (fx - 1.5) * s, cy + (17 - (3 + 9 * open)) * s], [cx + (fx + 1.5) * s, cy + (17 - (3 + 9 * open)) * s], [cx + fx * s, cy + (17 - (3 + 9 * open) + (top ? 5 : 3)) * s]], C.fang);
+          });
+          ell(cx, cy + (20 + 4 * open) * s, 5 * s, 2.5 * s, 0, C.gem);
+        } else {
+          line(cx - 7 * s, cy + 16 * s, cx + 7 * s, cy + 16 * s, 1.2 * s, C.mouthIn);
+        }
+        for (var w = 0; w < 3; w++) { disc(cx - 8 * s, cy + (10 + w * 2.5) * s, 0.7 * s, C.maneDark); disc(cx + 8 * s, cy + (10 + w * 2.5) * s, 0.7 * s, C.maneDark); }
+        // earrings
+        disc(cx - 27 * s, cy + 6 * s, 3.5 * s, C.gold); disc(cx + 27 * s, cy + 6 * s, 3.5 * s, C.gold);
+      }
+      function claws(x, y, s, dir) {
+        rrect(x - 5 * s, y - 4 * s, 10 * s, 9 * s, 3 * s, C.face);
+        for (var k = 0; k < 4; k++) poly([[x - 4 * s + k * 2.6 * s, y - 3 * s], [x - 2.5 * s + k * 2.6 * s, y - 3 * s], [x - 3.2 * s + k * 2.6 * s, y - (9 + (k % 2)) * s]], C.fang);
+      }
+      function narasimhaBody(cx, hipY, s, pose, t) {
+        // legs / dhoti
+        rrect(cx - 26 * s, hipY - 6 * s, 52 * s, 26 * s, 8 * s, C.goldDark);
+        rrect(cx - 24 * s, hipY - 5 * s, 48 * s, 24 * s, 8 * s, C.saffron);
+        rect(cx - 24 * s, hipY + 5 * s, 48 * s, 2 * s, C.gold);
+        // torso
+        poly([[cx - 22 * s, hipY - 6 * s], [cx - 26 * s, hipY - 52 * s], [cx + 26 * s, hipY - 52 * s], [cx + 22 * s, hipY - 6 * s]], C.faceShade);
+        poly([[cx - 20 * s, hipY - 6 * s], [cx - 24 * s, hipY - 51 * s], [cx + 24 * s, hipY - 51 * s], [cx + 20 * s, hipY - 6 * s]], C.face);
+        // necklaces + sacred thread
+        g.strokeStyle = C.gold; g.lineWidth = 2.4 * s;
+        g.beginPath(); g.arc(cx, hipY - 52 * s, 16 * s, 0.3, Math.PI - 0.3); g.stroke();
+        g.lineWidth = 1.4 * s; g.beginPath(); g.arc(cx, hipY - 52 * s, 22 * s, 0.4, Math.PI - 0.4); g.stroke();
+        line(cx - 18 * s, hipY - 50 * s, cx + 14 * s, hipY - 8 * s, 0.8 * s, C.white);
+        // arms
+        var raise = pose === "strike" ? 1 : pose === "bless" ? 0.5 : 0;
+        var lx = cx - 30 * s, rx = cx + 30 * s, sy = hipY - 46 * s;
+        var lhx = lerp(cx - 34 * s, cx - 36 * s, raise), lhy = lerp(hipY - 12 * s, hipY - 72 * s, raise);
+        var rhx = lerp(cx + 34 * s, cx + 36 * s, raise), rhy = lerp(hipY - 12 * s, hipY - 72 * s, raise);
+        if (pose === "bless") { rhx = cx - 48 * s; rhy = hipY - 40 * s; }
+        line(lx, sy, lhx, lhy, 9 * s, C.faceShade); line(lx, sy, lhx, lhy, 7.5 * s, C.face);
+        line(rx, sy, rhx, rhy, 9 * s, C.faceShade); line(rx, sy, rhx, rhy, 7.5 * s, C.face);
+        disc(lx, sy, 4 * s, C.gold); disc(rx, sy, 4 * s, C.gold);
+        claws(lhx, lhy, s * 1.1); claws(rhx, rhy, s * 1.1);
+        narasimhaFace(cx, hipY - 72 * s, s * 0.62, pose === "strike" ? 0.8 + 0.2 * Math.sin(t * 20) : pose === "roar" ? 1 : 0, t);
+      }
+      function demon(cx, footY, s, pose, t) {
+        // pose: "laugh" (throne), "strike" (gada up then down), "lying" handled separately
+        var bob = pose === "laugh" ? Math.abs(Math.sin(t * 10)) * 1.2 * s : 0;
+        var y = footY - bob;
+        rrect(cx - 16 * s, y - 50 * s, 32 * s, 50 * s, 6 * s, C.robeDark);
+        rrect(cx - 15 * s, y - 49 * s, 30 * s, 48 * s, 6 * s, C.robe);
+        rect(cx - 15 * s, y - 30 * s, 30 * s, 4 * s, C.gold);
+        // chest + head
+        rrect(cx - 13 * s, y - 72 * s, 26 * s, 24 * s, 6 * s, C.dskin);
+        g.strokeStyle = C.gold; g.lineWidth = 2 * s; g.beginPath(); g.arc(cx, y - 72 * s, 10 * s, 0.4, Math.PI - 0.4); g.stroke();
+        disc(cx, y - 84 * s, 11 * s, C.dskinDark); disc(cx, y - 85 * s, 10 * s, C.dskin);
+        // crown
+        poly([[cx - 10 * s, y - 92 * s], [cx - 8 * s, y - 106 * s], [cx - 3 * s, y - 98 * s], [cx, y - 110 * s], [cx + 3 * s, y - 98 * s], [cx + 8 * s, y - 106 * s], [cx + 10 * s, y - 92 * s]], C.gold);
+        disc(cx, y - 100 * s, 1.8 * s, C.gem);
+        // angry face
+        line(cx - 7 * s, y - 90 * s, cx - 2 * s, y - 87 * s, 1.4 * s, C.ink); line(cx + 7 * s, y - 90 * s, cx + 2 * s, y - 87 * s, 1.4 * s, C.ink);
+        disc(cx - 4 * s, y - 86 * s, 1.3 * s, C.demonEye); disc(cx + 4 * s, y - 86 * s, 1.3 * s, C.demonEye);
+        g.strokeStyle = C.ink; g.lineWidth = 1.6 * s;
+        g.beginPath(); g.moveTo(cx - 7 * s, y - 80 * s); g.quadraticCurveTo(cx, y - 84 * s, cx + 7 * s, y - 80 * s); g.stroke();
+        if (pose === "laugh") ell(cx, y - 78 * s, 3.5 * s, 2.5 * s, 0, C.mouthIn);
+        // arms + gada (mace)
+        var swing = pose === "strike" ? (t < 11.0 ? 0 : t < 11.45 ? ramp(t, 11.0, 11.45) : t < 11.6 ? 1 - ramp(t, 11.45, 11.6) * 1.6 : -0.6) : 0;
+        var ang = -0.4 - 1.6 * swing;
+        var hx = cx - 14 * s, hy = y - 64 * s;
+        var ex = hx + Math.cos(Math.PI + ang) * 16 * s, ey = hy + Math.sin(Math.PI + ang) * 16 * s;
+        line(hx, hy, ex, ey, 6 * s, C.dskin);
+        if (pose !== "laugh") {
+          var mx = ex + Math.cos(Math.PI + ang - 0.4) * 22 * s, my = ey + Math.sin(Math.PI + ang - 0.4) * 22 * s;
+          line(ex, ey, mx, my, 2.4 * s, C.goldDark);
+          disc(mx, my, 6 * s, C.goldDark); disc(mx - 1 * s, my - 1 * s, 5 * s, C.gold);
+        }
+        line(cx + 14 * s, y - 64 * s, cx + 22 * s, y - 46 * s, 6 * s, C.dskin);
+      }
+      function prahlad(cx, footY, s, t) {
+        g.globalAlpha = 0.45 + 0.15 * Math.sin(t * 3);
+        disc(cx, footY - 30 * s, 26 * s, C.aura);
+        g.globalAlpha = 1;
+        rrect(cx - 9 * s, footY - 26 * s, 18 * s, 26 * s, 5 * s, C.dhoti);
+        rrect(cx - 8 * s, footY - 42 * s, 16 * s, 18 * s, 5 * s, C.pskin);
+        // folded hands (namaste)
+        poly([[cx - 3 * s, footY - 30 * s], [cx, footY - 42 * s], [cx + 3 * s, footY - 30 * s]], C.pskinShade);
+        disc(cx, footY - 50 * s, 8 * s, C.pskin);
+        g.fillStyle = C.hairBlk; g.beginPath(); g.arc(cx, footY - 51 * s, 8.3 * s, Math.PI, 2 * Math.PI); g.fill();
+        disc(cx, footY - 60 * s, 3 * s, C.hairBlk);
+        rect(cx - 0.6 * s, footY - 56 * s, 1.2 * s, 4 * s, C.saffron);
+        rect(cx - 4 * s, footY - 50 * s, 2 * s, 0.8 * s, C.ink); rect(cx + 2 * s, footY - 50 * s, 2 * s, 0.8 * s, C.ink);
+      }
+
+      // ============================================================ ICON CARDS (the boon conditions)
+      var CARDS = [
+        { x: 32, y: 44, label: "HALF-LION" }, { x: 90, y: 36, label: "DUSK" }, { x: 148, y: 44, label: "DOORSTEP" },
+        { x: 61, y: 100, label: "ON HIS LAP" }, { x: 119, y: 100, label: "CLAWS" },
+      ];
+      function icon(i, x, y) {
+        var c = C.cardLine;
+        if (i === 0) { disc(x - 6, y - 4, 2, c); line(x - 6, y - 2, x - 6, y + 4, 1.2, c); line(x - 9, y + 1, x - 3, y + 1, 1, c); disc(x + 6, y, 4.5, C.mane); disc(x + 6, y, 2.6, C.face); }
+        if (i === 1) { disc(x - 6, y, 4, C.sunset); disc(x + 6, y, 4, c); disc(x + 8, y - 1.5, 3.5, C.card); }
+        if (i === 2) { poly([[x - 11, y], [x - 6, y - 5], [x - 1, y]], c); rect(x - 10, y, 8, 5, c); disc(x + 7, y - 2, 4, C.check); rect(x + 6, y + 1, 2, 5, C.stoneDark); }
+        if (i === 3) { rect(x - 11, y + 4, 9, 2, C.floor); ell(x + 6, y - 2, 6, 3, 0, c); }
+        if (i === 4) { line(x - 8, y + 6, x + 8, y - 6, 1.6, c); line(x - 4, y + 2, x - 8, y - 2, 1.2, C.gold); }
+      }
+      function drawCard(k, state, pop) {
+        var cd = CARDS[k];
+        var s = pop < 1 ? 0.6 + 0.4 * easeOut(pop) + 0.15 * Math.sin(pop * Math.PI) : 1;
+        g.save(); g.translate(cd.x, cd.y); g.scale(s, s);
+        rrect(-15, -13, 30, 26, 4, C.cardLine); rrect(-14, -12, 28, 24, 4, C.card);
+        icon(k, 0, 0);
+        if (state === "boon") { line(-11, -9, 11, 9, 1.8, C.cross); line(11, -9, -11, 9, 1.8, C.cross); }
+        g.restore();
+        if (state === "beaten") {
+          disc(cd.x + 12, cd.y - 11, 6, C.checkDark); disc(cd.x + 12, cd.y - 11, 5, C.check);
+          line(cd.x + 9.5, cd.y - 11, cd.x + 11.5, cd.y - 8.5, 1.4, C.white); line(cd.x + 11.5, cd.y - 8.5, cd.x + 15, cd.y - 14, 1.4, C.white);
+          var lw = cd.label.length * 6 + 4, lx = Math.max(2, Math.min(178 - lw, cd.x - lw / 2));
+          rect(lx, cd.y + 15, lw, 9, C.ink);
+          worldText(cd.label, lx + lw / 2, cd.y + 16, 1, C.gold);
+        }
+      }
+
+      // ============================================================ BACKDROPS
+      function palace(t, cam, lamps) {
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.stoneDark], [0.7, C.stone], [1, C.stoneDark]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        // arches with dusk sky
+        [[18, 70], [162, 70]].forEach(function (a) {
+          g.fillStyle = vgrad(30, 220, [[0, C.dusk], [0.6, C.duskMid], [1, C.duskLow]]);
+          g.beginPath(); g.moveTo(a[0] - 16, 230); g.lineTo(a[0] - 16, a[1]); g.arc(a[0], a[1], 16, Math.PI, 0); g.lineTo(a[0] + 16, 230); g.closePath(); g.fill();
+          g.strokeStyle = C.stoneLight; g.lineWidth = 3; g.stroke();
+        });
+        rect(-100, 266, 400, 200, C.floor);
+        for (var i = -10; i < 20; i++) { rect(i * 16, 266, 1, 200, C.stoneDark); }
+        rect(-100, 266, 400, 2, C.floorLight);
+        if (lamps) for (var l = 0; l < 3; l++) {
+          var lx = 30 + l * 60, fl = 0.8 + 0.2 * Math.sin(t * 12 + l * 2);
+          line(lx, -20, lx, 20, 0.6, C.goldDark);
+          ell(lx, 22, 5, 2, 0, C.gold);
+          g.globalAlpha = 0.35; disc(lx, 17, 9 * fl, C.sunset); g.globalAlpha = 1;
+          ell(lx, 17, 1.6, 3 * fl, 0, C.sunCore);
+        }
+      }
+      var CRACKS = (function () {
+        var r = rng(9), a = [];
+        for (var i = 0; i < 14; i++) {
+          var x = 90 + (r() - 0.5) * 20, y = 90 + r() * 160, pts = [[x, y]];
+          for (var k = 0; k < 6; k++) { x += (r() - 0.5) * 10; y += (r() - 0.5) * 16; pts.push([x, y]); }
+          a.push({ pts: pts, at: r() });
+        }
+        return a;
+      })();
+      function pillar(t, crack) {
+        rect(72, 70, 36, 196, C.stoneDark); rect(74, 70, 32, 196, C.stone);
+        rect(78, 70, 5, 196, C.stoneLight);
+        rect(66, 60, 48, 12, C.stoneDark); rect(66, 60, 48, 3, C.stoneLight);
+        rect(66, 256, 48, 12, C.stoneDark);
+        for (var b = 0; b < 4; b++) { rect(74, 100 + b * 40, 32, 2, C.stoneDark); disc(90, 120 + b * 40, 3, C.stoneShadow); }
+        if (crack > 0) {
+          CRACKS.forEach(function (c) {
+            if (c.at > crack) return;
+            g.strokeStyle = C.light; g.lineWidth = 2.4; g.lineJoin = "round";
+            g.beginPath(); g.moveTo(c.pts[0][0], c.pts[0][1]); c.pts.forEach(function (p) { g.lineTo(p[0], p[1]); }); g.stroke();
+            g.strokeStyle = C.gold; g.lineWidth = 0.9; g.stroke();
+          });
+          // light rays leaking out
+          g.globalAlpha = 0.35 * crack;
+          for (var r2 = 0; r2 < 8; r2++) {
+            var a = r2 * 0.785 + t * 0.6;
+            poly([[90, 160], [90 + Math.cos(a) * 200, 160 + Math.sin(a) * 200], [90 + Math.cos(a + 0.12) * 200, 160 + Math.sin(a + 0.12) * 200]], C.light);
+          }
+          g.globalAlpha = 1;
+        }
+      }
+      function rays(cx, cy, t, n, col, alpha) {
+        g.globalAlpha = alpha;
+        for (var i = 0; i < n; i++) {
+          var a = i * 6.2832 / n + t * 0.4;
+          poly([[cx, cy], [cx + Math.cos(a) * 320, cy + Math.sin(a) * 320], [cx + Math.cos(a + 0.14) * 320, cy + Math.sin(a + 0.14) * 320]], col);
+        }
+        g.globalAlpha = 1;
+      }
+
+      // ============================================================ SCENES
+      var DEBRIS = (function () {
+        var r = rng(13), a = [];
+        for (var i = 0; i < 30; i++) a.push({ a: r() * 6.28, v: 60 + r() * 140, s: 2 + r() * 5, rot: r() * 6 });
+        return a;
+      })();
+      function sceneRoar(t) {
+        var lt = t < 15 ? t : t - 27.6;
+        var cam = t < 15 ? { x: 90, y: 180, z: 1.25 - 0.25 * easeOut(lt / 0.35) } : camAt([[27.6, 96, 176, 0.8], [29.7, 90, 180, 1.25], [30, 90, 180, 1.25]], t);
+        if (t < 15) shake(cam, t, 0, 9, 1.0);
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.duskTop], [0.5, C.dusk], [1, C.duskMid]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        rays(90, 250, t, 16, C.sunset, 0.35);
+        if (t < 15) DEBRIS.forEach(function (d) {
+          var k = lt + 0.25, x = 90 + Math.cos(d.a) * d.v * k, y = 250 + Math.sin(d.a) * d.v * k + 40 * k * k;
+          g.save(); g.translate(x, y); g.rotate(d.rot + lt * 5); rect(-d.s / 2, -d.s / 2, d.s, d.s, C.stone); g.restore();
+        });
+        var roar = t < 15 ? 1 : ramp(t, 28.6, 29.3);
+        narasimhaFace(90, 250, 1.05, roar, t);
+        vignette(0.3, "rgba(40,10,40,");
+      }
+      function sceneBoon(t) {
+        var cam = camAt([[1.4, 90, 160, 1.15], [2.2, 90, 160, 1.0], [7.5, 90, 168, 1.08]], t);
+        cam.z *= bump(t, [2.4, 3.1, 3.8, 4.5, 5.2], 0.05);
+        palace(t, cam, true);
+        setCam(cam, 1);
+        // throne
+        rrect(58, 150, 64, 120, 10, C.goldDark); rrect(62, 154, 56, 112, 8, C.gold);
+        disc(90, 154, 20, C.gold); disc(90, 154, 6, C.gem);
+        demon(90, 268, 1.05, "laugh", t);
+        [2.4, 3.1, 3.8, 4.5, 5.2].forEach(function (tc, k) { if (t >= tc) drawCard(k, "boon", (t - tc) / 0.25); });
+        vignette(0.3, "rgba(40,10,40,");
+      }
+      function sceneHall(t) {
+        var cam = camAt([[7.3, 90, 170, 1.15], [8.0, 90, 172, 1.0], [10.8, 92, 170, 1.08], [11.6, 96, 172, 1.18], [14.2, 90, 170, 1.4]], t);
+        shake(cam, t, 11.6, 10, 0.6);
+        if (t > 12.0) { var sk = ramp(t, 12.0, 14.2) * 3; cam.x += (hash1(Math.floor(t * 30)) - 0.5) * sk; cam.y += (hash1(Math.floor(t * 30) + 5) - 0.5) * sk; }
+        palace(t, cam, true);
+        setCam(cam, 1);
+        pillar(t, t < 11.6 ? 0 : ramp(t, 11.6, 13.8));
+        prahlad(42, 268, 1.25, t);
+        // Prahlad points to the pillar
+        if (t > 9.8 && t < 11.6) line(50, 216, 64, 206, 3, C.pskin);
+        demon(142, 268, 1.05, "strike", t);
+        if (t >= 11.6 && t < 12.0) {
+          var k = (t - 11.6) / 0.4;
+          for (var i = 0; i < 8; i++) { var a = i * 0.785; line(106 + Math.cos(a) * 4, 200 + Math.sin(a) * 4, 106 + Math.cos(a) * (8 + 16 * k), 200 + Math.sin(a) * (8 + 16 * k), 1.6 * (1 - k) + 0.3, C.light); }
+        }
+        vignette(0.3, "rgba(40,10,40,");
+      }
+      function sceneBurst(t) {
+        var lt = t - 14.0;
+        var cam = { x: 90, y: 170, z: 1.35 - 0.3 * easeOut(lt / 0.6) };
+        shake(cam, t, 14.2, 12, 1.2);
+        palace(t, cam, false);
+        setCam(cam, 1);
+        rays(90, 150, t, 18, C.light, 0.5);
+        g.globalAlpha = 0.6; disc(90, 160, 70 + 20 * Math.sin(t * 8), C.aura); g.globalAlpha = 1;
+        DEBRIS.forEach(function (d) {
+          var k = Math.max(0, lt), x = 90 + Math.cos(d.a) * d.v * k * 0.8, y = 170 + Math.sin(d.a) * d.v * k * 0.8 + 60 * k * k;
+          g.save(); g.translate(x, y); g.rotate(d.rot + k * 6); rect(-d.s / 2, -d.s / 2, d.s, d.s, d.k ? C.stoneDark : C.stone); g.restore();
+        });
+        narasimhaBody(90, 262, 1.25, "roar", t);
+        vignette(0.3, "rgba(40,10,40,");
+      }
+      function doorway(t, cam) {
+        screen();
+        g.fillStyle = C.stoneDark; g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        // outside: dusk sky with the sun half under the horizon
+        g.fillStyle = vgrad(-40, 250, [[0, C.duskTop], [0.45, C.dusk], [0.75, C.duskMid], [1, C.duskLow]]);
+        g.fillRect(14, -60, 152, 320);
+        var sunY = 236 + 4 * ramp(t, 18.0, 19.6);
+        g.save(); g.beginPath(); g.rect(14, -60, 152, 296); g.clip();
+        disc(140, sunY, 22, C.sunset); disc(140, sunY, 14, C.sunCore);
+        g.restore();
+        rect(14, 236, 152, 30, C.floor);
+        // arch frame
+        g.fillStyle = C.stone;
+        g.beginPath(); g.moveTo(-40, -100); g.lineTo(220, -100); g.lineTo(220, 330); g.lineTo(166, 330); g.lineTo(166, 60);
+        g.arc(90, 60, 76, 0, Math.PI, true); g.lineTo(14, 330); g.lineTo(-40, 330); g.closePath(); g.fill();
+        g.strokeStyle = C.stoneLight; g.lineWidth = 3; g.beginPath(); g.moveTo(166, 330); g.lineTo(166, 60); g.arc(90, 60, 76, 0, Math.PI, true); g.lineTo(14, 330); g.stroke();
+        // threshold step (glows when it's ticked)
+        var glow = ramp(t, 19.6, 19.9) * (1 - ramp(t, 20.8, 21.2));
+        rect(4, 256, 172, 14, mix(C.stoneDark, C.sunset, glow));
+        rect(4, 256, 172, 3, mix(C.stoneLight, C.sunCore, glow));
+        rect(-40, 270, 260, 80, C.floor);
+      }
+      function sceneLoophole(t) {
+        var cam = camAt([[15.9, 90, 176, 1.25], [16.6, 90, 170, 1.0], [24.6, 90, 172, 1.02]], t);
+        cam.z *= bump(t, [16.4, 18.0, 19.6, 21.2, 22.8], 0.05);
+        doorway(t, cam);
+        setCam(cam, 1);
+        // the demon across Narasimha's lap (neither earth nor sky)
+        var lapGlow = ramp(t, 21.2, 21.5) * (1 - ramp(t, 22.4, 22.8));
+        if (lapGlow > 0) { g.globalAlpha = 0.6 * lapGlow; ell(96, 236, 50, 14, 0, C.light); g.globalAlpha = 1; }
+        narasimhaBody(96, 252, 0.95, "strike", t);
+        g.save(); g.translate(96, 238); g.rotate(-0.08);
+        rrect(-38, -8, 64, 14, 5, C.robe); rect(-20, -8, 4, 14, C.gold);
+        disc(-44, -2, 8, C.dskin);
+        poly([[-50, -8], [-56, -16], [-46, -12], [-44, -20], [-40, -11]], C.gold);
+        line(26, 0, 38, 10, 4, C.dskin); line(-20, 6, -24, 18, 4, C.dskin);
+        g.restore();
+        // claws glint
+        if (t > 22.8 && t < 23.6) { var k = (t - 22.8) / 0.8; g.globalAlpha = 1 - k; disc(62, 172, 6 + 10 * k, C.white); disc(130, 172, 6 + 10 * k, C.white); g.globalAlpha = 1; }
+        [16.4, 18.0, 19.6, 21.2, 22.8].forEach(function (tc, k) { if (t >= tc) drawCard(k, "beaten", (t - tc) / 0.25); });
+        vignette(0.3, "rgba(40,10,40,");
+      }
+      function sceneAfter(t) {
+        var cam = camAt([[24.6, 90, 140, 1.2], [25.4, 90, 140, 1.0], [27.8, 92, 144, 1.08]], t);
+        doorway(t, cam);
+        setCam(cam, 1);
+        rays(96, 170, t, 14, C.light, 0.25);
+        narasimhaBody(104, 252, 0.95, "bless", t);
+        prahlad(52, 262, 1.15, t);
+        vignette(0.25, "rgba(40,10,40,");
+      }
+
+      PX.setup(C, {
+        scenes: { roar: sceneRoar, boon: sceneBoon, hall: sceneHall, burst: sceneBurst, loophole: sceneLoophole, after: sceneAfter },
+        sceneAt: function (t) {
+          return t < 1.6 ? "roar" : t < 7.4 ? "boon" : t < 14.2 ? "hall" : t < 16.0 ? "burst" : t < 24.7 ? "loophole" : t < 27.6 ? "after" : "roar";
+        },
+        cuts: [[1.6, "roar", "boon"], [7.4, "boon", "hall"], [16.0, "burst", "loophole"], [27.6, "after", "roar"]],
+        post: function (t, img) {
+          if (t < 0.12) tintImg(img, C.white, 1 - t / 0.12);
+          if (t > 1.4 && t < 1.85) glitchRows(img, 22 * Math.sin((t - 1.4) / 0.45 * Math.PI), Math.floor(t * 30));
+          if (t > 13.8 && t < 14.5) tintImg(img, C.white, t < 14.2 ? ramp(t, 13.8, 14.2) : 1 - ramp(t, 14.2, 14.5));
+          if (t > 24.45 && t < 25.1) tintImg(img, C.white, t < 24.7 ? ramp(t, 24.45, 24.7) : 1 - ramp(t, 24.7, 25.1));
+        },
+        captions: [
+          { a: 0.15, b: 1.5, lines: [[["NO MAN OR BEAST", C.paper]], [["COULD KILL HIM...", C.gold]]] },
+          { a: 5.8, b: 7.3, lines: [[["HE THOUGHT HE WAS", C.paper]], [["UNKILLABLE", C.gold]]] },
+          { a: 7.7, b: 9.6, lines: [[["WHERE IS YOUR GOD?", C.paper]]] },
+          { a: 9.8, b: 11.5, lines: [[["IN THIS ", C.paper], ["PILLAR.", C.gold]]] },
+          { a: 14.3, b: 15.9, lines: [[["NARASIMHA", C.gold]], [["HALF MAN, HALF LION", C.paper]]] },
+          { a: 25.0, b: 27.5, lines: [[["EVERY RULE.", C.paper]], [["BROKEN.", C.gold]]] },
+        ],
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 30, duration: 30, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

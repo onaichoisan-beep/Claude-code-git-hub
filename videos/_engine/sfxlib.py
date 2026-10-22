@@ -198,3 +198,93 @@ def master(amb, fx, path, amb_gain=0.6, makeup_db=6.5):
     write_wav(path, out)
     db = 20 * np.log10(np.sqrt(np.mean(out ** 2)) + 1e-12)
     print(f"wrote {os.path.basename(path)} (RMS {db:.1f} dBFS, peak {20*np.log10(np.max(np.abs(out))):.1f} dBFS)")
+
+
+# ------------------------------------------------------------------ cinematic kit
+def braam(d=2.5, f=55.0):
+    """Deep brassy trailer hit: detuned saws through a low band, swelling then fading."""
+    n = int(d * SR)
+    tt = np.arange(n) / SR
+    x = np.zeros(n)
+    for m, det in [(0.5, 0), (1, 0.3), (1, -0.4), (1.5, 0.2), (2, -0.2)]:
+        ff = f * m + det
+        x += 2 * ((tt * ff) % 1) - 1
+    x = band(x, 25, 900)
+    e = np.minimum(1, tt / 0.04) * np.exp(-tt / (d * 0.45))
+    return norm(x) * e
+
+
+def impact(big=1.0):
+    """Cinematic hit: sub thump + wideband crack + long tail."""
+    hit = add(1.3 * thump(36, 1.6, 4.0), 0.9 * noise_hit(0.3, 40, 12000), 0.5 * noise_hit(0.06, 2000, 12000))
+    return norm(reverb(np.concatenate([hit, np.zeros(SR)]), 1.8, 0.45 * big, 21))
+
+
+def taiko(f=70.0):
+    return add(thump(f, 0.5, 1.6), 0.35 * noise_hit(0.05, 120, 1800))
+
+
+def conch(d=1.8, f=290.0):
+    """Shankh: breathy horn gliding up a little, rich harmonics."""
+    n = int(d * SR)
+    tt = np.arange(n) / SR
+    ff = f * (1 + 0.08 * np.minimum(1, tt / 0.5))
+    ph = 2 * np.pi * np.cumsum(ff) / SR
+    tone_ = np.sin(ph) + 0.6 * np.sin(2 * ph) + 0.35 * np.sin(3 * ph) + 0.15 * np.sin(4 * ph)
+    breath = band(rng.standard_normal(n), f * 0.8, f * 4) * 0.4
+    vib = 1 + 0.05 * np.sin(2 * np.pi * 5 * tt)
+    return norm((tone_ + breath) * vib) * env(n, 0.25, 0.5)
+
+
+def gong(f=110.0, d=4.0):
+    n = int(d * SR)
+    tt = np.arange(n) / SR
+    s = sum(np.sin(2 * np.pi * f * k * tt + k) * np.exp(-tt * (0.6 + 0.5 * k)) / k for k in (1, 1.48, 2.03, 2.71, 3.6, 4.4))
+    shimmer = band(rng.standard_normal(n), 2000, 7000) * np.exp(-tt * 3) * 0.2
+    return norm(s + shimmer) * env(n, 0.005, 0.5)
+
+
+def sub_drop(d=1.2, f0=90.0, f1=28.0):
+    n = int(d * SR)
+    tt = np.arange(n) / SR
+    ff = f0 * (f1 / f0) ** (tt / d)
+    return np.sin(2 * np.pi * np.cumsum(ff) / SR) * env(n, 0.01, d * 0.6)
+
+
+def rewind(d=0.45):
+    """Tape-rewind squeal + tape-stop for the cold-open -> story jump."""
+    n = int(d * SR)
+    tt = np.arange(n) / SR
+    ff = 2400 * (0.15 / 2.4) ** (tt / d)
+    s = np.sign(np.sin(2 * np.pi * np.cumsum(ff * (1 + 0.3 * np.sin(2 * np.pi * 30 * tt))) / SR))
+    return norm(band(s, 150, 6000)) * env(n, 0.01, 0.12)
+
+
+def drum_roll(t0, t1, start_gap=0.5, end_gap=0.12, f=72.0):
+    """Accelerating taiko hits between t0 and t1 -> list of (time, signal)."""
+    out, x, gap = [], t0, start_gap
+    while x < t1:
+        out.append((x, taiko(f)))
+        x += gap
+        gap = max(end_gap, gap * 0.86)
+    return out
+
+
+def roar(d=1.4, f=95.0):
+    """Lion roar: growling noise + low saw, pitch falling, rough amplitude flutter."""
+    n = int(d * SR)
+    tt = np.arange(n) / SR
+    growl = 0.55 + 0.45 * np.sin(2 * np.pi * (32 + 8 * np.sin(2 * np.pi * 3 * tt)) * tt)
+    ff = f * (1.25 - 0.4 * tt / d)
+    saw = 2 * ((np.cumsum(ff) / SR) % 1) - 1
+    x = band(rng.standard_normal(n), 90, 1400) * 0.9 + band(saw, 60, 1800) * 0.7
+    e = np.minimum(1, tt / 0.12) * np.exp(-np.maximum(0, tt - d * 0.35) / (d * 0.3))
+    return norm(x * growl * e)
+
+
+def shing(d=0.5):
+    """Bright metallic glint."""
+    n = int(d * SR)
+    tt = np.arange(n) / SR
+    s = sum(np.sin(2 * np.pi * f * tt) for f in (2637, 3520, 4186)) * np.exp(-tt * 9)
+    return norm(s + band(rng.standard_normal(n), 5000, 12000) * np.exp(-tt * 20) * 0.6)

@@ -247,7 +247,34 @@ PX.render = function (t) {
     }
   }
   if (!img) img = PX.scene(cfg.sceneAt(t), t);
+  if (cfg.post) cfg.post(t, img);
   quantize(img);
   u.clearRect(0, 0, 360, 640);
   CAPTIONS.forEach(function (c) { if (t >= c.a && t < c.b) drawCaption(c, t); });
 };
+
+// ---------------------------------------------------------------- post effects (operate on ImageData)
+// VHS-style rewind tear: rows slide sideways in bands, with bright scan lines
+function glitchRows(img, amount, seed) {
+  var d = img.data, row = new Uint8ClampedArray(W * 4);
+  for (var y = 0; y < H; y++) {
+    var band = Math.floor(y / 6);
+    var off = Math.round((hash1(band * 7.3 + seed) - 0.5) * 2 * amount);
+    if (off === 0) continue;
+    var base = y * W * 4;
+    for (var x = 0; x < W; x++) {
+      var sx = ((x - off) % W + W) % W;
+      row[x * 4] = d[base + sx * 4]; row[x * 4 + 1] = d[base + sx * 4 + 1]; row[x * 4 + 2] = d[base + sx * 4 + 2];
+    }
+    for (var x2 = 0; x2 < W; x2++) { d[base + x2 * 4] = row[x2 * 4]; d[base + x2 * 4 + 1] = row[x2 * 4 + 1]; d[base + x2 * 4 + 2] = row[x2 * 4 + 2]; }
+    if (hash1(band + seed * 3.1) > 0.82) for (var x3 = 0; x3 < W; x3++) { d[base + x3 * 4] = 255; d[base + x3 * 4 + 1] = 255; d[base + x3 * 4 + 2] = 255; }
+  }
+}
+// blend the whole frame toward a colour (flash / fade)
+function tintImg(img, hexCol, k) {
+  if (k <= 0) return;
+  var c = hex(hexCol), d = img.data;
+  for (var i = 0; i < d.length; i += 4) {
+    d[i] += (c[0] - d[i]) * k; d[i + 1] += (c[1] - d[i + 1]) * k; d[i + 2] += (c[2] - d[i + 2]) * k;
+  }
+}

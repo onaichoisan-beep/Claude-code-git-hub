@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Neelkanth — Shiva's Blue Throat</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #2a1a5a;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #2a1a5a;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: cinematic sound effects only -->
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script>
+      var C = {
+        skyTop: "#5a4ae8", sky: "#7ac8ff", skyLight: "#d8f4ff", skyPink: "#ffb0d8",
+        ocean: "#2a8af0", oceanDark: "#1a5ac8", oceanLight: "#7ad0ff", foam: "#ffffff",
+        mount: "#9a6a4a", mountDark: "#6a4a32", mountGreen: "#5ab04a", snow: "#ffffff", snowShade: "#c8d8f8", snowDeep: "#9ab0e8",
+        serp: "#2ac0a0", serpDark: "#1a7a6a", serpBelly: "#c8f0a0",
+        shell: "#6a9a3a", shellDark: "#3a6a2a", shellLight: "#a8d06a",
+        deva: "#ffc89a", devaGold: "#ffd23f", asura: "#7a4ac8", asuraDark: "#4a2a8a", horn: "#fff0d0",
+        poison: "#2a0a3a", poisonMid: "#5a1a7a", poisonGlow: "#7dff4a", poisonDark: "#14051f",
+        shiva: "#8ab8f0", shivaShade: "#5a88d0", hair: "#2a1a3a", hairLight: "#4a3a6a", moon: "#fffbe8", ganga: "#bff4ff",
+        ash: "#ffffff", thirdEye: "#ff3a5a", throat: "#1a3ae8", throatGlow: "#5ad0ff",
+        tiger: "#ff9a2a", tigerStripe: "#5a2a10", bead: "#8a4a2a", trident: "#e0e8ff", tridentDark: "#8a98c8",
+        parvati: "#ffcc99", parvatiShade: "#e8a070", saree: "#e8304a", sareeDark: "#a81830", gold: "#ffd23f", goldDark: "#c8901a",
+        light: "#fff8d0", ink: "#06050a", paper: "#f1eef4", white: "#ffffff",
+      };
+
+      // ============================================================ SHIVA
+      // o: { blue 0..1, glow 0..1, eyes: open|closed|calm, mouth: open, cup 0..1 (hands to mouth) }
+      function shivaBust(cx, cy, s, o, t) {
+        g.save(); g.translate(cx, cy); g.scale(s, s);
+        // shoulders + chest
+        rrect(-27, 18, 54, 60, 14, C.shivaShade); rrect(-26, 19, 52, 60, 14, C.shiva);
+        // rudraksha beads
+        for (var b = 0; b < 11; b++) { var a = 0.35 + b * 0.22; disc(Math.cos(a) * 15, 22 + Math.sin(a) * 15, 1.4, C.bead); }
+        // neck + throat
+        var throatCol = mix(C.shiva, C.throat, o.blue || 0);
+        rect(-6.5, 10, 13, 12, C.shivaShade); rect(-6, 10, 12, 12, throatCol);
+        if (o.glow > 0) {
+          g.globalAlpha = 0.5 * o.glow; disc(0, 16, 12 + 2 * Math.sin(t * 9), C.throatGlow); g.globalAlpha = 1;
+          rect(-6, 10, 12, 12, throatCol);
+        }
+        if (o.trapped) {
+          for (var p = 0; p < 7; p++) { var aa = t * 4 + p * 0.9; disc(Math.cos(aa) * 3.5, 16 + Math.sin(aa) * 3, 1, C.poisonMid); }
+        }
+        // serpent around the neck
+        g.strokeStyle = C.serpDark; g.lineWidth = 3.6; g.beginPath(); g.arc(0, 24, 13, Math.PI * 1.05, Math.PI * 1.95, true); g.stroke();
+        g.strokeStyle = C.serp; g.lineWidth = 2.6; g.stroke();
+        disc(12, 21, 2.6, C.serp); disc(12.6, 20.4, 0.7, C.ink);
+        // head
+        disc(0, 0, 16.5, C.shivaShade); disc(0, -0.5, 16, C.shiva);
+        // matted hair bun with the crescent moon and the Ganga
+        ell(0, -26, 12, 15, 0, C.hair);
+        for (var l = 0; l < 5; l++) line(-8 + l * 4, -38, -9 + l * 4.5, -14, 1, C.hairLight);
+        g.fillStyle = C.hair; g.beginPath(); g.arc(0, -2, 16.8, Math.PI * 1.02, Math.PI * 1.98); g.fill();
+        disc(-10, -32, 4.2, C.moon); disc(-8.6, -33.2, 3.6, C.hair);
+        g.strokeStyle = C.ganga; g.lineWidth = 1.6; g.beginPath(); g.moveTo(3, -40); g.quadraticCurveTo(12, -50, 18, -42); g.stroke();
+        // hair falling to the shoulders
+        rect(-18, -4, 4, 24, C.hair); rect(14, -4, 4, 24, C.hair);
+        // tripundra (ash lines) + third eye
+        for (var k = 0; k < 3; k++) rect(-7, -12 + k * 2, 14, 0.9, C.ash);
+        ell(0, -9, 1, 2.2, 0, C.thirdEye);
+        // eyes
+        if (o.eyes === "closed") { line(-7, -2, -3, -2, 1, C.ink); line(3, -2, 7, -2, 1, C.ink); }
+        else if (o.eyes === "calm") { ell(-5, -2, 2.6, 1.3, 0, C.white); ell(5, -2, 2.6, 1.3, 0, C.white); disc(-5, -1.8, 1, C.ink); disc(5, -1.8, 1, C.ink); }
+        else { disc(-5, -2, 2.4, C.white); disc(5, -2, 2.4, C.white); disc(-5, -2, 1.3, C.ink); disc(5, -2, 1.3, C.ink); }
+        // mouth
+        if (o.mouth) ell(0, 7, 3, 2.4, 0, C.poisonDark);
+        else { g.strokeStyle = C.shivaShade; g.lineWidth = 0.9; g.beginPath(); g.arc(0, 5, 3, 0.4, Math.PI - 0.4); g.stroke(); }
+        disc(-16, 5, 2.8, C.gold); disc(16, 5, 2.8, C.gold);
+        // cupped hands
+        if (o.cup > 0) {
+          // palms cupped together into a bowl of poison, raised to the chin
+          var hy = lerp(44, 17, o.cup);
+          line(-22, 40, -9, hy + 3, 6.5, C.shivaShade); line(22, 40, 9, hy + 3, 6.5, C.shivaShade);
+          line(-22, 40, -9, hy + 3, 5, C.shiva); line(22, 40, 9, hy + 3, 5, C.shiva);
+          g.fillStyle = C.shivaShade; g.beginPath(); g.arc(0, hy, 10.5, 0, Math.PI); g.closePath(); g.fill();
+          g.fillStyle = C.shiva; g.beginPath(); g.arc(0, hy, 9.5, 0, Math.PI); g.closePath(); g.fill();
+          ell(0, hy, 9.5, 2.6, 0, C.poisonMid); ell(-2, hy - 0.4, 4, 1, 0, C.poisonGlow);
+          line(-1, hy + 2, -1, hy + 9, 0.6, C.shivaShade); line(1, hy + 2, 1, hy + 9, 0.6, C.shivaShade);
+        }
+        g.restore();
+      }
+      function shivaSeated(cx, baseY, s, o, t) {
+        g.save(); g.translate(cx, baseY); g.scale(s, s);
+        ell(0, -6, 30, 9, 0, C.tigerStripe); ell(0, -7, 29, 8, 0, C.tiger);
+        for (var i = -3; i <= 3; i++) line(i * 7, -12, i * 7 + 2, -2, 1, C.tigerStripe);
+        g.restore();
+        // trident planted beside him
+        line(cx + 34 * s, baseY - 4, cx + 34 * s, baseY - 92 * s, 1.6, C.tridentDark);
+        line(cx + 34 * s, baseY - 92 * s, cx + 34 * s, baseY - 104 * s, 1.6, C.trident);
+        line(cx + 28 * s, baseY - 98 * s, cx + 28 * s, baseY - 92 * s, 1.4, C.trident); line(cx + 40 * s, baseY - 98 * s, cx + 40 * s, baseY - 92 * s, 1.4, C.trident);
+        line(cx + 28 * s, baseY - 92 * s, cx + 40 * s, baseY - 92 * s, 1.4, C.trident);
+        ell(cx + 34 * s, baseY - 80 * s, 3 * s, 2 * s, 0, C.goldDark);
+        shivaBust(cx, baseY - 70 * s, s, o, t);
+      }
+      function parvati(x, y, s, reach, t) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        poly([[-12, 0], [12, 0], [8, -46], [-8, -46]], C.sareeDark); poly([[-11, 0], [11, 0], [7.5, -45], [-7.5, -45]], C.saree);
+        rect(-11, -3, 22, 2, C.gold); line(-6, -44, 10, -20, 2, C.gold);
+        disc(0, -54, 9, C.parvatiShade); disc(0, -54.5, 8.5, C.parvati);
+        g.fillStyle = C.hair; g.beginPath(); g.arc(0, -55, 9, Math.PI * 1.05, Math.PI * 1.95); g.fill();
+        disc(-7, -60, 4, C.hair); disc(-9, -62, 1.4, C.white); disc(-6, -64, 1.2, C.white);
+        disc(-3, -55, 0.9, C.ink); disc(0, -58, 0.8, C.saree);
+        disc(8, -50, 1.4, C.gold);
+        // arm reaching toward Shiva's throat
+        var hx = lerp(-12, -30, reach), hy = lerp(-30, -44, reach);
+        line(-6, -40, hx, hy, 3.6, C.parvati); disc(hx, hy, 2.2, C.parvati);
+        g.restore();
+      }
+
+      // ============================================================ OCEAN & CHURNING
+      function sky(t, darken) {
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, mix(C.skyTop, C.poisonDark, darken)], [0.45, mix(C.sky, C.poison, darken)], [0.7, mix(C.skyPink, C.poisonMid, darken)]]);
+        g.fillRect(0, 0, W, H);
+      }
+      function ocean(t, dark, y0) {
+        rect(-200, y0, 600, 400, mix(C.ocean, C.poisonMid, dark));
+        for (var w = 0; w < 14; w++) {
+          var y = y0 + 4 + w * 7, ph = t * 2 + w;
+          g.strokeStyle = mix(C.oceanLight, C.poisonGlow, dark * 0.6); g.lineWidth = 1;
+          g.beginPath();
+          for (var x = -100; x <= 280; x += 6) { var yy = y + Math.sin(x * 0.1 + ph) * 1.4; if (x === -100) g.moveTo(x, yy); else g.lineTo(x, yy); }
+          g.stroke();
+        }
+        rect(-200, y0, 600, 2, mix(C.foam, C.poisonGlow, dark));
+      }
+      function figure(x, y, kind, lean, s) {
+        var skin = kind === "deva" ? C.deva : C.asura;
+        g.save(); g.translate(x, y); g.rotate(lean); g.scale(s, s);
+        rect(-3, -12, 6, 12, kind === "deva" ? C.devaGold : C.asuraDark);
+        rect(-3.5, -24, 7, 12, skin);
+        disc(0, -28, 4, skin);
+        if (kind === "deva") poly([[-3, -31], [0, -36], [3, -31]], C.devaGold);
+        else { poly([[-3, -31], [-4, -35], [-1.5, -32]], C.horn); poly([[3, -31], [4, -35], [1.5, -32]], C.horn); }
+        line(0, -20, kind === "deva" ? 7 : -7, -16, 2, skin);
+        g.restore();
+      }
+      function churn(t, cam, darken, flee) {
+        sky(t, darken);
+        setCam(cam, 1);
+        var sl = 232;
+        // Kurma (Vishnu as a turtle) beneath the mountain
+        ell(90, sl + 30, 46, 18, 0, C.shellDark); ell(90, sl + 28, 43, 15, 0, C.shell);
+        for (var i = -2; i <= 2; i++) disc(90 + i * 15, sl + 26, 5, C.shellLight);
+        disc(140, sl + 30, 7, C.shell); disc(143, sl + 29, 1, C.ink);
+        // the ocean, drawn over the shell like water
+        g.globalAlpha = 0.75; ocean(t, darken, sl); g.globalAlpha = 1;
+        // Mount Mandara, spinning
+        var rot = t * 2.2;
+        poly([[50, sl + 6], [74, 70], [90, 52], [106, 70], [130, sl + 6]], C.mountDark);
+        poly([[54, sl + 4], [76, 72], [90, 56], [104, 72], [126, sl + 4]], C.mount);
+        for (var b = 0; b < 8; b++) {
+          var xb = 60 + ((b * 12 + rot * 10) % 70);
+          rect(xb, 80 + (b % 3) * 40, 3, 30, C.mountDark);
+          disc(xb + 2, 78 + (b % 4) * 36, 4, C.mountGreen);
+        }
+        // Vasuki coiled around the mountain, ends stretched to both sides
+        for (var c = 0; c < 3; c++) {
+          var cy = 120 + c * 34, ph = rot + c;
+          g.strokeStyle = C.serpDark; g.lineWidth = 6;
+          g.beginPath(); g.moveTo(62 + c * 2, cy + 10); g.quadraticCurveTo(90, cy - 6 + Math.sin(ph) * 2, 118 - c * 2, cy + 10); g.stroke();
+          g.strokeStyle = C.serp; g.lineWidth = 4.5; g.stroke();
+          for (var sc = 0; sc < 6; sc++) disc(68 + sc * 9, cy + 4 + Math.abs(sc - 2.5) * 1.6, 0.8, C.serpBelly);
+        }
+        var pull = Math.sin(t * 3) * 3;
+        var gx = flee ? -60 * flee : 0;
+        g.strokeStyle = C.serpDark; g.lineWidth = 6;
+        g.beginPath(); g.moveTo(62, 214); g.lineTo(-10 + pull, 208); g.stroke();
+        g.beginPath(); g.moveTo(118, 214); g.lineTo(190 + pull, 208); g.stroke();
+        g.strokeStyle = C.serp; g.lineWidth = 4.5;
+        g.beginPath(); g.moveTo(62, 214); g.lineTo(-10 + pull, 208); g.stroke();
+        g.beginPath(); g.moveTo(118, 214); g.lineTo(190 + pull, 208); g.stroke();
+        disc(172 + pull, 206, 6, C.serp); disc(176 + pull, 204, 1.2, C.ink);
+        // gods hold the tail (left), demons the head (right)
+        for (var d = 0; d < 3; d++) {
+          var lean = -0.25 + 0.15 * Math.sin(t * 3 + d);
+          figure(14 + d * 14 + pull + gx - d * flee * 10, 230, "deva", flee ? -0.6 : lean, 1);
+          figure(132 + d * 14 + pull - gx + d * flee * 10, 230, "asura", flee ? 0.6 : -lean, 1);
+        }
+        // foam swirl at the base
+        for (var f = 0; f < 10; f++) { var a = f * 0.628 + t * 3; disc(90 + Math.cos(a) * 36, sl + 2 + Math.sin(a) * 4, 1.6, C.foam); }
+      }
+      var PLUME = (function () { var r = rng(23), a = []; for (var i = 0; i < 40; i++) a.push({ x: (r() - 0.5) * 60, y: r(), r: 8 + r() * 14, k: r() }); return a; })();
+      function poisonPlume(t, grow) {
+        PLUME.forEach(function (p) {
+          var y = 232 - p.y * 230 * grow, x = 90 + p.x * (0.4 + p.y) + Math.sin(t * 2 + p.k * 6) * 4;
+          if (p.y > grow * 1.05) return;
+          disc(x, y, p.r * (0.5 + p.y), p.k > 0.7 ? C.poisonMid : C.poison);
+        });
+        // skull-like face in the plume
+        if (grow > 0.6) {
+          var k = clamp01((grow - 0.6) / 0.4);
+          disc(78, 96, 6 * k, C.poisonGlow); disc(102, 96, 6 * k, C.poisonGlow);
+          disc(78, 96, 3 * k, C.poisonDark); disc(102, 96, 3 * k, C.poisonDark);
+          for (var tt = 0; tt < 5; tt++) rect(80 + tt * 4.5, 114, 3 * k, 5 * k, C.poisonGlow);
+        }
+        g.globalAlpha = 0.5;
+        for (var gl = 0; gl < 12; gl++) { var a = gl * 0.5 + t; disc(90 + Math.cos(a) * 40 * grow, 160 + Math.sin(a * 1.3) * 70 * grow, 2, C.poisonGlow); }
+        g.globalAlpha = 1;
+      }
+
+      // ============================================================ SCENES
+      function sceneCold(t) {
+        var endMode = t >= 15;
+        var cam = endMode ? camAt([[28.2, 90, 190, 0.7], [29.8, 90, 160, 1], [30, 90, 160, 1]], t) : shake({ x: 90, y: 160, z: 1 + 0.12 * Math.exp(-t * 4) }, t, 0.5, 9, 0.8);
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.poisonDark], [0.5, C.poison], [1, C.poisonMid]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        var blue = endMode ? 0 : ramp(t, 0.45, 0.9);
+        var cup = endMode ? 1 : 1 - 0.7 * ramp(t, 0.45, 0.75);
+        shivaBust(90, 215, 2.2, { blue: blue, glow: blue, eyes: "closed", mouth: true, cup: cup }, t);
+        // poison pouring in from the sky, curving into the bowl at his lips
+        var bowlY = 215 + lerp(44, 17, cup) * 2.2;
+        var flow = endMode ? 1 : 1 - ramp(t, 0.45, 0.65);
+        for (var i = 0; i < 48 * flow; i++) {
+          var k = ((t * 1.6 + i / 48) % 1);
+          var x = lerp(166, 96, sstep(0.72, 1, k)) + Math.sin(k * 9 + i) * 4, y = lerp(-20, bowlY - 4, Math.pow(k, 0.85));
+          disc(x, y, 8 - k * 4, i % 4 === 0 ? C.poisonGlow : i % 2 ? C.poisonMid : C.poison);
+        }
+        vignette(0.3, "rgba(20,0,40,");
+      }
+      function sceneChurn(t) {
+        var cam = camAt([[1.5, 90, 170, 1.2], [2.2, 90, 168, 1.0], [6.4, 90, 160, 1.06]], t);
+        churn(t, cam, 0, 0);
+        vignette(0.2, "rgba(20,0,60,");
+      }
+      function scenePoison(t) {
+        var cam = camAt([[6.3, 90, 160, 1.1], [7.0, 90, 156, 1.0], [10.2, 90, 150, 1.08]], t);
+        shake(cam, t, 6.6, 8, 1.2);
+        if (t > 6.6) { var sk = 1.5; cam.x += (hash1(Math.floor(t * 30)) - 0.5) * sk; }
+        var dark = ramp(t, 6.5, 8.0), flee = ramp(t, 7.6, 9.4);
+        churn(t, cam, dark * 0.8, flee);
+        setCam(cam, 1);
+        poisonPlume(t, ramp(t, 6.5, 8.6));
+        // boiling bubbles
+        for (var b = 0; b < 10; b++) { var ph = ((t * 1.4 + b / 10) % 1); disc(50 + b * 9, 236 - ph * 10, 1.4 * (1 - ph) + 0.4, C.poisonGlow); }
+        vignette(0.35, "rgba(20,0,40,");
+      }
+      function kailash(t, cam) {
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.skyTop], [0.5, C.sky], [1, C.skyLight]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        poly([[-40, 330], [30, 150], [70, 210], [100, 120], [140, 200], [220, 330]], C.snowDeep);
+        poly([[-30, 330], [32, 160], [70, 214], [100, 130], [138, 206], [210, 330]], C.snowShade);
+        poly([[100, 130], [86, 160], [94, 156], [100, 168], [108, 152], [116, 158]], C.snow);
+        poly([[32, 160], [22, 186], [32, 180], [42, 190]], C.snow);
+        rect(-100, 296, 400, 60, C.snow);
+      }
+      function sceneKailash(t) {
+        var cam = camAt([[10.1, 90, 165, 1.15], [10.8, 90, 162, 1.0], [11.6, 90, 166, 1.06], [13.5, 90, 168, 1.12]], t);
+        kailash(t, cam);
+        setCam(cam, 1);
+        var awake = t > 11.6;
+        if (awake) { var k = ramp(t, 11.6, 12.2); g.globalAlpha = 0.5 * k; disc(90, 230, 60 * k, C.light); g.globalAlpha = 1; }
+        shivaSeated(90, 300, 1.0, { blue: 0, glow: 0, eyes: awake ? "open" : "closed" }, t);
+        // gods praying at the foot of the mountain
+        [16, 34, 146, 164].forEach(function (x, i) { figure(x, 312, i < 2 ? "deva" : "deva", 0, 1.1); });
+        vignette(0.2, "rgba(20,20,80,");
+      }
+      function sceneDrink(t) {
+        var cam = camAt([[13.3, 90, 150, 1.15], [14.0, 90, 150, 1.0], [16.0, 90, 152, 1.08], [16.3, 90, 152, 1.15], [19.0, 90, 150, 1.05]], t);
+        shake(cam, t, 16.1, 8, 0.6);
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.poisonDark], [0.6, C.poison], [1, C.skyTop]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        // the poison cloud above, spiralling down into his palms
+        var gather = ramp(t, 13.5, 15.3), cloudLeft = 1 - ramp(t, 13.6, 16.0);
+        for (var i = 0; i < 30; i++) {
+          var a = i * 0.7 + t * 2;
+          var cx = 90 + Math.cos(a) * 60 * cloudLeft, cy = 60 + Math.sin(a) * 30 * cloudLeft;
+          disc(cx, cy, 9 * cloudLeft + 1, i % 3 ? C.poison : C.poisonMid);
+        }
+        if (t < 16.1) for (var s = 0; s < 18; s++) {
+          var k = ((t * 1.8 + s / 18) % 1);
+          var mouthY = t < 15.2 ? 286 : 244;
+          disc(lerp(90 + Math.cos(s) * 40 * cloudLeft, 90, k), lerp(70, mouthY, k), 3 - k * 1.5, s % 4 ? C.poisonMid : C.poisonGlow);
+        }
+        var drinking = t > 15.2 && t < 16.2;
+        var held = t > 16.8;
+        var blue = ramp(t, 16.2, 17.2);
+        shivaBust(90, 236, 1.6, { blue: blue, glow: blue, eyes: t < 16.2 ? "closed" : "open", mouth: drinking, cup: t < 15.2 ? 0.25 : t < 16.2 ? 1 : 1 - ramp(t, 16.2, 16.6) }, t);
+        // Parvati rushes in and presses his throat
+        if (t > 16.2) {
+          var px = lerp(220, 134, easeOut((t - 16.2) / 0.5));
+          parvati(px, 320, 1.6, ramp(t, 16.5, 16.9), t);
+          if (held) { g.globalAlpha = 0.6; disc(90, 262, 6, C.light); g.globalAlpha = 1; }
+        }
+        vignette(0.3, "rgba(20,0,40,");
+      }
+      function sceneBlue(t) {
+        var cam = camAt([[18.9, 90, 168, 1.15], [19.6, 90, 166, 1.0], [23.6, 90, 170, 1.1]], t);
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.skyTop], [0.6, C.oceanDark], [1, C.ocean]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        g.globalAlpha = 0.3;
+        for (var r = 0; r < 12; r++) { var a = r * 0.5236 + t * 0.3; poly([[90, 238], [90 + Math.cos(a) * 300, 238 + Math.sin(a) * 300], [90 + Math.cos(a + 0.13) * 300, 238 + Math.sin(a + 0.13) * 300]], C.throatGlow); }
+        g.globalAlpha = 1;
+        shivaBust(90, 200, 2.4, { blue: 1, glow: 0.6 + 0.4 * Math.sin(t * 4), eyes: "calm", trapped: true }, t);
+        vignette(0.3, "rgba(10,10,60,");
+      }
+      function sceneTitle(t) {
+        var cam = camAt([[23.5, 90, 160, 1.2], [24.2, 90, 160, 1.0], [28.3, 90, 162, 1.06]], t);
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.skyTop], [0.5, C.sky], [0.75, C.skyPink]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        g.globalAlpha = 0.35;
+        for (var r = 0; r < 16; r++) { var a = r * 0.3927 + t * 0.25; poly([[90, 240], [90 + Math.cos(a) * 300, 240 + Math.sin(a) * 300], [90 + Math.cos(a + 0.12) * 300, 240 + Math.sin(a + 0.12) * 300]], C.light); }
+        g.globalAlpha = 1;
+        ocean(t, 0, 296);
+        shivaBust(90, 244, 1.5, { blue: 1, glow: 0.5, eyes: "calm" }, t);
+        vignette(0.2, "rgba(20,20,80,");
+      }
+
+      PX.setup(C, {
+        scenes: { cold: sceneCold, churn: sceneChurn, poison: scenePoison, kailash: sceneKailash, drink: sceneDrink, blue: sceneBlue, title: sceneTitle },
+        sceneAt: function (t) {
+          return t < 1.6 ? "cold" : t < 6.4 ? "churn" : t < 10.2 ? "poison" : t < 13.4 ? "kailash" : t < 19.0 ? "drink" : t < 23.6 ? "blue" : t < 28.2 ? "title" : "cold";
+        },
+        cuts: [[1.6, "cold", "churn"], [10.2, "poison", "kailash"], [13.4, "kailash", "drink"], [19.0, "drink", "blue"], [23.6, "blue", "title"], [28.2, "title", "cold"]],
+        post: function (t, img) {
+          if (t > 0.45 && t < 0.62) tintImg(img, C.throatGlow, 1 - (t - 0.45) / 0.17);
+          if (t > 1.4 && t < 1.85) glitchRows(img, 22 * Math.sin((t - 1.4) / 0.45 * Math.PI), Math.floor(t * 30));
+          if (t > 6.5 && t < 6.75) tintImg(img, C.poisonGlow, 0.6 * (1 - (t - 6.5) / 0.25));
+          if (t > 16.1 && t < 16.4) tintImg(img, C.throatGlow, 1 - (t - 16.1) / 0.3);
+          if (t > 23.55 && t < 23.9) tintImg(img, C.white, 1 - (t - 23.55) / 0.35);
+        },
+        captions: [
+          { a: 0.15, b: 1.55, lines: [[["HE DRANK A POISON", C.paper]], [["THAT COULD END THE WORLD", C.gold]]] },
+          { a: 2.2, b: 4.8, lines: [[["GODS AND DEMONS", C.paper]], [["CHURNED THE OCEAN", C.gold]]] },
+          { a: 7.0, b: 9.9, lines: [[["OUT CAME", C.paper]], [["HALAHALA POISON", C.gold]]] },
+          { a: 10.6, b: 13.2, lines: [[["ONLY SHIVA", C.paper]], [["COULD STOP IT", C.gold]]] },
+          { a: 13.9, b: 16.0, lines: [[["HE DRANK", C.paper]], [["ALL OF IT", C.gold]]] },
+          { a: 16.6, b: 18.8, lines: [[["PARVATI HELD", C.paper]], [["HIS THROAT", C.gold]]] },
+          { a: 19.4, b: 22.6, lines: [[["THE POISON", C.paper]], [["NEVER WENT DOWN", C.gold]]] },
+          { a: 24.0, b: 28.0, lines: [[["NEELKANTH", C.gold]], [["THE BLUE-THROATED ONE", C.paper]]] },
+        ],
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 30, duration: 30, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
