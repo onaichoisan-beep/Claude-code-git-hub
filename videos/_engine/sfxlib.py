@@ -13,7 +13,7 @@ import wave
 import numpy as np
 
 SR = 48000
-DUR = 30.0
+DUR = float(os.environ.get("SFX_DUR", "30"))  # set SFX_DUR before import for longer films
 N = int(SR * DUR)
 rng = np.random.default_rng(1234)
 t = np.arange(N) / SR

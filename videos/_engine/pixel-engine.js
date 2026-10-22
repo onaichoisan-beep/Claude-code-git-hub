@@ -4,7 +4,7 @@
 // Each project defines its palette, scenes, cuts and captions, then calls
 // PX.render(t) from a paused GSAP proxy tween. Everything is a pure function of t.
 
-var W = 180, H = 320;
+var W = window.PX_W || 180, H = window.PX_H || 320; // portrait by default; set PX_W/PX_H for landscape
 var world = document.getElementById("world");
 var wctx = world.getContext("2d");
 var buf = document.createElement("canvas");
@@ -71,7 +71,7 @@ function shake(cam, t, t0, amp, dur) {
 function setCam(cam, f) {
   f = f === undefined ? 1 : f;
   var z = Math.pow(cam.z, f);
-  var cx = 90 + (cam.x - 90) * f, cy = 160 + (cam.y - 160) * f;
+  var cx = W / 2 + (cam.x - W / 2) * f, cy = H / 2 + (cam.y - H / 2) * f;
   g.setTransform(z, 0, 0, z, W / 2 - cx * z, H / 2 - cy * z);
 }
 function screen() { g.setTransform(1, 0, 0, 1, 0, 0); }
@@ -249,7 +249,7 @@ PX.render = function (t) {
   if (!img) img = PX.scene(cfg.sceneAt(t), t);
   if (cfg.post) cfg.post(t, img);
   quantize(img);
-  u.clearRect(0, 0, 360, 640);
+  u.clearRect(0, 0, ui.width, ui.height);
   CAPTIONS.forEach(function (c) { if (t >= c.a && t < c.b) drawCaption(c, t); });
   if (cfg.ui) cfg.ui(t);
 };

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Zeus vs Lord Shiva — The Cosmic Battle</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        background: #05040c;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #05040c;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="240"
+      data-width="1920"
+      data-height="1080"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="240" data-track-index="0">
+        <canvas id="world" width="320" height="180" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="640" height="360"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: voice-over + score + sound effects -->
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="240" data-track-index="1"></audio>
+    </div>
+    <script>
+      window.PX_W = 320;
+      window.PX_H = 180;
+    </script>
+    <script src="pixel-engine.js"></script>
+    <script src="chars.js"></script>
+    <script src="sets.js"></script>
+    <script>
+      // 48 shots x 5 s. Each shot is fn(u, t) with u = local time 0..5 (it is also called a little
+      // outside that range during the dither dissolve between shots). FLASH = [start, end, colour, peak].
+      var SHOTS = [], FLASH = [], SHOTPOST = {}, NOCUT = {};
+    </script>
+    <script src="shots-a.js"></script>
+    <script src="shots-b.js"></script>
+    <script src="shots-c.js"></script>
+    <script>
+      var scenes = {}, cuts = [];
+      for (var i = 0; i < 48; i++) {
+        (function (k) {
+          scenes["s" + k] = function (t) { if (SHOTS[k]) SHOTS[k](t - k * 5, t); else fillAll(C.ink); };
+        })(i);
+        if (i > 0) cuts.push([i * 5, "s" + (i - 1), "s" + i]);
+      }
+      PX.setup(C, {
+        scenes: scenes,
+        sceneAt: function (t) { return "s" + Math.min(47, Math.max(0, Math.floor(t / 5))); },
+        cuts: cuts.filter(function (c) { return !NOCUT[c[0] / 5]; }),
+        post: function (t, img) {
+          FLASH.forEach(function (f) {
+            if (t > f[0] && t < f[1]) {
+              var m = f[0] + (f[1] - f[0]) * 0.25;
+              tintImg(img, f[2], f[3] * (t < m ? ramp(t, f[0], m) : 1 - ramp(t, m, f[1])));
+            }
+          });
+          var k = Math.min(47, Math.floor(t / 5));
+          if (SHOTPOST[k]) SHOTPOST[k](t - k * 5, img, t);
+          if (t >= 239.6) tintImg(img, C.ink, 1); // the film ends on pure black
+        },
+        captions: [],
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 240, duration: 240, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
