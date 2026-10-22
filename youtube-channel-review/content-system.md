@@ -48,17 +48,25 @@ Only use a hook if it's true to your life.
 7. **"Packing ghar ka khana for Patna 😭"**: mom packing food the day you leave.
 8. **"Last day of vacation → back to MBBS"**: the journey back to Patna and the start of second year.
 
-## "MBBS in Patna on a budget" series (built from the expenses video)
+## Content mix
 
-Script for the first video: `scripts/monthly-expenses.md`.
+The channel is about my life as an MBBS student, not one topic. Rotate between:
+- **Daily life:** mini-vlogs from college, the flat, and home.
+- **MBBS:** study, classes, exams, seminars, milestones.
+- **Money and living alone:** the expenses video, with an occasional follow-up.
+- **Me:** interests, fun, festivals, family, friends.
 
-1. **Monthly expenses** (the flagship). Long video plus a Short.
+## Optional spin-offs from the expenses video
+
+These are one-offs to mix in occasionally if the expenses video does well, not a series to build the channel around. Script for the expenses video: `scripts/monthly-expenses.md`.
+
+1. **Monthly expenses.** Long video plus a Short.
 2. **"What ₹8,000 gets you in Patna"**: flat tour.
 3. **"₹3,500 mess food: what I actually eat in a day"**
 4. **"I spend ₹2K a month on outings: best cafés near NMCH under ₹300"**: local search value.
 5. **"MBBS college outfits under ₹1,000"**: turns the clothes habit into content.
 6. **"Can I survive a week in Patna on ₹500?"**: a challenge with built-in curiosity.
-7. **"Monthly kharcha update: Month X of second year"**: a repeat every month, which makes it easy to stay consistent.
+7. **"Monthly kharcha update"**: only now and then, if people ask for it.
 8. **"Hostel vs flat for MBBS: which is better?"**: film it once hostels are allotted.
 9. **"Things nobody tells you about living alone for MBBS"**
 
