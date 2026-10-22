@@ -1,6 +1,6 @@
 """Deterministic soundtrack for the snake bite video.
 
-Writes two 30s 48kHz stereo tracks that index.html plays together:
+Writes the 30s 48kHz stereo SFX track index.html plays (narration support kept but unused):
   assets/audio/narration.wav  — Kokoro am_onyx lines (assets/audio/vo/*.wav), placed and sweetened
   assets/audio/sfx.wav        — ambience + dramatic SFX, ducked under the narration
 Both are scaled by the same factor so their sum peaks at -1 dBFS.
@@ -19,7 +19,8 @@ AUDIO = os.path.join(HERE, "..", "assets", "audio")
 rng = np.random.default_rng(1234)
 
 # narration line -> start time (s); each sits inside its caption window
-VO = [("vo1", 0.4), ("vo2", 4.4), ("vo3", 9.3), ("vo4", 14.3), ("vo5", 18.6), ("vo6", 22.0), ("vo7", 26.9)]
+# no narration: the story is told by picture, on-screen text and sound effects only
+VO = []
 
 
 def read_wav(path):
@@ -172,7 +173,7 @@ vo.x[:, 0] = vo_mono
 vo.x[:, 1] = vo_mono
 k = int(0.12 * SR)
 speech_env = np.convolve(np.abs(vo_mono), np.ones(k) / k, mode="same")
-speech_env = np.clip(speech_env / (np.max(speech_env) * 0.25), 0, 1)
+speech_env = np.clip(speech_env / (np.max(speech_env) * 0.25 + 1e-9), 0, 1)
 k2 = int(0.25 * SR)
 speech_env = np.convolve(speech_env, np.ones(k2) / k2, mode="same")
 
@@ -224,11 +225,6 @@ lvl *= np.clip(seg(-1, 7.0, 0.1) + seg(27.4, 31, 0.6), 0, 1)
 rat = r * lvl
 fx.x[:, 0] += 0.45 * rat
 fx.x[:, 1] += 0.35 * rat
-
-# ---- caption hits
-for tc, f in [(0.5, 660), (5.2, 990), (9.6, 880), (14.5, 660), (18.9, 520), (22.2, 880), (27.3, 660)]:
-    fx.put(blip(f), tc, 0.35)
-    fx.put(thump(70, 0.3, 1.5), tc, 0.45)
 
 # ---- footsteps on sand
 def step():
@@ -315,7 +311,7 @@ duck_amb = 1 - 0.7 * speech_env
 duck_fx = 1 - 0.5 * speech_env
 sfx = amb.x * 0.6 * duck_amb[:, None] + fx.x * duck_fx[:, None]
 sfx = np.tanh(sfx * 1.1) / 1.1
-narr = vo.x / np.max(np.abs(vo.x)) * 0.95
+narr = vo.x / (np.max(np.abs(vo.x)) + 1e-9) * 0.95
 
 # shared look-ahead limiter: +3.5 dB of make-up gain, peaks held at -1 dBFS
 total = (sfx + narr) * 10 ** (3.5 / 20)
@@ -337,6 +333,7 @@ for x in (sfx, narr):
     x[-fade:] *= np.linspace(1, 0, fade)[:, None]
 
 write_wav(os.path.join(AUDIO, "sfx.wav"), sfx)
-write_wav(os.path.join(AUDIO, "narration.wav"), narr)
+if VO:
+    write_wav(os.path.join(AUDIO, "narration.wav"), narr)
 mix_db = 20 * np.log10(np.sqrt(np.mean((sfx + narr) ** 2)) + 1e-12)
-print(f"wrote sfx.wav + narration.wav (combined RMS {mix_db:.1f} dBFS)")
+print(f"wrote sfx.wav{' + narration.wav' if VO else ''} (RMS {mix_db:.1f} dBFS)")

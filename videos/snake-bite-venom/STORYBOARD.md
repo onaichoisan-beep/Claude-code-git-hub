@@ -6,7 +6,7 @@ arc: Hook → Strike → Injection → Damage → Spread → Cure → Loop
 audience: curious Shorts/TikTok viewers
 mode: autonomous
 music: none
-voice: am_onyx
+voice: none
 build: single continuous-take composition (one shared pixel world + camera), same engine as octopus-camouflage-hunt
 ---
 
@@ -17,7 +17,7 @@ build: single continuous-take composition (one shared pixel world + camera), sam
 - poster: 2s
 - transition_in: cut
 - status: animated
-- voiceover: "One bite. What happens next?"
+- voiceover: ""
 - sfx: desert wind, rattle buzz, caption hit
 
 ## Frame 2 — The strike
@@ -27,7 +27,7 @@ build: single continuous-take composition (one shared pixel world + camera), sam
 - poster: 6.5s
 - transition_in: camera push-in (continuous)
 - status: animated
-- voiceover: "It strikes faster than a blink."
+- voiceover: ""
 - sfx: rattle peak, whoosh, impact
 
 ## Frame 3 — Hollow fangs
@@ -37,7 +37,7 @@ build: single continuous-take composition (one shared pixel world + camera), sam
 - poster: 11s
 - transition_in: camera macro zoom (continuous)
 - status: animated
-- voiceover: "Hollow fangs inject venom... like needles."
+- voiceover: ""
 - sfx: low slow-mo drone, squelch, drip
 
 ## Frame 4 — Inside the blood
@@ -47,7 +47,7 @@ build: single continuous-take composition (one shared pixel world + camera), sam
 - poster: 15.5s
 - transition_in: camera dive (continuous)
 - status: animated
-- voiceover: "Inside, it stops your blood from clotting..."
+- voiceover: ""
 - sfx: heartbeat whoosh (blood pulse), fizz
 
 ## Frame 5 — Tissue damage
@@ -57,7 +57,7 @@ build: single continuous-take composition (one shared pixel world + camera), sam
 - poster: 19.5s
 - transition_in: continuous drift
 - status: animated
-- voiceover: "...and destroys tissue."
+- voiceover: ""
 - sfx: crackle, heartbeat speeding up
 
 ## Frame 6 — The cure
@@ -67,7 +67,7 @@ build: single continuous-take composition (one shared pixel world + camera), sam
 - poster: 24s
 - transition_in: continuous
 - status: animated
-- voiceover: "The cure? Antivenom... made in horses."
+- voiceover: ""
 - sfx: bright shimmer, locking clicks, heartbeat slowing
 
 ## Frame 7 — Get help + loop
@@ -77,7 +77,7 @@ build: single continuous-take composition (one shared pixel world + camera), sam
 - poster: 28s
 - transition_in: camera pull-back to the opening framing (continuous)
 - status: animated
-- voiceover: "Bitten? Get to a hospital."
+- voiceover: ""
 - sfx: reverse whoosh, rattle, wind
 
 ## Notes

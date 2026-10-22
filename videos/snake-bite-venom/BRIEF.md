@@ -8,7 +8,7 @@ aspect: 1080x1920
 language: en
 length: 30s
 angle: concept
-voice: am_onyx
+
 ---
 
 ## Intent
@@ -39,3 +39,4 @@ twist: antivenom antibodies (made in horses) flood in and grab the venom → loo
 - "Don't enter the workflow" — no sketch/board checkpoints; build and render straight through.
 - Only important things as text; story is the main focus. Text SMALL and in the MIDDLE of the frame.
 - Bright colours that convey the story with complete clarity, still in the pixel style.
+- Revision 2 (user): no narration ("don't vocalize the story") and no sounds on the text — sound effects only.
