@@ -8,6 +8,7 @@ Started 2026-10-22. Read this at the start of every planning session.
 - ~1.26K subscribers, but most of them don't watch anymore. Recent views come from non-subscribers, and few of them subscribe.
 - The 485K video (family reaction to my NEET 2025 result) was about timing. I uploaded it within 4 hours of the result, when everyone was searching. Views dropped after it because those viewers came for the event, not for me.
 - I can edit well. What I need help with is ideas, direction and planning.
+- No hostel has been allotted yet, so I live in a rented flat in Patna (I'm not from Patna). Right now (late Oct 2026) I'm at home in my hometown for the festive vacation.
 - Footage I already have from first year: biochemistry lab, wearing my lab coat, classes, walking to the ground in my apron.
 
 ## Strategy
@@ -25,7 +26,7 @@ Started 2026-10-22. Read this at the start of every planning session.
 - [ ] Edit and post **"My First Year of MBBS at NMCH (Honest Recap)"** (voiceover over existing footage).
 - [ ] Add a card and a pinned comment on the 485K video pointing to the recap ("Here's what happened after this result").
 - [ ] Cut 3 Shorts from the recap footage.
-- [ ] Start filming 1–2 minute clips every day now (study, hostel, walk to college, end of first year).
+- [ ] Start filming 1–2 minute clips every day now (study, flat life, home during the vacation, walk to college).
 - [ ] Film the first week of second year for **"Second Year MBBS Starts: Following Along"**.
 - [ ] Be ready to film and post on the day the first-year results come out.
 
@@ -40,7 +41,7 @@ Clips shared on 2026-10-22. All are vertical, so they work as-is for Shorts. In 
 | IMG_1366.mov | Rotating a 3D eye anatomy model on iPad | 6.2s | Study B-roll; "how I study anatomy on iPad" |
 | seminar .mp4 | Presenting a uterus anatomy seminar at the podium (filmed by a friend) | 24s | "My first MBBS seminar" Short; recap Subjects section. Only 480p, so ask the friend for the original file |
 
-Still to film: college gate/building, hostel room, notes close-ups, a short talking-head intro and outro.
+Still to film: college gate/building, my Patna flat, notes close-ups, a short talking-head intro and outro.
 
 ## Recap video outline
 
@@ -49,7 +50,7 @@ Still to film: college gate/building, hostel room, notes close-ups, a short talk
 1. **0:00–0:15, hook:** best apron-walk clip + "One year ago I was crying over my NEET result. This is what happened next."
 2. **Getting in:** first days, first time in the lab coat.
 3. **Subjects:** biochem lab + class footage, what was hard and what surprised me.
-4. **Life:** hostel, friends, the ground.
+4. **Life:** living in a rented flat in Patna, friends, the ground.
 5. **Exams:** what the first-year exam was actually like.
 6. **Ending:** "Second year starts in 2 weeks. I'm documenting all of it." Then ask viewers to subscribe.
 
@@ -63,7 +64,7 @@ Still to film: college gate/building, hostel room, notes close-ups, a short talk
 
 ## Basics for every video
 
-- **Titles:** searchable phrases ("MBBS first year exam experience", "MBBS second year", "NMCH hostel life"). Clear, no typos, no vague titles.
+- **Titles:** searchable phrases ("MBBS first year exam experience", "MBBS second year", "MBBS student flat life Patna"). Clear, no typos, no vague titles.
 - **Thumbnails:** my face, expressive, with 2–3 words of text.
 - **Hook:** put it in the first 10 seconds. Cut slow intros and dead air.
 - **Subscribe ask:** once, after the video has delivered something, with a reason ("every Friday I'll show second year").
@@ -77,7 +78,7 @@ Still to film: college gate/building, hostel room, notes close-ups, a short talk
 - **Hostel room tours and moving-in videos:** 1M+ each.
 - **Milestones:** first day at MAMC (762K), white coat ceremony (485K), "finally becoming a doctor" (15M Short).
 
-Lessons: everyday hostel moments beat advice; use #minivlog with Hinglish titles; put the college name in titles; never skip a milestone; post consistently for years (~1.5K uploads over ~6 years).
+Lessons: everyday moments beat advice (for me: flat life and home life, not hostel); use #minivlog with Hinglish titles; put the college name in titles; never skip a milestone; post consistently for years (~1.5K uploads over ~6 years).
 
 ## Check every week in YouTube Analytics
 
