@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Science of Firework Colours</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #0a0a2e;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #0a0a2e;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: sound effects only -->
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script>
+      var C = {
+        night: "#0a0a2e", nightMid: "#1c1a5a", dusk: "#3a2a8a", horizon: "#7a3a9a",
+        bldg: "#140f30", bldgLight: "#24204a", window: "#ffc84a", dome: "#1e1640",
+        diya: "#c8601a", diyaDark: "#7a3010", flame: "#ffd040", flameCore: "#fff6c0",
+        rangoli1: "#ff3a8a", rangoli2: "#ffd23f", rangoli3: "#3ad0ff", rangoli4: "#3cd070",
+        red: "#ff2a3a", redLight: "#ff8a8a", orange: "#ff8a1a", gold: "#ffcc2a", goldLight: "#fff09a",
+        green: "#2aff5a", greenLight: "#b0ffb8", blue: "#2a6aff", blueLight: "#8ac0ff", purple: "#b03aff", purpleLight: "#e0a8ff",
+        white: "#ffffff", washed: "#c8d8ff", smoke: "#4a4870",
+        nucleus: "#ff5a4a", nucleusN: "#5a9aff", orbit: "#6a6ab0", heat: "#ff7a2a",
+        card: "#14102e", ink: "#06050a", paper: "#f1eef4", goldCap: "#ffd23f",
+      };
+
+      // ============================================================ fireworks (pure functions of t)
+      // a shell: { t0 launch, x0 ground x, burst {x,y}, col, light, n, seed, kind: "peony"|"willow"|"ring" }
+      function shellBurstTime(s) { return s.t0 + 0.7; }
+      function drawShell(s, t, scale) {
+        scale = scale || 1;
+        var tb = shellBurstTime(s);
+        if (t < s.t0) return;
+        // rising trail
+        if (t < tb) {
+          var k = (t - s.t0) / 0.7, e = 1 - Math.pow(1 - k, 2);
+          var x = lerp(s.x0, s.burst.x, e), y = lerp(330, s.burst.y, e);
+          lighter();
+          glow(x, y, 4, C.goldLight, 0.8);
+          for (var j = 1; j < 8; j++) { var kk = Math.max(0, k - j * 0.04), ee = 1 - Math.pow(1 - kk, 2); rect(lerp(s.x0, s.burst.x, ee), lerp(330, s.burst.y, ee), 1, 1, C.gold); }
+          normalBlend();
+          return;
+        }
+        var a = t - tb;
+        if (a > 2.6) return;
+        var r = rng(s.seed);
+        lighter();
+        var fade = 1 - clamp01((a - 1.2) / 1.4);
+        glow(s.burst.x, s.burst.y, (24 + 50 * Math.min(a, 0.8)) * scale, s.col, 0.55 * fade * Math.exp(-a * 1.2));
+        if (a < 0.3) glow(s.burst.x, s.burst.y, (16 + 40 * a) * scale, C.white, 0.9 * (1 - a / 0.3));
+        for (var i = 0; i < s.n; i++) {
+          var ang = (i / s.n) * 6.2832 + r() * 0.2, sp = (s.kind === "ring" ? 1 : 0.55 + r() * 0.45) * 78 * scale;
+          var drag = (1 - Math.exp(-a * 2.2)) / 2.2;
+          var x = s.burst.x + Math.cos(ang) * sp * drag;
+          var y = s.burst.y + Math.sin(ang) * sp * drag * (s.kind === "ring" ? 0.45 : 1) + 14 * a * a * (s.kind === "willow" ? 1.8 : 1);
+          var tw = 0.6 + 0.4 * Math.sin(t * 40 + i * 1.7);
+          if (fade * tw < 0.05) continue;
+          g.globalAlpha = fade * tw;
+          // short tail
+          var x2 = s.burst.x + Math.cos(ang) * sp * Math.max(0, drag - 0.09), y2 = s.burst.y + Math.sin(ang) * sp * Math.max(0, drag - 0.09) * (s.kind === "ring" ? 0.45 : 1) + 14 * a * a;
+          line(x2, y2, x, y, 1.3 * scale, s.col);
+          glow(x, y, 3.2 * scale, s.light, 0.7);
+          rect(x - 0.75, y - 0.75, 1.6 * scale, 1.6 * scale, i % 3 === 0 ? C.white : s.light);
+        }
+        g.globalAlpha = 1;
+        normalBlend();
+      }
+      var STARS = (function () { var r = rng(3), a = []; for (var i = 0; i < 60; i++) a.push({ x: r() * W, y: r() * 200, k: r() }); return a; })();
+      var BLDG = (function () { var r = rng(5), a = [], x = -10; while (x < 200) { var w = 12 + r() * 16; a.push({ x: x, w: w, h: 26 + r() * 40, s: r() }); x += w + 1; } return a; })();
+      function sky(t, cam, glowCol, glowA) {
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.night], [0.55, C.nightMid], [0.82, C.dusk], [1, C.horizon]]); g.fillRect(0, 0, W, H);
+        STARS.forEach(function (s, i) { g.globalAlpha = 0.5 + 0.4 * Math.sin(t * 3 + i); rect(s.x, s.y, 1, 1, s.k > 0.85 ? C.goldLight : C.white); });
+        g.globalAlpha = 1;
+        if (glowA > 0) { lighter(); glow(90, 110, 140, glowCol, glowA); normalBlend(); }
+      }
+      function skyline(t, cam) {
+        setCam(cam, 1);
+        BLDG.forEach(function (b, i) {
+          rect(b.x, 290 - b.h, b.w, b.h + 40, C.bldg);
+          for (var wy = 290 - b.h + 4; wy < 286; wy += 6) for (var wx = b.x + 3; wx < b.x + b.w - 3; wx += 5) {
+            if (hash1(wx * 3.1 + wy * 7.7 + i) > 0.45) rect(wx, wy, 2, 2, C.window);
+          }
+          if (b.s > 0.8) { poly([[b.x, 290 - b.h], [b.x + b.w / 2, 290 - b.h - 8], [b.x + b.w, 290 - b.h]], C.bldg); }
+        });
+        // temple dome
+        disc(90, 258, 16, C.dome); rect(74, 258, 32, 40, C.dome); poly([[88, 242], [90, 230], [92, 242]], C.dome);
+        disc(90, 229, 1.6, C.gold);
+        // a row of diyas along a wall
+        rect(-20, 296, 220, 30, C.bldgLight);
+        for (var d = 0; d < 9; d++) diya(10 + d * 20, 296, t, d);
+      }
+      function diya(x, y, t, i) {
+        ell(x, y - 1, 5, 2.4, 0, C.diyaDark); ell(x, y - 1.6, 4.4, 1.8, 0, C.diya);
+        var fl = 1 + 0.25 * Math.sin(t * 13 + i * 2.1);
+        lighter(); glow(x, y - 6, 7, C.flame, 0.5); normalBlend();
+        ell(x, y - 5 * fl, 1.3, 3 * fl, 0, C.flame); ell(x, y - 4.4 * fl, 0.6, 1.6 * fl, 0, C.flameCore);
+      }
+      function smoke(t, alpha) {
+        g.globalAlpha = alpha;
+        for (var i = 0; i < 10; i++) { var x = (i * 31 + t * 3) % 220 - 20, y = 150 + (i % 4) * 20; ell(x, y, 30, 8, 0, C.smoke); }
+        g.globalAlpha = 1;
+      }
+
+      // ============================================================ element card
+      function elementCard(x, y, num, sym, name, col, pop) {
+        var s = 0.7 + 0.3 * easeOut(pop) + 0.12 * Math.sin(clamp01(pop) * Math.PI);
+        g.save(); g.translate(x, y); g.scale(s, s);
+        var hw = sym.length > 3 ? 38 : 30;
+        rrect(-hw, -24, hw * 2, 48, 5, col); rrect(-hw + 1.5, -22.5, hw * 2 - 3, 45, 4, C.card);
+        worldText(String(num), -hw + 10, -19, 1, col);
+        worldText(sym, 0, sym.length > 3 ? -9 : -12, sym.length > 3 ? 2 : 3, C.white);
+        worldText(name, 0, 12, 1, col);
+        g.restore();
+      }
+
+      // ============================================================ SCENES
+      var HOOK = [
+        { t0: -0.6, x0: 90, burst: { x: 90, y: 92 }, col: C.red, light: C.redLight, n: 40, seed: 1, kind: "peony" },
+        { t0: -0.45, x0: 50, burst: { x: 48, y: 70 }, col: C.green, light: C.greenLight, n: 30, seed: 2, kind: "peony" },
+        { t0: -0.3, x0: 130, burst: { x: 134, y: 76 }, col: C.blue, light: C.blueLight, n: 30, seed: 3, kind: "peony" },
+        { t0: -0.1, x0: 70, burst: { x: 64, y: 120 }, col: C.gold, light: C.goldLight, n: 30, seed: 4, kind: "willow" },
+        { t0: 0.0, x0: 110, burst: { x: 120, y: 118 }, col: C.purple, light: C.purpleLight, n: 30, seed: 5, kind: "ring" },
+      ];
+      function sceneHook(t) {
+        var lt = t >= 15 ? t - 27.2 : t;
+        var cam = shake({ x: 90, y: 160, z: 1 + 0.08 * Math.exp(-lt * 3) }, lt, 0.1, 5, 0.6);
+        sky(t, cam, C.purple, 0.12);
+        setCam(cam, 1);
+        HOOK.forEach(function (s) { drawShell(s, lt, 1.15); });
+        skyline(t, cam);
+      }
+      function sceneAtom(t) {
+        // the camera dives into one spark and finds an atom
+        var lt = t - 1.8;
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.nightMid], [0.6, C.dusk], [1, C.horizon]]); g.fillRect(0, 0, W, H);
+        var cx = 90, cy = 214;
+        lighter(); glow(cx, cy, 70, C.orange, 0.35 + 0.1 * Math.sin(t * 6)); normalBlend();
+        // orbits
+        [16, 28, 40].forEach(function (r, k) {
+          g.strokeStyle = C.blueLight; g.lineWidth = 1; g.globalAlpha = 0.9;
+          g.beginPath(); g.ellipse(cx, cy, r, r * 0.62, 0, 0, 6.2832); g.stroke(); g.globalAlpha = 1;
+        });
+        // nucleus
+        var rn = rng(7);
+        for (var i = 0; i < 14; i++) { var a = rn() * 6.28, d = rn() * 4.5; disc(cx + Math.cos(a) * d, cy + Math.sin(a) * d, 2.2, i % 2 ? C.nucleus : C.nucleusN); }
+        // one electron: kicked up by heat, falls back, emits light
+        var jumpUp = ramp(t, 3.0, 3.5), fallBack = ramp(t, 4.6, 4.9);
+        var R = lerp(16, 40, jumpUp * (1 - fallBack));
+        var ea = t * 4;
+        var ex = cx + Math.cos(ea) * R, ey = cy + Math.sin(ea) * R * 0.62;
+        if (t > 2.6 && t < 3.5) { lighter(); for (var h = 0; h < 6; h++) { var k = ((t * 2 + h / 6) % 1); glow(lerp(10 + h * 30, ex, k), lerp(320, ey, k), 4, C.heat, 0.7); } normalBlend(); }
+        lighter(); glow(ex, ey, 6, jumpUp > 0.5 && fallBack < 0.5 ? C.heat : C.blueLight, 0.8); normalBlend();
+        disc(ex, ey, 2, C.white);
+        // the photon: a red wave flying out after the fall
+        if (t > 4.75) {
+          var k2 = clamp01((t - 4.75) / 1.4);
+          var px = ex + k2 * 120;
+          lighter();
+          g.strokeStyle = C.red; g.lineWidth = 1.4; g.beginPath();
+          for (var s = 0; s <= 40; s++) { var xx = lerp(ex, px, s / 40), yy = ey + Math.sin(s * 0.9 - t * 20) * 3; if (s === 0) g.moveTo(xx, yy); else g.lineTo(xx, yy); }
+          g.stroke(); glow(px, ey, 8, C.red, 0.9); normalBlend();
+        }
+      }
+      var PARADE = [
+        { t: 6.4, num: 38, sym: "SR", name: "STRONTIUM", col: C.red, light: C.redLight, cap: [["STRONTIUM", C.red], [" = RED", C.paper]] },
+        { t: 9.4, num: 11, sym: "NA", name: "SODIUM", col: C.gold, light: C.goldLight, cap: [["SODIUM", C.gold], [" = GOLD", C.paper]] },
+        { t: 12.4, num: 56, sym: "BA", name: "BARIUM", col: C.green, light: C.greenLight, cap: [["BARIUM", C.green], [" = GREEN", C.paper]] },
+        { t: 15.4, num: 29, sym: "CU", name: "COPPER", col: C.blue, light: C.blueLight, cap: [["COPPER", C.blueLight], [" = BLUE", C.paper]] },
+        { t: 18.4, num: 0, sym: "SR+CU", name: "RED + BLUE", col: C.purple, light: C.purpleLight, cap: [["MIX THEM", C.purpleLight], [" = PURPLE", C.paper]] },
+      ];
+      function sceneParade(t) {
+        var p = PARADE[0];
+        for (var i = 0; i < PARADE.length; i++) if (t >= PARADE[i].t) p = PARADE[i];
+        var lt = t - p.t;
+        var cam = { x: 90, y: 160, z: 1 + 0.04 * Math.exp(-Math.max(0, lt - 0.7) * 4) };
+        var a = lt - 0.7;
+        sky(t, cam, p.col, a > 0 ? 0.35 * Math.exp(-a * 1.5) : 0);
+        setCam(cam, 1);
+        drawShell({ t0: p.t, x0: 90, burst: { x: 90, y: 92 }, col: p.col, light: p.light, n: 46, seed: 11 + i, kind: i === 4 ? "ring" : "peony" }, t, 1.2);
+        drawShell({ t0: p.t + 0.35, x0: 40, burst: { x: 36, y: 64 }, col: p.col, light: p.light, n: 24, seed: 21 + i, kind: "peony" }, t, 0.7);
+        drawShell({ t0: p.t + 0.55, x0: 140, burst: { x: 146, y: 70 }, col: p.col, light: p.light, n: 24, seed: 31 + i, kind: "willow" }, t, 0.7);
+        skyline(t, cam);
+        if (lt > 0.75) elementCard(90, 214, p.num || "", p.sym, p.name, p.col, (lt - 0.75) / 0.3);
+      }
+      function sceneBlue(t) {
+        var cam = { x: 90, y: 160, z: 1 };
+        var wash = ramp(t, 22.6, 23.6);
+        sky(t, cam, C.blue, 0.2 * (1 - wash));
+        setCam(cam, 1);
+        var col = mix(C.blue, C.washed, wash), light = mix(C.blueLight, C.white, wash);
+        drawShell({ t0: 21.3, x0: 90, burst: { x: 90, y: 92 }, col: col, light: light, n: 46, seed: 51, kind: "peony" }, t, 1.2);
+        skyline(t, cam);
+        // thermometer: too hot washes the blue out
+        var tx = 150, ty = 200, lvl = ramp(t, 22.4, 23.6);
+        rrect(tx - 5, ty, 10, 46, 4, C.paper); rrect(tx - 3, ty + 2, 6, 42, 3, C.card);
+        rect(tx - 2, ty + 44 - 40 * (0.35 + 0.6 * lvl), 4, 40 * (0.35 + 0.6 * lvl), mix(C.blue, C.red, lvl));
+        disc(tx, ty + 48, 6, mix(C.blue, C.red, lvl));
+        elementCard(60, 222, 29, "CU", "COPPER", col, 1);
+        if (lvl > 0.9) { line(36, 202, 84, 242, 2, C.red); line(84, 202, 36, 242, 2, C.red); }
+      }
+      var FINALE = [
+        { t0: 25.0, x0: 90, burst: { x: 90, y: 86 }, col: C.gold, light: C.goldLight, n: 46, seed: 61, kind: "willow" },
+        { t0: 25.25, x0: 40, burst: { x: 40, y: 64 }, col: C.red, light: C.redLight, n: 30, seed: 62, kind: "peony" },
+        { t0: 25.45, x0: 140, burst: { x: 142, y: 66 }, col: C.green, light: C.greenLight, n: 30, seed: 63, kind: "peony" },
+        { t0: 25.7, x0: 60, burst: { x: 56, y: 116 }, col: C.blue, light: C.blueLight, n: 26, seed: 64, kind: "ring" },
+        { t0: 25.9, x0: 120, burst: { x: 124, y: 112 }, col: C.purple, light: C.purpleLight, n: 26, seed: 65, kind: "peony" },
+      ];
+      function sceneFinale(t) {
+        var cam = { x: 90, y: 160, z: 1 };
+        sky(t, cam, C.gold, 0.15);
+        setCam(cam, 1);
+        FINALE.forEach(function (s) { drawShell(s, t, 1.05); });
+        skyline(t, cam);
+        // rangoli
+        var cx = 90, cy = 312, rr = rng(9);
+        [C.rangoli1, C.rangoli2, C.rangoli3, C.rangoli4].forEach(function (c, k) {
+          for (var p = 0; p < 8; p++) { var a = p * 0.785 + k * 0.4; ell(cx + Math.cos(a) * (16 - k * 3.5), cy + Math.sin(a) * (5 - k), 3 - k * 0.5, 1.4, a, c); }
+        });
+      }
+
+      PX.setup(C, {
+        scenes: { hook: sceneHook, atom: sceneAtom, parade: sceneParade, blue: sceneBlue, finale: sceneFinale },
+        sceneAt: function (t) { return t < 1.8 ? "hook" : t < 6.4 ? "atom" : t < 21.4 ? "parade" : t < 25.0 ? "blue" : t < 27.2 ? "finale" : "hook"; },
+        cuts: [[1.8, "hook", "atom"], [6.4, "atom", "parade"], [21.4, "parade", "blue"], [25.0, "blue", "finale"], [27.2, "finale", "hook"]],
+        post: function (t, img) {
+          if (t < 0.12) tintImg(img, C.white, 0.7 * (1 - t / 0.12));
+          if (t > 1.65 && t < 2.0) tintImg(img, C.goldLight, 0.8 * Math.sin((t - 1.65) / 0.35 * Math.PI));
+        },
+        captions: [
+          { a: 0.1, b: 1.75, lines: [[["EVERY COLOUR IS", C.paper]], [["A DIFFERENT METAL", C.goldCap]]] },
+          { a: 2.2, b: 4.3, lines: [[["HEAT KICKS", C.paper]], [["ELECTRONS UP", C.goldCap]]] },
+          { a: 4.5, b: 6.2, lines: [[["THEY FALL BACK", C.paper]], [["AND GLOW", C.goldCap]]] },
+        ].concat(PARADE.map(function (p) { return { a: p.t + 0.75, b: p.t + 2.9, lines: [p.cap] }; })).concat([
+          { a: 21.9, b: 24.8, lines: [[["BLUE IS THE", C.paper]], [["HARDEST TO MAKE", C.goldCap]]] },
+          { a: 25.3, b: 27.0, lines: [[["EVERY SPARK", C.paper]], [["IS CHEMISTRY", C.goldCap]]] },
+        ]),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 30, duration: 30, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

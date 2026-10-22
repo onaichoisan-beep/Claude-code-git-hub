@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Ravana's Ten Heads</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #2a0a2a;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #2a0a2a;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: cinematic sound effects only -->
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script>
+      var C = {
+        nightTop: "#14062a", night: "#2a0a3a", nightMid: "#4a1260", ember: "#8a1a3a", fireDark: "#c8301a", fire: "#ff6a1a", fireLight: "#ffb02a", fireCore: "#fff0a0",
+        dusk: "#ff7a4a", duskPink: "#ff5a8a", duskGold: "#ffc04a", sea: "#2a5ad8", sand: "#e0a860", sandDark: "#a87038",
+        rskin: "#3a4ac8", rskinShade: "#26308a", crown: "#ffc83a", crownDark: "#b8861a", gem: "#ff2a4a", eyeRed: "#ff3a3a", stache: "#140a14",
+        armor: "#ffc83a", armorDark: "#b8861a", robe: "#a8102a", robeDark: "#600818", sword: "#e0e8ff",
+        brahma: "#ffcc6a", brahmaShade: "#e0a040", beard: "#ffffff", lotus: "#ff8ac0", lotusDark: "#e0508a", brahmaRobe: "#ff9a2a",
+        rama: "#3a8ae8", ramaShade: "#2a5ab8", dhoti: "#ffd23f", dhotiDark: "#e0a020", bow: "#c8501a", arrow: "#ffe08a", astra: "#bff8ff",
+        light: "#fff8d0", gold: "#ffd23f", card: "#2a1440", cardLine: "#fff6e0", cross: "#ff3a3a", check: "#3cd070",
+        paperFig: "#ff4a6a", paperFig2: "#ffd23f", paperFig3: "#3ad0ff", crowd: "#1a0a20",
+        ink: "#06050a", paper: "#f1eef4", white: "#ffffff",
+      };
+
+      // ============================================================ RAVANA
+      var HEADS = (function () { var a = []; for (var i = 0; i < 10; i++) { var k = i - 4.5; a.push({ dx: k * 14, dy: Math.abs(k) * 2.6, s: i === 4 || i === 5 ? 1.08 : 0.92 }); } return a; })();
+      function ravanaHead(x, y, s, mood, t, i) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        disc(0, 0, 8, C.rskinShade); disc(0, -0.4, 7.6, C.rskin);
+        poly([[-7, -5], [-6, -15], [-3, -9], [0, -17], [3, -9], [6, -15], [7, -5]], C.crown);
+        rect(-7, -6, 14, 2.4, C.crownDark); disc(0, -11, 1.4, C.gem);
+        disc(-7.6, 1, 1.6, C.crown); disc(7.6, 1, 1.6, C.crown);
+        // brows + eyes
+        line(-5.5, -3.4, -1.5, -1.8, 1, C.stache); line(5.5, -3.4, 1.5, -1.8, 1, C.stache);
+        disc(-3, -0.6, 1.3, C.white); disc(3, -0.6, 1.3, C.white);
+        disc(-3, -0.6, 0.7, mood === "evil" || mood === "laugh" ? C.eyeRed : C.stache); disc(3, -0.6, 0.7, mood === "evil" || mood === "laugh" ? C.eyeRed : C.stache);
+        if (mood === "calm") { rect(-4.3, -1, 2.6, 0.6, C.rskinShade); rect(1.7, -1, 2.6, 0.6, C.rskinShade); }
+        // moustache + mouth
+        g.strokeStyle = C.stache; g.lineWidth = 1.2;
+        g.beginPath(); g.moveTo(-5, 3.6); g.quadraticCurveTo(0, 1.6, 5, 3.6); g.stroke();
+        if (mood === "laugh") { var o = 1.4 + 1.2 * Math.abs(Math.sin(t * 16 + i)); ell(0, 5, 2.6, o, 0, C.robeDark); }
+        else line(-2, 5.2, 2, 5.2, 0.8, C.robeDark);
+        g.restore();
+      }
+      // present(i) -> 0..1 how much head i is there; mood
+      function ravana(cx, footY, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(cx, footY); g.scale(s, s);
+        var bob = o.mood === "laugh" ? Math.abs(Math.sin(t * 10)) * 1.2 : 0;
+        // legs + robe
+        rrect(-16, -40, 32, 40, 6, C.robeDark); rrect(-15, -39, 30, 38, 6, C.robe);
+        rect(-15, -26, 30, 3, C.armor);
+        // chest armour
+        poly([[-18, -40 - bob], [18, -40 - bob], [22, -72 - bob], [-22, -72 - bob]], C.armorDark);
+        poly([[-17, -41 - bob], [17, -41 - bob], [20.5, -71 - bob], [-20.5, -71 - bob]], C.armor);
+        disc(0, -58 - bob, 5, C.gem); disc(0, -58 - bob, 3, C.armorDark);
+        // arms
+        line(-21, -68 - bob, -30, -50 - bob, 6, C.rskin); line(21, -68 - bob, 30, -50 - bob, 6, C.rskin);
+        if (o.sword) { line(31, -52 - bob, 40, -92 - bob, 2.2, C.sword); line(27, -54 - bob, 35, -50 - bob, 2, C.armorDark); }
+        disc(-21, -69 - bob, 5, C.armor); disc(21, -69 - bob, 5, C.armor);
+        // neck
+        rect(-5, -78 - bob, 10, 8, C.rskin);
+        g.restore();
+        // ten heads
+        HEADS.forEach(function (h, i) {
+          var p = o.present ? o.present(i) : 1;
+          var hx = cx + h.dx * s, hy = footY - (88 + h.dy + bob) * s;
+          if (p > 0.01) {
+            g.globalAlpha = p;
+            ravanaHead(hx, hy + (1 - p) * 4, s * h.s * (0.6 + 0.4 * p), o.mood || "evil", t, i);
+            g.globalAlpha = 1;
+          }
+          var spark = o.spark ? o.spark(i) : 0;
+          if (spark > 0) {
+            lighter(); glow(hx, hy, 14 * s * spark, C.light, 0.9 * spark); normalBlend();
+            for (var k = 0; k < 6; k++) { var a = k * 1.047 + t * 3; rect(hx + Math.cos(a) * 9 * s * (1.2 - spark), hy + Math.sin(a) * 9 * s * (1.2 - spark), 1, 1, C.gold); }
+          }
+        });
+      }
+
+      // ============================================================ BRAHMA + RAMA
+      function brahmaFig(cx, footY, s, t) {
+        g.save(); g.translate(cx, footY); g.scale(s, s);
+        // lotus seat
+        for (var p = 0; p < 7; p++) { var a = Math.PI + p * 0.52; ell(Math.cos(a) * 18, -4 + Math.sin(a) * 4, 7, 3.5, a + 1.57, p % 2 ? C.lotus : C.lotusDark); }
+        ell(0, -4, 22, 5, 0, C.lotusDark);
+        rrect(-15, -30, 30, 26, 6, C.brahmaRobe);
+        poly([[-13, -30], [13, -30], [16, -56], [-16, -56]], C.brahma);
+        g.strokeStyle = C.gold; g.lineWidth = 1.6; g.beginPath(); g.arc(0, -56, 9, 0.4, Math.PI - 0.4); g.stroke();
+        // four arms: one blessing, one with a book
+        line(-14, -52, -26, -40, 4.5, C.brahma); line(14, -52, 26, -64, 4.5, C.brahma);
+        line(-12, -48, -20, -30, 4, C.brahma); line(12, -48, 22, -32, 4, C.brahma);
+        rect(18, -36, 9, 6, C.robe); rect(18, -36, 9, 1, C.gold);
+        disc(26, -66, 2.6, C.brahma);
+        // three visible faces (the fourth looks back)
+        [-11, 0, 11].forEach(function (fx, k) {
+          var fs = k === 1 ? 1 : 0.8, fy = -66 - (k === 1 ? 2 : 0);
+          disc(fx, fy, 7 * fs, C.brahmaShade); disc(fx, fy - 0.3, 6.6 * fs, C.brahma);
+          ell(fx, fy + 4.6 * fs, 4.6 * fs, 4 * fs, 0, C.beard);
+          disc(fx - 2.2 * fs, fy - 1, 0.8 * fs, C.ink); disc(fx + 2.2 * fs, fy - 1, 0.8 * fs, C.ink);
+          poly([[fx - 5 * fs, fy - 5 * fs], [fx - 3 * fs, fy - 13 * fs], [fx, fy - 8 * fs], [fx + 3 * fs, fy - 13 * fs], [fx + 5 * fs, fy - 5 * fs]], C.gold);
+        });
+        g.restore();
+      }
+      function ramaFig(cx, footY, s, t, draw) {
+        g.save(); g.translate(cx, footY); g.scale(s, s);
+        line(-4, -24, -6, 0, 5, C.rama); line(4, -24, 7, 0, 5, C.rama);
+        rrect(-10, -32, 20, 14, 4, C.dhotiDark); rrect(-9.5, -31.5, 19, 13, 4, C.dhoti);
+        poly([[-10, -32], [10, -32], [12, -58], [-12, -58]], C.ramaShade); poly([[-9.5, -32.5], [9.5, -32.5], [11.5, -57.5], [-11.5, -57.5]], C.rama);
+        line(-10, -56, 10, -34, 1.4, C.dhoti);
+        g.strokeStyle = C.gold; g.lineWidth = 1.6; g.beginPath(); g.arc(0, -58, 7, 0.4, Math.PI - 0.4); g.stroke();
+        // quiver
+        rect(8, -62, 4, 16, C.bow); line(9, -62, 8, -68, 0.8, C.arrow); line(11, -62, 12, -68, 0.8, C.arrow);
+        // bow arm (forward, to the right) + drawing arm
+        var pull = draw || 0;
+        line(10, -52, 30, -54, 4.2, C.rama);
+        g.strokeStyle = C.bow; g.lineWidth = 2; g.beginPath(); g.arc(24, -54, 18, -1.1, 1.1); g.stroke();
+        var sx = 24 + 18 * Math.cos(1.1) - 8 * pull;
+        g.strokeStyle = C.white; g.lineWidth = 0.6; g.beginPath(); g.moveTo(24 + 18 * Math.cos(-1.1), -54 + 18 * Math.sin(-1.1)); g.lineTo(sx - 4, -54); g.lineTo(24 + 18 * Math.cos(1.1), -54 + 18 * Math.sin(1.1)); g.stroke();
+        line(-10, -52, sx - 4, -54, 4.2, C.rama);
+        // head
+        rect(-3, -64, 6, 6, C.rama);
+        disc(0, -70, 7, C.ramaShade); disc(0, -70.4, 6.6, C.rama);
+        poly([[-6, -74], [-4, -86], [0, -80], [4, -86], [6, -74]], C.gold); rect(-6, -76, 12, 2.2, C.dhotiDark);
+        disc(-2.2, -70, 0.9, C.ink); disc(2.2, -70, 0.9, C.ink);
+        rect(-0.5, -76, 1, 3, C.robe);
+        g.strokeStyle = C.ramaShade; g.lineWidth = 0.8; g.beginPath(); g.arc(0, -67.5, 2.2, 0.3, Math.PI - 0.3); g.stroke();
+        disc(-6.8, -68, 1.4, C.gold); disc(6.8, -68, 1.4, C.gold);
+        g.restore();
+        lighter(); glow(cx, footY - 40 * s, 50 * s, C.light, 0.25 + 0.1 * Math.sin(t * 4)); normalBlend();
+      }
+
+      // ============================================================ BACKDROPS
+      function nightFire(t, cam) {
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.nightTop], [0.6, C.night], [1, C.nightMid]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        for (var i = 0; i < 40; i++) { var x = (i * 37) % 200 - 10, y = (i * 53) % 180; g.globalAlpha = 0.5 + 0.4 * Math.sin(t * 3 + i); rect(x, y, 1, 1, C.white); }
+        g.globalAlpha = 1;
+      }
+      function havan(x, y, t, s) {
+        s = s || 1;
+        rect(x - 16 * s, y - 4 * s, 32 * s, 8 * s, C.crownDark); rect(x - 16 * s, y - 4 * s, 32 * s, 2 * s, C.crown);
+        lighter(); glow(x, y - 16 * s, 40 * s, C.fire, 0.55); normalBlend();
+        for (var k = 0; k < 7; k++) {
+          var fl = 0.7 + 0.3 * Math.sin(t * 14 + k * 1.9);
+          var fx = x + (k - 3) * 4 * s, fh = (14 + (3 - Math.abs(k - 3)) * 5) * fl * s;
+          poly([[fx - 3 * s, y - 4 * s], [fx + Math.sin(t * 9 + k) * 2 * s, y - 4 * s - fh], [fx + 3 * s, y - 4 * s]], k % 2 ? C.fire : C.fireLight);
+        }
+        poly([[x - 4 * s, y - 4 * s], [x, y - 20 * s], [x + 4 * s, y - 4 * s]], C.fireCore);
+        for (var e = 0; e < 8; e++) { var ph = ((t * 0.9 + e / 8) % 1); rect(x + Math.sin(e * 3 + t) * 10 * s, y - 10 * s - ph * 50 * s, 1, 1, C.fireLight); }
+      }
+      function lankaDusk(t, cam) {
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.nightMid], [0.45, C.duskPink], [0.7, C.dusk], [1, C.duskGold]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        disc(140, 170, 26, C.duskGold); disc(140, 170, 18, C.fireCore);
+        rect(-100, 250, 400, 120, C.sand); rect(-100, 250, 400, 2, C.duskGold);
+        for (var i = -6; i < 16; i++) rect(i * 16, 262 + (i % 3) * 6, 6, 1, C.sandDark);
+      }
+
+      // ============================================================ boon cards
+      var CARDS = [{ x: 34, y: 48, label: "GODS" }, { x: 90, y: 40, label: "DEMONS" }, { x: 146, y: 48, label: "SPIRITS" }];
+      function card(x, y, pop, inner, mark) {
+        var s = pop < 1 ? 0.6 + 0.4 * easeOut(pop) + 0.15 * Math.sin(pop * Math.PI) : 1;
+        g.save(); g.translate(x, y); g.scale(s, s);
+        rrect(-16, -14, 32, 28, 4, C.cardLine); rrect(-15, -13, 30, 26, 4, C.card);
+        inner();
+        if (mark === "x") { line(-11, -9, 11, 9, 1.8, C.cross); line(11, -9, -11, 9, 1.8, C.cross); }
+        g.restore();
+      }
+
+      // ============================================================ SCENES
+      function sceneLaugh(t) {
+        var endMode = t >= 15;
+        var cam = endMode ? camAt([[28.2, 90, 150, 0.85], [29.8, 90, 150, 1.1], [30, 90, 150, 1.1]], t) : shake({ x: 90, y: 150, z: 1.1 + 0.15 * Math.exp(-t * 4) }, t, 0, 9, 0.9);
+        nightFire(t, cam);
+        setCam(cam, 1);
+        lighter(); glow(90, 200, 120, C.fire, 0.35); normalBlend();
+        ravana(90, 326, 1.05, t, { mood: "laugh", sword: true });
+        vignette(0.35, "rgba(40,0,20,");
+      }
+      var CUT_T = (function () { var a = []; for (var i = 0; i < 9; i++) a.push(2.6 + i * 0.5); return a; })();
+      var ORDER = [0, 9, 1, 8, 2, 7, 3, 6, 4];
+      function cutAt(i) { var k = ORDER.indexOf(i); return k < 0 ? 99 : CUT_T[k]; }
+      function scenePenance(t) {
+        var cam = camAt([[1.5, 90, 176, 1.2], [2.2, 90, 176, 1.0], [7.4, 90, 180, 1.12]], t);
+        nightFire(t, cam);
+        setCam(cam, 1);
+        ravana(90, 316, 1.15, t, {
+          mood: "calm",
+          present: function (i) { return 1 - ramp(t, cutAt(i), cutAt(i) + 0.25); },
+          spark: function (i) { var a = t - cutAt(i); return a > 0 && a < 0.5 ? 1 - a / 0.5 : 0; },
+        });
+        havan(90, 322, t, 1.5);
+        // offering streaks into the fire
+        ORDER.forEach(function (i) {
+          var a = t - cutAt(i);
+          if (a < 0 || a > 0.45) return;
+          var h = HEADS[i], k = a / 0.45;
+          var hx = 90 + h.dx * 1.15, hy = 316 - (88 + h.dy) * 1.15;
+          lighter(); glow(lerp(hx, 90, k), lerp(hy, 300, k), 7, C.fireLight, 0.9); normalBlend();
+        });
+        // year counter
+        var n = 0; ORDER.forEach(function (i) { if (t >= cutAt(i)) n++; });
+        screen();
+        rect(6, 60, 70, 13, C.ink); worldText("YEAR " + (n === 0 ? 1 : n * 1000), 41, 63, 1, C.gold);
+        vignette(0.3, "rgba(40,0,20,");
+      }
+      function sceneBrahma(t) {
+        var cam = camAt([[7.3, 90, 176, 1.15], [8.0, 90, 176, 1.0], [11.2, 90, 172, 1.08]], t);
+        nightFire(t, cam);
+        setCam(cam, 1);
+        var appear = easeOut((t - 7.6) / 0.8);
+        lighter();
+        for (var r = 0; r < 12; r++) { var a = r * 0.5236 + t * 0.4; g.globalAlpha = 0.2 * appear; poly([[90, 110], [90 + Math.cos(a) * 300, 110 + Math.sin(a) * 300], [90 + Math.cos(a + 0.12) * 300, 110 + Math.sin(a + 0.12) * 300]], C.light); }
+        g.globalAlpha = 1;
+        glow(90, 100, 70 * appear, C.gold, 0.5);
+        normalBlend();
+        brahmaFig(90, lerp(60, 132, appear), 1.0, t);
+        havan(90, 312, t, 1.0);
+        var restore = ramp(t, 8.9, 9.6);
+        ravana(90, 300, 0.75, t, {
+          mood: "calm",
+          present: function (i) { return i === 4 ? 1 : restore; },
+          spark: function (i) { var a = t - 8.9; return i !== 4 && a > 0 && a < 0.7 ? 1 - a / 0.7 : 0; },
+        });
+        vignette(0.3, "rgba(40,0,20,");
+      }
+      function sceneBoon(t) {
+        var cam = camAt([[11.1, 90, 170, 1.15], [11.7, 90, 170, 1.0], [15.4, 90, 172, 1.06]], t);
+        nightFire(t, cam);
+        setCam(cam, 1);
+        lighter(); glow(90, 230, 100, C.fire, 0.3); normalBlend();
+        ravana(90, 340, 1.05, t, { mood: t > 13.4 ? "laugh" : "evil", sword: true });
+        var icons = [
+          function () { disc(0, -2, 5, C.gold); poly([[-4, -5], [0, -11], [4, -5]], C.gold); rect(-4, 3, 8, 6, C.gold); },
+          function () { disc(0, 0, 5, C.robe); poly([[-4, -3], [-6, -10], [-1, -4]], C.cardLine); poly([[4, -3], [6, -10], [1, -4]], C.cardLine); },
+          function () { ell(0, 0, 5, 7, 0, C.cardLine); disc(-2, -1, 1, C.card); disc(2, -1, 1, C.card); for (var w = 0; w < 3; w++) disc(-3 + w * 3, 7, 1.6, C.card); },
+        ];
+        CARDS.forEach(function (cd, k) {
+          var tc = 11.6 + k * 0.5;
+          if (t < tc) return;
+          card(cd.x, cd.y, (t - tc) / 0.25, icons[k], "x");
+          var lw = cd.label.length * 6 + 4; rect(cd.x - lw / 2, cd.y + 16, lw, 9, C.ink); worldText(cd.label, cd.x, cd.y + 17, 1, C.gold);
+        });
+        // the forgotten one: humans
+        if (t > 13.6) {
+          var pk = (t - 13.6) / 0.3;
+          card(90, 100, pk, function () { disc(0, -4, 3, C.cardLine); line(0, -1, 0, 6, 1.6, C.cardLine); line(-4, 2, 4, 2, 1.2, C.cardLine); line(0, 6, -3, 10, 1.2, C.cardLine); line(0, 6, 3, 10, 1.2, C.cardLine); }, "");
+          worldText("?", 108, 88, 2, C.cross);
+          rect(70, 116, 40, 9, C.ink); worldText("HUMANS", 90, 117, 1, C.cardLine);
+        }
+        vignette(0.3, "rgba(40,0,20,");
+      }
+      function sceneRama(t) {
+        var cam = camAt([[15.3, 90, 180, 1.2], [16.0, 90, 180, 1.0], [18.7, 92, 184, 1.12]], t);
+        lankaDusk(t, cam);
+        setCam(cam, 1);
+        lighter(); for (var r = 0; r < 10; r++) { var a = r * 0.628 + t * 0.3; g.globalAlpha = 0.2; poly([[80, 200], [80 + Math.cos(a) * 300, 200 + Math.sin(a) * 300], [80 + Math.cos(a + 0.14) * 300, 200 + Math.sin(a + 0.14) * 300]], C.light); } g.globalAlpha = 1; normalBlend();
+        ramaFig(70, 330, 1.5, t, ramp(t, 17.4, 18.4));
+        vignette(0.2, "rgba(60,20,40,");
+      }
+      var ARROWS = [19.0, 19.5, 20.0, 20.5, 21.0, 21.5];
+      var HIT = [4, 2, 7, 0, 9, 5];
+      function sceneBattle(t) {
+        var cam = camAt([[18.6, 90, 180, 1.1], [19.1, 90, 180, 1.0], [22.6, 90, 182, 1.05]], t);
+        ARROWS.forEach(function (ta) { shake(cam, t, ta + 0.25, 4, 0.3); });
+        lankaDusk(t, cam);
+        setCam(cam, 1);
+        ramaFig(26, 300, 1.05, t, 0.6 + 0.4 * Math.sin(t * 8));
+        ravana(118, 300, 0.82, t, {
+          mood: "evil", sword: true,
+          present: function (i) {
+            var k = HIT.indexOf(i); if (k < 0) return 1;
+            var a = t - (ARROWS[k] + 0.25); if (a < 0) return 1;
+            return a < 0.1 ? 0 : ramp(t, ARROWS[k] + 0.55, ARROWS[k] + 0.85);
+          },
+          spark: function (i) {
+            var k = HIT.indexOf(i); if (k < 0) return 0;
+            var a = t - (ARROWS[k] + 0.25); return a > 0 && a < 0.6 ? 1 - a / 0.6 : 0;
+          },
+        });
+        ARROWS.forEach(function (ta, k) {
+          var a = (t - ta) / 0.25;
+          if (a < 0 || a > 1) return;
+          var h = HEADS[HIT[k]];
+          var tx = 118 + h.dx * 0.82, ty = 300 - (88 + h.dy) * 0.82;
+          var x = lerp(52, tx, a), y = lerp(208, ty, a);
+          line(x - 10, y + (ty - 208) / (tx - 52) * -10, x, y, 1.2, C.arrow);
+          lighter(); glow(x, y, 4, C.light, 0.9); normalBlend();
+        });
+        vignette(0.2, "rgba(60,20,40,");
+      }
+      function sceneAstra(t) {
+        var cam = camAt([[22.5, 70, 190, 1.4], [23.2, 70, 190, 1.25], [24.3, 110, 180, 1.0]], t);
+        lankaDusk(t, cam);
+        setCam(cam, 1);
+        var charge = ramp(t, 22.7, 23.8);
+        ramaFig(40, 300, 1.25, t, 1);
+        lighter();
+        glow(80, 232, 10 + 30 * charge, C.astra, 0.8);
+        if (t < 24.0) { line(54, 232, 84, 232, 2 + 2 * charge, C.astra); glow(84, 232, 8 + 10 * charge, C.white, 1); }
+        else { var k = (t - 24.0) / 0.4; line(lerp(54, 200, k), 232, lerp(84, 260, k), 232, 3, C.astra); glow(lerp(84, 260, k), 232, 18, C.white, 1); }
+        for (var s = 0; s < 10; s++) { var a = s * 0.628 + t * 6; rect(80 + Math.cos(a) * 14 * (1 - charge * 0.5), 232 + Math.sin(a) * 14 * (1 - charge * 0.5), 1, 1, C.white); }
+        normalBlend();
+        vignette(0.2, "rgba(60,20,40,");
+      }
+      var FIRE_PTS = (function () { var r = rng(19), a = []; for (var i = 0; i < 40; i++) a.push({ x: (r() - 0.5) * 60, y: r() * 150, s: r() }); return a; })();
+      function sceneDussehra(t) {
+        var cam = camAt([[24.4, 90, 170, 1.2], [25.2, 90, 170, 1.0], [28.2, 90, 172, 1.06]], t);
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.nightTop], [0.7, C.night], [1, C.ember]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        // the effigy: a paper Ravana with ten painted heads
+        var burn = ramp(t, 25.0, 27.4);
+        g.save(); g.translate(0, 0);
+        ravana(90, 300, 1.05, t, { mood: "evil", present: function () { return 1 - burn * 0.25; } });
+        g.restore();
+        lighter();
+        glow(90, 220, 40 + 90 * burn, C.fire, 0.6);
+        FIRE_PTS.forEach(function (p, i) {
+          var ph = ((t * (1 + p.s) + i * 0.13) % 1);
+          var y = 300 - p.y * burn - ph * 40;
+          if (y > 300) return;
+          glow(90 + p.x * (0.6 + burn * 0.5), y, 6 + 6 * p.s, i % 2 ? C.fire : C.fireLight, 0.7 * burn);
+        });
+        normalBlend();
+        // fireworks above
+        [[26.0, 40, 60, C.paperFig2], [26.4, 140, 70, C.paperFig3], [26.9, 70, 40, C.paperFig]].forEach(function (f, k) {
+          var a = t - f[0]; if (a < 0 || a > 1.6) return;
+          lighter();
+          for (var p = 0; p < 24; p++) { var an = p * 0.2618, d = 30 * (1 - Math.exp(-a * 3)); g.globalAlpha = 1 - a / 1.6; glow(f[1] + Math.cos(an) * d, f[2] + Math.sin(an) * d + 6 * a * a, 3, f[3], 0.9); }
+          g.globalAlpha = 1; normalBlend();
+        });
+        // crowd silhouettes
+        for (var c = 0; c < 14; c++) { var cx = c * 14 - 6, ch = 16 + (c % 3) * 4; disc(cx, 320 - ch, 5, C.crowd); rect(cx - 6, 320 - ch + 4, 12, 30, C.crowd); }
+        vignette(0.25, "rgba(40,0,20,");
+      }
+
+      PX.setup(C, {
+        scenes: { laugh: sceneLaugh, penance: scenePenance, brahma: sceneBrahma, boon: sceneBoon, rama: sceneRama, battle: sceneBattle, astra: sceneAstra, dussehra: sceneDussehra },
+        sceneAt: function (t) {
+          return t < 1.6 ? "laugh" : t < 7.6 ? "penance" : t < 11.2 ? "brahma" : t < 15.4 ? "boon" : t < 18.6 ? "rama" : t < 22.8 ? "battle" : t < 24.6 ? "astra" : t < 28.2 ? "dussehra" : "laugh";
+        },
+        cuts: [[1.6, "laugh", "penance"], [7.6, "penance", "brahma"], [11.2, "brahma", "boon"], [15.4, "boon", "rama"], [18.6, "rama", "battle"], [22.8, "battle", "astra"], [28.2, "dussehra", "laugh"]],
+        post: function (t, img) {
+          if (t < 0.12) tintImg(img, C.white, 1 - t / 0.12);
+          if (t > 1.4 && t < 1.85) glitchRows(img, 22 * Math.sin((t - 1.4) / 0.45 * Math.PI), Math.floor(t * 30));
+          if (t > 7.5 && t < 8.0) tintImg(img, C.white, t < 7.65 ? (t - 7.5) / 0.15 : 1 - (t - 7.65) / 0.35);
+          if (t > 24.3 && t < 25.0) tintImg(img, C.white, t < 24.6 ? ramp(t, 24.3, 24.6) : 1 - ramp(t, 24.6, 25.0));
+        },
+        captions: [
+          { a: 0.15, b: 1.55, lines: [[["HE CUT OFF HIS OWN HEAD", C.paper]], [["NINE TIMES", C.gold]]] },
+          { a: 2.2, b: 4.7, lines: [[["FOR 10,000 YEARS", C.paper]], [["HE PRAYED TO BRAHMA", C.gold]]] },
+          { a: 4.9, b: 7.4, lines: [[["OFFERING A HEAD", C.paper]], [["EVERY 1,000 YEARS", C.gold]]] },
+          { a: 8.1, b: 11.0, lines: [[["BRAHMA STOPPED HIM", C.paper]], [["AND GRANTED A BOON", C.gold]]] },
+          { a: 11.9, b: 13.5, lines: [[["NO GOD OR DEMON", C.paper]], [["COULD KILL HIM", C.gold]]] },
+          { a: 13.8, b: 15.3, lines: [[["HE DIDN'T EVEN", C.paper]], [["ASK ABOUT HUMANS", C.gold]]] },
+          { a: 16.2, b: 18.5, lines: [[["BUT RAMA", C.paper]], [["WAS HUMAN", C.gold]]] },
+          { a: 19.4, b: 22.6, lines: [[["EVERY HEAD HE CUT", C.paper]], [["GREW BACK", C.gold]]] },
+          { a: 22.9, b: 24.3, lines: [[["ONE DIVINE ARROW", C.paper]], [["ENDED IT", C.gold]]] },
+          { a: 25.3, b: 28.0, lines: [[["WE STILL BURN HIM", C.paper]], [["EVERY DUSSEHRA", C.gold]]] },
+        ],
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 30, duration: 30, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

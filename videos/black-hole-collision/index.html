@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Two Black Holes Collide</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #03031a;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #03031a;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: cinematic sound effects only -->
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script>
+      var C = {
+        void: "#03031a", deep: "#0a0a3a", indigo: "#1a1470", violet: "#4a1aa8", magenta: "#c82ab0", pink: "#ff5ac8",
+        red: "#ff3a2a", orange: "#ff7a1a", amber: "#ffb02a", yellow: "#ffe05a", cream: "#fff4c0", white: "#ffffff",
+        cyan: "#3ae0ff", ice: "#c0f0ff", blue: "#2a6aff", jet: "#9ae8ff", grid: "#3a3aa8", gridHot: "#7a5aff",
+        earthBlue: "#2a7ae8", earthDeep: "#0a3aa8", land: "#3cd070", sand: "#e0c080", cloud: "#f4f8ff",
+        steel: "#c8d0e0", steelDark: "#7a84a0", laser: "#ff2a4a", concrete: "#9aa0b0",
+        ink: "#06050a", paper: "#f1eef4", gold: "#ffd23f",
+      };
+      function stars(seed, n, t, alpha) {
+        var r = rng(seed);
+        for (var i = 0; i < n; i++) {
+          var x = r() * W, y = r() * H, k = r();
+          g.globalAlpha = alpha * (0.5 + 0.5 * Math.sin(t * 3 + i));
+          rect(Math.floor(x), Math.floor(y), k > 0.94 ? 2 : 1, k > 0.94 ? 2 : 1, k > 0.85 ? C.ice : k > 0.75 ? C.cream : C.white);
+        }
+        g.globalAlpha = 1;
+      }
+
+      // ============================================================ a black hole with a glowing disk (Interstellar look)
+      function blackHole(x, y, r, t, tilt, hot) {
+        hot = hot || 1;
+        lighter();
+        glow(x, y, r * 4.2, C.orange, 0.35 * hot);
+        // back half of the accretion disk
+        diskHalf(x, y, r, t, tilt, true, hot);
+        normalBlend();
+        disc(x, y, r * 1.05, C.void);
+        lighter();
+        // photon ring + the lensed top/bottom of the disk wrapping over the shadow
+        g.strokeStyle = C.cream; g.lineWidth = Math.max(0.6, r * 0.12); g.globalAlpha = 0.95;
+        g.beginPath(); g.arc(x, y, r * 1.1, 0, 6.2832); g.stroke();
+        g.strokeStyle = C.amber; g.lineWidth = Math.max(0.8, r * 0.35); g.globalAlpha = 0.75 * hot;
+        g.beginPath(); g.ellipse(x, y, r * 1.45, r * 1.35, 0, Math.PI * 1.05, Math.PI * 1.95); g.stroke();
+        g.globalAlpha = 1;
+        diskHalf(x, y, r, t, tilt, false, hot);
+        normalBlend();
+      }
+      function diskHalf(x, y, r, t, tilt, back, hot) {
+        var a0 = back ? Math.PI : 0, a1 = back ? 2 * Math.PI : Math.PI;
+        for (var ring = 0; ring < 6; ring++) {
+          var rr = r * (1.6 + ring * 0.45), col = ring < 2 ? C.cream : ring < 4 ? C.amber : C.orange;
+          g.strokeStyle = col; g.lineWidth = r * 0.36; g.globalAlpha = (0.9 - ring * 0.12) * hot;
+          g.beginPath(); g.ellipse(x, y, rr, rr * tilt, 0, a0, a1); g.stroke();
+        }
+        // bright clumps orbiting in the disk (Doppler-bright on the approaching side)
+        for (var k = 0; k < 14; k++) {
+          var a = k * 0.449 + t * (2.6 - (k % 3) * 0.4), rr2 = r * (1.8 + (k % 5) * 0.5);
+          var s = Math.sin(a);
+          if ((s < 0) !== back) continue;
+          var px = x + Math.cos(a) * rr2, py = y + s * rr2 * tilt;
+          var bright = Math.cos(a) < 0 ? 1 : 0.5;
+          glow(px, py, r * 0.5, C.white, 0.6 * bright * hot);
+        }
+        g.globalAlpha = 1;
+      }
+      // spacetime grid, pulled toward masses, with ripples
+      function warpGrid(t, masses, ripple, cx, cy, spacing, col) {
+        function disp(px, py) {
+          var dx = 0, dy = 0;
+          masses.forEach(function (m) {
+            var vx = m.x - px, vy = m.y - py, d = Math.sqrt(vx * vx + vy * vy) + 6;
+            var pull = m.m * 60 / (d * d) * Math.min(d, 40);
+            dx += vx / d * pull; dy += vy / d * pull;
+          });
+          if (ripple) {
+            var rx = px - cx, ry = py - cy, rd = Math.sqrt(rx * rx + ry * ry) + 0.001;
+            var w = Math.sin(rd * 0.18 - t * ripple.speed) * ripple.amp * Math.exp(-rd / ripple.fall);
+            dx += rx / rd * w; dy += ry / rd * w;
+          }
+          return [px + dx, py + dy];
+        }
+        g.strokeStyle = col; g.lineWidth = 0.7;
+        for (var gx = -30; gx <= 210; gx += spacing) {
+          g.beginPath();
+          for (var gy = -30; gy <= 350; gy += 4) { var p = disp(gx, gy); if (gy === -30) g.moveTo(p[0], p[1]); else g.lineTo(p[0], p[1]); }
+          g.stroke();
+        }
+        for (var gy2 = -30; gy2 <= 350; gy2 += spacing) {
+          g.beginPath();
+          for (var gx2 = -30; gx2 <= 210; gx2 += 4) { var q = disp(gx2, gy2); if (gx2 === -30) g.moveTo(q[0], q[1]); else g.lineTo(q[0], q[1]); }
+          g.stroke();
+        }
+      }
+      // orbit: separation shrinks and speed rises toward the merger at MERGE
+      var MERGE = 19.0;
+      function orbit(t) {
+        var tau = Math.max(0.02, MERGE - t);
+        var sep = Math.min(46, 14 * Math.pow(tau, 0.25) + 2);
+        // phase = integral of angular speed ~ tau^(-5/8); closed form keeps it seekable
+        var phase = -8 * Math.pow(tau, 0.625) * 2.2;
+        return { sep: sep, phase: phase };
+      }
+
+      // ============================================================ SCENES
+      function sceneHook(t) {
+        var endMode = t >= 15;
+        var lt = endMode ? t - 28.0 + 0.2 : t;
+        screen(); rect(0, 0, W, H, C.void);
+        stars(3, 90, t, 0.8);
+        var cam = shake({ x: 90, y: 150, z: 1 }, lt, 0.1, 6, 1.0);
+        setCam(cam, 1);
+        var ph = lt * 5.5, sep = 34;
+        var a = { x: 90 + Math.cos(ph) * sep, y: 222 + Math.sin(ph) * sep * 0.55 }, b = { x: 90 - Math.cos(ph) * sep, y: 222 - Math.sin(ph) * sep * 0.55 };
+        g.globalAlpha = 0.6;
+        warpGrid(lt, [{ x: a.x, y: a.y, m: 1 }, { x: b.x, y: b.y, m: 1 }], { speed: 10, amp: 4, fall: 120 }, 90, 222, 16, C.grid);
+        g.globalAlpha = 1;
+        var back = Math.sin(ph) < 0 ? a : b, front = back === a ? b : a;
+        blackHole(back.x, back.y, 10, t, 0.3);
+        blackHole(front.x, front.y, 10, t, 0.3);
+      }
+      function sceneGalaxy(t) {
+        var cam = camAt([[1.8, 90, 150, 0.8], [2.6, 90, 150, 1.0], [5.2, 90, 160, 1.3], [6.1, 90, 210, 14]], t);
+        screen(); rect(0, 0, W, H, C.void);
+        stars(5, 140, t, 0.9);
+        setCam(cam, 1);
+        // a giant elliptical galaxy
+        lighter();
+        glow(90, 210, 90, C.violet, 0.5);
+        glow(90, 210, 60, C.magenta, 0.45);
+        glow(90, 210, 34, C.amber, 0.6);
+        glow(90, 210, 14, C.cream, 1);
+        var r = rng(11);
+        for (var i = 0; i < 160; i++) { var a = r() * 6.28, d = Math.pow(r(), 1.8) * 80; g.globalAlpha = 0.8; rect(90 + Math.cos(a) * d * 1.1, 210 + Math.sin(a) * d * 0.8, 1, 1, i % 3 ? C.cream : C.pink); }
+        g.globalAlpha = 1;
+        // the blazar jet pointing (almost) at us
+        var flick = 0.8 + 0.2 * Math.sin(t * 9);
+        g.strokeStyle = C.jet; g.globalAlpha = 0.7 * flick;
+        g.lineWidth = 6; g.beginPath(); g.moveTo(90, 210); g.lineTo(150, 40); g.stroke();
+        g.lineWidth = 2.4; g.strokeStyle = C.white; g.stroke();
+        g.lineWidth = 6; g.strokeStyle = C.jet; g.beginPath(); g.moveTo(90, 210); g.lineTo(30, 380); g.stroke();
+        g.globalAlpha = 1;
+        glow(150, 40, 20, C.jet, 0.6 * flick);
+        normalBlend();
+        // label
+        screen();
+        if (t > 2.4) { rect(6, 60, 92, 22, C.ink); worldText("MARKARIAN 501", 52, 63, 1, C.gold); worldText("456 MLY AWAY", 52, 72, 1, C.paper); }
+      }
+      function sceneBinary(t) {
+        var cam = camAt([[5.9, 90, 190, 1.6], [6.6, 90, 150, 1.0], [11.4, 90, 156, 1.12]], t);
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.void], [0.6, C.deep], [1, C.indigo]]); g.fillRect(0, 0, W, H);
+        stars(7, 110, t, 0.85);
+        setCam(cam, 1);
+        var o = orbit(t);
+        var a = { x: 90 + Math.cos(o.phase) * o.sep, y: 214 + Math.sin(o.phase) * o.sep * 0.45 };
+        var b = { x: 90 - Math.cos(o.phase) * o.sep, y: 214 - Math.sin(o.phase) * o.sep * 0.45 };
+        // orbit trails
+        g.strokeStyle = C.violet; g.lineWidth = 0.8; g.globalAlpha = 0.6;
+        g.beginPath(); g.ellipse(90, 214, o.sep, o.sep * 0.45, 0, 0, 6.2832); g.stroke(); g.globalAlpha = 1;
+        var back = Math.sin(o.phase) < 0 ? a : b, front = back === a ? b : a;
+        blackHole(back.x, back.y, 11, t, 0.3);
+        blackHole(front.x, front.y, 11, t, 0.3);
+      }
+      function sceneWaves(t) {
+        var cam = camAt([[11.3, 90, 160, 1.2], [12.0, 90, 150, 1.0], [16.2, 90, 152, 1.05]], t);
+        screen(); rect(0, 0, W, H, C.void);
+        stars(9, 70, t, 0.6);
+        setCam(cam, 1);
+        var o = orbit(t);
+        var a = { x: 90 + Math.cos(o.phase) * o.sep * 0.7, y: 214 + Math.sin(o.phase) * o.sep * 0.7 };
+        var b = { x: 90 - Math.cos(o.phase) * o.sep * 0.7, y: 214 - Math.sin(o.phase) * o.sep * 0.7 };
+        warpGrid(t, [{ x: a.x, y: a.y, m: 1.2 }, { x: b.x, y: b.y, m: 1.2 }], { speed: 7 + (t - 11.3), amp: 3 + (t - 11.3) * 0.6, fall: 140 }, 90, 214, 12, C.gridHot);
+        // expanding ripple rings (two-armed spiral of waves)
+        lighter();
+        for (var k = 0; k < 6; k++) {
+          var rr = ((t * 30 + k * 26) % 160);
+          g.strokeStyle = k % 2 ? C.cyan : C.pink; g.lineWidth = 1.2; g.globalAlpha = 0.7 * (1 - rr / 160);
+          g.beginPath(); g.arc(90, 214, rr, 0, 6.2832); g.stroke();
+        }
+        g.globalAlpha = 1; normalBlend();
+        blackHole(a.x, a.y, 8, t, 0.85);
+        blackHole(b.x, b.y, 8, t, 0.85);
+      }
+      function sceneMerge(t) {
+        var cam = camAt([[16.1, 90, 160, 1.2], [16.6, 90, 150, 1.0], [18.9, 90, 170, 1.3], [19.3, 90, 150, 1.0], [21.0, 90, 154, 1.08]], t);
+        shake(cam, t, MERGE, 10, 1.2);
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.void], [0.6, C.deep], [1, C.indigo]]); g.fillRect(0, 0, W, H);
+        stars(11, 110, t, 0.85);
+        setCam(cam, 1);
+        if (t < MERGE) {
+          var o = orbit(t);
+          var a = { x: 90 + Math.cos(o.phase) * o.sep, y: 214 + Math.sin(o.phase) * o.sep * 0.45 };
+          var b = { x: 90 - Math.cos(o.phase) * o.sep, y: 214 - Math.sin(o.phase) * o.sep * 0.45 };
+          lighter(); glow(90, 214, 30 + 30 * ramp(t, 16, MERGE), C.cyan, 0.3); normalBlend();
+          var back = Math.sin(o.phase) < 0 ? a : b, front = back === a ? b : a;
+          blackHole(back.x, back.y, 11, t, 0.3, 1 + ramp(t, 17, MERGE) * 0.5);
+          blackHole(front.x, front.y, 11, t, 0.3, 1 + ramp(t, 17, MERGE) * 0.5);
+        } else {
+          // one bigger black hole, ringing down
+          var a2 = t - MERGE;
+          lighter();
+          for (var k = 0; k < 5; k++) {
+            var rr = a2 * 120 - k * 22;
+            if (rr <= 0) continue;
+            g.strokeStyle = k % 2 ? C.cyan : C.white; g.lineWidth = 2.5; g.globalAlpha = Math.max(0, 0.9 - rr / 220);
+            g.beginPath(); g.ellipse(90, 214, rr, rr * 0.7, 0, 0, 6.2832); g.stroke();
+          }
+          g.globalAlpha = 1; normalBlend();
+          var wob = 1 + 0.12 * Math.sin(a2 * 30) * Math.exp(-a2 * 3);
+          blackHole(90, 214, 15 * wob, t, 0.3, 1.2);
+        }
+      }
+      function scenePower(t) {
+        var cam = { x: 90, y: 150, z: 1 + 0.03 * (t - 21) };
+        screen(); rect(0, 0, W, H, C.void);
+        stars(13, 160, t, 1);
+        setCam(cam, 1);
+        lighter();
+        for (var k = 0; k < 8; k++) {
+          var rr = ((t - 21) * 60 + k * 20) % 200;
+          g.strokeStyle = k % 2 ? C.cyan : C.pink; g.lineWidth = 2; g.globalAlpha = 0.8 * (1 - rr / 200);
+          g.beginPath(); g.arc(90, 214, rr, 0, 6.2832); g.stroke();
+        }
+        g.globalAlpha = 1;
+        // every star in the background blazing brighter for contrast
+        var r = rng(17);
+        for (var i = 0; i < 40; i++) glow(r() * W, r() * H, 3, i % 2 ? C.cream : C.ice, 0.6);
+        normalBlend();
+        blackHole(90, 214, 15, t, 0.3, 1.3);
+      }
+      function sceneEarth(t) {
+        var zoom = ramp(t, 25.0, 26.0);
+        screen(); rect(0, 0, W, H, C.void);
+        stars(15, 110, t, 0.8);
+        if (zoom < 0.98) {
+          var cam = camAt([[23.4, 90, 160, 1.15], [24.0, 90, 150, 1.0], [25.0, 90, 156, 1.15], [26.0, 98, 210, 16]], t);
+          setCam(cam, 1);
+          // incoming wavefronts from the upper left
+          lighter();
+          for (var k = 0; k < 6; k++) {
+            var d = ((t * 40 + k * 30) % 220);
+            g.strokeStyle = k % 2 ? C.cyan : C.pink; g.lineWidth = 1.4; g.globalAlpha = 0.7;
+            g.beginPath(); g.arc(-80, -40, 120 + d, 0, Math.PI / 2); g.stroke();
+          }
+          g.globalAlpha = 1; normalBlend();
+          // Earth, gently squeezed and stretched (hugely exaggerated)
+          var sq = 0.05 * Math.sin(t * 9);
+          g.save(); g.translate(90, 214); g.scale(1 + sq, 1 - sq);
+          lighter(); glow(0, 0, 34, C.cyan, 0.4); normalBlend();
+          disc(0, 0, 26, C.earthBlue);
+          ell(-8, -4, 12, 8, 0.4, C.land); ell(10, 8, 7, 5, -0.3, C.land); ell(-2, 14, 6, 3, 0, C.sand);
+          for (var c = 0; c < 4; c++) ell(-14 + c * 9, -12 + (c % 2) * 18, 8, 2, 0.2, C.cloud);
+          g.globalAlpha = 0.4; g.fillStyle = C.earthDeep; g.beginPath(); g.arc(0, 0, 26, -0.8, 2.3); g.fill(); g.globalAlpha = 1;
+          g.restore();
+          disc(98, 210, 1.4, C.laser);
+        } else {
+          // the detector: an L of two 4 km laser arms, lengths wobbling
+          setCam({ x: 90, y: 190, z: 1 }, 1);
+          g.fillStyle = vgrad(150, 320, [[0, C.deep], [1, C.indigo]]); g.fillRect(-20, 150, 220, 200);
+          var w = Math.sin(t * 14) * 4;
+          var ox = 40, oy = 290;
+          rect(ox - 2, oy - 140 - w, 6, 140 + w, C.concrete); rect(ox, oy - 2, 120 - w, 6, C.concrete);
+          line(ox + 1, oy, ox + 1, oy - 138 - w, 1, C.laser); line(ox, oy + 1, ox + 118 - w, oy + 1, 1, C.laser);
+          lighter(); glow(ox + 1, oy - 140 - w, 6, C.laser, 0.9); glow(ox + 120 - w, oy + 1, 6, C.laser, 0.9); glow(ox, oy, 8, C.laser, 0.7); normalBlend();
+          rrect(ox - 8, oy - 8, 16, 16, 3, C.steelDark); rrect(ox - 6, oy - 6, 12, 12, 2, C.steel);
+          rect(ox - 3, oy - 146 - w, 10, 6, C.steel); rect(ox + 118 - w, oy - 4, 6, 10, C.steel);
+          worldText("4 KM", ox + 14, oy - 80, 1, C.gold); worldText("4 KM", ox + 60, oy + 10, 1, C.gold);
+        }
+      }
+
+      PX.setup(C, {
+        scenes: { hook: sceneHook, galaxy: sceneGalaxy, binary: sceneBinary, waves: sceneWaves, merge: sceneMerge, power: scenePower, earth: sceneEarth },
+        sceneAt: function (t) { return t < 1.8 ? "hook" : t < 6.0 ? "galaxy" : t < 11.4 ? "binary" : t < 16.2 ? "waves" : t < 21.0 ? "merge" : t < 23.5 ? "power" : t < 28.0 ? "earth" : "hook"; },
+        cuts: [[1.8, "hook", "galaxy"], [6.0, "galaxy", "binary"], [11.4, "binary", "waves"], [16.2, "waves", "merge"], [21.0, "merge", "power"], [23.5, "power", "earth"], [28.0, "earth", "hook"]],
+        post: function (t, img) {
+          if (t < 0.12) tintImg(img, C.white, 0.8 * (1 - t / 0.12));
+          if (t > 1.6 && t < 2.05) glitchRows(img, 18 * Math.sin((t - 1.6) / 0.45 * Math.PI), Math.floor(t * 30));
+          if (t > MERGE - 0.05 && t < MERGE + 0.6) tintImg(img, C.white, t < MERGE ? 1 : 1 - (t - MERGE) / 0.6);
+        },
+        captions: [
+          { a: 0.1, b: 1.75, lines: [[["TWO MONSTER BLACK HOLES", C.paper]], [["ARE HEADED FOR A CRASH", C.gold]]] },
+          { a: 2.4, b: 5.8, lines: [[["IN THE HEART OF", C.paper]], [["A GIANT GALAXY", C.gold]]] },
+          { a: 6.7, b: 11.2, lines: [[["EACH ONE IS", C.paper]], [["MILLIONS OF SUNS HEAVY", C.gold]]] },
+          { a: 12.0, b: 16.0, lines: [[["THEY SHAKE", C.paper]], [["SPACE ITSELF", C.gold]]] },
+          { a: 16.5, b: 18.8, lines: [[["FASTER...", C.paper]], [["AND FASTER...", C.gold]]] },
+          { a: 21.2, b: 23.3, lines: [[["MORE POWER THAN", C.paper]], [["ALL THE STARS", C.gold]], [["IN THE UNIVERSE", C.paper]]] },
+          { a: 23.8, b: 25.4, lines: [[["THE RIPPLES", C.paper]], [["REACH EARTH", C.gold]]] },
+          { a: 26.1, b: 27.9, lines: [[["4 KM STRETCHED BY", C.paper]], [["LESS THAN A PROTON", C.gold]]] },
+        ],
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 30, duration: 30, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
