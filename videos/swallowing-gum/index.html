@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Swallowing Gum</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #7ad8ff;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #7ad8ff;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: sound effects only -->
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script>
+      var C = {
+        bg: "#7ad8ff", bgLight: "#bdf0ff", bgDark: "#3fb0e8", dot: "#e6fbff",
+        skin: "#ffc29a", skinShade: "#e8956a", blush: "#ff8a8a", hair: "#ff8a2a", hairDark: "#c85a12",
+        shirt: "#3cd070", shirtShade: "#1f9a4a", eyeWhite: "#ffffff", pupil: "#1a1a2a", mouth: "#a8303a", tongue: "#ff7a8a", tooth: "#fffaf0",
+        gum: "#ff4fae", gumLight: "#ffa8d8", gumDark: "#b8206e", gumPale: "#ff9ad0",
+        xbody: "#ffe2cc", xline: "#f0a080",
+        oes: "#ff8aa8", oesDark: "#d85a7a", oesLumen: "#c04060",
+        stomach: "#ff9a6a", stomachDark: "#d8603a", rugae: "#e87a4a", acid: "#c8f040", acidDark: "#8ac81a", acidLight: "#eaff9a",
+        smallInt: "#ffb6a0", smallIntDark: "#f07a6a", bigInt: "#f0a050", bigIntDark: "#c06a2a",
+        food: "#c88a3a", foodLight: "#f0c060", sugar: "#ffffff", sugar2: "#fff06a",
+        ink: "#06050a", paper: "#f1eef4", gold: "#ffd23f", white: "#ffffff",
+      };
+
+      // ------------------------------------------------------------ the gum's journey
+      var PATH = (function () {
+        var p = [
+          [90, 100, 4.4], [90, 116, 4.9], [90, 140, 5.6], [90, 200, 7.2], [91, 250, 8.2], [98, 262, 8.5], [112, 284, 8.9], [112, 284, 13.4],
+          [96, 298, 13.8], [84, 308, 14.1],
+        ];
+        for (var i = 0; i < 5; i++) {
+          var y = 328 + i * 19, lr = i % 2 === 0;
+          p.push([lr ? 60 : 120, y, null]);
+          p.push([lr ? 120 : 60, y, null]);
+          if (i < 4) p.push([lr ? 128 : 52, y + 9.5, null]);
+        }
+        p[p.length - 1][2] = 19.6;
+        p.push([134, 418, 19.9], [138, 316, 20.9], [46, 312, 21.9], [44, 430, 22.8], [80, 450, 23.1], [90, 470, 23.3], [90, 515, 23.7]);
+        // fill missing times by arc length between timed neighbours
+        for (var a = 0; a < p.length; a++) {
+          if (p[a][2] !== null) continue;
+          var b = a; while (p[b][2] === null) b++;
+          var s = a - 1, total = 0, seg = [];
+          for (var k = s; k < b; k++) { var d = Math.hypot(p[k + 1][0] - p[k][0], p[k + 1][1] - p[k][1]); seg.push(d); total += d; }
+          var acc = 0;
+          for (var m = a; m < b; m++) { acc += seg[m - a]; p[m][2] = p[s][2] + (p[b][2] - p[s][2]) * acc / total; }
+          a = b;
+        }
+        return p;
+      })();
+      function gumAt(t) {
+        if (t <= PATH[0][2]) return { x: PATH[0][0], y: PATH[0][1] };
+        for (var i = 0; i < PATH.length - 1; i++) {
+          var a = PATH[i], b = PATH[i + 1];
+          if (t <= b[2]) {
+            var k = (t - a[2]) / Math.max(1e-6, b[2] - a[2]);
+            var x = lerp(a[0], b[0], k), y = lerp(a[1], b[1], k);
+            if (t > 8.9 && t < 13.4) { x += Math.sin(t * 1.3) * 5; y += Math.sin(t * 2.1) * 2.5; }
+            return { x: x, y: y };
+          }
+        }
+        var L = PATH[PATH.length - 1];
+        return { x: L[0], y: L[1] };
+      }
+      var WIDE = { x: 90, y: 150, z: 1.2 };
+      function camera(t) {
+        var w = ramp(t, 4.4, 5.2) * (1 - ramp(t, 23.2, 24.9));
+        // follow the gum with a little lag, keeping it below the caption band
+        var fx = 0, fy = 0;
+        for (var i = 0; i < 3; i++) { var p = gumAt(t - i * 0.04); fx += p.x; fy += p.y; }
+        fx /= 3; fy /= 3;
+        var inStomach = sstep(8.3, 8.9, t) * (1 - sstep(13.3, 13.9, t));
+        var z = lerp(2.4, 2.0, inStomach);
+        var follow = { x: lerp(fx, 108, inStomach * 0.6), y: fy - lerp(34, 30, inStomach), z: z };
+        var cam = {
+          x: lerp(WIDE.x, follow.x, w), y: lerp(WIDE.y, follow.y, w),
+          z: Math.exp(lerp(Math.log(WIDE.z), Math.log(follow.z), w)),
+        };
+        return cam;
+      }
+
+      // ------------------------------------------------------------ background (shared)
+      var DOTS = (function () {
+        var r = rng(5), a = [];
+        for (var i = 0; i < 14; i++) a.push({ x: r() * W, y: r() * H, r: 4 + r() * 12, s: r() * 6 });
+        return a;
+      })();
+      function drawBg(t, cam) {
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.bgLight], [0.6, C.bg], [1, C.bgDark]]); g.fillRect(0, 0, W, H);
+        DOTS.forEach(function (d) {
+          var y = ((d.y - t * 6 - (cam.y - 150) * 0.2) % (H + 40) + H + 40) % (H + 40) - 20;
+          g.globalAlpha = 0.35; disc(d.x + Math.sin(t + d.s) * 3, y, d.r, C.dot); g.globalAlpha = 1;
+        });
+      }
+
+      // ------------------------------------------------------------ the kid (outside view)
+      function kidState(t) {
+        var bubble = 0, pop = -1;
+        var cycle = t < 15 ? t : t - 30; // only in the hook (t<2.2); end holds chewing
+        if (t >= 0.3 && t < 2.2) bubble = ease((t - 0.3) / 1.9);
+        if (t >= 2.2 && t < 2.6) pop = (t - 2.2) / 0.4;
+        var gulp = t >= 2.9 && t < 3.6 ? (t - 2.9) / 0.7 : -1;
+        var chew = (t >= 2.6 && t < 2.9) || t >= 24.8 ? Math.abs(Math.sin(t * 7)) : 0;
+        var thumbs = ramp(t, 25.3, 25.8) * (1 - ramp(t, 28.6, 29.3));
+        return { bubble: bubble, pop: pop, gulp: gulp, chew: chew, thumbs: thumbs, surprised: gulp >= 0 };
+      }
+      function drawKid(t) {
+        var cam = camera(t);
+        drawBg(t, cam);
+        setCam(cam, 1);
+        var s = kidState(t);
+        // shoulders + t-shirt
+        rrect(38, 126, 104, 200, 26, C.shirtShade);
+        rrect(40, 128, 100, 200, 24, C.shirt);
+        rect(80, 126, 20, 6, C.skinShade);
+        // arms
+        rrect(28, 140, 15, 92, 7, C.shirtShade); rrect(137, 140, 15, 92, 7, C.shirtShade);
+        rect(43, 150, 1.5, 120, C.shirtShade); rect(135.5, 150, 1.5, 120, C.shirtShade);
+        disc(35.5, 236, 6, C.skin); disc(144.5, 236, 6, C.skin);
+        // neck (with the gulp bulge travelling down)
+        rect(80, 108, 20, 22, C.skin);
+        if (s.gulp >= 0) disc(90, 112 + s.gulp * 18, 4.5 * (1 - s.gulp * 0.4), C.skinShade);
+        // head
+        disc(90, 78, 32, C.skin);
+        disc(60, 80, 5, C.skin); disc(120, 80, 5, C.skin);
+        // hair
+        g.fillStyle = C.hair; g.beginPath(); g.arc(90, 74, 33, Math.PI * 1.02, Math.PI * 1.98); g.fill();
+        for (var i = 0; i < 6; i++) poly([[60 + i * 11, 54], [66 + i * 11, 38 - (i % 2) * 5], [72 + i * 11, 54]], C.hair);
+        rect(58, 60, 64, 4, C.hairDark);
+        // eyes
+        var eyeR = s.surprised ? 7 : 6;
+        [77, 103].forEach(function (ex) {
+          disc(ex, 78, eyeR, C.eyeWhite);
+          disc(ex + 1, 79, s.surprised ? 2.4 : 3.4, C.pupil);
+          disc(ex + 2, 77, 1, C.white);
+        });
+        disc(70, 92, 4, C.blush); disc(110, 92, 4, C.blush);
+        // mouth
+        if (s.surprised) ell(90, 99, 4, 5, 0, C.mouth);
+        else if (s.chew > 0) ell(90, 98, 6, 1.5 + s.chew * 2.5, 0, C.mouth);
+        else { ell(90, 99, 5, 3, 0, C.mouth); disc(90, 100, 2.5, C.gum); }
+        // sweat drop on the gulp
+        if (s.surprised) { poly([[118, 64], [115, 71], [121, 71]], C.bgLight); disc(118, 71, 3, C.bgLight); }
+        // the bubble
+        if (s.bubble > 0) {
+          var R = 3 + 19 * s.bubble;
+          disc(90, 100 + R * 0.35, R, C.gumDark);
+          disc(90, 99 + R * 0.35, R - 1, C.gum);
+          disc(84 - R * 0.2, 94, R * 0.25, C.gumLight);
+        }
+        if (s.pop >= 0) {
+          for (var k = 0; k < 10; k++) {
+            var a = k * 0.628, d = 8 + 18 * s.pop;
+            disc(90 + Math.cos(a) * d, 104 + Math.sin(a) * d * 0.7, 3 * (1 - s.pop), C.gum);
+          }
+        }
+        // thumbs up at the end
+        if (s.thumbs > 0) {
+          var hy = 330 - 80 * s.thumbs;
+          rrect(124, hy, 22, 20, 6, C.skin);
+          rrect(129, hy - 16, 8, 20, 4, C.skin);
+          for (var f = 0; f < 3; f++) rect(124, hy + 4 + f * 5, 20, 0.8, C.skinShade);
+          rrect(120, hy + 18, 30, 30, 6, C.shirt);
+        }
+        vignette(0.18, "rgba(20,60,120,");
+      }
+
+      // ------------------------------------------------------------ the body (x-ray view)
+      function tubeAlong(pts, w, col) {
+        g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.lineJoin = "round";
+        g.beginPath(); g.moveTo(pts[0][0], pts[0][1]);
+        for (var i = 1; i < pts.length; i++) g.lineTo(pts[i][0], pts[i][1]);
+        g.stroke();
+      }
+      var SMALL = PATH.filter(function (p) { return p[2] >= 14.1 && p[2] <= 19.6; }).map(function (p) { return [p[0], p[1]]; });
+      var BIG = [[120, 404], [134, 418], [138, 316], [46, 312], [44, 430], [80, 450], [90, 470], [90, 520]];
+      var FOOD = (function () {
+        var r = rng(13), a = [];
+        for (var i = 0; i < 26; i++) a.push({ off: r() * 9, ph: r() * 6, c: r() });
+        return a;
+      })();
+      var SUGAR = (function () {
+        var r = rng(17), a = [];
+        for (var i = 0; i < 30; i++) a.push({ a: r() * 6.28, sp: 0.5 + r(), t0: 9.0 + r() * 2.8 });
+        return a;
+      })();
+      function drawBody(t) {
+        var cam = camera(t);
+        drawBg(t, cam);
+        setCam(cam, 1);
+        var gp = gumAt(t);
+        // silhouette
+        rrect(38, 126, 104, 420, 26, C.xline); rrect(40, 128, 100, 416, 24, C.xbody);
+        rect(78, 106, 24, 26, C.xbody); disc(90, 78, 33, C.xline); disc(90, 78, 32, C.xbody);
+        g.strokeStyle = C.xline; g.lineWidth = 0.8;
+        [77, 103].forEach(function (ex) { g.beginPath(); g.arc(ex, 78, 6, 0, 6.2832); g.stroke(); });
+        // mouth: teeth, tongue
+        ell(90, 99, 9, 5, 0, C.mouth); ell(90, 101, 7, 2.5, 0, C.tongue);
+        for (var tt = 0; tt < 5; tt++) rect(83 + tt * 3, 95, 2, 2, C.tooth);
+        // oesophagus with a peristaltic squeeze following the gum
+        for (var y = 104; y <= 258; y += 1) {
+          var squeeze = gp.y > 104 && gp.y < 260 ? 2.6 * Math.exp(-Math.pow(y - (gp.y - 8), 2) / 10) - 1.4 * Math.exp(-Math.pow(y - gp.y, 2) / 8) : 0;
+          var hw = 5 - squeeze;
+          rect(90 - hw - 1.5, y, (hw + 1.5) * 2, 1.2, C.oesDark);
+          rect(90 - hw, y, hw * 2, 1.2, C.oes);
+          rect(90 - hw * 0.35, y, hw * 0.7, 1.2, C.oesLumen);
+          if (y % 6 === 0) rect(90 - hw - 1.5, y, (hw + 1.5) * 2, 0.6, C.oesDark);
+        }
+        // stomach: J-shaped bag with folds and acid
+        g.save();
+        g.beginPath(); g.ellipse(112, 286, 26, 22, -0.35, 0, 6.2832);
+        g.fillStyle = C.stomachDark; g.fill();
+        g.beginPath(); g.ellipse(112, 286, 24, 20, -0.35, 0, 6.2832);
+        g.fillStyle = C.stomach; g.fill(); g.clip();
+        for (var r = 0; r < 6; r++) line(92, 274 + r * 5, 132, 270 + r * 5 + Math.sin(r + t) * 1.5, 0.7, C.rugae);
+        var level = 282 + Math.sin(t * 2) * 1.2;
+        g.fillStyle = C.acid; g.fillRect(80, level, 70, 40);
+        rect(80, level, 70, 1, C.acidLight);
+        for (var b = 0; b < 14; b++) {
+          var ph = ((t * 0.5 + b / 14) % 1);
+          disc(92 + b * 3, level + 18 - ph * 16, 0.6 + (b % 3) * 0.3, C.acidLight);
+        }
+        g.restore();
+        // small and large intestine
+        tubeAlong(BIG, 13, C.bigIntDark); tubeAlong(BIG, 11, C.bigInt);
+        for (var h = 1; h < BIG.length - 1; h++) disc(BIG[h][0], BIG[h][1], 1, C.bigIntDark);
+        [[134, 380], [136, 344], [110, 314], [76, 313], [45, 350], [44, 395]].forEach(function (q) { line(q[0] - 5, q[1] - 2, q[0] + 5, q[1] + 2, 0.7, C.bigIntDark); });
+        tubeAlong([[96, 298], [84, 308]].concat(SMALL), 10, C.smallIntDark);
+        tubeAlong([[96, 298], [84, 308]].concat(SMALL), 8, C.smallInt);
+        // food bits moving through the gut
+        FOOD.forEach(function (f, i) {
+          var ft = t - f.off;
+          if (ft < 13.8 || ft > 23.6) return;
+          var p = gumAt(ft);
+          disc(p.x + Math.sin(f.ph + t) * 2, p.y + Math.cos(f.ph + t) * 2, 1.2, f.c < 0.5 ? C.food : C.foodLight);
+        });
+        // sugar + flavour washing out of the gum in the stomach
+        SUGAR.forEach(function (s) {
+          var a = t - s.t0;
+          if (a < 0 || a > 1.4) return;
+          var d = 3 + a * 10 * s.sp;
+          g.globalAlpha = 1 - a / 1.4;
+          rect(gp.x + Math.cos(s.a) * d, gp.y + Math.sin(s.a) * d - a * 6, 1, 1, s.sp > 1 ? C.sugar2 : C.sugar);
+        });
+        g.globalAlpha = 1;
+        // the gum itself
+        var pale = ramp(t, 9.0, 12.5);
+        var wob = Math.sin(t * 9) * 0.3;
+        ell(gp.x, gp.y, 3.6 + wob, 3.2 - wob, t, C.gumDark);
+        ell(gp.x - 0.2, gp.y - 0.2, 3.0 + wob, 2.6 - wob, t, mix(C.gum, C.gumPale, pale));
+        disc(gp.x - 1, gp.y - 1, 0.8, C.gumLight);
+        // day counter while it travels the gut
+        if (t >= 13.8 && t < 23.6) {
+          screen();
+          var day = t < 17.6 ? "DAY 1" : t < 21.0 ? "DAY 2" : "DAY 3";
+          rect(6, 8, 36, 11, C.ink);
+          worldText(day, 24, 10, 1, C.gold);
+        }
+        vignette(0.18, "rgba(20,60,120,");
+      }
+
+      PX.setup(C, {
+        scenes: { kid: drawKid, body: drawBody },
+        sceneAt: function (t) { return t < 3.7 || t >= 25.0 ? "kid" : "body"; },
+        cuts: [[3.7, "kid", "body"], [25.0, "body", "kid"]],
+        captions: [
+          { a: 0.4, b: 3.5, lines: [[["SWALLOWED GUM?", C.paper]], [["DOES IT STAY ", C.paper], ["7 YEARS?", C.gold]]] },
+          { a: 4.8, b: 8.2, lines: [[["MUSCLE WAVES", C.paper]], [["SQUEEZE IT DOWN", C.gold]]] },
+          { a: 9.0, b: 11.3, lines: [[["ACID WASHES OUT", C.paper]], [["SUGAR AND FLAVOUR", C.gold]]] },
+          { a: 11.5, b: 13.7, lines: [[["BUT THE GUM BASE", C.paper]], [["CAN'T BE DIGESTED", C.gold]]] },
+          { a: 14.3, b: 19.4, lines: [[["SO IT JUST RIDES", C.paper]], [["ALONG WITH FOOD", C.gold]]] },
+          { a: 19.8, b: 23.5, lines: [[["OUT IN ", C.paper], ["A FEW DAYS", C.gold]]] },
+          { a: 25.4, b: 27.4, lines: [[["7 YEARS? ", C.paper], ["MYTH", C.gold]]] },
+          { a: 27.6, b: 29.6, lines: [[["JUST DON'T SWALLOW", C.paper]], [["A LOT AT ONCE", C.gold]]] },
+        ],
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 30, duration: 30, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

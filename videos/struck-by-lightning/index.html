@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Struck by Lightning</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #2f4fbf;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #2f4fbf;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: sound effects only -->
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script>
+      var C = {
+        skyTop: "#1a2a7a", sky: "#2f4fbf", skyLight: "#5a7ae8", cloudDark: "#3a3f78", cloud: "#5a62a8", cloudLight: "#8a92d8",
+        bolt: "#ffffff", boltGlow: "#9ff0ff", rain: "#9ab8ff",
+        hillDark: "#1f7a4a", hill: "#2a9a5a", grassDark: "#1f8a3a", grass: "#36c24a", grassLight: "#8aea5a", flower: "#ffe040",
+        skin: "#ffc29a", skinShade: "#e8956a", hair: "#5a3218", coat: "#ffd23f", coatShade: "#e0a020", pants: "#2f5fc8", pantsLight: "#5a8af0", boot: "#5a3218",
+        shirt: "#ff4a6a", shirtShade: "#c02a4a", jeansDark: "#24366a",
+        smoke: "#c8cce0", current: "#5ae8ff", fern: "#e83a5a", fernLight: "#ff8aa0", pore: "#f0a080", skinLight: "#ffe0c8",
+        cavity: "#ffb0b8", cavityDark: "#f08898", lung: "#ffd6dc", lungLine: "#f0a0b0", rib: "#fff6ea", ribShade: "#e8d6c0",
+        heart: "#e8303a", heartLight: "#ff6a6a", heartDark: "#a81020", vein: "#3a6ad8", spark: "#ffe040",
+        panel: "#0b1f2a", grid: "#1d4a3a", ecg: "#5cff6a", alarm: "#ff3a3a",
+        ink: "#06050a", paper: "#f1eef4", gold: "#ffd23f", white: "#ffffff",
+      };
+
+      // ============================================================ FIELD
+      var GROUND = 262;
+      var BOLT = (function () {
+        var r = rng(17), pts = [[58, -12]], x = 58;
+        for (var i = 1; i <= 22; i++) {
+          var y = -12 + (212 + 12) * i / 22;
+          x += (r() - 0.45) * 12;
+          x = lerp(x, 90, i / 22 * 0.5);
+          pts.push([i === 22 ? 90 : x, y]);
+        }
+        var br = [];
+        [5, 9, 14].forEach(function (k, j) {
+          var bx = pts[k][0], by = pts[k][1], b = [[bx, by]];
+          for (var s = 0; s < 6; s++) { bx += (j % 2 ? -1 : 1) * (3 + r() * 5); by += 5 + r() * 4; b.push([bx, by]); }
+          br.push(b);
+        });
+        return { main: pts, branches: br };
+      })();
+      function boltOn(t) { return (t >= 4.0 && t < 4.12) || (t >= 4.18 && t < 4.28) || (t >= 4.36 && t < 4.46); }
+      function drawPath(pts, frac, w, col) {
+        var n = Math.max(1, Math.floor((pts.length - 1) * frac));
+        g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.lineJoin = "round";
+        g.beginPath(); g.moveTo(pts[0][0], pts[0][1]);
+        for (var i = 1; i <= n; i++) g.lineTo(pts[i][0], pts[i][1]);
+        g.stroke();
+      }
+      function personState(t) {
+        var fall = 0;
+        if (t >= 4.5) fall = Math.pow(clamp01((t - 4.5) / 0.6), 2);
+        if (t >= 25.6) fall = 1 - ramp(t, 25.6, 27.0);
+        return { fall: fall, xray: boltOn(t), smoke: t > 4.3 && t < 9 ? 1 - clamp01((t - 7) / 2) : 0 };
+      }
+      // feet at (fx, fy); ang 0 upright, -PI/2 lying on the back with the head to the left
+      function drawPerson(fx, fy, ang, o) {
+        g.save(); g.translate(fx, fy); g.rotate(ang);
+        if (o.flip) g.scale(-1, 1);
+        var P = o.pal;
+        if (o.xray) {
+          var sil = "#1a2a7a";
+          rect(-4, -3, 10, 3, sil); rect(-3.5, -21, 7, 18, sil); rrect(-6, -38, 12, 19, 2, sil); disc(0, -43, 5, sil);
+          disc(0, -43, 4, C.white); rect(-2, -44, 1.4, 1.6, C.ink); rect(1, -44, 1.4, 1.6, C.ink); rect(-1.5, -40.5, 3, 0.8, C.ink);
+          line(0, -38, 0, -21, 1.2, C.white);
+          for (var r = 0; r < 4; r++) line(-4, -35 + r * 3, 4, -35 + r * 3, 0.8, C.white);
+          rect(-3, -22, 6, 2, C.white);
+          line(-1.5, -20, -1.5, -3, 1, C.white); line(1.5, -20, 1.5, -3, 1, C.white);
+          line(3, -35, 3.5, -23, 0.9, C.white);
+        } else {
+          rect(-4, -3, 10, 3, P.boot);
+          rect(-3.5, -21, 7, 18, P.pants); rect(-3.5, -21, 2, 18, P.pantsLight);
+          rrect(-6, -38, 12, 19, 2, P.coat); rect(-6, -23, 12, 4, P.coatShade);
+          rrect(1, -36, 4, 14, 2, P.coatShade); disc(3, -21.5, 1.8, C.skin);
+          disc(0, -43, 5, C.skin);
+          g.fillStyle = P.hair; g.beginPath(); g.arc(0, -43, 5.2, Math.PI * 1.05, Math.PI * 2.05); g.fill();
+          rect(-5, -44, 3, 4, P.hair);
+          rect(2.4, -44, 1, 1.2, C.ink);
+          if (o.eyesClosed) rect(1.8, -43.6, 2, 0.5, C.ink);
+          rect(2.6, -40.5, 1.5, 0.6, C.skinShade);
+        }
+        g.restore();
+      }
+      var HIKER = { boot: "#5a3218", pants: C.pants, pantsLight: C.pantsLight, coat: C.coat, coatShade: C.coatShade, hair: C.hair };
+      var HELPER = { boot: C.ink, pants: C.jeansDark, pantsLight: C.pants, coat: C.shirt, coatShade: C.shirtShade, hair: "#2a1a10" };
+      function drawHelperKneel(hx, gy, bob, chest) {
+        rect(hx, gy - 3, 10, 3, C.jeansDark); rect(hx + 9, gy - 3, 3, 3, C.ink);
+        rrect(hx - 2.5, gy - 17, 5.5, 15, 2, C.jeansDark);
+        g.save(); g.translate(hx, gy - 16); g.rotate(-0.5 + bob * 0.02); rrect(-5, -17, 10, 18, 2, C.shirt); g.restore();
+        var sx = hx - 8, sy = gy - 30 + bob;
+        line(sx, sy, chest.x, chest.y - 1, 3, C.shirtShade);
+        disc(chest.x, chest.y - 1, 1.8, C.skin);
+        disc(sx - 3, sy - 6, 4.6, C.skin);
+        g.fillStyle = "#2a1a10"; g.beginPath(); g.arc(sx - 3, sy - 6, 4.8, Math.PI * 0.9, Math.PI * 1.9); g.fill();
+        rect(sx - 6, sy - 7, 1, 1.2, C.ink);
+      }
+      var RAIN = (function () {
+        var r = rng(3), a = [];
+        for (var i = 0; i < 80; i++) a.push({ x: r() * W, y: r() * H, v: 0.8 + r() * 0.5 });
+        return a;
+      })();
+      var TUFTS = (function () {
+        var r = rng(8), a = [];
+        for (var i = 0; i < 110; i++) a.push({ x: r() * 320 - 70, y: GROUND - 40 + r() * 140, c: r() });
+        return a;
+      })();
+      function drawField(t) {
+        var cam = camAt(t < 15 ? CAM_F1 : CAM_F2, t);
+        shake(cam, t, 4.0, 12, 0.6);
+        var st = personState(t);
+        var flash = (t >= 1.15 && t < 1.25) || (t >= 27.0 && t < 27.1);
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.skyTop], [0.45, C.sky], [0.75, C.skyLight]]); g.fillRect(0, 0, W, H);
+        // storm clouds (parallax)
+        setCam(cam, 0.3);
+        for (var i = 0; i < 9; i++) {
+          var cx = -60 + i * 40 + Math.sin(t * 0.2 + i) * 4 + t * 0.6, cy = 30 + (i % 3) * 14;
+          ell(cx, cy + 8, 34, 16, 0, C.cloudDark);
+          ell(cx - 6, cy, 26, 14, 0, flash ? C.cloudLight : C.cloud);
+          ell(cx - 10, cy - 6, 14, 7, 0, flash ? C.white : C.cloudLight);
+        }
+        // hills
+        setCam(cam, 0.55);
+        g.fillStyle = C.hillDark;
+        g.beginPath(); g.moveTo(-200, 260);
+        for (var x = -200; x <= 400; x += 6) g.lineTo(x, 222 + Math.sin(x * 0.03) * 8 + Math.sin(x * 0.011) * 10);
+        g.lineTo(400, 400); g.lineTo(-200, 400); g.closePath(); g.fill();
+        g.fillStyle = C.hill;
+        g.beginPath(); g.moveTo(-200, 270);
+        for (var x2 = -200; x2 <= 400; x2 += 6) g.lineTo(x2, 236 + Math.sin(x2 * 0.025 + 2) * 7);
+        g.lineTo(400, 400); g.lineTo(-200, 400); g.closePath(); g.fill();
+        // ground
+        setCam(cam, 1);
+        rect(-300, GROUND - 22, 800, 400, C.grass);
+        rect(-300, GROUND - 22, 800, 2, C.grassLight);
+        TUFTS.forEach(function (p) {
+          var sw = Math.sin(t * 2 + p.x) * 0.6;
+          if (p.c > 0.93) { disc(p.x, p.y, 1, C.flower); return; }
+          line(p.x, p.y, p.x - 1 + sw, p.y - 3, 0.8, p.c < 0.5 ? C.grassDark : C.grassLight);
+          line(p.x + 1, p.y, p.x + 2 + sw, p.y - 2.5, 0.8, C.grassDark);
+        });
+        ell(90, GROUND + 1, 9, 1.5, 0, C.grassDark);
+        // stepped leader + streamer before the strike
+        if (t > 3.55 && t < 4.0) {
+          g.globalAlpha = 0.8;
+          drawPath(BOLT.main, ramp(t, 3.55, 3.98) * 0.9, 1, C.boltGlow);
+          if (t > 3.85) line(90, 212, 90, 212 - 6 * ramp(t, 3.85, 4.0), 0.8, C.boltGlow);
+          g.globalAlpha = 1;
+        }
+        // the person
+        var fy = GROUND - 6 * st.fall;
+        if (st.xray) { g.globalAlpha = 0.55; disc(90, 236, 30, C.boltGlow); g.globalAlpha = 1; }
+        drawPerson(90, fy, -Math.PI / 2 * st.fall, { pal: HIKER, xray: st.xray, eyesClosed: t > 5 && t < 25.8 });
+        // helper: CPR, then helps up, then walks away
+        if (t >= 22.3) {
+          if (t < 26.2) {
+            var bob = Math.abs(Math.sin((t - 22.3) * Math.PI * 2)) * 1.8;
+            drawHelperKneel(66, GROUND, t > 22.9 && t < 25.6 ? bob : 0, { x: 59, y: 250 + (t > 22.9 && t < 25.6 ? bob * 0.6 : 0) });
+          } else {
+            var hx = 66 + 140 * ramp(t, 27.6, 29.6), wb = t > 27.6 ? Math.abs(Math.sin(t * 9)) * 1.2 : 0;
+            drawPerson(hx, GROUND - wb, 0, { pal: HELPER, flip: t < 27.6 });
+          }
+        }
+        // smoke wisps off the hiker
+        if (st.smoke > 0) {
+          for (var s = 0; s < 8; s++) {
+            var ph = ((t * 0.7 + s / 8) % 1);
+            g.globalAlpha = 0.55 * st.smoke * (1 - ph);
+            disc(50 + s * 5 + Math.sin(t * 3 + s) * 1.5, 248 - ph * 18, 0.7 + ph * 1.4, C.smoke);
+          }
+          g.globalAlpha = 1;
+        }
+        // the bolt
+        if (boltOn(t)) {
+          g.globalAlpha = 0.6; drawPath(BOLT.main, 1, 5, C.boltGlow);
+          BOLT.branches.forEach(function (b) { drawPath(b, 1, 3, C.boltGlow); });
+          g.globalAlpha = 1; drawPath(BOLT.main, 1, 1.6, C.bolt);
+          BOLT.branches.forEach(function (b) { drawPath(b, 1, 0.8, C.bolt); });
+        }
+        // rain
+        screen();
+        g.globalAlpha = 0.6;
+        RAIN.forEach(function (d) {
+          var x = ((d.x + t * 40 * d.v) % W + W) % W, y = ((d.y + t * 260 * d.v) % H + H) % H;
+          line(x, y, x - 1.5, y - 5, 0.6, C.rain);
+        });
+        g.globalAlpha = 1;
+        if (t >= 4.0 && t < 4.08) { g.globalAlpha = 0.85; rect(0, 0, W, H, C.white); g.globalAlpha = 1; }
+        if (t >= 4.18 && t < 4.22) { g.globalAlpha = 0.5; rect(0, 0, W, H, C.white); g.globalAlpha = 1; }
+        vignette(0.3, "rgba(10,20,60,");
+      }
+      var CAM_F1 = [[0, 90, 194, 1.3], [3.5, 90, 196, 1.36], [4.6, 88, 186, 1.25], [7.0, 70, 236, 2.7], [8.15, 64, 253, 40]];
+      var CAM_F2 = [[22.35, 59, 250, 40], [23.4, 72, 205, 2.1], [25.6, 74, 205, 2.1], [26.6, 86, 196, 1.4], [29.2, 90, 194, 1.3], [30, 90, 194, 1.3]];
+
+      // ============================================================ SKIN (macro on the forearm)
+      var PORES = (function () {
+        var r = rng(21), a = [];
+        for (var i = 0; i < 160; i++) a.push({ x: r() * 220 - 20, y: r() * 360 - 20, k: r() });
+        return a;
+      })();
+      var CURRENTS = (function () {
+        var r = rng(23), a = [];
+        for (var i = 0; i < 26; i++) {
+          var x = -10, y = 10 + r() * 300, base = (r() - 0.5) * 0.9, ang = base, pts = [[x, y]], br = [];
+          for (var s = 0; s < 36; s++) {
+            ang = base + (ang - base) * 0.5 + (r() - 0.5) * 1.1;
+            x += Math.cos(ang) * 6; y += Math.sin(ang) * 6; pts.push([x, y]);
+            if (r() < 0.18) {
+              var bx = x, by = y, ba = ang + (r() < 0.5 ? -1 : 1) * (0.6 + r() * 0.5), b = [[bx, by]];
+              for (var k = 0; k < 5; k++) { ba += (r() - 0.5) * 0.8; bx += Math.cos(ba) * 4; by += Math.sin(ba) * 4; b.push([bx, by]); }
+              br.push({ at: s / 36, pts: b });
+            }
+          }
+          a.push({ pts: pts, br: br, t0: 8.1 + i * 0.125 });
+        }
+        return a;
+      })();
+      function fernSegs(x, y, ang, len, depth, gen, r, out) {
+        if (depth === 0 || len < 0.8) return;
+        var x2 = x + Math.cos(ang) * len, y2 = y + Math.sin(ang) * len;
+        out.push({ x1: x, y1: y, x2: x2, y2: y2, gen: gen, w: 0.35 + depth * 0.22 });
+        fernSegs(x2, y2, ang + (r() - 0.5) * 0.25, len * 0.9, depth - 1, gen + 1, r, out);
+        var side = gen % 2 ? 1 : -1;
+        fernSegs(x2, y2, ang + side * (0.75 + r() * 0.3), len * 0.55, depth - 2, gen + 1, r, out);
+      }
+      var FERNS = (function () {
+        var a = [], b = [];
+        fernSegs(18, 30, 0.95, 16, 12, 0, rng(31), a);
+        fernSegs(166, 300, -2.2, 16, 12, 0, rng(37), b);
+        var maxGen = 0;
+        a.concat(b).forEach(function (s) { maxGen = Math.max(maxGen, s.gen); });
+        return { segs: a.concat(b), maxGen: maxGen };
+      })();
+      function drawSkin(t) {
+        var cam = camAt(CAM_S, t);
+        screen(); rect(0, 0, W, H, C.skin);
+        setCam(cam, 1);
+        g.fillStyle = vgrad(-40, 360, [[0, C.skinLight], [0.5, C.skin], [1, C.skinShade]]); g.fillRect(-200, -200, 600, 760);
+        // skin texture: creases, pores, fine hairs, rain beads
+        for (var c = 0; c < 9; c++) line(-20, c * 40 + 10, 200, c * 40 + 4 + Math.sin(c) * 6, 0.5, C.pore);
+        PORES.forEach(function (p) {
+          if (p.k < 0.75) disc(p.x, p.y, 0.6, C.pore);
+          else if (p.k < 0.9) line(p.x, p.y, p.x + 4, p.y - 2, 0.4, C.hair);
+          else { disc(p.x, p.y, 2.2, C.skinLight); disc(p.x - 0.7, p.y - 0.7, 0.7, C.white); }
+        });
+        // flashover: current racing across the surface
+        CURRENTS.forEach(function (cu, i) {
+          var a = t - cu.t0;
+          if (a < 0 || a > 1.0) return;
+          var frac = clamp01(a / 0.2), on = a < 0.6 || Math.floor(a * 30) % 2 === 0;
+          if (!on) return;
+          g.globalAlpha = 0.7; drawPath(cu.pts, frac, 4, C.current);
+          cu.br.forEach(function (b) { if (b.at < frac) drawPath(b.pts, 1, 2.5, C.current); });
+          g.globalAlpha = 1; drawPath(cu.pts, frac, 1.2, C.white);
+          cu.br.forEach(function (b) { if (b.at < frac) drawPath(b.pts, 1, 0.8, C.white); });
+        });
+        // Lichtenberg "fern" marks bloom after the current
+        var G = ramp(t, 11.5, 14.6) * (FERNS.maxGen + 1);
+        FERNS.segs.forEach(function (s) {
+          if (s.gen > G) return;
+          var k = clamp01(G - s.gen);
+          var x2 = lerp(s.x1, s.x2, k), y2 = lerp(s.y1, s.y2, k);
+          line(s.x1, s.y1, x2, y2, s.w + 0.6, C.fernLight);
+          line(s.x1, s.y1, x2, y2, s.w, C.fern);
+        });
+        vignette(0.25, "rgba(120,40,40,");
+      }
+      var CAM_S = [[7.85, 90, 160, 40], [9.0, 90, 160, 1], [15.35, 92, 158, 1.08], [15.75, 120, 220, 40]];
+
+      // ============================================================ HEART
+      var BEATS = (function () {
+        var b = [];
+        for (var x = 16.1; x > 0; x -= 0.8) b.push(x);
+        for (var y = 19.25; y < 31; y += 0.86) b.push(y);
+        return b.sort(function (p, q) { return p - q; });
+      })();
+      function G(x, s) { return Math.exp(-x * x / (2 * s * s)); }
+      function nearestBeat(tau) {
+        var best = 1e9;
+        for (var i = 0; i < BEATS.length; i++) if (Math.abs(tau - BEATS[i]) < Math.abs(best)) best = tau - BEATS[i];
+        return best;
+      }
+      function ecgAt(tau) {
+        var d = nearestBeat(tau);
+        if (Math.abs(d) > 0.5) return 0;
+        return 0.15 * G(d + 0.16, 0.03) - 0.2 * G(d + 0.02, 0.008) + G(d, 0.012) - 0.35 * G(d - 0.025, 0.01) + 0.3 * G(d - 0.25, 0.05);
+      }
+      function heartPath(cx, cy, s) {
+        g.beginPath();
+        g.moveTo(cx, cy + 30 * s);
+        g.bezierCurveTo(cx - 40 * s, cy + 6 * s, cx - 34 * s, cy - 30 * s, cx - 12 * s, cy - 26 * s);
+        g.bezierCurveTo(cx - 4 * s, cy - 24 * s, cx, cy - 16 * s, cx, cy - 12 * s);
+        g.bezierCurveTo(cx, cy - 16 * s, cx + 6 * s, cy - 26 * s, cx + 16 * s, cy - 26 * s);
+        g.bezierCurveTo(cx + 36 * s, cy - 26 * s, cx + 38 * s, cy + 8 * s, cx, cy + 30 * s);
+        g.closePath();
+      }
+      function drawHeart(t) {
+        var cam = camAt(CAM_H, t);
+        screen(); rect(0, 0, W, H, C.cavity);
+        setCam(cam, 1);
+        g.fillStyle = vgrad(0, 320, [[0, C.cavityDark], [0.4, C.cavity], [1, C.cavityDark]]); g.fillRect(-200, -200, 600, 760);
+        var stopped = t >= 16.4 && t < 19.25;
+        // lungs
+        [[34, 104, 1], [146, 104, -1]].forEach(function (L) {
+          ell(L[0], L[1], 30, 52, 0, C.lungLine); ell(L[0], L[1], 28, 50, 0, C.lung);
+          for (var b = 0; b < 4; b++) line(L[0] + L[2] * 14, 60, L[0] - L[2] * (4 + b * 4), 80 + b * 18, 0.8, C.lungLine);
+        });
+        // ribs on the sides
+        for (var r = 0; r < 6; r++) {
+          var y = 40 + r * 24;
+          g.strokeStyle = C.ribShade; g.lineWidth = 5;
+          g.beginPath(); g.ellipse(90, y + 30, 92, 34, 0, Math.PI * 1.08, Math.PI * 1.32); g.stroke();
+          g.beginPath(); g.ellipse(90, y + 30, 92, 34, 0, Math.PI * 1.68, Math.PI * 1.92); g.stroke();
+          g.strokeStyle = C.rib; g.lineWidth = 3.4;
+          g.beginPath(); g.ellipse(90, y + 30, 92, 34, 0, Math.PI * 1.08, Math.PI * 1.32); g.stroke();
+          g.beginPath(); g.ellipse(90, y + 30, 92, 34, 0, Math.PI * 1.68, Math.PI * 1.92); g.stroke();
+        }
+        // great vessels
+        line(98, 70, 98, 40, 7, C.heartDark); line(98, 70, 98, 40, 5, C.heart);
+        g.strokeStyle = C.heart; g.lineWidth = 5; g.beginPath(); g.arc(108, 40, 10, Math.PI, 0); g.stroke();
+        line(78, 72, 72, 44, 5, C.vein);
+        // the heart itself: contracts on each beat, still when stopped
+        var d = nearestBeat(t);
+        var squeeze = stopped ? 0 : 0.08 * G(d - 0.08, 0.06);
+        var quiver = stopped ? Math.sin(t * 40) * 0.004 : 0;
+        var s = 1 - squeeze + quiver;
+        heartPath(90, 104, s * 1.02); g.fillStyle = C.heartDark; g.fill();
+        heartPath(90, 102, s); g.fillStyle = stopped ? mix(C.heart, C.heartDark, 0.45) : C.heart; g.fill();
+        ell(74, 86, 8 * s, 5 * s, -0.5, C.heartLight);
+        line(92, 82, 84, 118, 0.9, C.heartDark); line(84, 118, 88, 128, 0.8, C.heartDark);
+        // natural pacemaker (SA node) — sparks it back to life
+        disc(104, 80, 2, C.spark);
+        if (t >= 19.2 && t < 19.65) {
+          var k = (t - 19.2) / 0.45;
+          for (var i = 0; i < 10; i++) {
+            var a = i * 0.628 + 0.3;
+            line(104 + Math.cos(a) * 3, 80 + Math.sin(a) * 3, 104 + Math.cos(a) * (6 + 16 * k), 80 + Math.sin(a) * (6 + 16 * k), 1.2 * (1 - k) + 0.3, i % 2 ? C.spark : C.white);
+          }
+          g.globalAlpha = 0.5 * (1 - k); disc(90, 102, 40, C.white); g.globalAlpha = 1;
+        }
+        // ECG monitor
+        rrect(14, 212, 152, 64, 4, C.ink);
+        rrect(17, 215, 146, 58, 3, C.panel);
+        for (var gx = 0; gx < 146; gx += 12) rect(17 + gx, 215, 0.5, 58, C.grid);
+        for (var gy = 0; gy < 58; gy += 12) rect(17, 215 + gy, 146, 0.5, C.grid);
+        g.strokeStyle = stopped ? C.alarm : C.ecg; g.lineWidth = 1.1; g.lineJoin = "round";
+        g.beginPath();
+        for (var px = 0; px <= 140; px += 0.5) {
+          var tau = t - 2.6 + (px / 140) * 2.6;
+          var v = ecgAt(tau);
+          var yy = 250 - v * 22;
+          if (px === 0) g.moveTo(20 + px, yy); else g.lineTo(20 + px, yy);
+        }
+        g.stroke();
+        disc(160, 250 - ecgAt(t) * 22, 1.4, C.white);
+        var bpm = stopped ? "0" : t < 16.4 ? "75" : "70";
+        worldText("BPM " + bpm, 46, 219, 1, stopped && Math.floor(t * 3) % 2 ? C.alarm : C.ecg);
+        vignette(0.2, "rgba(120,20,40,");
+      }
+      var CAM_H = [[15.45, 90, 100, 40], [16.5, 90, 160, 1], [22.2, 90, 158, 1.05], [22.65, 92, 104, 40]];
+
+      // ============================================================ captions + timeline
+      PX.setup(C, {
+        scenes: { field: drawField, skin: drawSkin, heart: drawHeart },
+        sceneAt: function (t) { return t < 8 ? "field" : t < 15.6 ? "skin" : t < 22.5 ? "heart" : "field"; },
+        cuts: [[8.0, "field", "skin"], [15.6, "skin", "heart"], [22.5, "heart", "field"]],
+        captions: [
+          { a: 0.4, b: 3.5, lines: [[["WHAT IF LIGHTNING", C.paper]], [["HITS YOU?", C.gold]]] },
+          { a: 4.4, b: 7.6, lines: [[["300 MILLION VOLTS", C.gold]], [["5X HOTTER THAN THE SUN", C.paper]]] },
+          { a: 8.7, b: 11.5, lines: [[["THE CURRENT RACES", C.paper]], [["OVER YOUR SKIN", C.gold]]] },
+          { a: 11.9, b: 15.2, lines: [[["IT LEAVES", C.paper]], [["FERN-SHAPED MARKS", C.gold]]] },
+          { a: 16.3, b: 18.9, lines: [[["YOUR HEART CAN ", C.paper], ["STOP", C.gold]]] },
+          { a: 19.4, b: 22.2, lines: [[["...THEN RESTART", C.paper]], [["ON ITS OWN", C.gold]]] },
+          { a: 23.0, b: 25.5, lines: [[["SAFE TO TOUCH:", C.paper]], [["START CPR", C.gold]]] },
+          { a: 25.8, b: 27.6, lines: [[["9 IN 10", C.gold], [" SURVIVE", C.paper]]] },
+          { a: 27.8, b: 29.6, lines: [[["THUNDER?", C.paper]], [["GO INDOORS", C.gold]]] },
+        ],
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 30, duration: 30, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

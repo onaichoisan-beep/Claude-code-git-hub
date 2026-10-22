@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Cracking Knuckles</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #6ee8c0;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #6ee8c0;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: sound effects only -->
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script>
+      var C = {
+        mint: "#6ee8c0", mintLight: "#b8f8e0", mintDark: "#2fc89a", dot: "#e6fff4",
+        skin: "#ffc29a", skinShade: "#e8956a", skinLight: "#ffe0c8", sleeve: "#5a6af0", sleeveDark: "#3a48c0",
+        burst: "#ffe040", burstLight: "#fff6b0",
+        tissue: "#ffc8a8", tissueDark: "#f0a080", tendon: "#fff0e0", tendonLine: "#f0d0b0",
+        bone: "#fff4dc", boneShade: "#e8d0a8", boneLine: "#c8a878", cartilage: "#bfe8ff",
+        capsule: "#ff6a9a", fluid: "#5ae8e0", fluidLight: "#c0fff8", fluidDark: "#2ab8c0", gas: "#ffffff",
+        gaugeFace: "#ffffff", needle: "#ff3a3a",
+        sun: "#ffe27a", sunLight: "#fff3b8", sunDark: "#ffc040",
+        coat: "#f4f6ff", coatShade: "#c8d0e8", hairGrey: "#d8d8e0", tie: "#3a6ad8", check: "#3cd070", checkDark: "#1f9a4a",
+        ink: "#06050a", paper: "#f1eef4", gold: "#ffd23f", white: "#ffffff",
+      };
+
+      // ============================================================ HANDS
+      var CX = 90, WY = 320, PALM_TOP = 231;
+      var FINGERS = [{ x: -30, w: 15, h: 56 }, { x: -12, w: 16, h: 64 }, { x: 6, w: 16, h: 60 }, { x: 24, w: 14, h: 48 }];
+      var KNUCKLE = { x: CX + 31, y: PALM_TOP };
+      var DOTS = (function () {
+        var r = rng(5), a = [];
+        for (var i = 0; i < 14; i++) a.push({ x: r() * W, y: r() * H, r: 4 + r() * 12, s: r() * 6 });
+        return a;
+      })();
+      function bg(t, top, mid, bot) {
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, top], [0.6, mid], [1, bot]]); g.fillRect(0, 0, W, H);
+        DOTS.forEach(function (d) {
+          var y = ((d.y - t * 6) % (H + 40) + H + 40) % (H + 40) - 20;
+          g.globalAlpha = 0.35; disc(d.x + Math.sin(t + d.s) * 3, y, d.r, C.dot); g.globalAlpha = 1;
+        });
+      }
+      function grip(t) {
+        // the other hand: arrives, pulls the pinky, lets go
+        if (t < 0.9 || t > 3.95) return null;
+        var inX = 70 * (1 - easeOut((t - 0.9) / 0.9));
+        var pull = t < 2.0 ? 0 : t < 2.6 ? ramp(t, 2.0, 2.6) : 1 - 0.7 * ramp(t, 2.6, 2.9);
+        return { off: inX, lift: 4 * pull };
+      }
+      function drawHand(t, gr) {
+        var sway = Math.sin(t * 1.3) * 0.8;
+        // sleeve + wrist
+        rrect(CX - 34, WY - 6, 68, 60, 8, C.sleeveDark); rrect(CX - 32, WY - 4, 64, 60, 8, C.sleeve);
+        rect(CX - 24, WY - 30, 48, 30, C.skin);
+        // thumb
+        g.save(); g.translate(CX - 36, WY - 58); g.rotate(-0.55);
+        rrect(-8, -40, 16, 46, 7, C.skinShade); rrect(-7, -40, 14, 44, 7, C.skin);
+        g.restore();
+        // fingers
+        FINGERS.forEach(function (f, i) {
+          var lift = i === 3 && gr ? gr.lift : 0;
+          var x = CX + f.x, top = PALM_TOP - f.h - lift + sway * (i % 2 ? 1 : -1) * 0.3;
+          rrect(x - 0.5, top - 0.5, f.w + 1, f.h + 12 + lift, 7, C.skinShade);
+          rrect(x, top, f.w, f.h + 12 + lift, 7, C.skin);
+          rect(x + 3, top + f.h * 0.3, f.w - 6, 0.8, C.skinShade);
+          rect(x + 3, top + f.h * 0.62, f.w - 6, 0.8, C.skinShade);
+          rect(x + 3, top + 4, 3, f.h * 0.5, C.skinLight);
+        });
+        // palm
+        rrect(CX - 39, PALM_TOP - 7, 78, 94, 16, C.skinShade);
+        rrect(CX - 38, PALM_TOP - 6, 76, 92, 16, C.skin);
+        g.strokeStyle = C.skinShade; g.lineWidth = 0.9;
+        g.beginPath(); g.moveTo(CX - 30, PALM_TOP + 20); g.quadraticCurveTo(CX, PALM_TOP + 10, CX + 30, PALM_TOP + 18); g.stroke();
+        g.beginPath(); g.moveTo(CX - 26, PALM_TOP + 36); g.quadraticCurveTo(CX - 4, PALM_TOP + 30, CX + 20, PALM_TOP + 40); g.stroke();
+        g.beginPath(); g.moveTo(CX - 20, PALM_TOP + 70); g.quadraticCurveTo(CX - 26, PALM_TOP + 40, CX - 14, PALM_TOP + 22); g.stroke();
+        // gripping hand from the right
+        if (gr) {
+          var gx = CX + 18 + gr.off, gy = PALM_TOP - 42 - gr.lift;
+          rect(gx + 30, gy + 4, 80, 20, C.sleeveDark); rect(gx + 30, gy + 5, 80, 18, C.sleeve);
+          rrect(gx - 0.5, gy - 0.5, 35, 27, 9, C.skinShade); rrect(gx, gy, 34, 26, 9, C.skin);
+          for (var k = 0; k < 3; k++) rect(gx + 3, gy + 7 + k * 6, 22, 0.8, C.skinShade);
+          rrect(gx - 3, gy + 2, 20, 9, 4, C.skinShade); rrect(gx - 2, gy + 2.5, 18, 8, 4, C.skin);
+        }
+      }
+      function drawPop(t, x, y, t0, size) {
+        var a = t - t0;
+        if (a < 0 || a > 0.45) return;
+        var k = a / 0.45;
+        for (var i = 0; i < 12; i++) {
+          var ang = i * 0.5236 + 0.2;
+          var r1 = size * (0.3 + 0.7 * k), r2 = size * (0.8 + 0.9 * k);
+          line(x + Math.cos(ang) * r1, y + Math.sin(ang) * r1, x + Math.cos(ang) * r2, y + Math.sin(ang) * r2, 2.2 * (1 - k) + 0.4, i % 2 ? C.burst : C.white);
+        }
+        g.globalAlpha = 0.8 * (1 - k); disc(x, y, size * 0.5 * (1 - k), C.burstLight); g.globalAlpha = 1;
+      }
+      function drawHands(t) {
+        var keys = t < 15 ? [[0, 92, 150, 1.4], [3.0, 94, 152, 1.45], [4.05, KNUCKLE.x, KNUCKLE.y, 40]]
+          : [[26.15, KNUCKLE.x, KNUCKLE.y - 30, 6], [27.4, 92, 150, 1.4], [30, 92, 150, 1.4]];
+        var cam = shake(camAt(keys, t), t, 2.6, 6, 0.35);
+        bg(t, C.mintLight, C.mint, C.mintDark);
+        setCam(cam, 1);
+        drawHand(t, grip(t));
+        drawPop(t, KNUCKLE.x, KNUCKLE.y - 24, 2.6, 22);
+        vignette(0.15, "rgba(20,90,70,");
+      }
+
+      // ============================================================ JOINT (cut-away)
+      var JY = 240;
+      function gap(t) {
+        var g0 = 6 + 12 * ramp(t, 7.6, 11.4);
+        if (t > 11.6) g0 = 18 - 2 * ramp(t, 11.6, 11.8);
+        if (t > 12.8) g0 = 16 - 10 * ramp(t, 12.8, 18.5);
+        return g0;
+      }
+      function bubbleR(t) {
+        if (t < 11.6) return 0;
+        if (t < 11.72) return 12 * (t - 11.6) / 0.12;
+        if (t < 12.0) return 12 - 2 * (t - 11.72) / 0.28;
+        return 10 - 5 * ramp(t, 14.8, 19.0);
+      }
+      var SPECKS = (function () {
+        var r = rng(41), a = [];
+        for (var i = 0; i < 34; i++) { var an = r() * 6.28, d = Math.sqrt(r()); a.push({ a: an, d: d, s: r() * 6 }); }
+        return a;
+      })();
+      function boneShape(x0, w, y0, y1, endY, dir) {
+        // shaft from y0 to y1, rounded head bulging toward the joint (dir: +1 down, -1 up)
+        g.beginPath();
+        g.moveTo(x0, y0); g.lineTo(x0, y1);
+        g.quadraticCurveTo(x0 - 4, endY - dir * 6, x0 + w / 2, endY);
+        g.quadraticCurveTo(x0 + w + 4, endY - dir * 6, x0 + w, y1);
+        g.lineTo(x0 + w, y0); g.closePath();
+      }
+      function drawJoint(t) {
+        var keys = [[3.75, 90, 250, 40], [4.9, 90, 168, 1], [19.0, 90, 166, 1.05], [19.55, 90, 200, 0.45]];
+        var cam = shake(camAt(keys, t), t, 11.6, 10, 0.5);
+        bg(t, C.mintLight, C.mint, C.mintDark);
+        setCam(cam, 1);
+        // finger cross-section
+        rrect(42, -200, 96, 700, 30, C.tissueDark); rrect(44, -200, 92, 700, 30, C.tissue);
+        rect(48, -200, 10, 700, C.tendon);
+        for (var k = 0; k < 40; k++) rect(49, -200 + k * 18, 8, 0.8, C.tendonLine);
+        rect(122, -200, 10, 700, C.tendon);
+        var gp = gap(t), bR = bubbleR(t);
+        // capsule full of synovial fluid
+        var ry = 22 + gp * 0.7;
+        ell(90, JY, 38, ry + 3, 0, C.capsule);
+        ell(90, JY, 35, ry, 0, C.fluid);
+        ell(80, JY - ry * 0.4, 12, 3, -0.2, C.fluidLight);
+        // dissolved gas specks: drift, then rush into the bubble at the pop
+        var rush = ramp(t, 11.55, 11.7);
+        SPECKS.forEach(function (s) {
+          if (rush >= 1 && t < 19) return;
+          var x = 90 + Math.cos(s.a + t * 0.4) * 30 * s.d, y = JY + Math.sin(s.a + t * 0.4) * ry * 0.9 * s.d;
+          x = lerp(x, 90, rush); y = lerp(y, JY, rush);
+          rect(x, y, 1, 1, C.gas);
+        });
+        // bones (upper = finger, lower = hand)
+        var upEnd = JY - gp / 2, loEnd = JY + gp / 2;
+        boneShape(72, 36, -200, upEnd - 8, upEnd, 1); g.fillStyle = C.boneLine; g.fill();
+        boneShape(73, 34, -200, upEnd - 8, upEnd - 1, 1); g.fillStyle = C.bone; g.fill();
+        rect(80, -200, 5, upEnd - 20 + 200, C.boneShade);
+        boneShape(70, 40, 600, loEnd + 8, loEnd, -1); g.fillStyle = C.boneLine; g.fill();
+        boneShape(71, 38, 600, loEnd + 8, loEnd + 1, -1); g.fillStyle = C.bone; g.fill();
+        rect(78, loEnd + 20, 5, 400, C.boneShade);
+        // cartilage caps
+        g.strokeStyle = C.cartilage; g.lineWidth = 2.4;
+        g.beginPath(); g.moveTo(73, upEnd - 8); g.quadraticCurveTo(90, upEnd + 2, 107, upEnd - 8); g.stroke();
+        g.beginPath(); g.moveTo(71, loEnd + 8); g.quadraticCurveTo(90, loEnd - 2, 109, loEnd + 8); g.stroke();
+        // the gas bubble
+        if (bR > 0.2) {
+          disc(90, JY, bR + 1, C.fluidDark);
+          disc(90, JY, bR, C.gas);
+          disc(90 - bR * 0.35, JY - bR * 0.35, bR * 0.3, C.fluidLight);
+        }
+        if (t > 11.6 && t < 12.3) {
+          var k2 = (t - 11.6) / 0.7;
+          g.strokeStyle = C.white; g.lineWidth = 1.5 * (1 - k2) + 0.3;
+          g.beginPath(); g.arc(90, JY, 12 + 40 * k2, 0, 6.2832); g.stroke();
+        }
+        drawPop(t, 90, JY, 11.6, 30);
+        // pulling arrows
+        if (t > 7.5 && t < 11.7) {
+          var a = 0.6 + 0.4 * Math.sin(t * 8);
+          g.globalAlpha = a;
+          poly([[90, 112 - 8], [82, 122 - 8], [98, 122 - 8]], C.white); rect(87, 114, 6, 12, C.white);
+          poly([[90, 330 + 8], [82, 320 + 8], [98, 320 + 8]], C.white); rect(87, 316, 6, 12, C.white);
+          g.globalAlpha = 1;
+        }
+        // pressure gauge, then a stopwatch for the reset time
+        screen();
+        if (t < 14.9) {
+          var pressure = 1 - ramp(t, 7.6, 11.4);
+          if (t > 11.6) pressure = ramp(t, 11.6, 12.4) * 0.8;
+          disc(26, 40, 17, C.ink); disc(26, 40, 15, C.gaugeFace);
+          for (var i = 0; i <= 6; i++) { var an = Math.PI * (0.8 + i * 0.233); line(26 + Math.cos(an) * 11, 40 + Math.sin(an) * 11, 26 + Math.cos(an) * 14, 40 + Math.sin(an) * 14, 0.8, C.ink); }
+          var na = Math.PI * (0.8 + 1.4 * pressure);
+          line(26, 40, 26 + Math.cos(na) * 12, 40 + Math.sin(na) * 12, 1.4, C.needle);
+          disc(26, 40, 1.6, C.ink);
+          rect(4, 60, 44, 10, C.ink); worldText("PRESSURE", 26, 61.5, 0.85, C.paper);
+        } else {
+          var mins = Math.min(20, Math.floor(ramp(t, 15.0, 18.8) * 20));
+          disc(26, 42, 17, C.ink); disc(26, 42, 15, C.gaugeFace); rect(23, 22, 6, 4, C.ink);
+          var sa = -Math.PI / 2 + ramp(t, 15.0, 18.8) * Math.PI * 2 * 4;
+          line(26, 42, 26 + Math.cos(sa) * 12, 42 + Math.sin(sa) * 12, 1.4, C.needle);
+          disc(26, 42, 1.6, C.ink);
+          rect(4, 62, 44, 10, C.ink); worldText(mins + " MIN", 26, 63.5, 1, C.gold);
+        }
+        vignette(0.15, "rgba(20,90,70,");
+      }
+
+      // ============================================================ THE DOCTOR (60-year experiment)
+      function smallHand(x, y, cracked, t) {
+        rrect(x - 8, y - 4, 16, 16, 5, C.skinShade); rrect(x - 7.5, y - 3.5, 15, 15, 5, C.skin);
+        for (var i = 0; i < 4; i++) rrect(x - 7 + i * 3.8, y - 14, 3.2, 12, 1.6, C.skin);
+        rrect(x + (cracked ? -12 : 7), y + 1, 6, 4, 2, C.skin);
+      }
+      function drawDoctor(t) {
+        var cam = camAt([[19.25, 90, 150, 3], [20.3, 90, 160, 1], [26.45, 90, 160, 1]], t);
+        bg(t, C.sunLight, C.sun, C.sunDark);
+        setCam(cam, 1);
+        // soft rays
+        g.globalAlpha = 0.25;
+        for (var r = 0; r < 12; r++) {
+          var a = r * 0.5236 + t * 0.1;
+          poly([[90, 80], [90 + Math.cos(a) * 300, 80 + Math.sin(a) * 300], [90 + Math.cos(a + 0.2) * 300, 80 + Math.sin(a + 0.2) * 300]], C.white);
+        }
+        g.globalAlpha = 1;
+        // coat body
+        rrect(50, 100, 80, 260, 22, C.coatShade); rrect(52, 102, 76, 258, 20, C.coat);
+        poly([[90, 104], [78, 104], [90, 150]], C.tie); poly([[84, 104], [96, 104], [90, 140]], C.tie);
+        line(76, 104, 90, 160, 1, C.coatShade); line(104, 104, 90, 160, 1, C.coatShade);
+        g.strokeStyle = C.ink; g.lineWidth = 1; g.beginPath(); g.arc(90, 112, 12, 0.2, Math.PI - 0.2); g.stroke();
+        disc(84, 124, 2.2, C.ink); disc(84, 124, 1.2, C.coatShade);
+        // arms raised, hands up
+        line(58, 112, 36, 74, 9, C.coatShade); line(58, 112, 36, 74, 7.5, C.coat);
+        line(122, 112, 144, 74, 9, C.coatShade); line(122, 112, 144, 74, 7.5, C.coat);
+        var cracking = t > 20.0 && t < 23.4;
+        smallHand(36, 66, false, t);
+        smallHand(144, 66, true, t);
+        if (cracking) {
+          var period = 0.38, ph = ((t - 20.0) % period) / period;
+          drawPop(t, 144, 54, t - ph * period, 10);
+        }
+        // head
+        rect(84, 92, 12, 12, C.skinShade);
+        disc(90, 78, 21, C.skin);
+        g.fillStyle = C.hairGrey;
+        g.beginPath(); g.arc(90, 78, 22, Math.PI * 0.85, Math.PI * 1.25); g.lineTo(90, 78); g.fill();
+        g.beginPath(); g.arc(90, 78, 22, Math.PI * 1.75, Math.PI * 2.15); g.lineTo(90, 78); g.fill();
+        disc(82, 62, 3, C.skinLight);
+        g.strokeStyle = C.ink; g.lineWidth = 1.6;
+        g.beginPath(); g.arc(82, 78, 5, 0, 6.2832); g.stroke(); g.beginPath(); g.arc(98, 78, 5, 0, 6.2832); g.stroke();
+        line(87, 78, 93, 78, 0.8, C.ink);
+        disc(82, 78, 1.4, C.ink); disc(98, 78, 1.4, C.ink);
+        g.beginPath(); g.arc(90, 86, 6, 0.2, Math.PI - 0.2); g.stroke();
+        line(88, 70, 76, 72, 1.2, C.hairGrey); line(92, 70, 104, 72, 1.2, C.hairGrey);
+        // hand labels
+        rect(18, 84, 36, 9, C.ink); worldText("NEVER", 36, 85, 1, C.paper);
+        rect(122, 84, 44, 9, C.ink); worldText("CRACKED", 144, 85, 1, C.gold);
+        // year counter
+        var yr = Math.max(1, Math.min(60, Math.ceil(ramp(t, 20.0, 23.4) * 60)));
+        rrect(42, 222, 96, 22, 4, C.ink);
+        worldText("YEAR " + yr, 90, 226, 2, C.gold);
+        // result: both hands healthy
+        var ok = ramp(t, 23.6, 24.0);
+        if (ok > 0) {
+          [36, 144].forEach(function (hx) {
+            var s = ok;
+            g.globalAlpha = 1;
+            disc(hx, 40, 11 * s, C.checkDark); disc(hx, 40, 10 * s, C.check);
+            line(hx - 5 * s, 40, hx - 1.5 * s, 44 * 1 - 0 + (s - 1) * 4, 2.4, C.white);
+            line(hx - 1.5 * s, 44 + (s - 1) * 4, hx + 6 * s, 35, 2.4, C.white);
+          });
+        }
+        vignette(0.15, "rgba(140,90,20,");
+      }
+
+      PX.setup(C, {
+        scenes: { hands: drawHands, joint: drawJoint, doc: drawDoctor },
+        sceneAt: function (t) { return t < 3.9 ? "hands" : t < 19.4 ? "joint" : t < 26.3 ? "doc" : "hands"; },
+        cuts: [[3.9, "hands", "joint"], [19.4, "joint", "doc"], [26.3, "doc", "hands"]],
+        captions: [
+          { a: 0.3, b: 3.6, lines: [[["WHAT'S THAT ", C.paper], ["POP?", C.gold]]] },
+          { a: 4.6, b: 7.3, lines: [[["YOUR JOINTS ARE", C.paper]], [["FILLED WITH FLUID", C.gold]]] },
+          { a: 7.6, b: 11.5, lines: [[["PULLING STRETCHES IT", C.paper]], [["PRESSURE DROPS", C.gold]]] },
+          { a: 11.8, b: 14.8, lines: [[["GAS FORMS A BUBBLE", C.paper]], [["THAT'S THE POP!", C.gold]]] },
+          { a: 15.1, b: 19.1, lines: [[["IT TAKES ~20 MINUTES", C.paper]], [["TO CRACK AGAIN", C.gold]]] },
+          { a: 19.9, b: 23.4, lines: [[["ONE DOCTOR CRACKED", C.paper]], [["ONE HAND FOR 60 YEARS", C.gold]]] },
+          { a: 23.6, b: 26.1, lines: [[["NO ARTHRITIS", C.gold]], [["IN EITHER HAND", C.paper]]] },
+          { a: 26.6, b: 29.4, lines: [[["VERDICT: ", C.paper], ["HARMLESS", C.gold]], [["PAIN? SEE A DOCTOR", C.paper]]] },
+        ],
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 30, duration: 30, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
