@@ -466,9 +466,9 @@ slam("#c-stamp", 7.7);
 draw("#c-arc", 8.48, 0.5);
 // electrons orbit on A, then hop to B
 pop("#c-e1", 7.2); pop("#c-e2", 7.35); pop("#c-h", 7.5, {});
-hop("#c-e1", 9.14, 0.75, 480, 0, 150);
-hop("#c-e2", 9.4, 0.75, 520, 0, 150);
-hop("#c-h", 9.92, 0.65, 470, 0, 150);
+hop("#c-e1", 9.14, 0.75, 500, -10, 150);
+hop("#c-e2", 9.4, 0.75, 540, 110, 150);
+hop("#c-h", 9.92, 0.65, 400, 40, 150);
 tl.to("#c-donor-b", { filter: "grayscale(1) brightness(.7)", duration: 0.3 }, 9.9);
 word("#c-ox", 10.0);
 tl.to("#c-acc-glow", { opacity: 1, duration: 0.3 }, 10.2);
