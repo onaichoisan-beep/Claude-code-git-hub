@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>From the Big Bang to Earth</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #000008;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000008;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: soft ambient sound effects only -->
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script>
+      var C = {
+        black: "#000008", void: "#05051a", deep: "#0b0b2e", indigo: "#1c1460", violet: "#4a1a8a", purple: "#7a2ac8",
+        magenta: "#d02ab0", pink: "#ff5ac8", rose: "#ff8ad8", red: "#ff3a3a", orange: "#ff7a1a", amber: "#ffaa2a",
+        yellow: "#ffd84a", cream: "#fff2b0", white: "#ffffff", ice: "#bfe8ff", cyan: "#4ae0ff", sky: "#2a9aff",
+        blue: "#2a5aff", navy: "#1a2a8a", teal: "#1ac8b0", green: "#3cd070", leaf: "#1f9a4a", brown: "#8a5a30",
+        sand: "#d8b070", lava: "#ff4a1a", lavaDark: "#8a1a0a", rock: "#5a4a5a", rockLight: "#8a7a8a", rockDark: "#2e2436",
+        cloud: "#f4f8ff", ocean: "#1a6ae8", oceanDeep: "#0a3aa8", moon: "#c8c8d8", moonDark: "#8a8aa0",
+        ink: "#06050a", paper: "#f1eef4", gold: "#ffd23f",
+      };
+      function glow(x, y, r, col, a) {
+        var c = hex(col);
+        var gr = g.createRadialGradient(x, y, 0, x, y, Math.max(r, 0.1));
+        gr.addColorStop(0, "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")");
+        gr.addColorStop(1, "rgba(" + c[0] + "," + c[1] + "," + c[2] + ",0)");
+        g.fillStyle = gr; g.beginPath(); g.arc(x, y, Math.max(r, 0.1), 0, 6.2832); g.fill();
+      }
+      function add() { g.globalCompositeOperation = "lighter"; }
+      function normal() { g.globalCompositeOperation = "source-over"; }
+      function starfield(seed, n, t, alpha, drift) {
+        var r = rng(seed);
+        for (var i = 0; i < n; i++) {
+          var x = r() * W, y = r() * H, k = r(), tw = 0.6 + 0.4 * Math.sin(t * 3 + i);
+          x = ((x + (drift || 0) * t * (0.3 + k)) % W + W) % W;
+          g.globalAlpha = alpha * tw;
+          var col = k > 0.9 ? C.ice : k > 0.8 ? C.cream : k > 0.7 ? C.rose : C.white;
+          rect(Math.floor(x), Math.floor(y), k > 0.95 ? 2 : 1, k > 0.95 ? 2 : 1, col);
+        }
+        g.globalAlpha = 1;
+      }
+      function spikes(x, y, len, col, a) {
+        g.globalAlpha = a;
+        line(x - len, y, x + len, y, 0.6, col); line(x, y - len, x, y + len, 0.6, col);
+        g.globalAlpha = a * 0.6;
+        line(x - len * 0.5, y - len * 0.5, x + len * 0.5, y + len * 0.5, 0.4, col); line(x - len * 0.5, y + len * 0.5, x + len * 0.5, y - len * 0.5, 0.4, col);
+        g.globalAlpha = 1;
+      }
+      var CX = 90, CY = 210; // the "dot" lives below the caption band
+
+      // ============================================================ 1. the dot (hook)
+      function sceneDot(t) {
+        screen(); rect(0, 0, W, H, C.black);
+        var swell = ramp(t, 1.5, 2.1);
+        add();
+        glow(CX, CY, 14 + 4 * Math.sin(t * 5) + 60 * swell, C.amber, 0.55);
+        glow(CX, CY, 6 + 30 * swell, C.cream, 0.9);
+        normal();
+        disc(CX, CY, 1.6 + 10 * swell, C.white);
+        spikes(CX, CY, 8 + 3 * Math.sin(t * 4) + 30 * swell, C.cream, 0.7);
+      }
+
+      // ============================================================ 2. the Big Bang: space stretches
+      var SPARKS = (function () { var r = rng(5), a = []; for (var i = 0; i < 90; i++) a.push({ a: r() * 6.2832, v: 0.4 + r(), c: r() }); return a; })();
+      function sceneBang(t) {
+        var k = clamp01((t - 1.9) / 2.6);
+        screen(); rect(0, 0, W, H, C.black);
+        // stretching grid of space
+        var sp = 6 + 60 * easeOut(k);
+        g.globalAlpha = 0.35 * (1 - ramp(t, 3.8, 4.6));
+        for (var i = -12; i <= 12; i++) {
+          line(CX + i * sp, -10, CX + i * sp, H + 10, 0.6, C.cyan);
+          line(-10, CY + i * sp, W + 10, CY + i * sp, 0.6, C.cyan);
+        }
+        g.globalAlpha = 1;
+        add();
+        var R = 6 + 300 * easeOut(k);
+        var rings = [[C.purple, 1.0], [C.magenta, 0.82], [C.orange, 0.64], [C.amber, 0.48], [C.yellow, 0.32], [C.cream, 0.18]];
+        rings.forEach(function (rg) { glow(CX, CY, R * rg[1] + 4, rg[0], 0.55); });
+        glow(CX, CY, R * 0.12 + 8, C.white, 1);
+        // streaks flying outward
+        SPARKS.forEach(function (s) {
+          var d = R * (0.2 + 0.8 * s.v), x = CX + Math.cos(s.a) * d, y = CY + Math.sin(s.a) * d;
+          var x2 = CX + Math.cos(s.a) * (d - 10 * s.v), y2 = CY + Math.sin(s.a) * (d - 10 * s.v);
+          line(x2, y2, x, y, 0.8, s.c > 0.66 ? C.pink : s.c > 0.33 ? C.yellow : C.cyan);
+        });
+        normal();
+        // turns into a hot fog
+        var fog = ramp(t, 3.6, 4.6);
+        if (fog > 0) { g.globalAlpha = 0.7 * fog; rect(0, 0, W, H, C.orange); g.globalAlpha = 1; }
+      }
+
+      // ============================================================ 3. the hot soup: first nuclei
+      var PARTS = (function () { var r = rng(9), a = []; for (var i = 0; i < 70; i++) a.push({ x: r() * W, y: r() * H, vx: (r() - 0.5) * 30, vy: (r() - 0.5) * 30, kind: r() < 0.75 ? "p" : "n", grp: Math.floor(r() * 14) }); return a; })();
+      var FOGB = (function () { var r = rng(10), a = []; for (var i = 0; i < 16; i++) a.push({ x: r() * W, y: r() * H, r: 30 + r() * 50, c: r() }); return a; })();
+      function hotFog(t, alpha) {
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.red], [0.5, C.orange], [1, C.amber]]); g.globalAlpha = alpha; g.fillRect(0, 0, W, H);
+        add();
+        FOGB.forEach(function (b, i) {
+          var x = b.x + Math.sin(t * 0.7 + i) * 14, y = b.y + Math.cos(t * 0.5 + i) * 12;
+          glow(x, y, b.r, b.c > 0.5 ? C.yellow : C.pink, 0.35 * alpha);
+        });
+        normal();
+        g.globalAlpha = 1;
+      }
+      function particle(x, y, kind, s) {
+        disc(x, y, 2.2 * s, kind === "p" ? C.red : C.sky);
+        disc(x - 0.6 * s, y - 0.6 * s, 0.8 * s, kind === "p" ? C.rose : C.ice);
+      }
+      function nucleusPos(i, p, t, gather) {
+        var x = ((p.x + p.vx * t) % W + W) % W, y = ((p.y + p.vy * t) % H + H) % H;
+        if (p.grp < 7 && gather > 0) {
+          // bind into helium-like clumps around group centres
+          var gx = 22 + (p.grp % 4) * 44, gy = 40 + Math.floor(p.grp / 4) * 70 + (p.grp % 2) * 20;
+          var a = i * 2.4 + t, off = 2.4;
+          x = lerp(x, gx + Math.cos(a) * off, gather); y = lerp(y, gy + Math.sin(a) * off, gather);
+        }
+        return { x: x, y: y };
+      }
+      function sceneSoup(t) {
+        hotFog(t, 1);
+        var gather = ramp(t, 5.4, 6.8);
+        PARTS.forEach(function (p, i) { var q = nucleusPos(i, p, t, gather); particle(q.x, q.y, p.kind, 1); });
+        // electrons zipping
+        for (var e = 0; e < 30; e++) {
+          var x = ((e * 37 + t * 90) % (W + 20)) - 10, y = (e * 53) % H + Math.sin(t * 8 + e) * 6;
+          rect(x, y, 1, 1, C.white);
+        }
+      }
+
+      // ============================================================ 4. the fog clears: first light (CMB)
+      var CMB = (function () { var r = rng(12), a = []; for (var i = 0; i < 60; i++) a.push({ x: r() * W, y: r() * H, r: 8 + r() * 18, c: r() }); return a; })();
+      function sceneLight(t) {
+        var clear = ramp(t, 8.3, 9.2);
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.navy], [0.5, C.blue], [1, C.navy]]); g.fillRect(0, 0, W, H);
+        // the cosmic microwave background pattern shows through
+        CMB.forEach(function (b) { glow(b.x, b.y, b.r, b.c > 0.66 ? C.orange : b.c > 0.33 ? C.cyan : C.yellow, 0.55 * clear * (1 - ramp(t, 10.6, 11.4) * 0.5)); });
+        hotFog(t, 1 - clear);
+        // atoms: electrons now orbit the nuclei
+        PARTS.forEach(function (p, i) {
+          var q = nucleusPos(i, p, 7.2, 1);
+          var x = q.x + Math.sin(t * 0.3 + i) * 3, y = q.y + Math.cos(t * 0.3 + i) * 3;
+          if (i % 3) return;
+          particle(x, y, p.kind, 0.9);
+          var a = t * 6 + i;
+          g.strokeStyle = C.ice; g.lineWidth = 0.4; g.globalAlpha = 0.6 * clear;
+          g.beginPath(); g.ellipse(x, y, 5, 3, i, 0, 6.2832); g.stroke(); g.globalAlpha = 1;
+          rect(x + Math.cos(a) * 5, y + Math.sin(a) * 3, 1, 1, C.white);
+        });
+        // light streams out in straight lines
+        if (clear > 0.3) {
+          g.globalAlpha = clear;
+          for (var l = 0; l < 14; l++) {
+            var y = (l * 23) % H, x = ((l * 41 + t * 120) % (W + 60)) - 30;
+            g.strokeStyle = l % 2 ? C.yellow : C.cream; g.lineWidth = 0.8;
+            g.beginPath();
+            for (var s = 0; s < 24; s++) { var xx = x + s, yy = y + Math.sin((xx + t * 50) * 0.6) * 1.5; if (s === 0) g.moveTo(xx, yy); else g.lineTo(xx, yy); }
+            g.stroke();
+          }
+          g.globalAlpha = 1;
+        }
+      }
+
+      // ============================================================ 5. dark ages -> first stars
+      var NODES = (function () { var r = rng(14), a = []; for (var i = 0; i < 9; i++) a.push({ x: 20 + r() * 140, y: 30 + r() * 270, t0: 12.2 + i * 0.28, c: r() }); return a; })();
+      function sceneStars(t) {
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.void], [0.5, C.indigo], [1, C.void]]); g.fillRect(0, 0, W, H);
+        var pull = ramp(t, 11.3, 13.4);
+        add();
+        // gas filaments of the cosmic web pulling together
+        NODES.forEach(function (n, i) {
+          var m = NODES[(i + 3) % NODES.length];
+          g.globalAlpha = 0.35;
+          line(n.x, n.y, m.x, m.y, 3 - pull * 1.5, C.purple);
+          g.globalAlpha = 1;
+          glow(n.x, n.y, 26 - 12 * pull, n.c > 0.5 ? C.violet : C.magenta, 0.45);
+        });
+        normal();
+        starfield(21, 40, t, ramp(t, 13.0, 14.4) * 0.8, 0);
+        // first stars ignite, one by one: big, blue-white
+        add();
+        NODES.forEach(function (n) {
+          var a = clamp01((t - n.t0) / 0.5);
+          if (a <= 0) return;
+          glow(n.x, n.y, 16 * a, C.cyan, 0.6);
+          glow(n.x, n.y, 6 * a, C.white, 1);
+        });
+        normal();
+        NODES.forEach(function (n) { var a = clamp01((t - n.t0) / 0.5); if (a > 0) { disc(n.x, n.y, 1.4 * a, C.white); spikes(n.x, n.y, 9 * a, C.ice, 0.8); } });
+      }
+
+      // ============================================================ 6. galaxies + a supernova forges elements
+      function galaxy(x, y, s, rot, c1, c2, t) {
+        add();
+        glow(x, y, 16 * s, c1, 0.5);
+        for (var arm = 0; arm < 2; arm++) {
+          for (var k = 0; k < 40; k++) {
+            var f = k / 40, a = rot + arm * Math.PI + f * 4.2, r = 3 * s + f * 26 * s;
+            var px = x + Math.cos(a) * r, py = y + Math.sin(a) * r * 0.55;
+            glow(px, py, (3.2 - 2 * f) * s, f > 0.5 ? c2 : C.cream, 0.6);
+          }
+        }
+        glow(x, y, 5 * s, C.white, 1);
+        normal();
+      }
+      var ELEMS = [{ s: "C", c: "#3a3a3a" }, { s: "O", c: "#2a5aff" }, { s: "FE", c: "#b04a2a" }, { s: "N", c: "#3cd070" }];
+      function sceneGalaxies(t) {
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.void], [0.6, C.deep], [1, C.indigo]]); g.fillRect(0, 0, W, H);
+        starfield(31, 120, t, 0.9, 0);
+        var z = 1 + 0.1 * (t - 14.8);
+        galaxy(50, 74, 1.2 * z, t * 0.5, C.yellow, C.sky, t);
+        galaxy(142, 126, 0.8 * z, -t * 0.6 + 1, C.amber, C.pink, t);
+        galaxy(36, 282, 0.7 * z, t * 0.7 + 2, C.cream, C.teal, t);
+        // a dying star blooms into a colourful supernova remnant
+        var sx = 120, sy = 236, b = ramp(t, 15.6, 17.2);
+        add();
+        if (t < 15.6) glow(sx, sy, 5, C.red, 0.9);
+        if (b > 0) {
+          glow(sx, sy, 64 * b, C.magenta, 0.7);
+          glow(sx, sy, 44 * b, C.teal, 0.6);
+          glow(sx, sy, 24 * b, C.orange, 0.8);
+          glow(sx, sy, 10 * (1 - b) + 3, C.white, 1);
+        }
+        normal();
+        if (b > 0) {
+          g.globalAlpha = 0.9 * (1 - 0.3 * b);
+          g.strokeStyle = C.pink; g.lineWidth = 2.2; g.beginPath(); g.arc(sx, sy, 40 * b, 0, 6.2832); g.stroke();
+          g.strokeStyle = C.cyan; g.lineWidth = 1.4; g.beginPath(); g.arc(sx, sy, 30 * b, 0, 6.2832); g.stroke();
+          g.globalAlpha = 1;
+        }
+        if (t < 15.6) disc(sx, sy, 2.4, C.orange);
+        // the elements it forged fly out
+        ELEMS.forEach(function (e, i) {
+          var a = clamp01((t - 16.0 - i * 0.2) / 1.6);
+          if (a <= 0) return;
+          var ang = -2.4 + i * 0.75, d = 10 + 44 * easeOut(a);
+          var x = sx + Math.cos(ang) * d, y = sy + Math.sin(ang) * d;
+          disc(x, y, 6, C.white); disc(x, y, 5, e.c);
+          worldText(e.s, x, y - 3, 1, C.white);
+        });
+      }
+
+      // ============================================================ 7. a nebula collapses -> the Sun
+      var NEB = (function () { var r = rng(41), a = []; for (var i = 0; i < 22; i++) a.push({ x: r() * W, y: r() * H, r: 20 + r() * 40, c: r() }); return a; })();
+      var DUST = (function () { var r = rng(43), a = []; for (var i = 0; i < 140; i++) a.push({ a: r() * 6.2832, d: 10 + r() * 90, s: 0.6 + r() }); return a; })();
+      function sceneSun(t) {
+        screen(); rect(0, 0, W, H, C.void);
+        var collapse = ramp(t, 18.6, 20.8);
+        add();
+        NEB.forEach(function (n, i) {
+          var x = lerp(n.x, CX, collapse * 0.35), y = lerp(n.y, CY, collapse * 0.35);
+          glow(x, y, n.r * (1 - 0.3 * collapse), n.c > 0.66 ? C.pink : n.c > 0.33 ? C.sky : C.amber, 0.45 * (1 - 0.75 * collapse));
+        });
+        normal();
+        starfield(51, 60, t, 0.7, 0);
+        // spinning, flattening disk of dust around the young Sun
+        DUST.forEach(function (p, i) {
+          var a = p.a + t * (2.2 / Math.sqrt(p.d / 10)) * collapse;
+          var d = lerp(p.d * 1.6, p.d * 0.8, collapse);
+          var x = CX + Math.cos(a) * d, y = CY + Math.sin(a) * d * lerp(1, 0.28, collapse);
+          rect(x, y, collapse > 0.5 ? 2 : 1, 1, i % 3 === 0 ? C.amber : i % 3 === 1 ? C.sand : C.rose);
+        });
+        // the Sun ignites
+        var ig = ramp(t, 20.2, 21.2);
+        add();
+        glow(CX, CY, 10 + 50 * ig, C.orange, 0.6);
+        glow(CX, CY, 6 + 22 * ig, C.yellow, 0.9);
+        normal();
+        disc(CX, CY, 3 + 7 * ig, C.cream);
+        disc(CX, CY, 2 + 5 * ig, C.white);
+        if (ig > 0) spikes(CX, CY, 26 * ig, C.cream, 0.8);
+      }
+
+      // ============================================================ 8. Earth forms + Theia makes the Moon
+      var ROCKS = (function () { var r = rng(61), a = []; for (var i = 0; i < 40; i++) a.push({ a: r() * 6.2832, d: 40 + r() * 70, s: 1 + r() * 2.5, t0: 22.0 + r() * 1.6 }); return a; })();
+      function planet(x, y, r, molten, cool, t) {
+        disc(x, y, r + 0.8, C.lavaDark);
+        var base = mix(C.lava, C.rock, cool);
+        disc(x, y, r, base);
+        // glowing cracks while molten
+        if (molten > 0.05) {
+          g.globalAlpha = molten;
+          for (var k = 0; k < 7; k++) {
+            var a = k * 0.9 + t * 0.4;
+            line(x + Math.cos(a) * r * 0.2, y + Math.sin(a) * r * 0.3, x + Math.cos(a + 0.6) * r * 0.8, y + Math.sin(a + 0.6) * r * 0.7, 1, C.yellow);
+          }
+          g.globalAlpha = 1;
+        }
+        disc(x - r * 0.35, y - r * 0.35, r * 0.25, mix(C.amber, C.rockLight, cool));
+        // shadow side
+        g.globalAlpha = 0.5; g.fillStyle = C.rockDark;
+        g.beginPath(); g.arc(x, y, r, -0.6, Math.PI * 0.9); g.arc(x + r * 0.35, y + r * 0.2, r * 0.9, Math.PI * 0.9, -0.6, true); g.fill();
+        g.globalAlpha = 1;
+      }
+      function sceneEarthForms(t) {
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.void], [1, C.deep]]); g.fillRect(0, 0, W, H);
+        starfield(71, 90, t, 0.8, 0);
+        // the young Sun, off to the side
+        add(); glow(18, 40, 40, C.orange, 0.5); glow(18, 40, 14, C.yellow, 0.9); normal(); disc(18, 40, 7, C.cream);
+        var grow = ramp(t, 22.0, 23.8);
+        var R = 6 + 18 * grow;
+        // rocks spiral in and stick
+        ROCKS.forEach(function (p, i) {
+          var k = clamp01((t - p.t0) / 1.2);
+          if (k >= 1) return;
+          var a = p.a + k * 3, d = p.d * (1 - k) + R;
+          disc(CX + Math.cos(a) * d, CY + Math.sin(a) * d * 0.8, p.s, i % 2 ? C.rockLight : C.brown);
+        });
+        // Theia drifts in and strikes (softly), debris forms the Moon
+        var hit = 24.4;
+        if (t < hit) {
+          var k2 = ramp(t, 23.2, hit);
+          var tx = lerp(220, CX + R + 4, k2), ty = lerp(120, CY - 8, k2);
+          planet(tx, ty, 8, 0.2, 0.6, t);
+        }
+        var debris = clamp01((t - hit) / 1.8);
+        var molten = 1 - ramp(t, 25.4, 26.2) * 0.4;
+        planet(CX, CY, R, molten, 0, t);
+        if (t >= hit) {
+          add(); glow(CX + R, CY - 8, 30 * (1 - debris) + 4, C.amber, 0.7 * (1 - debris)); normal();
+          for (var d2 = 0; d2 < 40; d2++) {
+            var a3 = d2 * 0.157 + t * 0.8, rr = R + 10 + 22 * debris + Math.sin(d2) * 3;
+            var gather = ramp(t, 25.0, 26.1);
+            var x = CX + Math.cos(a3) * rr, y = CY + Math.sin(a3) * rr * 0.35;
+            var mx = CX + 46, my = CY - 26;
+            disc(lerp(x, mx, gather), lerp(y, my, gather), 1.2, d2 % 2 ? C.rockLight : C.amber);
+          }
+          var mk = ramp(t, 25.6, 26.2);
+          if (mk > 0) { disc(CX + 46, CY - 26, 5 * mk, C.moon); disc(CX + 47.5, CY - 25, 3.6 * mk, C.moonDark); }
+        }
+      }
+
+      // ============================================================ 9. Earth today (and pull back to the dot)
+      var LAND = [[-0.6, -0.3, 0.45], [0.35, 0.1, 0.4], [-0.1, 0.55, 0.3], [0.5, -0.55, 0.22]];
+      function earth(x, y, r, t, cool) {
+        add(); glow(x, y, r * 1.35, C.cyan, 0.45); normal();
+        disc(x, y, r, mix(C.lava, C.ocean, cool));
+        g.save(); g.beginPath(); g.arc(x, y, r, 0, 6.2832); g.clip();
+        g.fillStyle = vgrad(y - r, y + r, [[0, C.sky], [1, C.oceanDeep]]); g.globalAlpha = cool; g.fillRect(x - r, y - r, 2 * r, 2 * r); g.globalAlpha = 1;
+        var spin = t * 0.25;
+        LAND.forEach(function (l, i) {
+          var lx = x + ((l[0] + spin) % 2.4 - 1.2) * r, ly = y + l[1] * r;
+          ell(lx, ly, l[2] * r, l[2] * r * 0.7, i, mix(C.lavaDark, C.green, cool));
+          ell(lx + l[2] * r * 0.35, ly + l[2] * r * 0.1, l[2] * r * 0.28, l[2] * r * 0.2, i, mix(C.lavaDark, C.sand, cool));
+          ell(lx - l[2] * r * 0.25, ly - l[2] * r * 0.15, l[2] * r * 0.35, l[2] * r * 0.25, i, mix(C.lavaDark, C.leaf, cool));
+        });
+        // clouds
+        g.globalAlpha = 0.85 * cool;
+        for (var c = 0; c < 6; c++) { var cx = x + ((c * 0.7 + t * 0.35) % 2.4 - 1.2) * r, cy = y + (c / 3 - 0.9) * r; ell(cx, cy, r * 0.35, r * 0.08, 0.2, C.cloud); }
+        g.globalAlpha = 1;
+        // night side
+        g.globalAlpha = 0.45; g.fillStyle = C.void;
+        g.beginPath(); g.arc(x, y, r, -Math.PI * 0.35, Math.PI * 0.65); g.arc(x - r * 0.45, y - r * 0.1, r * 1.05, Math.PI * 0.65, -Math.PI * 0.35, true); g.fill();
+        g.globalAlpha = 1;
+        g.restore();
+        g.strokeStyle = C.ice; g.lineWidth = Math.max(0.6, r * 0.04); g.globalAlpha = 0.7;
+        g.beginPath(); g.arc(x, y, r, Math.PI * 0.85, Math.PI * 1.75); g.stroke(); g.globalAlpha = 1;
+      }
+      function sceneEarth(t) {
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.void], [1, C.deep]]); g.fillRect(0, 0, W, H);
+        starfield(81, 110, t, 0.9, 0);
+        add(); glow(10, 30, 50, C.amber, 0.45); glow(10, 30, 16, C.yellow, 0.9); normal(); disc(10, 30, 8, C.cream);
+        var cool = ramp(t, 26.2, 27.4);
+        var shrink = ramp(t, 29.0, 29.95);
+        var r = lerp(lerp(26, 40, ramp(t, 26.2, 28.6)), 1.6, shrink);
+        var ex = CX, ey = lerp(CY, CY, shrink);
+        // the Moon in orbit
+        if (shrink < 0.8) {
+          var ma = t * 0.6 + 2.2, mr = r * 1.9;
+          var mx = ex + Math.cos(ma) * mr, my = ey + Math.sin(ma) * mr * 0.35;
+          if (Math.sin(ma) < 0) { disc(mx, my, r * 0.27, C.moon); disc(mx + r * 0.05, my + r * 0.04, r * 0.2, C.moonDark); }
+          earth(ex, ey, r, t, cool);
+          if (Math.sin(ma) >= 0) { disc(mx, my, r * 0.27, C.moon); disc(mx + r * 0.05, my + r * 0.04, r * 0.2, C.moonDark); }
+        } else {
+          // Earth becomes the dot we started with
+          add(); glow(ex, ey, 14, C.amber, 0.55); glow(ex, ey, 6, C.cream, 0.9); normal();
+          disc(ex, ey, 1.6, C.white);
+          spikes(ex, ey, 8, C.cream, 0.7 * shrink);
+        }
+      }
+
+      // ============================================================ timeline (upper-left) on the UI layer
+      var TL = [
+        [0, 2.0, "13.8 BILLION", "YEARS AGO", 0],
+        [2.0, 3.4, "TIME SINCE BIG BANG", "0 SECONDS", 0.02],
+        [3.4, 4.6, "TIME SINCE BIG BANG", "1 SECOND", 0.06],
+        [4.6, 8.2, "TIME SINCE BIG BANG", "3 MINUTES", 0.12],
+        [8.2, 11.2, "TIME SINCE BIG BANG", "380,000 YEARS", 0.24],
+        [11.2, 14.8, "TIME SINCE BIG BANG", "200 MILLION YRS", 0.36],
+        [14.8, 18.4, "TIME SINCE BIG BANG", "1 BILLION YEARS", 0.5],
+        [18.4, 22.0, "TIME SINCE BIG BANG", "9.2 BILLION YRS", 0.67],
+        [22.0, 26.2, "TIME SINCE BIG BANG", "9.3 BILLION YRS", 0.68],
+        [26.2, 30.1, "TODAY", "13.8 BILLION YRS", 1],
+      ];
+      function uText(str, x, y, s, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) {
+          var gl = FONT[str[i]] || FONT[" "];
+          for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * s + (p % 5) * s, y + Math.floor(p / 5) * s, s, s);
+        }
+      }
+      function timelineUI(t) {
+        var e = null;
+        for (var i = 0; i < TL.length; i++) if (t >= TL[i][0] && t < TL[i][1]) e = TL[i];
+        if (!e) return;
+        var x = 14, y = 64;
+        var pop = 1 - clamp01((t - e[0]) / 0.18);
+        var w1 = e[2].length * 6 - 1, w2 = e[3].length * 12 - 2;
+        var w = Math.max(w1, w2, 120) + 10;
+        u.fillStyle = "rgba(6,5,10,0.82)"; u.fillRect(x, y, w, 40);
+        u.fillStyle = C.gold; u.fillRect(x, y, 2, 40);
+        uText(e[2], x + 6, y + 5, 1, C.paper);
+        uText(e[3], x + 6, y + 15, 2, pop > 0 ? C.white : C.gold);
+        // progress bar along the whole history
+        var prog = e[4];
+        if (t >= 26.2) prog = 1;
+        u.fillStyle = "#3a3450"; u.fillRect(x + 6, y + 33, w - 12, 2);
+        u.fillStyle = C.gold; u.fillRect(x + 6, y + 33, Math.round((w - 12) * prog), 2);
+        u.fillRect(x + 6 + Math.round((w - 12) * prog) - 1, y + 31, 3, 6);
+      }
+
+      PX.setup(C, {
+        scenes: { dot: sceneDot, bang: sceneBang, soup: sceneSoup, light: sceneLight, stars: sceneStars, gal: sceneGalaxies, sun: sceneSun, form: sceneEarthForms, earth: sceneEarth },
+        sceneAt: function (t) {
+          return t < 2.0 ? "dot" : t < 4.6 ? "bang" : t < 8.2 ? "soup" : t < 11.2 ? "light" : t < 14.8 ? "stars" : t < 18.4 ? "gal" : t < 22.0 ? "sun" : t < 26.2 ? "form" : "earth";
+        },
+        cuts: [[2.0, "dot", "bang"], [4.6, "bang", "soup"], [11.2, "light", "stars"], [14.8, "stars", "gal"], [18.4, "gal", "sun"], [22.0, "sun", "form"], [26.2, "form", "earth"]],
+        post: function (t, img) {
+          if (t > 1.95 && t < 2.5) tintImg(img, C.white, 0.85 * (1 - (t - 1.95) / 0.55));
+          if (t > 20.2 && t < 20.7) tintImg(img, C.cream, 0.35 * (1 - (t - 20.2) / 0.5));
+        },
+        captions: [
+          { a: 0.15, b: 1.95, lines: [[["EVERYTHING YOU SEE", C.paper]], [["WAS ONCE THIS SMALL", C.gold]]] },
+          { a: 2.5, b: 4.5, lines: [[["SPACE ITSELF", C.paper]], [["STRETCHED OUT", C.gold]]] },
+          { a: 5.0, b: 8.0, lines: [[["THE FIRST", C.paper]], [["HYDROGEN AND HELIUM", C.gold]]] },
+          { a: 8.6, b: 11.0, lines: [[["THE FOG CLEARED", C.paper]], [["LIGHT BROKE FREE", C.gold]]] },
+          { a: 11.7, b: 14.6, lines: [[["GRAVITY LIT", C.paper]], [["THE FIRST STARS", C.gold]]] },
+          { a: 15.2, b: 18.2, lines: [[["EXPLODING STARS MADE", C.paper]], [["CARBON AND IRON", C.gold]]] },
+          { a: 18.8, b: 21.8, lines: [[["A GAS CLOUD COLLAPSED", C.paper]], [["OUR SUN WAS BORN", C.gold]]] },
+          { a: 22.3, b: 24.2, lines: [[["DUST CLUMPED INTO", C.paper]], [["A MOLTEN EARTH", C.gold]]] },
+          { a: 24.5, b: 26.0, lines: [[["A CRASH", C.paper]], [["MADE THE MOON", C.gold]]] },
+          { a: 26.6, b: 29.0, lines: [[["YOU ARE MADE", C.paper]], [["OF STARDUST", C.gold]]] },
+        ],
+        ui: timelineUI,
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 30, duration: 30, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

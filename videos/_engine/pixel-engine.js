@@ -251,6 +251,7 @@ PX.render = function (t) {
   quantize(img);
   u.clearRect(0, 0, 360, 640);
   CAPTIONS.forEach(function (c) { if (t >= c.a && t < c.b) drawCaption(c, t); });
+  if (cfg.ui) cfg.ui(t);
 };
 
 // ---------------------------------------------------------------- post effects (operate on ImageData)
