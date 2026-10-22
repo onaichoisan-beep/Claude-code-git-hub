@@ -70,6 +70,15 @@ Still to film: college gate/building, hostel room, notes close-ups, a short talk
 - **Hashtags:** 3–5 relevant ones. Skip #viral/#trending.
 - **Keep off-niche content** (anime, comedy) rare or in its own playlist. Update the channel keywords to MBBS/NEET terms.
 
+## Model channel: Mitali This Side (@mitalithisside)
+
+1.44M subscribers. She was an MBBS student at MAMC Delhi documenting hostel life, the same niche as mine. Her biggest hits:
+- **Hinglish hostel mini-vlog Shorts:** "5:30 baje wali SUBAH!" (37M), fruit cream in the hostel (30M), dahi tikhari for hostel dinner (28M), 12:30am Maggi (10M).
+- **Hostel room tours and moving-in videos:** 1M+ each.
+- **Milestones:** first day at MAMC (762K), white coat ceremony (485K), "finally becoming a doctor" (15M Short).
+
+Lessons: everyday hostel moments beat advice; use #minivlog with Hinglish titles; put the college name in titles; never skip a milestone; post consistently for years (~1.5K uploads over ~6 years).
+
 ## Check every week in YouTube Analytics
 
 - Impressions click-through rate (are titles and thumbnails working?)
