@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<title>Oxidoreductases</title>
+<script src="assets/gsap.min.js"></script>
+<style>
+@font-face { font-family: "Anton"; src: url(assets/Anton.woff2) format("woff2"); }
+@font-face { font-family: "Plex"; src: url(assets/PlexMono.woff2) format("woff2"); font-weight: 500; }
+@font-face { font-family: "Plex"; src: url(assets/PlexMonoBold.woff2) format("woff2"); font-weight: 700; }
+
+:root {
+  --paper: #D9C9A3; --paper-lt: #EFE5CC; --ink: #2B1D14; --red: #C0392B;
+  --cream: #EDE3CC; --dark: #1E1B18; --teal: #4E9C86;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='360'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .18 0 0 0 0 .1 0 0 0 .32 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --stain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1080' height='1920'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.004' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .24 0 0 0 0 .1 0 0 0 .45 -.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
+  --grain-lt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='360'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .95 0 0 0 0 .85 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+body { margin: 0; background: #000; }
+#root { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--dark); font-family: "Anton", sans-serif; color: var(--ink); }
+
+.scene { position: absolute; inset: 0; overflow: hidden; z-index: 1; }
+.inner { position: absolute; inset: 0; }
+
+/* canvases */
+.paper {
+  background:
+    radial-gradient(ellipse 75% 60% at 50% 45%, rgba(255,248,228,.32) 0%, rgba(0,0,0,0) 60%, rgba(70,45,20,.38) 100%),
+    linear-gradient(90deg, transparent 32.9%, rgba(90,65,30,.16) 33.2%, rgba(255,250,235,.22) 33.5%, transparent 33.9%,
+                           transparent 66.1%, rgba(90,65,30,.16) 66.4%, rgba(255,250,235,.22) 66.7%, transparent 67.1%),
+    var(--stain), var(--grain), var(--paper);
+}
+.dark {
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 38%, rgba(70,62,52,.55) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,.55) 100%),
+    linear-gradient(90deg, transparent 49.8%, rgba(255,240,210,.06) 50%, transparent 50.2%),
+    var(--grain-lt), var(--dark);
+  color: var(--cream);
+}
+.holes { position: absolute; left: 30px; top: 40px; bottom: 0; width: 26px;
+  background: radial-gradient(circle, rgba(35,24,14,.5) 6px, rgba(35,24,14,.18) 7px, transparent 8px) 0 0 / 26px 175px repeat-y; }
+.dark .holes { background: radial-gradient(circle, rgba(0,0,0,.75) 6px, rgba(255,255,255,.06) 7px, transparent 8px) 0 0 / 26px 175px repeat-y; }
+
+/* header strip */
+.hdr { position: absolute; left: 92px; right: 66px; top: 64px; height: 40px; border-bottom: 2px solid rgba(43,29,20,.5);
+  font: 500 22px "Plex", monospace; letter-spacing: .22em; text-transform: uppercase; }
+.hdr .lab { position: absolute; left: 0; top: 0; }
+.hdr .fig { position: absolute; right: 0; top: 0; opacity: 0; }
+.dark .hdr, .cam .hdr { border-color: rgba(237,227,204,.4); }
+
+/* two-tier headlines */
+.hl { position: absolute; left: 92px; right: 66px; top: 134px; text-transform: uppercase; }
+.hl .s { font-size: 64px; line-height: 1.05; white-space: nowrap; }
+.hl .b { font-size: 150px; line-height: .98; color: var(--red); white-space: nowrap; }
+.hl .m { font-size: 118px; }
+.w { display: inline-block; opacity: 0; }
+
+/* paper bits */
+.card { position: absolute; background: var(--grain), var(--paper-lt); box-shadow: 0 14px 28px rgba(40,25,10,.35), 0 2px 4px rgba(40,25,10,.3); }
+.tape { position: absolute; width: 130px; height: 38px; background: rgba(240,230,190,.62); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.mono { font-family: "Plex", monospace; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; }
+.stamp { position: absolute; border: 8px solid var(--red); color: var(--red); padding: 6px 26px 2px; font-size: 92px; line-height: 1.05;
+  text-transform: uppercase; letter-spacing: .04em; opacity: 0; mix-blend-mode: multiply; border-radius: 10px;
+}
+.stamp.inv { mix-blend-mode: normal; background: rgba(30,27,24,.15); }
+.namebar { position: absolute; left: 0; opacity: 0; }
+.namebar .top { background: var(--red); color: var(--cream); font-size: 100px; line-height: 1; padding: 18px 40px 14px 92px; white-space: nowrap; }
+.namebar .sub { display: inline-block; background: var(--ink); color: var(--cream); font: 500 28px "Plex", monospace; letter-spacing: .2em; padding: 12px 30px 12px 92px; }
+.tag { position: absolute; background: var(--grain), #E9DDBF; border: 2px solid rgba(43,29,20,.55); border-radius: 6px 26px 26px 6px; padding: 14px 30px 12px 44px;
+  font: 700 26px "Plex", monospace; letter-spacing: .14em; color: var(--ink); opacity: 0; box-shadow: 0 8px 16px rgba(0,0,0,.28); }
+.tag::before { content: ""; position: absolute; left: 14px; top: 50%; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%; background: var(--dark); box-shadow: inset 0 0 0 3px rgba(255,255,255,.25); }
+.tag small { display: block; font-weight: 500; font-size: 20px; opacity: .7; }
+svg { overflow: visible; }
+.draw { fill: none; stroke-dasharray: 1; stroke-dashoffset: 1; }
+
+/* captions */
+#caps { position: absolute; left: 0; right: 0; top: 960px; height: 0; z-index: 10; }
+.cap { position: absolute; left: 50%; top: 0; width: 980px; margin-left: -490px; text-align: center; opacity: 0; }
+.cap .strip { display: inline-block; max-width: 940px; padding: 18px 34px 12px; background: var(--grain), #F4ECD7; rotate: -1deg;
+  box-shadow: 0 10px 24px rgba(20,12,4,.35); font-size: 66px; line-height: 1.12; text-transform: uppercase; color: var(--ink); }
+.cap .cw { display: inline-block; margin: 0 .12em; opacity: .3; position: relative; }
+
+/* facecam */
+#camwrap { position: absolute; inset: 0; z-index: 2; filter: sepia(.16) saturate(.9) contrast(1.05); }
+.camvid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cam { z-index: 3; color: var(--cream); }
+.cam .vign { position: absolute; inset: 0; background: radial-gradient(ellipse 85% 70% at 50% 45%, rgba(0,0,0,0) 55%, rgba(25,15,5,.55) 100%); }
+.strip-top { position: absolute; left: -10px; right: -10px; top: 0; height: 460px; filter: drop-shadow(0 12px 14px rgba(0,0,0,.45)); }
+.strip-top .pp { position: absolute; inset: 0; color: var(--ink); }
+.strip-top .pp .hdr { border-color: rgba(43,29,20,.5); }
+
+#pip { position: absolute; left: 70px; top: 470px; width: 360px; height: 360px; border-radius: 50%; overflow: hidden; z-index: 4; opacity: 0;
+  box-shadow: 0 0 0 12px #3a332b, 0 0 0 16px #8d806c, 0 18px 40px rgba(0,0,0,.5); }
+#pip video { position: absolute; left: -130px; top: -215px; width: 640px; height: 1138px; filter: sepia(.2) saturate(.9); }
+#pipLabel { position: absolute; left: 92px; top: 862px; z-index: 4; opacity: 0; color: var(--ink); font-size: 22px; }
+
+/* flip display */
+.flaps { position: absolute; display: flex; gap: 14px; }
+.flap { position: relative; width: 156px; height: 210px; border-radius: 12px; background: linear-gradient(#2a2622, #1a1714 50%, #24201c 50.5%, #15120f);
+  box-shadow: 0 14px 30px rgba(0,0,0,.6), inset 0 0 0 2px rgba(255,255,255,.05); overflow: hidden; opacity: 0; }
+.flap::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 3px; background: #0b0908; }
+.flap span { position: absolute; inset: 0; text-align: center; font-size: 168px; line-height: 210px; color: var(--cream); opacity: 0; }
+.flap.hot span { color: #ff8f7f; }
+
+/* EC index */
+.ec { position: absolute; left: 92px; width: 900px; height: 60px; display: flex; align-items: center; opacity: 0; }
+.ec .no { width: 150px; height: 52px; background: var(--ink); color: var(--cream); font: 700 28px "Plex", monospace; letter-spacing: .1em; display: flex; align-items: center; justify-content: center; border-radius: 8px 0 0 8px; }
+.ec .nm { flex: 1; height: 52px; background: var(--grain), var(--paper-lt); font-size: 40px; line-height: 56px; padding-left: 26px; text-transform: uppercase; box-shadow: 0 4px 10px rgba(40,25,10,.25); }
+.ec.one .no { background: var(--red); }
+
+#stage { position: absolute; inset: 0; transform-origin: 50% 45%; }
+#whip { position: absolute; inset: 0; z-index: 15; overflow: hidden; pointer-events: none; }
+#whip .band { position: absolute; top: -300px; left: 0; width: 640px; height: 2600px; rotate: 14deg; }
+#whip .b1 { background: var(--red); }
+#whip .b2 { background: var(--dark); width: 260px; }
+#flash { position: absolute; inset: 0; z-index: 16; background: #FFF6E2; opacity: 0; }
+#progT { position: absolute; left: 0; right: 0; top: 0; height: 10px; z-index: 18; background: rgba(20,14,8,.35); }
+#prog { position: absolute; left: 0; top: 0; width: 100%; height: 10px; z-index: 19; background: var(--red); transform-origin: 0 50%; box-shadow: 0 0 12px rgba(192,57,43,.8); }
+#endc { position: absolute; inset: 0; z-index: 17; opacity: 0; background: radial-gradient(ellipse 80% 55% at 50% 40%, #3a332b, #1E1B18 70%); }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="31.194">
+<div id="stage">
+
+  <!-- ============ A · HOOK (paper) ============ -->
+  <section id="sA" class="scene clip paper" data-start="0.0" data-duration="2.213" data-track-index="1">
+    <div class="inner" id="sA-in">
+      <div class="holes"></div>
+      <div class="hdr"><span class="lab">Hook</span><span class="fig" id="sA-f1">Fig. 1</span></div>
+      <div class="hl">
+        <div class="s"><span class="w" id="a-w1">Why</span> <span class="w" id="a-w2">does</span> <span class="w" id="a-w3">lactate</span> <span class="w" id="a-w4">turn into</span></div>
+        <div class="b"><span class="w" id="a-w5">Pyruvate?</span></div>
+      </div>
+
+      <div class="card" id="a-lac" style="left:66px; top:470px; width:400px; height:390px; rotate:-2.5deg; opacity:0">
+        <div class="tape" style="left:135px; top:-18px; rotate:3deg"></div>
+        <div style="position:absolute; left:0; right:0; top:26px; text-align:center; font-size:58px">LACTATE</div>
+        <svg viewBox="0 0 360 260" style="position:absolute; left:20px; top:100px; width:360px; height:260px">
+          <g font-family="Plex" font-weight="700" font-size="36" fill="#2B1D14" stroke="#2B1D14" stroke-width="4">
+            <text x="6" y="148" stroke="none">H₃C</text><line x1="88" y1="136" x2="146" y2="136"/>
+            <text x="154" y="148" stroke="none">C</text><line x1="184" y1="136" x2="238" y2="136"/>
+            <text x="244" y="148" stroke="none">COO⁻</text>
+            <line x1="166" y1="112" x2="166" y2="68"/>
+            <text x="148" y="56" stroke="none">O<tspan fill="#C0392B">H</tspan></text>
+            <line x1="166" y1="160" x2="166" y2="200"/>
+            <text x="154" y="238" stroke="none" fill="#C0392B">H</text>
+          </g>
+        </svg>
+      </div>
+      <svg id="a-arrow" viewBox="0 0 140 80" style="position:absolute; left:470px; top:620px; width:140px; height:80px">
+        <path class="draw" pathLength="1" d="M8 40 C 50 20, 90 20, 120 40" stroke="#C0392B" stroke-width="8" stroke-linecap="round"/>
+        <path class="draw" pathLength="1" d="M98 22 L124 41 L96 56" stroke="#C0392B" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="card" id="a-pyr" style="left:614px; top:480px; width:400px; height:390px; rotate:2deg; opacity:0">
+        <div class="tape" style="left:135px; top:-18px; rotate:-4deg"></div>
+        <div style="position:absolute; left:0; right:0; top:26px; text-align:center; font-size:58px">PYRUVATE</div>
+        <svg viewBox="0 0 360 260" style="position:absolute; left:20px; top:100px; width:360px; height:260px">
+          <g font-family="Plex" font-weight="700" font-size="36" fill="#2B1D14" stroke="#2B1D14" stroke-width="4">
+            <text x="6" y="148" stroke="none">H₃C</text><line x1="88" y1="136" x2="146" y2="136"/>
+            <text x="154" y="148" stroke="none">C</text><line x1="184" y1="136" x2="238" y2="136"/>
+            <text x="244" y="148" stroke="none">COO⁻</text>
+            <line x1="159" y1="112" x2="159" y2="68"/><line x1="173" y1="112" x2="173" y2="68"/>
+            <text x="154" y="56" stroke="none">O</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="card" id="a-case" style="left:110px; top:1200px; width:860px; height:470px; rotate:1.2deg; opacity:0; background: var(--grain), #CDB27A">
+        <div style="position:absolute; left:0; top:-46px; width:300px; height:60px; border-radius:14px 14px 0 0; background: var(--grain), #CDB27A"></div>
+        <div class="mono" style="position:absolute; left:50px; top:40px; font-size:28px; font-weight:700">Case file · No. 001</div>
+        <div class="mono" style="position:absolute; left:50px; top:120px; font-size:30px; line-height:1.9">
+          Subject&nbsp;: lactate → pyruvate<br/>Change&nbsp;&nbsp;: loses 2 × <span style="color:#C0392B">H</span><br/>Culprit&nbsp;: ? ? ?
+        </div>
+        <div class="stamp" id="a-stamp" style="left:420px; top:300px; rotate:-9deg">Unknown</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ C · THE JOB (dark) ============ -->
+  <section id="sC" class="scene clip dark" data-start="4.7593" data-duration="4.4537" data-track-index="1">
+    <div class="inner" id="sC-in">
+      <div class="holes"></div>
+      <div class="hdr"><span class="lab">The job</span><span class="fig" id="sC-f1">Fig. 1</span><span class="fig" id="sC-f2">Fig. 2</span></div>
+      <div class="hl" id="c-h1">
+        <div class="s"><span class="w" id="c-w0">They catalyze</span></div>
+        <div class="s" style="color:var(--cream)"><span class="w" id="c-w1">Oxidation</span> <span class="w" id="c-w2">–reduction</span></div>
+        <div class="b m"><span class="w" id="c-w3">Reactions</span></div>
+      </div>
+      <div class="hl" id="c-h2">
+        <div class="s"><span class="w" id="c-w4">The transfer of</span></div>
+        <div class="b"><span class="w" id="c-w5">Electrons</span></div>
+      </div>
+
+      <!-- donor / acceptor -->
+      <div id="c-donor" style="position:absolute; left:120px; top:560px; width:260px; height:260px; opacity:0">
+        <div id="c-donor-b" style="position:absolute; inset:0; border-radius:50%; background: radial-gradient(circle at 35% 30%, #6a5f52, #2e2924 70%); box-shadow: 0 0 0 4px rgba(237,227,204,.6), 0 20px 40px rgba(0,0,0,.6)"></div>
+        <div class="mono" style="position:absolute; left:0; right:0; top:100px; text-align:center; font-size:30px; font-weight:700">Molecule A</div>
+        <div class="mono" id="c-ox" style="position:absolute; left:-20px; right:-20px; top:290px; text-align:center; font-size:30px; color:#ff8f7f; opacity:0">Oxidised</div>
+      </div>
+      <div id="c-acc" style="position:absolute; left:700px; top:560px; width:260px; height:260px; opacity:0">
+        <div style="position:absolute; inset:0; border-radius:50%; background: radial-gradient(circle at 35% 30%, #6a5f52, #2e2924 70%); box-shadow: 0 0 0 4px rgba(237,227,204,.6), 0 20px 40px rgba(0,0,0,.6)"></div>
+        <div id="c-acc-glow" style="position:absolute; inset:0; border-radius:50%; background: radial-gradient(circle at 35% 30%, #7fd1b9, #2c6b5a 70%); opacity:0"></div>
+        <div class="mono" style="position:absolute; left:0; right:0; top:100px; text-align:center; font-size:30px; font-weight:700">Molecule B</div>
+        <div class="mono" id="c-red" style="position:absolute; left:-20px; right:-20px; top:290px; text-align:center; font-size:30px; color:#7fd1b9; opacity:0">Reduced</div>
+      </div>
+      <svg viewBox="0 0 400 140" style="position:absolute; left:340px; top:480px; width:400px; height:140px">
+        <path id="c-arc" class="draw" pathLength="1" d="M10 130 C 110 0, 290 0, 390 130" stroke="#EDE3CC" stroke-width="5" stroke-dasharray="0.03 0.02" stroke-linecap="round"/>
+      </svg>
+      <div id="c-e1" class="mono" style="position:absolute; left:296px; top:578px; width:56px; height:56px; border-radius:50%; background:#C0392B; color:#fff; font-size:26px; font-weight:700; line-height:56px; text-align:center; letter-spacing:0; box-shadow:0 0 22px #ff5a44; opacity:0">e⁻</div>
+      <div id="c-e2" class="mono" style="position:absolute; left:250px; top:650px; width:56px; height:56px; border-radius:50%; background:#C0392B; color:#fff; font-size:26px; font-weight:700; line-height:56px; text-align:center; letter-spacing:0; box-shadow:0 0 22px #ff5a44; opacity:0">e⁻</div>
+      <div id="c-h" class="mono" style="position:absolute; left:300px; top:722px; width:56px; height:56px; border-radius:50%; background:#EDE3CC; color:#1E1B18; font-size:30px; font-weight:700; line-height:56px; text-align:center; letter-spacing:0; box-shadow:0 0 22px rgba(255,240,200,.7); opacity:0">H</div>
+
+      <!-- ledger -->
+      <div class="card" id="c-ledger" style="left:92px; top:1190px; width:896px; height:420px; opacity:0; background: repeating-linear-gradient(transparent 0 69px, rgba(78,110,160,.35) 69px 71px), var(--grain), #F1E9D4">
+        <div style="position:absolute; left:90px; top:0; bottom:0; width:3px; background: rgba(192,57,43,.6)"></div>
+        <div id="c-l1" style="position:absolute; left:120px; top:56px; font-size:64px; color:var(--ink); opacity:0">OXIDATION <span class="mono" style="font-size:34px">= loses e⁻</span></div>
+        <div id="c-l2" style="position:absolute; left:120px; top:166px; font-size:64px; color:#2f7461; opacity:0">REDUCTION <span class="mono" style="font-size:34px">= gains e⁻</span></div>
+        <div class="mono" id="c-l3" style="position:absolute; left:120px; top:290px; font-size:26px; color:var(--ink); opacity:0">Always as a pair · one gives, one takes</div>
+      </div>
+      <div class="stamp" id="c-stamp" style="left:610px; top:1560px; rotate:-7deg; font-size:76px; background: rgba(30,27,24,.0)">OIL RIG</div>
+    </div>
+  </section>
+
+  <!-- ============ D · THE EXAMPLE (paper) ============ -->
+  <section id="sD" class="scene clip paper" data-start="9.213" data-duration="6.1111" data-track-index="1">
+    <div class="inner" id="sD-in">
+      <div class="holes"></div>
+      <div class="hdr"><span class="lab">The example</span><span class="fig" id="sD-f1">Fig. 1</span><span class="fig" id="sD-f2">Fig. 2</span></div>
+      <div class="hl" id="d-h0"><div class="s"><span class="w" id="d-w0">For example</span></div></div>
+      <div class="hl" id="d-h1">
+        <div class="s"><span class="w" id="d-w1">Lactate</span> <span class="w" id="d-w2">dehydrogenase</span></div>
+        <div class="b"><span class="w" id="d-w3">LDH</span></div>
+      </div>
+
+      <svg id="d-enz" viewBox="0 0 500 420" style="position:absolute; left:470px; top:440px; width:520px; height:437px; opacity:0">
+        <defs>
+          <radialGradient id="eg" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#c9644f"/><stop offset=".55" stop-color="#93362a"/><stop offset="1" stop-color="#5a1f18"/></radialGradient>
+        </defs>
+        <path d="M240 26 C 350 14 462 78 470 170 L 360 214 L 468 262 C 452 352 372 404 262 400 C 146 396 40 340 32 230 C 24 118 120 38 240 26 Z"
+              fill="url(#eg)" stroke="#2B1D14" stroke-width="5" style="filter: drop-shadow(0 16px 18px rgba(40,20,10,.45))"/>
+        <g fill="rgba(255,220,200,.18)">
+          <circle cx="150" cy="140" r="22"/><circle cx="210" cy="96" r="14"/><circle cx="120" cy="260" r="18"/><circle cx="260" cy="320" r="24"/><circle cx="330" cy="120" r="16"/><circle cx="200" cy="200" r="30"/>
+        </g>
+        <text x="190" y="250" font-family="Anton" font-size="84" fill="#EDE3CC">LDH</text>
+      </svg>
+      <div class="tag" id="d-tag" style="left:560px; top:860px; rotate:-3deg">Specimen 01<small>EC 1.1.1.27</small></div>
+      <div class="tag" id="d-cat" style="left:110px; top:640px; rotate:2deg">Catalyst ✓<small>speeds it up</small></div>
+
+      <!-- reaction rail -->
+      <div class="card" id="d-lac" style="left:80px; top:1250px; width:330px; height:150px; rotate:-1.5deg; opacity:0">
+        <div style="position:absolute; inset:0; text-align:center; line-height:154px; font-size:64px">LACTATE</div>
+      </div>
+      <div class="card" id="d-pyr" style="left:670px; top:1250px; width:330px; height:150px; rotate:1.5deg; opacity:0">
+        <div style="position:absolute; inset:0; text-align:center; line-height:154px; font-size:64px">PYRUVATE</div>
+      </div>
+      <svg viewBox="0 0 240 150" style="position:absolute; left:420px; top:1250px; width:240px; height:150px">
+        <path id="d-fw" class="draw" pathLength="1" d="M10 50 L222 50 M196 30 L224 50 L196 70" stroke="#2B1D14" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path id="d-bw" class="draw" pathLength="1" d="M230 100 L18 100 M44 80 L16 100 L44 120" stroke="#C0392B" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="mono" id="d-ldh" style="position:absolute; left:420px; width:240px; top:1206px; text-align:center; font-size:28px; font-weight:700; opacity:0">LDH</div>
+      <div id="d-chip" style="position:absolute; left:470px; top:1270px; width:40px; height:40px; border-radius:50%; background:#C0392B; box-shadow:0 0 16px rgba(192,57,43,.8); opacity:0"></div>
+      <svg viewBox="0 0 380 200" style="position:absolute; left:55px; top:1225px; width:380px; height:200px">
+        <path id="d-c1" class="draw" pathLength="1" d="M190 10 C 330 6 372 70 360 110 C 346 168 230 196 150 190 C 50 182 6 140 14 92 C 22 40 100 12 210 16" stroke="#C0392B" stroke-width="7" stroke-linecap="round"/>
+      </svg>
+      <svg viewBox="0 0 380 200" style="position:absolute; left:645px; top:1225px; width:380px; height:200px">
+        <path id="d-c2" class="draw" pathLength="1" d="M190 10 C 330 6 372 70 360 110 C 346 168 230 196 150 190 C 50 182 6 140 14 92 C 22 40 100 12 210 16" stroke="#C0392B" stroke-width="7" stroke-linecap="round"/>
+      </svg>
+      <div class="stamp" id="d-stamp" style="left:240px; top:1470px; rotate:-5deg">Reversible ⇄</div>
+    </div>
+  </section>
+
+  <!-- ============ E · THE CARRIER (dark) ============ -->
+  <section id="sE" class="scene clip dark" data-start="15.3241" data-duration="4.9629" data-track-index="1">
+    <div class="inner" id="sE-in">
+      <div class="holes"></div>
+      <div class="hdr"><span class="lab">The carrier</span><span class="fig" id="sE-f1">Fig. 1</span><span class="fig" id="sE-f2">Fig. 2</span></div>
+      <div class="hl">
+        <div class="s"><span class="w" id="e-w1">During</span> <span class="w" id="e-w2">this</span> <span class="w" id="e-w3">reaction</span></div>
+        <div class="b"><span class="w" id="e-w4">NAD+</span> <span class="w" id="e-w5" style="color:var(--cream)">→</span> <span class="w" id="e-w6">NADH</span></div>
+      </div>
+
+      <div class="flaps" id="e-flaps" style="left:198px; top:470px"></div>
+      <div class="tag" id="e-tag" style="left:330px; top:715px; rotate:-2deg">Electron carrier<small>the shuttle</small></div>
+
+      <!-- coupled reaction -->
+      <div id="e-rx" style="position:absolute; left:80px; top:1190px; width:920px; height:560px; opacity:0">
+        <div style="position:absolute; left:0; top:0; font-size:62px; color:var(--cream)">LACTATE</div>
+        <div style="position:absolute; right:0; top:0; font-size:62px; color:var(--cream)">PYRUVATE</div>
+        <div id="e-nad" style="position:absolute; left:0; top:350px; font-size:62px; color:var(--cream)">NAD+</div>
+        <div id="e-nadh" style="position:absolute; right:0; top:350px; font-size:62px; color:var(--cream)">NADH</div>
+        <svg viewBox="0 0 920 560" style="position:absolute; inset:0; width:920px; height:560px">
+          <path id="e-a1" class="draw" pathLength="1" d="M260 46 L630 46 M600 24 L634 46 L600 68" stroke="#EDE3CC" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          <path id="e-a2" class="draw" pathLength="1" d="M180 390 C 330 230, 560 230, 700 380 M668 372 L704 386 L700 348" stroke="#C0392B" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="mono" id="e-m2h" style="position:absolute; left:380px; top:66px; font-size:26px; color:#ff8f7f; opacity:0">− 2H</div>
+      </div>
+      <div id="e-c1" class="mono" style="position:absolute; left:500px; top:1220px; width:60px; height:60px; border-radius:50%; background:#EDE3CC; color:#1E1B18; font-size:32px; font-weight:700; line-height:60px; text-align:center; letter-spacing:0; box-shadow:0 0 22px rgba(255,240,200,.7); opacity:0">H</div>
+      <div id="e-c2" class="mono" style="position:absolute; left:500px; top:1220px; width:60px; height:60px; border-radius:50%; background:#C0392B; color:#fff; font-size:26px; font-weight:700; line-height:60px; text-align:center; letter-spacing:0; box-shadow:0 0 22px #ff5a44; opacity:0">e⁻</div>
+      <div id="e-c3" class="mono" style="position:absolute; left:500px; top:1220px; width:60px; height:60px; border-radius:50%; background:#C0392B; color:#fff; font-size:26px; font-weight:700; line-height:60px; text-align:center; letter-spacing:0; box-shadow:0 0 22px #ff5a44; opacity:0">e⁻</div>
+    </div>
+  </section>
+
+  <!-- ============ G · THE FILE (paper) ============ -->
+  <section id="sG" class="scene clip paper" data-start="24.463" data-duration="6.731" data-track-index="1">
+    <div class="inner" id="sG-in">
+      <div class="holes"></div>
+      <div class="hdr"><span class="lab">The file</span><span class="fig" id="sG-f1">Fig. 1</span><span class="fig" id="sG-f2">Fig. 2</span></div>
+      <div class="hl" id="g-h1">
+        <div class="s"><span class="w" id="g-w1">These</span> <span class="w" id="g-w2">enzymes</span> <span class="w" id="g-w3">form</span></div>
+      </div>
+      <div class="hl" id="g-h2">
+        <div class="s"><span class="w" id="g-w4">The enzyme</span></div>
+        <div class="b m"><span class="w" id="g-w5">Classification</span></div>
+      </div>
+      <div id="g-list"></div>
+      <svg viewBox="0 0 960 110" style="position:absolute; left:58px; top:404px; width:960px; height:110px">
+        <path id="g-circ" class="draw" pathLength="1" d="M520 8 C 820 4 950 30 940 58 C 930 96 640 106 400 102 C 150 98 12 84 14 54 C 16 22 200 6 560 12" stroke="#C0392B" stroke-width="7" stroke-linecap="round"/>
+      </svg>
+
+      <div class="mono" id="g-cls" style="position:absolute; left:92px; top:1195px; font-size:30px; font-weight:700; opacity:0">Class</div>
+      <div class="flaps" id="g-flaps" style="left:92px; top:1245px"></div>
+      <div class="stamp" id="g-stamp" style="left:110px; top:1520px; rotate:-4deg; font-size:96px">Oxidoreductases</div>
+    </div>
+  </section>
+
+  <!-- ============ facecam (your footage) ============ -->
+  <div id="camwrap">
+    <video id="camB-0" class="camvid" src="assets/facecam.mov" muted playsinline data-start="2.213" data-duration="0.8426" data-media-start="2.46" data-playback-rate="1.08" data-track-index="0"></video>
+    <video id="camB-1" class="camvid" src="assets/facecam.mov" muted playsinline data-start="3.0556" data-duration="1.7037" data-media-start="3.76" data-playback-rate="1.08" data-track-index="0" style="transform: scale(1.1); transform-origin: 50% 36%"></video>
+    <video id="camF-0" class="camvid" src="assets/facecam.mov" muted playsinline data-start="20.287" data-duration="4.1759" data-media-start="23.68" data-playback-rate="1.08" data-track-index="0"></video>
+  </div>
+
+  <!-- B overlay · THE CULPRIT -->
+  <section id="sB" class="scene clip cam" data-start="2.213" data-duration="2.5463" data-track-index="2">
+    <div class="vign"></div>
+    <div class="strip-top"><div class="pp paper" id="sB-strip">
+      <div class="holes"></div>
+      <div class="hdr"><span class="lab">The culprit</span><span class="fig" id="sB-f1">Fig. 1</span></div>
+      <div class="hl">
+        <div class="s"><span class="w" id="b-w1">Blame</span> <span class="w" id="b-w2">this</span></div>
+        <div class="b"><span class="w" id="b-w3">Enzyme</span></div>
+      </div>
+    </div></div>
+    <div class="stamp inv" id="b-stamp" style="left:610px; top:1120px; rotate:8deg; color:#ff5b47; border-color:#ff5b47">Guilty</div>
+    <div class="namebar" id="b-name" style="top:1640px">
+      <div class="top">OXIDOREDUCTASES</div>
+      <div class="sub">Enzyme class · EC 1</div>
+    </div>
+  </section>
+
+  <!-- F overlay · WHY IT MATTERS -->
+  <section id="sF" class="scene clip cam" data-start="20.287" data-duration="4.176" data-track-index="2">
+    <div class="vign"></div>
+    <div class="strip-top"><div class="pp paper" id="sF-strip">
+      <div class="holes"></div>
+      <div class="hdr"><span class="lab">Why it matters</span><span class="fig" id="sF-f1">Fig. 1</span></div>
+      <div class="hl" id="f-h1">
+        <div class="s"><span class="w" id="f-w1">Important in</span></div>
+        <div class="b"><span class="w" id="f-w2">Metabolism</span></div>
+      </div>
+      <div class="hl" id="f-h2">
+        <div class="s"><span class="w" id="f-w3">And</span></div>
+        <div class="b"><span class="w" id="f-w4">Energy</span></div>
+      </div>
+    </div></div>
+    <div class="tag" id="f-tag" style="left:80px; top:1660px; rotate:-3deg">Cellular<small>metabolism</small></div>
+    <div id="f-bat" style="position:absolute; left:640px; top:1650px; width:290px; height:130px; opacity:0">
+      <div style="position:absolute; left:0; top:0; width:250px; height:130px; border:8px solid var(--cream); border-radius:18px; box-sizing:border-box; background:rgba(20,15,10,.5)"></div>
+      <div style="position:absolute; left:250px; top:40px; width:26px; height:50px; background:var(--cream); border-radius:0 8px 8px 0"></div>
+      <div id="f-fill" style="position:absolute; left:16px; top:16px; width:218px; height:98px; border-radius:6px; background:linear-gradient(90deg,#C0392B,#e0583f); transform-origin:0 50%"></div>
+      <div style="position:absolute; left:0; width:250px; top:0; height:130px; text-align:center; line-height:136px; font-size:56px; color:var(--cream)">⚡</div>
+    </div>
+  </section>
+
+  <!-- PIP: presenter in a microscope viewport -->
+  <div id="pip">
+    <video id="camD-0" src="assets/facecam.mov" muted playsinline data-start="9.213" data-duration="0.9167" data-media-start="10.66" data-playback-rate="1.08" data-track-index="3"></video>
+    <video id="camD-1" src="assets/facecam.mov" muted playsinline data-start="10.1296" data-duration="1.6296" data-media-start="11.94" data-playback-rate="1.08" data-track-index="3"></video>
+  </div>
+  <div id="pipLabel" class="mono" style="font-weight:700">● Live · presenter</div>
+
+  <div id="caps"></div>
+
+  <!-- audio -->
+  </div>
+  <div id="whip"><div class="band b1"></div><div class="band b2"></div></div>
+  <div id="flash"></div>
+  <div id="progT"></div><div id="prog"></div>
+  <div id="endc">
+    <div class="mono" style="position:absolute; left:92px; top:700px; font-size:34px; font-weight:700; letter-spacing:.3em; color:#ff8f7f">NEXT IN THE FILE ›</div>
+    <div id="endc-l" style="position:absolute; left:92px; top:760px; font-size:110px; color:var(--cream)">EC 2</div>
+    <div id="endc-t" style="position:absolute; left:86px; top:880px; font-size:150px; color:var(--red)">TRANSFERASES</div>
+    <div class="mono" style="position:absolute; left:92px; top:1080px; font-size:26px; color:rgba(237,227,204,.7)">7 enzyme classes · one at a time</div>
+  </div>
+  <audio id="vo" src="assets/voice-turbo.wav" data-start="0" data-duration="31.194" data-track-index="5" data-volume="1"></audio>
+  <audio id="bed" src="assets/music-turbo.wav" data-start="0" data-duration="31.194" data-track-index="6" data-volume="1"></audio>
+  <audio id="sfx" src="assets/sfx-turbo.wav" data-start="0" data-duration="31.194" data-track-index="7" data-volume="1"></audio>
+</div>
+
+<script>
+const SEGS = [[0.0, 2.39, 0.0], [2.46, 3.37, 2.213], [3.76, 10.41, 3.0556], [10.66, 11.65, 9.213], [11.94, 17.55, 10.1296], [17.9, 19.27, 15.3241], [19.46, 23.45, 16.5926], [23.68, 28.19, 20.287], [28.56, 34.21, 24.463]];
+const VLEN = 29.6944;
+const RATE = 1.08;
+function M(t) {
+  for (const [a, b, o] of SEGS) { if (t < a) return o; if (t <= b) return o + (t - a) / RATE; }
+  return VLEN + (t - SEGS[SEGS.length - 1][1]) / RATE;
+}
+const TL = gsap.timeline({ paused: true });
+const tl = {
+  fromTo: (s, a, b, p) => TL.fromTo(s, a, b, M(p)),
+  to: (s, a, p) => TL.to(s, a, M(p)),
+  set: (s, a, p) => TL.set(s, a, M(p)),
+};
+const q = (s) => document.querySelector(s);
+
+// ---------- motion helpers ----------
+function word(sel, t) { tl.fromTo(sel, { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.22, ease: "back.out(2)" }, t); }
+function punch(sel, t) { tl.fromTo(sel, { opacity: 0, scale: 1.12, y: 18 }, { opacity: 1, scale: 1, y: 0, duration: 0.26, ease: "power3.out" }, t); }
+function pop(sel, t, from = {}) { tl.fromTo(sel, { opacity: 0, scale: 0.55, ...from }, { opacity: 1, scale: 1, x: 0, y: 0, duration: 0.42, ease: "back.out(2.2)" }, t); }
+function drop(sel, t) { tl.fromTo(sel, { opacity: 0, y: -90, rotation: -6 }, { opacity: 1, y: 0, rotation: 0, duration: 0.45, ease: "back.out(1.6)" }, t); }
+function slam(sel, t) {
+  tl.fromTo(sel, { opacity: 0, scale: 1.7 }, { opacity: 0.95, scale: 1, duration: 0.16, ease: "power3.in" }, t);
+  tl.to(sel, { scale: 1.1, duration: 0.06, ease: "power1.out", yoyo: true, repeat: 1 }, t + 0.16);
+}
+function draw(sel, t, d = 0.45) { tl.fromTo(sel, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: d, ease: "power2.inOut" }, t); }
+function out(sel, t, d = 0.18) { tl.to(sel, { opacity: 0, duration: d, ease: "power1.in" }, t); }
+function fig(ids, times) { ids.forEach((id, i) => { tl.set(id, { opacity: 1 }, times[i]); if (i < ids.length - 1) tl.set(id, { opacity: 0 }, times[i + 1]); }); }
+function pushIn(sel, t, d, s0 = 1, s1 = 1.05) { tl.fromTo(sel, { scale: s0 }, { scale: s1 + 0.02, duration: Math.max(0.1, M(t + d) - M(t)), ease: "none" }, t); }
+// arc travel: x linear, y rises then falls
+function hop(sel, t, d, dx, dy, lift) {
+  tl.fromTo(sel, { x: 0 }, { x: dx, duration: d, ease: "power1.inOut" }, t);
+  tl.fromTo(sel, { y: 0 }, { y: dy / 2 - lift, duration: d / 2, ease: "sine.out" }, t);
+  tl.to(sel, { y: dy, duration: d / 2, ease: "sine.in" }, t + d / 2);
+}
+
+// split-flap builder: every tile rolls through a few letters before landing
+const FLAP_POOL = "AXR7KQ2ZMB9";
+function buildFlaps(host, seqs) {
+  return seqs.map((seq) => {
+    const tile = document.createElement("div");
+    tile.className = "flap";
+    seq.forEach((ch) => { const s = document.createElement("span"); s.textContent = ch; tile.appendChild(s); });
+    q(host).appendChild(tile);
+    return tile;
+  });
+}
+function flapRoll(tile, t, from, to, step = 0.055) {
+  const spans = tile.querySelectorAll("span");
+  for (let i = from; i <= to; i++) {
+    const at = t + (i - from) * step;
+    if (i > 0) tl.set(spans[i - 1], { opacity: 0 }, at);
+    tl.fromTo(spans[i], { opacity: 1, scaleY: 0.1 }, { scaleY: 1, duration: step, ease: "none" }, at);
+  }
+}
+function rollSeq(target, n) { const out = []; for (let i = 0; i < n; i++) out.push(FLAP_POOL[(i * 5 + target.charCodeAt(0)) % FLAP_POOL.length]); out.push(target); return out; }
+
+// torn bottom edge on the facecam paper strips (fixed points: deterministic)
+function tear(el) {
+  const pts = ["0% 0%", "100% 0%"];
+  for (let i = 40; i >= 0; i--) {
+    const x = (i / 40) * 100;
+    const y = 92 + ((i * 37) % 11) * 0.7 - ((i * 13) % 5) * 0.6;
+    pts.push(x.toFixed(1) + "% " + y.toFixed(1) + "%");
+  }
+  el.style.clipPath = "polygon(" + pts.join(",") + ")";
+}
+tear(q("#sB-strip")); tear(q("#sF-strip"));
+
+// ================= A · HOOK =================
+pushIn("#sA-in", 0, 2.45);
+fig(["#sA-f1"], [0]);
+word("#a-w1", 0.0); word("#a-w2", 0.42); word("#a-w3", 0.74); word("#a-w4", 1.14);
+punch("#a-w5", 1.78);
+drop("#a-lac", 0.05);
+draw("#a-arrow path:nth-child(1)", 1.14, 0.35); draw("#a-arrow path:nth-child(2)", 1.42, 0.18);
+drop("#a-pyr", 1.6);
+tl.fromTo("#a-case", { opacity: 0, y: 120 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 0.75);
+slam("#a-stamp", 2.0);
+
+// ================= B · CULPRIT (facecam) =================
+pushIn("#camwrap", 2.45, 3.15, 1.0, 1.06);
+fig(["#sB-f1"], [2.45]);
+tl.fromTo("#sB-strip", { y: -460 }, { y: 0, duration: 0.3, ease: "power3.out" }, 2.45);
+word("#b-w1", 2.5); word("#b-w2", 2.74); punch("#b-w3", 2.98);
+slam("#b-stamp", 3.05);
+tl.fromTo("#b-name", { opacity: 0, x: -700 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out" }, 3.8);
+
+// ================= C · THE JOB =================
+pushIn("#sC-in", 5.6, 5.0);
+fig(["#sC-f1", "#sC-f2"], [5.6, 8.48]);
+word("#c-w0", 5.66); word("#c-w1", 6.1); word("#c-w2", 6.64); punch("#c-w3", 7.06);
+out("#c-h1", 8.32, 0.1);
+word("#c-w4", 8.48); punch("#c-w5", 9.14);
+pop("#c-donor", 5.75); pop("#c-acc", 5.95);
+tl.fromTo("#c-ledger", { opacity: 0, y: 100 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 5.8);
+word("#c-l1", 6.1); word("#c-l2", 6.64); word("#c-l3", 7.3);
+slam("#c-stamp", 7.7);
+draw("#c-arc", 8.48, 0.5);
+// electrons orbit on A, then hop to B
+pop("#c-e1", 7.2); pop("#c-e2", 7.35); pop("#c-h", 7.5, {});
+hop("#c-e1", 9.14, 0.75, 500, -10, 150);
+hop("#c-e2", 9.4, 0.75, 540, 110, 150);
+hop("#c-h", 9.92, 0.65, 400, 40, 150);
+tl.to("#c-donor-b", { filter: "grayscale(1) brightness(.7)", duration: 0.3 }, 9.9);
+word("#c-ox", 10.0);
+tl.to("#c-acc-glow", { opacity: 1, duration: 0.3 }, 10.2);
+word("#c-red", 10.25);
+
+// ================= D · THE EXAMPLE =================
+pushIn("#sD-in", 10.6, 7.3);
+fig(["#sD-f1", "#sD-f2"], [10.6, 13.62]);
+word("#d-w0", 10.7);
+out("#d-h0", 11.9, 0.1);
+word("#d-w1", 11.98); word("#d-w2", 12.2); punch("#d-w3", 13.16);
+// presenter viewport
+tl.fromTo("#pip", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.8)" }, 10.6);
+tl.fromTo("#pipLabel", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 10.85);
+tl.to("#pip", { opacity: 0, scale: 0.4, duration: 0.25, ease: "power2.in" }, 13.45);
+out("#pipLabel", 13.4, 0.15);
+tl.fromTo("#d-enz", { opacity: 0, scale: 0.6, rotation: -10 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.5, ease: "back.out(1.7)" }, 11.98);
+tl.fromTo("#d-enz", { y: 0 }, { y: -12, duration: 1.2, ease: "sine.inOut", yoyo: true, repeat: 4 }, 12.5);
+drop("#d-tag", 12.4);
+pop("#d-cat", 13.62);
+pop("#d-lac", 13.62); tl.fromTo("#d-ldh", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 13.8);
+draw("#d-fw", 13.75, 0.4); pop("#d-pyr", 14.0);
+draw("#d-bw", 14.62, 0.4);
+slam("#d-stamp", 14.7);
+// a molecule chip runs forward, then back
+tl.fromTo("#d-chip", { opacity: 0, x: 0, y: 0 }, { opacity: 1, duration: 0.15 }, 15.14);
+tl.to("#d-chip", { x: 150, duration: 0.7, ease: "power1.inOut" }, 15.2);
+tl.to("#d-chip", { y: 50, duration: 0.25 }, 16.0);
+tl.to("#d-chip", { x: 0, duration: 0.7, ease: "power1.inOut" }, 16.3);
+out("#d-chip", 17.1);
+draw("#d-c1", 15.98, 0.4); draw("#d-c2", 16.86, 0.4);
+
+// ================= E · THE CARRIER =================
+pushIn("#sE-in", 17.9, 5.7);
+fig(["#sE-f1", "#sE-f2"], [17.9, 20.64]);
+word("#e-w1", 17.94); word("#e-w2", 18.28); word("#e-w3", 18.6);
+punch("#e-w4", 19.5); word("#e-w5", 22.44); punch("#e-w6", 22.68);
+const eTiles = buildFlaps("#e-flaps", [rollSeq("N", 5), rollSeq("A", 5), rollSeq("D", 5), rollSeq("+", 5).concat(["7", "Q", "H"])]);
+eTiles.forEach((tile, i) => { tl.fromTo(tile, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.25, ease: "back.out(2)" }, 19.35 + i * 0.05); flapRoll(tile, 19.45 + i * 0.07, 0, 5); });
+flapRoll(eTiles[3], 22.5, 5, 8);
+tl.set(eTiles[3], { attr: { class: "flap hot" } }, 22.68);
+drop("#e-tag", 20.1);
+tl.fromTo("#e-rx", { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 18.1);
+draw("#e-a1", 18.6, 0.5);
+word("#e-m2h", 19.0);
+draw("#e-a2", 19.5, 0.6);
+// H and two electrons drop from the lactate arrow onto the NAD+ curve
+pop("#e-c1", 20.64); hop("#e-c1", 20.85, 0.9, 120, 230, 40);
+pop("#e-c2", 21.6); hop("#e-c2", 21.75, 0.8, 50, 230, 40);
+pop("#e-c3", 21.8); hop("#e-c3", 21.95, 0.8, 190, 230, 40);
+tl.to(["#e-c1", "#e-c2", "#e-c3"], { opacity: 0, scale: 0.4, duration: 0.2 }, 22.7);
+tl.to("#e-nadh", { color: "#C0392B", scale: 1.15, duration: 0.2, ease: "back.out(3)" }, 22.68);
+
+// ================= F · WHY IT MATTERS (facecam) =================
+pushIn("#camwrap", 23.6, 4.8, 1.04, 1.1);
+fig(["#sF-f1"], [23.6]);
+tl.fromTo("#sF-strip", { y: -460 }, { y: 0, duration: 0.3, ease: "power3.out" }, 23.6);
+word("#f-w1", 24.78); punch("#f-w2", 26.0);
+out("#f-h1", 26.42, 0.1);
+word("#f-w3", 26.6); punch("#f-w4", 27.18);
+drop("#f-tag", 25.54);
+pop("#f-bat", 26.9);
+tl.fromTo("#f-fill", { scaleX: 0 }, { scaleX: 1, duration: 1.0, ease: "power2.out" }, 27.18);
+
+// ================= G · THE FILE =================
+pushIn("#sG-in", 28.4, 6.2, 1, 1.06);
+fig(["#sG-f1", "#sG-f2"], [28.4, 32.28]);
+word("#g-w1", 28.6); word("#g-w2", 28.98); word("#g-w3", 29.48);
+out("#g-h1", 30.12, 0.1);
+word("#g-w4", 30.22); punch("#g-w5", 30.94);
+const EC = ["Oxidoreductases", "Transferases", "Hydrolases", "Lyases", "Isomerases", "Ligases", "Translocases"];
+EC.forEach((nm, i) => {
+  const row = document.createElement("div");
+  row.className = "ec" + (i === 0 ? " one" : "");
+  row.style.top = (420 + i * 72) + "px";
+  row.innerHTML = '<div class="no">EC ' + (i + 1) + '</div><div class="nm">' + nm + "</div>";
+  q("#g-list").appendChild(row);
+  tl.fromTo(row, { opacity: 0, x: -120 }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, 29.0 + i * 0.16);
+  if (i > 0) tl.to(row, { opacity: 0.32, duration: 0.3 }, 32.28);
+});
+draw("#g-circ", 32.62, 0.45);
+tl.fromTo("#g-cls", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 32.2);
+const gTiles = buildFlaps("#g-flaps", [rollSeq("0", 6), rollSeq("1", 6)]);
+gTiles.forEach((tile, i) => { tl.fromTo(tile, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.2 }, 32.2); flapRoll(tile, 32.28 + i * 0.08, 0, 6); });
+slam("#g-stamp", 32.98);
+
+// ================= captions (your words, word by word) =================
+const CAPS = [
+  [["Why", 0.0], ["does", 0.42], ["lactate", 0.74]],
+  [["turn", 1.14], ["into", 1.46], ["pyruvate?", 1.78]],
+  [["Blame", 2.5], ["this", 2.74], ["enzyme.", 2.98]],
+  [["Oxidoreductases", 3.8], ["are", 4.68], ["enzymes", 4.92]],
+  [["that", 5.26], ["catalyze", 5.66], ["oxidation-", 6.1], ["reduction", 6.64]],
+  [["reactions", 7.06], ["involving", 7.64], ["the", 8.18], ["transfer", 8.48]],
+  [["of", 8.8], ["electrons", 9.14], ["or", 9.56], ["hydrogen.", 9.92]],
+  [["For", 10.7], ["example,", 10.92], ["lactate", 11.98]],
+  [["dehydrogenase", 12.2], ["or", 12.9], ["LDH", 13.16]],
+  [["catalyzes", 13.62], ["the", 14.3], ["reversible", 14.62], ["conversion", 15.14]],
+  [["of", 15.68], ["lactate", 15.98], ["into", 16.6], ["pyruvate.", 16.86]],
+  [["During", 17.94], ["this", 18.28], ["reaction,", 18.6]],
+  [["NAD+", 19.5], ["accepts", 20.2], ["hydrogen", 20.64]],
+  [["and", 21.28], ["electrons", 21.72], ["to", 22.16], ["form", 22.44], ["NADH.", 22.68]],
+  [["These", 23.72], ["enzymes", 24.06], ["are", 24.38], ["important", 24.78]],
+  [["in", 25.22], ["cellular", 25.54], ["metabolism", 26.0]],
+  [["and", 26.6], ["energy", 27.18], ["production.", 27.54]],
+  [["These", 28.6], ["enzymes", 28.98], ["form", 29.48]],
+  [["the", 30.22], ["enzyme", 30.68], ["classification", 30.94]],
+  [["the", 31.76], ["first", 32.28], ["class:", 32.62], ["oxidoreductases.", 32.98]],
+];
+const capLayer = q("#caps");
+const allWords = CAPS.flat();
+CAPS.forEach((phrase, i) => {
+  const cap = document.createElement("div");
+  cap.className = "cap";
+  const strip = document.createElement("div");
+  strip.className = "strip";
+  cap.appendChild(strip);
+  phrase.forEach(([w, t]) => {
+    const s = document.createElement("span");
+    s.className = "cw";
+    s.textContent = w;
+    strip.appendChild(s);
+    const idx = allWords.findIndex((x) => x[1] === t);
+    const next = idx < allWords.length - 1 ? allWords[idx + 1][1] : 34.2;
+    tl.fromTo(s, { opacity: 0.3, color: "#2B1D14", y: 0 }, { opacity: 1, color: "#C0392B", y: -7, duration: 0.08 }, t);
+    tl.to(s, { color: "#2B1D14", y: 0, duration: 0.08 }, next);
+  });
+  const start = phrase[0][1];
+  const end = i < CAPS.length - 1 ? CAPS[i + 1][0][1] : 34.5;
+  tl.fromTo(cap, { opacity: 0, y: 24, scale: 0.78 }, { opacity: 1, y: 0, scale: 1, duration: 0.18, ease: "back.out(2.6)" }, Math.max(0, start - 0.04));
+  tl.set(cap, { opacity: 0 }, end - 0.04);
+  capLayer.appendChild(cap);
+});
+// captions sit mid-frame on graphics, lower on the facecam so your face stays clear
+tl.set("#caps", { top: 1000 }, 0);
+tl.set("#caps", { top: 1440 }, 2.45);
+tl.set("#caps", { top: 1015 }, 5.6);
+tl.set("#caps", { top: 1060 }, 10.6);
+tl.set("#caps", { top: 1015 }, 17.9);
+tl.set("#caps", { top: 1460 }, 23.6);
+tl.set("#caps", { top: 1015 }, 28.4);
+
+
+// ================= turbo layer =================
+const CUTS = [2.213, 4.7593, 9.213, 15.3241, 20.287, 24.463];
+const SLAMS = [1.8519, 2.7593, 6.7037, 12.6852, 28.5556];
+TL.fromTo("#prog", { scaleX: 0 }, { scaleX: 1, duration: 31.194, ease: "none" }, 0);
+TL.fromTo("#stage", { scale: 1.16 }, { scale: 1, duration: 0.55, ease: "power3.out" }, 0);
+TL.fromTo("#flash", { opacity: 0.85 }, { opacity: 0, duration: 0.3, ease: "power2.out" }, 0);
+CUTS.forEach((c, i) => {
+  const ir = i > 0 ? { immediateRender: false } : {};
+  TL.fromTo("#whip .b1", { x: -1500 }, { x: 1700, duration: 0.34, ease: "power2.inOut", ...ir }, c - 0.17);
+  TL.fromTo("#whip .b2", { x: -1700 }, { x: 1500, duration: 0.34, ease: "power2.inOut", ...ir }, c - 0.13);
+  TL.fromTo("#flash", { opacity: 0.45 }, { opacity: 0, duration: 0.18, immediateRender: false }, c);
+  TL.fromTo("#stage", { scale: 1.07 }, { scale: 1, duration: 0.32, ease: "power2.out", immediateRender: false }, c);
+});
+SLAMS.forEach((t) => {
+  TL.to("#stage", { x: 11, y: -8, duration: 0.035, yoyo: true, repeat: 5, ease: "none" }, t + 0.16);
+  TL.set("#stage", { x: 0, y: 0 }, t + 0.38);
+});
+TL.fromTo("#endc", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 29.794);
+TL.fromTo("#endc-l", { opacity: 0, x: -200 }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, 29.894);
+TL.fromTo("#endc-t", { opacity: 0, scale: 1.6 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power3.in" }, 30.144);
+window.__timelines["main"] = TL;
+</script>
+</body>
+</html>

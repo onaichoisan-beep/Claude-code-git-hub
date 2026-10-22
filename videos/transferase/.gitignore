@@ -1,3 +1,5 @@
 assets/facecam.mp4
 assets/*.wav
 renders/
+assets/facecam.mov
+.turbo/
