@@ -84,16 +84,12 @@ def riser(d=1.0):
     tt = np.arange(int(d * SR)) / SR
     return np.sin(2 * np.pi * (300 + 900 * tt / d) * tt) * (tt / d) ** 2 * np.exp(-np.maximum(0, tt - d + .1) * 30) * .4
 
-for x in [1.78, 2.98, 7.06, 9.14, 13.16, 19.5, 22.68, 26.0, 27.18, 30.94]: add(x - .02, thud(), .55)
-for x in [2.0, 3.05, 7.7, 14.7, 32.98]: add(x + .14, stamp(), .7)
-for x in [2.45, 5.6, 10.6, 17.9, 23.6, 28.4]: add(x - .3, whoosh(), .45)
-add(3.8, whoosh(.3), .3)
-for x in [0.05, 0.75, 1.6, 5.8, 12.4, 18.1, 20.1, 25.54, 29.0]: add(x, rustle(), .5)
-for a, b in [(19.45, 19.95), (22.5, 22.7), (32.28, 32.66)]:
-    for x in np.arange(a, b, .055): add(x, tick(), .5)
-for x in [1.14, 8.48, 13.75, 14.62, 15.98, 16.86, 18.6, 19.5, 32.62]: add(x, scribble(), .45)
-for x, fr in [(7.2, 1200), (7.35, 1400), (7.5, 1000), (9.14, 1500), (9.4, 1500), (9.92, 1100), (20.64, 1100), (21.6, 1500), (21.8, 1500)]: add(x, blip(fr), .25)
-add(10.6, riser(.5), .5); add(26.25, riser(.95), .6)
+# kept sparse on purpose: only scene changes, stamps, the two flip boards and a few key punches
+for x in [2.98, 9.14, 22.68, 30.94]: add(x - .02, thud(), .45)
+for x in [2.0, 3.05, 7.7, 14.7, 32.98]: add(x + .14, stamp(), .55)
+for x in [2.45, 5.6, 10.6, 17.9, 23.6, 28.4]: add(x - .3, whoosh(), .3)
+for a, b in [(19.45, 19.8), (32.28, 32.6)]:
+    for x in np.arange(a, b, .055): add(x, tick(), .3)
 sfx = sfx / np.abs(sfx).max() * 0.35
 write(out + "/sfx.wav", sfx)
 print("ok")

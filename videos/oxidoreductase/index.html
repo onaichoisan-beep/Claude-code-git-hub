@@ -374,7 +374,7 @@ svg { overflow: visible; }
   <!-- audio -->
   <audio id="vo" src="assets/voice.wav" data-start="0" data-duration="34.13" data-track-index="5" data-volume="1"></audio>
   <audio id="bed" src="assets/music.wav" data-start="0" data-duration="34.6" data-track-index="6" data-volume="1"></audio>
-  <audio id="sfx" src="assets/sfx.wav" data-start="0" data-duration="34.6" data-track-index="7" data-volume="1"></audio>
+  <audio id="sfx" src="assets/sfx.wav" data-start="0" data-duration="34.6" data-track-index="7" data-volume="0.55"></audio>
 </div>
 
 <script>
@@ -383,7 +383,7 @@ const q = (s) => document.querySelector(s);
 
 // ---------- motion helpers ----------
 function word(sel, t) { tl.fromTo(sel, { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.22, ease: "back.out(2)" }, t); }
-function punch(sel, t) { tl.fromTo(sel, { opacity: 0.3, scale: 1.12, y: 18 }, { opacity: 1, scale: 1, y: 0, duration: 0.26, ease: "power3.out" }, t); }
+function punch(sel, t) { tl.fromTo(sel, { opacity: 0, scale: 1.12, y: 18 }, { opacity: 1, scale: 1, y: 0, duration: 0.26, ease: "power3.out" }, t); }
 function pop(sel, t, from = {}) { tl.fromTo(sel, { opacity: 0, scale: 0.55, ...from }, { opacity: 1, scale: 1, x: 0, y: 0, duration: 0.42, ease: "back.out(2.2)" }, t); }
 function drop(sel, t) { tl.fromTo(sel, { opacity: 0, y: -90, rotation: -6 }, { opacity: 1, y: 0, rotation: 0, duration: 0.45, ease: "back.out(1.6)" }, t); }
 function slam(sel, t) {
@@ -457,7 +457,7 @@ tl.fromTo("#b-name", { opacity: 0, x: -700 }, { opacity: 1, x: 0, duration: 0.35
 pushIn("#sC-in", 5.6, 5.0);
 fig(["#sC-f1", "#sC-f2"], [5.6, 8.48]);
 word("#c-w0", 5.66); word("#c-w1", 6.1); word("#c-w2", 6.64); punch("#c-w3", 7.06);
-out("#c-h1", 8.4, 0.12);
+out("#c-h1", 8.32, 0.1);
 word("#c-w4", 8.48); punch("#c-w5", 9.14);
 pop("#c-donor", 5.75); pop("#c-acc", 5.95);
 tl.fromTo("#c-ledger", { opacity: 0, y: 100 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 5.8);
@@ -527,7 +527,7 @@ pushIn("#camwrap", 23.6, 4.8, 1.04, 1.1);
 fig(["#sF-f1"], [23.6]);
 tl.fromTo("#sF-strip", { y: -460 }, { y: 0, duration: 0.3, ease: "power3.out" }, 23.6);
 word("#f-w1", 24.78); punch("#f-w2", 26.0);
-out("#f-h1", 26.55, 0.12);
+out("#f-h1", 26.42, 0.1);
 word("#f-w3", 26.6); punch("#f-w4", 27.18);
 drop("#f-tag", 25.54);
 pop("#f-bat", 26.9);

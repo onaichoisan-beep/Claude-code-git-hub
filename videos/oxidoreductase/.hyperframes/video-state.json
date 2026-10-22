@@ -1,7 +1,7 @@
 {
   "version": 1,
   "historyId": "ddb0e9a3-bf12-4f1b-983a-0f36257e0091",
-  "currentRevision": "177d5aa2-84c9-4b1d-a79b-f62bb358fb76",
+  "currentRevision": "e69d45ea-629e-4edb-9656-fd594b54b620",
   "pendingChanges": false,
   "files": {
     "assets/Anton.woff2": {
@@ -21,12 +21,12 @@
       "content": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/28/28033e449a31ebcc396e5be8b13b63152bf03094288fb5867034321927bce087"
     },
     "index.html": {
-      "hash": "96097c40066abbf8be3156b58e7aab67807f9f5a2e318246ac44bcc7c0c0dd1e",
-      "content": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/96/96097c40066abbf8be3156b58e7aab67807f9f5a2e318246ac44bcc7c0c0dd1e"
+      "hash": "4e8313fe18fc4daf572595a6e550138f13448a41f4f01f490a766005b400da1c",
+      "content": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/4e/4e8313fe18fc4daf572595a6e550138f13448a41f4f01f490a766005b400da1c"
     },
     "tools/make_audio.py": {
-      "hash": "3647aa960573d25fdbdbe80846257c49bb307a8a01284fd2d4898cb416af51e4",
-      "content": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/36/3647aa960573d25fdbdbe80846257c49bb307a8a01284fd2d4898cb416af51e4"
+      "hash": "7d381fe864bcc540936a2ace990dde630a83c045d4bc22e988749b4c7ff2e3a0",
+      "content": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/7d/7d381fe864bcc540936a2ace990dde630a83c045d4bc22e988749b4c7ff2e3a0"
     },
     "tools/transcribe.py": {
       "hash": "72fa5f9a20357e44f4a95ed76be0517247a81828ea353849f166bab8225c8761",
@@ -45,8 +45,8 @@
       "content": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/5a/5aea7f2947a6ee967e38385ced6668fd74ef473ef7b93e457bf8cbd3a953ead1"
     },
     "assets/sfx.wav": {
-      "hash": "e03021030bfaae7e87b64221b7e77303cc4fcf7dc3b11d645d3b583a9008a827",
-      "content": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/e0/e03021030bfaae7e87b64221b7e77303cc4fcf7dc3b11d645d3b583a9008a827"
+      "hash": "17750a8d4aecc7f2fea26ba21c505636a51dc627d976b9de00d5a78a3af73325",
+      "content": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/17/17750a8d4aecc7f2fea26ba21c505636a51dc627d976b9de00d5a78a3af73325"
     },
     "assets/voice.wav": {
       "hash": "3817ad451eed9e74ee069a787339f33fb82cd7a2aef997cac5a0dc8ab83205f0",
@@ -66,6 +66,44 @@
         "index.html": {
           "before": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/38/3868fb4db207f37398e49ea90ac1c1ba9c2bddf3a8cd4ce7a162945e3d3c11c8",
           "after": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/96/96097c40066abbf8be3156b58e7aab67807f9f5a2e318246ac44bcc7c0c0dd1e"
+        }
+      }
+    },
+    "871fb9c4-6410-4952-9df2-a302197b4d5a": {
+      "actor": {
+        "kind": "outside",
+        "name": "Outside"
+      },
+      "label": "Changed outside the app",
+      "startedAt": 1792652852587,
+      "endedAt": 1792652852635,
+      "files": {
+        "assets/sfx.wav": {
+          "before": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/e0/e03021030bfaae7e87b64221b7e77303cc4fcf7dc3b11d645d3b583a9008a827",
+          "after": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/17/17750a8d4aecc7f2fea26ba21c505636a51dc627d976b9de00d5a78a3af73325"
+        },
+        "index.html": {
+          "before": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/96/96097c40066abbf8be3156b58e7aab67807f9f5a2e318246ac44bcc7c0c0dd1e",
+          "after": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/fc/fcda0b2ecd7fb0bfc962560d32eaa4e3debde72d86699d5f7152bd8c7de0fa95"
+        },
+        "tools/make_audio.py": {
+          "before": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/36/3647aa960573d25fdbdbe80846257c49bb307a8a01284fd2d4898cb416af51e4",
+          "after": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/7d/7d381fe864bcc540936a2ace990dde630a83c045d4bc22e988749b4c7ff2e3a0"
+        }
+      }
+    },
+    "e69d45ea-629e-4edb-9656-fd594b54b620": {
+      "actor": {
+        "kind": "outside",
+        "name": "Outside"
+      },
+      "label": "Changed outside the app",
+      "startedAt": 1792652994821,
+      "endedAt": 1792652994822,
+      "files": {
+        "index.html": {
+          "before": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/fc/fcda0b2ecd7fb0bfc962560d32eaa4e3debde72d86699d5f7152bd8c7de0fa95",
+          "after": "/root/.cache/hyperframes/history/ddb0e9a3-bf12-4f1b-983a-0f36257e0091/blobs/4e/4e8313fe18fc4daf572595a6e550138f13448a41f4f01f490a766005b400da1c"
         }
       }
     }
@@ -246,14 +284,15 @@
   },
   "renders": {
     "latest": {
-      "id": "4d83948e-88f2-4155-aba7-a270b463ba7d",
-      "completedAt": 1792652645007,
+      "id": "574d66d5-e5ff-455a-8c09-f7489fd3c57a",
+      "completedAt": 1792653113981,
       "output": "/home/user/Claude-code-git-hub/videos/oxidoreductase/renders/draft.mp4",
       "status": "completed",
-      "revision": "177d5aa2-84c9-4b1d-a79b-f62bb358fb76"
+      "revision": "e69d45ea-629e-4edb-9656-fd594b54b620"
     },
     "retainedRevisions": [
-      "177d5aa2-84c9-4b1d-a79b-f62bb358fb76"
+      "e69d45ea-629e-4edb-9656-fd594b54b620",
+      "871fb9c4-6410-4952-9df2-a302197b4d5a"
     ]
   },
   "pendingArtifactCleanup": []
