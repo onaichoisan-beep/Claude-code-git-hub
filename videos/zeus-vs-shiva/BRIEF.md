@@ -39,3 +39,11 @@ story never declares a winner. No injury detail: impacts are bright flashes and 
   `scripts/synth_audio.py` builds the score bed + per-shot SFX from the script's sound notes, ducks them
   under the narration and cuts to silence with the picture at 4:00.
   Outputs `assets/audio/mix.wav` (used by the film) and `assets/audio/sfx_only.wav` (no narration).
+
+## YouTube thumbnails (`thumbnails/`)
+
+Three 1920x1080 pixel-art thumbnails (480x270 art, 4x) with dedicated close-up busts of both gods
+(`thumbnails/portraits.js`, crisp 1px sprite outlines) and bold outlined pixel titles:
+`ZEUS VS SHIVA` (split burning sky / cosmos), `WHO WINS?` (weapons meeting in a starburst),
+`THEY'RE NOT ALONE` (the rift). Rebuild with `npx hyperframes snapshot --at 0.5,1.5,2.5` in that folder.
+Finished files are in `thumbnails/renders/` (lossless PNG 1920x1080 + JPG 1280x720, all well under 2 MB).

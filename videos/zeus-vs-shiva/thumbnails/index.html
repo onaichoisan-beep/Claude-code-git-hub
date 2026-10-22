@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Zeus vs Shiva — Thumbnails</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        background: #05040c;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Three YouTube thumbnails (480x270 pixel art, 4x = 1920x1080), one per second: snapshot at 0.5, 1.5, 2.5 s. -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="3" data-width="1920" data-height="1080">
+      <section id="stage" class="clip" data-start="0" data-duration="3" data-track-index="0">
+        <canvas id="world" width="480" height="270" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="480" height="270"></canvas>
+      </section>
+    </div>
+    <script>
+      window.PX_W = 480;
+      window.PX_H = 270;
+    </script>
+    <script src="pixel-engine.js"></script>
+    <script src="chars.js"></script>
+    <script src="sets.js"></script>
+    <script src="portraits.js"></script>
+    <script>
+      // ---------------------------------------------------------------- 1 · ZEUS VS SHIVA (split worlds)
+      function seamX(y) { return 241 + (y - 135) * 0.06 + Math.sin(y * 0.09) * 7 + Math.sin(y * 0.31 + 1) * 3; }
+      function thumbVS() {
+        var t = 3.3;
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.capeD], [0.45, C.cape], [0.8, C.flame], [1, C.gold]]);
+        g.fillRect(0, 0, W, H);
+        lighter(); glow(116, 92, 120, C.gold, 0.5); glow(116, 84, 60, C.goldW, 0.35); normalBlend();
+        cloudBand(-30, 270, -10, 26, 501, [C.stormD, C.space2, C.capeD]);
+        cloudBand(-30, 270, 22, 22, 503, [C.capeD, C.cape, C.flame]);
+        cloudBand(-30, 270, 206, 50, 502, [C.cape, C.flame, C.goldL]);
+        lightning(206, -6, 168, 92, 511, t, 1.6, { branches: 4, glowA: 0.5 });
+        lightning(18, -6, 6, 120, 512, t, 1.2, { branches: 3, glowA: 0.4 });
+        // Shiva's side: the cosmos
+        g.save(); g.beginPath(); g.moveTo(W + 5, -5);
+        for (var y = -5; y <= H + 5; y += 5) g.lineTo(seamX(y), y);
+        g.lineTo(W + 5, H + 5); g.closePath(); g.clip();
+        g.fillStyle = vgrad(0, H, [[0, C.void], [0.55, C.space2], [1, C.violetD]]); g.fillRect(0, 0, W, H);
+        lighter(); glow(380, 96, 150, C.violet, 0.4); glow(366, 80, 80, C.cyan, 0.22); normalBlend();
+        starField(521, 140, 230, 0, 260, 270);
+        for (var i = 0; i < 3; i++) ringS(362, 92, 60 + i * 12, 1.2, i === 1 ? C.cyanL : C.violetL, 0.75);
+        for (var j = 0; j < 24; j++) { var a = j / 24 * 6.2832; line(362 + Math.cos(a) * 88, 92 + Math.sin(a) * 88, 362 + Math.cos(a) * 95, 92 + Math.sin(a) * 95, 1.2, C.violetL); }
+        g.restore();
+        vignette(0.45, "rgba(5,0,15,");
+        var zi, si;
+        renderSprite(function () { zi = zeusBust(120, 114, 1.0, 1, { weapon: "raise", look: 0.9, mouth: 0.75 }); });
+        zeusBack(zi, t); blitSprite(); zeusFront(zi);
+        renderSprite(function () { si = shivaBust(362, 118, 1.0, -1, { weapon: "hold", look: 0.9, third: 1 }); });
+        shivaBack(si); blitSprite(); shivaFront(si);
+        // the seam: a white-hot crack between the two worlds
+        var pts = [];
+        for (var y2 = -4; y2 <= H + 4; y2 += 6) pts.push([seamX(y2) + (hash1(y2) - 0.5) * 5, y2]);
+        lighter(); for (var k = 0; k < pts.length; k += 3) glow(pts[k][0], pts[k][1], 20, C.white, 0.3); normalBlend();
+        strokePts(pts, 5, C.violetL); strokePts(pts, 2.4, C.white);
+        burst(241, 132, 0.45, 70, 541, 100, [C.goldL, C.cyanL, C.white], 0, 1.4);
+      }
+
+      // ---------------------------------------------------------------- 2 · WHO WINS? (weapons meet)
+      function thumbClash() {
+        var t = 4.1, cx = 240, cy = 76;
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.void], [0.6, C.space1], [1, C.space2]]); g.fillRect(0, 0, W, H);
+        for (var i = 0; i < 32; i++) {
+          var a = i / 32 * 6.2832;
+          g.globalAlpha = 0.3;
+          poly([[cx, cy], [cx + Math.cos(a) * 520, cy + Math.sin(a) * 520], [cx + Math.cos(a + 0.07) * 520, cy + Math.sin(a + 0.07) * 520]], Math.cos(a + 0.035) < 0 ? C.gold : C.cyan);
+          g.globalAlpha = 1;
+        }
+        starField(601, 90, 0, 0, 480, 270);
+        lighter(); glow(cx, cy, 170, C.goldW, 0.35); glow(cx - 80, cy + 20, 130, C.gold, 0.3); glow(cx + 80, cy + 20, 130, C.cyan, 0.3); normalBlend();
+        vignette(0.45, "rgba(5,0,15,");
+        var zi, si;
+        renderSprite(function () { zi = zeusBust(108, 140, 0.95, 1, { weapon: "thrust", target: [(cx + 16 - 108) / 0.95, (cy - 6 - 140) / 0.95], dirv: [0.8, -0.6], look: 1, mouth: 1 }); });
+        zeusBack(zi, t); blitSprite(); zeusFront(zi);
+        renderSprite(function () { si = shivaBust(372, 144, 0.95, -1, { weapon: "thrust", target: [(372 - (cx - 16)) / 0.95, (cy - 6 - 144) / 0.95], look: 1, third: 1 }); });
+        shivaBack(si); blitSprite(); shivaFront(si);
+        lighter(); glow(cx, cy, 44, C.white, 0.75); glow(cx, cy, 14, C.white, 1); normalBlend();
+        for (var k = 0; k < 8; k++) {
+          var ka = k * 0.785 + 0.2, L = k % 2 ? 16 : 30;
+          poly([[cx + Math.cos(ka - 0.12) * 6, cy + Math.sin(ka - 0.12) * 6], [cx + Math.cos(ka) * L, cy + Math.sin(ka) * L], [cx + Math.cos(ka + 0.12) * 6, cy + Math.sin(ka + 0.12) * 6]], C.white);
+        }
+        burst(cx, cy, 0.42, 110, 611, 150, [C.goldL, C.cyanL, C.white, C.eBlueL], 20, 1.4);
+        crackle(cx, cy, 30, 7, 612, t, C.eBlue);
+      }
+
+      // ---------------------------------------------------------------- 3 · THEY'RE NOT ALONE (the rift)
+      function thumbPortal() {
+        var t = 6.0, px = 240, py = 150;
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.void], [0.5, C.space1], [1, C.violetD]]); g.fillRect(0, 0, W, H);
+        var r = rng(701);
+        for (var i = 0; i < 150; i++) {
+          var sx = r() * W, sy = r() * H, dx = px - sx, dy = py - sy, d = Math.hypot(dx, dy) + 1, f = Math.min(0.5, 40 / d);
+          line(sx, sy, sx + dx * f * 0.4, sy + dy * f * 0.4, 1, r() < 0.3 ? C.violetL : C.white);
+        }
+        lighter(); glow(px, py, 230, C.portalV, 0.45); glow(px, py, 110, C.portal, 0.45); normalBlend();
+        rays(px, py, 0.4, 22, C.portal, 0.16, 520);
+        fissure(px, py, 200, 36, t, 1, function () {
+          fillAll(C.white);
+          lighter(); glow(px, py, 70, C.portal, 0.7); normalBlend();
+          looming(px + 4, py + 30, 1.0);
+        });
+        vignette(0.5, "rgba(5,0,15,");
+        var zi, si;
+        renderSprite(function () { zi = zeusBust(92, 192, 0.86, 1, { weapon: "raise", look: 1, mouth: 0.35 }); });
+        zeusBack(zi, t); blitSprite(); zeusFront(zi);
+        renderSprite(function () { si = shivaBust(390, 196, 0.86, -1, { weapon: "hold", look: 1, third: 1 }); });
+        shivaBack(si); blitSprite(); shivaFront(si);
+        lighter(); glow(px, py + 40, 160, C.violet, 0.12); normalBlend();
+      }
+
+      PX.setup(C, {
+        scenes: { a: thumbVS, b: thumbClash, c: thumbPortal },
+        sceneAt: function (t) { return t < 1 ? "a" : t < 2 ? "b" : "c"; },
+        cuts: [],
+        captions: [],
+        ui: function (t) {
+          if (t < 1) {
+            title([["VS", C.white, C.marbleM]], 134, 8, 241);
+            title([["ZEUS", C.goldL, C.gold]], 238, 6, 120);
+            title([["SHIVA", C.cyanL, C.cyan]], 238, 6, 362);
+          } else if (t < 2) {
+            title([["WHO WINS?", C.goldL, C.gold]], 236, 7);
+          } else {
+            title([["THEY'RE NOT", C.white, C.marbleM]], 26, 4);
+            title([["ALONE", C.portal, C.portalV]], 67, 8);
+          }
+        },
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 3, duration: 3, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
