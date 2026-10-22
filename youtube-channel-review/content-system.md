@@ -48,6 +48,20 @@ Only use a hook if it's true to your life.
 7. **"Packing ghar ka khana for Patna 😭"**: mom packing food the day you leave.
 8. **"Last day of vacation → back to MBBS"**: the journey back to Patna and the start of second year.
 
+## "MBBS in Patna on a budget" series (built from the expenses video)
+
+Script for the first video: `scripts/monthly-expenses.md`.
+
+1. **Monthly expenses** (the flagship). Long video plus a Short.
+2. **"What ₹8,000 gets you in Patna"**: flat tour.
+3. **"₹3,500 mess food: what I actually eat in a day"**
+4. **"I spend ₹2K a month on outings: best cafés near NMCH under ₹300"**: local search value.
+5. **"MBBS college outfits under ₹1,000"**: turns the clothes habit into content.
+6. **"Can I survive a week in Patna on ₹500?"**: a challenge with built-in curiosity.
+7. **"Monthly kharcha update: Month X of second year"**: a repeat every month, which makes it easy to stay consistent.
+8. **"Hostel vs flat for MBBS: which is better?"**: film it once hostels are allotted.
+9. **"Things nobody tells you about living alone for MBBS"**
+
 ## Ideas: back in Patna (flat life)
 
 1. **"Hostel nahi mila, so I live in a flat in Patna"**: a flat tour (long video). It's searchable, and NEET aspirants heading to NMCH will want to see it.
