@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>No Sleep for 11 Days</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #1a2a6a;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #1a2a6a;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: sound effects only -->
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script>
+      var C = {
+        wall: "#3ab8c8", wallDark: "#2a8aa8", wallNight: "#2a3a8a", floor: "#c8783a", floorDark: "#8a4a22",
+        window: "#0a1a5a", windowDay: "#8ad8ff", moon: "#fff2b0", star: "#ffffff", frame: "#f4e8d0",
+        desk: "#a8602a", deskDark: "#6a3a18", lamp: "#ff5a6a", lampGlow: "#ffe27a",
+        skin: "#ffc29a", skinShade: "#e8956a", hair: "#5a3218", hairDark: "#3a1e0e", shirt: "#ff8a2a", stripe: "#ffffff", jeans: "#2f5fc8",
+        eyeWhite: "#ffffff", vein: "#ff3a4a", iris: "#3a8ae8", pupil: "#0a0a1a", bag: "#a86aa8", lid: "#e8956a",
+        clockFace: "#ffffff", clockRim: "#ff5a6a", hand: "#1a1a2a",
+        cal: "#ffffff", calRed: "#ff3a3a",
+        brainPink: "#ff9ac8", brainDark: "#d8609a", brainLight: "#ffd0e8", fluid: "#5ae8ff", fluidLight: "#c8faff", waste: "#8a6a3a", wasteLight: "#c89a5a",
+        neuron: "#ffd23f", off: "#4a3a6a", bgBrain: "#2a1a5a", bgBrainLight: "#4a2a8a",
+        sign: "#3cd070", signDark: "#1f9a4a", pole: "#9aa0b0", helmet: "#ff3a3a", night: "#0a0a3a", street: "#3a3a5a",
+        sun: "#ffe060", pillow: "#ffffff", blanket: "#5a7aff", blanketDark: "#3a54d0", z: "#ffffff",
+        ink: "#06050a", paper: "#f1eef4", gold: "#ffd23f", white: "#ffffff", red: "#ff3a3a",
+      };
+      function tiredAt(t) { return t < 5 ? 0.1 : t < 13.5 ? 0.35 : t < 22.5 ? 0.65 : 1; }
+
+      // ============================================================ the teen (Randy)
+      function teen(x, y, s, o, t) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        var tired = o.tired || 0, slump = tired * 3;
+        // torso
+        rrect(-16, 14 + slump, 32, 40, 8, C.shirt);
+        for (var k = 0; k < 4; k++) rect(-16, 20 + slump + k * 8, 32, 2, C.stripe);
+        rect(-5, 12 + slump, 10, 5, C.skin);
+        // head
+        g.translate(0, slump); g.rotate(o.tilt || 0);
+        disc(0, 0, 15, C.skinShade); disc(0, -0.5, 14.5, C.skin);
+        g.fillStyle = C.hair; g.beginPath(); g.arc(0, -2, 15.2, Math.PI * 1.02, Math.PI * 1.98); g.fill();
+        rect(-15, -6, 6, 7, C.hair); rect(9, -6, 6, 5, C.hair);
+        for (var h = 0; h < 4; h++) poly([[-10 + h * 6, -13], [-7 + h * 6, -19 - tired * 3], [-4 + h * 6, -13]], C.hairDark);
+        disc(-14.5, 1, 3, C.skin); disc(14.5, 1, 3, C.skin);
+        // eyes: bags and red veins grow with tiredness; lids droop
+        [-5.5, 5.5].forEach(function (ex) {
+          ell(ex, 4.5, 4, 1.4 + tired * 1.2, 0, mix(C.skinShade, C.bag, tired));
+          disc(ex, 1, 3.6, C.eyeWhite);
+          if (tired > 0.3) for (var v = 0; v < 3; v++) line(ex - 3.4 + v * 0.4, 1 + v - 1, ex - 1.5, 1 + v * 0.6 - 0.5, 0.4, C.vein);
+          var look = o.look || 0;
+          disc(ex + look, 1.2, 1.9, C.iris); disc(ex + look, 1.2, 1, C.pupil);
+          var lidDrop = (o.lid !== undefined ? o.lid : tired * 0.55);
+          rect(ex - 4, -3, 8, 2.2 + 4.4 * lidDrop, C.lid);
+        });
+        // mouth
+        if (o.yawn) ell(0, 9, 2.6, 3.4, 0, C.hairDark);
+        else if (tired > 0.6) line(-3, 9.5, 3, 9.5, 0.9, C.skinShade);
+        else { g.strokeStyle = C.skinShade; g.lineWidth = 0.9; g.beginPath(); g.arc(0, 7.5, 3, 0.3, Math.PI - 0.3); g.stroke(); }
+        g.restore();
+      }
+      function room(t, cam, nightK) {
+        screen();
+        g.fillStyle = mix(C.wall, C.wallNight, nightK); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        rect(-60, 250, 300, 120, C.floor); rect(-60, 250, 300, 2, C.floorDark);
+        // window: day or night
+        rrect(14, 60, 56, 64, 3, C.frame);
+        rect(18, 64, 48, 56, nightK > 0.5 ? C.window : C.windowDay);
+        if (nightK > 0.5) { disc(54, 78, 6, C.moon); disc(57, 76, 5, C.window); for (var s = 0; s < 8; s++) rect(22 + (s * 13) % 40, 70 + (s * 17) % 44, 1, 1, C.star); }
+        else disc(52, 80, 7, C.sun);
+        rect(41, 64, 2, 56, C.frame); rect(18, 91, 48, 2, C.frame);
+        // calendar
+        rrect(122, 58, 40, 46, 2, C.cal); rect(122, 58, 40, 10, C.calRed);
+        worldText("1963", 142, 60, 1, C.white);
+        var crossed = Math.min(11, Math.floor(tiredAt(t) * 11) + (t > 22.5 ? 0 : 1));
+        for (var cd = 0; cd < 12; cd++) {
+          var gx = 126 + (cd % 4) * 9, gy = 72 + Math.floor(cd / 4) * 10;
+          rect(gx, gy, 7, 8, "#e8e8f0");
+          if (cd < crossed) { line(gx, gy, gx + 7, gy + 8, 1, C.calRed); line(gx + 7, gy, gx, gy + 8, 1, C.calRed); }
+        }
+        // clock with spinning hands
+        disc(150, 132, 13, C.clockRim); disc(150, 132, 11, C.clockFace);
+        for (var k = 0; k < 12; k++) { var a = k * 0.5236; rect(150 + Math.cos(a) * 9 - 0.5, 132 + Math.sin(a) * 9 - 0.5, 1, 1, C.hand); }
+        var spin = t * 2.2;
+        line(150, 132, 150 + Math.cos(spin * 12 - 1.57) * 9, 132 + Math.sin(spin * 12 - 1.57) * 9, 0.8, C.hand);
+        line(150, 132, 150 + Math.cos(spin - 1.57) * 6, 132 + Math.sin(spin - 1.57) * 6, 1.4, C.hand);
+        // desk + lamp
+        rect(20, 238, 140, 8, C.desk); rect(28, 246, 6, 30, C.deskDark); rect(146, 246, 6, 30, C.deskDark);
+        lighter(); glow(140, 214, 50, C.lampGlow, 0.35 + 0.25 * nightK); normalBlend();
+        line(140, 236, 132, 214, 1.6, C.hand); poly([[124, 214], [140, 214], [134, 204]], C.lamp);
+      }
+
+      // ============================================================ SCENES
+      function sceneEyes(t) {
+        var endMode = t >= 15;
+        var lt = endMode ? t - 28.2 : t;
+        var cam = shake({ x: 90, y: 160, z: 1 + 0.05 * Math.sin(lt * 20) * Math.exp(-lt * 2) }, lt, 0, 5, 1.2);
+        screen(); rect(0, 0, W, H, C.skin);
+        setCam(cam, 1);
+        // extreme close-up: two wide, bloodshot eyes, twitching
+        var tw = Math.sin(lt * 31) > 0.85 ? 1 : 0;
+        [52, 128].forEach(function (ex, k) {
+          ell(ex, 252, 36, 16, 0, C.bag);
+          ell(ex, 232, 34, 22 - tw * 3, 0, C.skinShade);
+          ell(ex, 232, 31, 19 - tw * 3, 0, C.eyeWhite);
+          for (var v = 0; v < 9; v++) {
+            var a = v * 0.7 + k, len = 10 + (v % 3) * 5;
+            line(ex + Math.cos(a) * 30, 232 + Math.sin(a) * 17, ex + Math.cos(a) * (30 - len), 232 + Math.sin(a) * (17 - len * 0.5), 0.8, C.vein);
+          }
+          var jitter = Math.sin(lt * 23 + k) * 1.2;
+          disc(ex + jitter, 232, 11, C.iris); disc(ex + jitter, 232, 5.5, C.pupil); disc(ex + jitter + 3, 228, 2, C.white);
+          rect(ex - 36, 206, 72, 6, C.skinShade);
+        });
+        line(20, 196, 70, 190, 3, C.hair); line(110, 190, 160, 196, 3, C.hair);
+      }
+      function sceneDay1(t) {
+        var cam = camAt([[1.7, 90, 160, 1.25], [2.4, 90, 152, 1.0], [5.0, 90, 156, 1.1]], t);
+        room(t, cam, 0);
+        setCam(cam, 1);
+        teen(90, 214, 1.15, { tired: 0.0, look: Math.sin(t * 3) * 0.8 }, t);
+        // pencil writing
+        line(118, 236, 128, 226, 1.4, C.gold);
+      }
+      function sceneDay2(t) {
+        var cam = camAt([[4.9, 90, 160, 1.15], [5.6, 90, 152, 1.0], [9.0, 90, 160, 1.18]], t);
+        room(t, cam, 1);
+        setCam(cam, 1);
+        teen(90, 214, 1.15, { tired: 0.35, yawn: t > 7.2 && t < 7.9, tilt: Math.sin(t * 2) * 0.05 }, t);
+        // a dropped pencil rolls off the desk
+        var fall = clamp01((t - 6.2) / 0.5);
+        var px = 118 + 20 * fall, py = 232 + 40 * fall * fall;
+        g.save(); g.translate(px, py); g.rotate(fall * 6); rect(-6, -0.7, 12, 1.4, C.gold); g.restore();
+      }
+      function sceneDouble(img, t) {
+        // blurry double vision overlay (day 2-3): shift a ghost copy sideways
+        var amt = Math.round(3 * Math.sin((t - 5.6) * 2.4) ** 2);
+        if (amt < 1) return;
+        var d = img.data, copy = new Uint8ClampedArray(d);
+        for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
+          var i = (y * W + x) * 4, sx = Math.min(W - 1, x + amt), j = (y * W + sx) * 4;
+          d[i] = (copy[i] + copy[j]) / 2; d[i + 1] = (copy[i + 1] + copy[j + 1]) / 2; d[i + 2] = (copy[i + 2] + copy[j + 2]) / 2;
+        }
+      }
+      var BLOBS = (function () { var r = rng(9), a = []; for (var i = 0; i < 40; i++) a.push({ a: r() * 6.28, d: Math.sqrt(r()), s: r() }); return a; })();
+      function brainShape(cx, cy, s, fill) {
+        g.fillStyle = fill;
+        g.beginPath(); g.ellipse(cx, cy, 52 * s, 40 * s, 0, 0, 6.2832); g.fill();
+        disc(cx - 34 * s, cy + 24 * s, 16 * s, fill);
+      }
+      function folds(cx, cy, s) {
+        g.strokeStyle = C.brainDark; g.lineWidth = 1.3;
+        for (var k = 0; k < 9; k++) {
+          var y0 = cy - 30 * s + k * 7 * s;
+          g.beginPath();
+          for (var x = -46; x <= 46; x += 3) { var yy = y0 + Math.sin(x * 0.25 + k * 1.7) * 3 * s; if (x === -46) g.moveTo(cx + x * s, yy); else g.lineTo(cx + x * s, yy); }
+          g.stroke();
+        }
+        line(cx, cy - 40 * s, cx + 4 * s, cy + 38 * s, 1.4, C.brainDark);
+      }
+      function sceneBrainClean(t) {
+        var cam = camAt([[8.9, 90, 190, 1.3], [9.6, 90, 190, 1.0], [13.5, 90, 192, 1.06]], t);
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.bgBrain], [1, C.bgBrainLight]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        var cx = 90, cy = 226;
+        brainShape(cx, cy, 1.25, C.brainDark); brainShape(cx, cy - 1, 1.2, C.brainPink); folds(cx, cy, 1.2);
+        // phase 1 (9.6-11.4): cleaning fluid washes through during sleep; phase 2: it stops, waste piles up
+        var wash = 1 - ramp(t, 11.4, 12.0), pile = ramp(t, 11.6, 13.2);
+        if (wash > 0) {
+          lighter();
+          for (var k = 0; k < 18; k++) {
+            var ph = ((t * 0.6 + k / 18) % 1);
+            var x = cx - 60 + ph * 120, y = cy - 28 + (k % 6) * 11 + Math.sin(ph * 9 + k) * 3;
+            glow(x, y, 5, C.fluid, 0.7 * wash);
+          }
+          normalBlend();
+        }
+        BLOBS.forEach(function (b, i) {
+          var size = 1 + 3.5 * pile * b.s;
+          var x = cx + Math.cos(b.a) * 48 * b.d, y = cy + Math.sin(b.a) * 34 * b.d;
+          if (pile > 0.05) { disc(x, y, size, C.waste); disc(x - size * 0.3, y - size * 0.3, size * 0.4, C.wasteLight); }
+        });
+        // a little moon (sleep) that gets crossed out
+        disc(150, 172, 7, C.moon); disc(153, 170, 6, C.bgBrain);
+        if (pile > 0.1) { line(140, 162, 160, 182, 2, C.red); line(160, 162, 140, 182, 2, C.red); }
+      }
+      function sceneHallucinate(t) {
+        var cam = camAt([[13.4, 90, 160, 1.2], [14.0, 90, 150, 1.0], [18.0, 92, 156, 1.12]], t);
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.night], [1, C.street]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        rect(-40, 268, 260, 80, C.street); for (var d = 0; d < 6; d++) rect(d * 36 - 10, 290, 18, 3, C.gold);
+        // a street sign that slowly becomes a person
+        var morph = ramp(t, 14.4, 15.6) * (1 - ramp(t, 16.6, 17.2));
+        var sx = 132, sy = 266;
+        line(sx, sy, sx, sy - 70, 3, C.pole);
+        if (morph < 0.5) { rrect(sx - 16, sy - 92, 32, 24, 3, C.signDark); rrect(sx - 15, sy - 91, 30, 22, 3, C.sign); worldText("MAIN", sx, sy - 85, 1, C.white); }
+        else {
+          disc(sx, sy - 82, 10, C.skin); disc(sx - 3, sy - 83, 1.3, C.ink); disc(sx + 3, sy - 83, 1.3, C.ink);
+          line(sx - 4, sy - 77, sx + 4, sy - 77, 0.8, C.ink);
+          rrect(sx - 12, sy - 72, 24, 30, 6, C.sign); line(sx - 12, sy - 66, sx - 22, sy - 50, 3, C.skin); line(sx + 12, sy - 66, sx + 22, sy - 82, 3, C.skin);
+        }
+        lighter(); glow(sx, sy - 80, 24 + 6 * Math.sin(t * 6), Math.sin(t * 3) > 0 ? C.fluid : C.brainPink, 0.45 + 0.4 * morph); normalBlend();
+        for (var w = 0; w < 3; w++) { g.strokeStyle = w % 2 ? C.fluid : C.gold; g.lineWidth = 0.8; g.globalAlpha = 0.6; g.beginPath(); g.arc(sx, sy - 80, 20 + w * 8 + Math.sin(t * 5 + w) * 3, 0, 6.2832); g.stroke(); }
+        g.globalAlpha = 1;
+        // Randy staring, then a football helmet appears on him (he believed he was a pro player)
+        var helmet = ramp(t, 16.6, 17.0);
+        teen(64, 226, 1.05, { tired: 0.65, look: 1.4 }, t);
+        if (helmet > 0) {
+          g.save(); g.translate(64, 226 + 2); g.scale(1.05 * (0.8 + 0.2 * helmet), 1.05 * (0.8 + 0.2 * helmet));
+          g.fillStyle = C.helmet; g.beginPath(); g.arc(0, -2, 17, Math.PI * 0.95, Math.PI * 2.05); g.fill();
+          rect(-17, -3, 5, 10, C.helmet); rect(12, -3, 5, 10, C.helmet); rect(-1, -19, 2, 17, C.white);
+          g.strokeStyle = C.pole; g.lineWidth = 1.4; g.beginPath(); g.moveTo(-12, 6); g.lineTo(12, 6); g.moveTo(-12, 10); g.lineTo(12, 10); g.stroke();
+          g.restore();
+        }
+      }
+      var NEURONS = (function () { var r = rng(21), a = []; for (var i = 0; i < 46; i++) { var an = r() * 6.28, d = Math.sqrt(r()); a.push({ x: 90 + Math.cos(an) * 56 * d, y: 226 + Math.sin(an) * 40 * d, region: Math.floor(r() * 6) }); } return a; })();
+      function sceneMicrosleep(t) {
+        var cam = camAt([[17.9, 90, 190, 1.2], [18.6, 90, 190, 1.0], [22.5, 90, 192, 1.06]], t);
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.bgBrain], [1, C.bgBrainLight]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        brainShape(90, 226, 1.25, C.brainDark); brainShape(90, 225, 1.2, C.brainPink); folds(90, 226, 1.2);
+        // which region is "asleep" right now (patches blink off while he's awake)
+        var sleeping = Math.floor((t - 18.6) * 2.2) % 6;
+        // network links
+        NEURONS.forEach(function (n, i) {
+          var m = NEURONS[(i * 7 + 3) % NEURONS.length];
+          var on = n.region !== sleeping && m.region !== sleeping;
+          line(n.x, n.y, m.x, m.y, 0.6, on ? C.neuron : C.off);
+        });
+        lighter();
+        NEURONS.forEach(function (n, i) {
+          var on = n.region !== sleeping;
+          if (on) glow(n.x, n.y, 4 + 2 * Math.sin(t * 12 + i), C.neuron, 0.9);
+        });
+        normalBlend();
+        NEURONS.forEach(function (n) { disc(n.x, n.y, 1.4, n.region !== sleeping ? C.white : C.off); });
+        // a dark "sleep cloud" over the sleeping patch
+        var cx = 0, cy = 0, c = 0;
+        NEURONS.forEach(function (n) { if (n.region === sleeping) { cx += n.x; cy += n.y; c++; } });
+        if (c) { g.globalAlpha = 0.55; disc(cx / c, cy / c, 16, C.bgBrain); g.globalAlpha = 1; worldText("Z", cx / c, cy / c - 4, 1, C.white); }
+      }
+      function sceneDay11(t) {
+        var cam = camAt([[22.4, 90, 160, 1.2], [23.0, 90, 152, 1.0], [25.6, 90, 156, 1.12]], t);
+        room(t, cam, 1);
+        setCam(cam, 1);
+        teen(90, 214, 1.15, { tired: 1, tilt: 0.08 * Math.sin(t * 1.5), lid: 0.55 }, t);
+        // the 100 - 7 test: he stops at 65
+        var seq = ["100", "93", "86", "79", "72", "65", "...?"];
+        var k = Math.min(seq.length - 1, Math.floor((t - 23.2) / 0.32));
+        if (t > 23.2) {
+          screen();
+          rrect(118, 176, 52, 22, 3, C.white);
+          worldText(seq[Math.max(0, k)], 144, 181, 2, k === seq.length - 1 ? C.red : C.ink);
+        }
+      }
+      function sceneSleep(t) {
+        var cam = camAt([[25.5, 90, 170, 1.2], [26.2, 90, 160, 1.0], [28.2, 90, 164, 1.08]], t);
+        var morning = ramp(t, 26.8, 27.8);
+        room(t, cam, 1 - morning);
+        setCam(cam, 1);
+        // bed
+        rrect(18, 222, 144, 40, 6, C.deskDark); rrect(22, 216, 46, 20, 8, C.pillow);
+        teen(46, 214, 0.9, { tired: 0.2, lid: 1, tilt: -1.4 }, t);
+        rrect(52, 222, 106, 30, 8, C.blanketDark); rrect(52, 220, 106, 28, 8, C.blanket);
+        for (var z = 0; z < 3; z++) { var ph = ((t * 0.7 + z / 3) % 1); g.globalAlpha = 1 - ph; worldText("Z", 70 + ph * 30 + z * 4, 196 - ph * 40, 1 + (z % 2), C.z); }
+        g.globalAlpha = 1;
+      }
+
+      // ============================================================ hours-awake counter (upper left)
+      var HOURS = [[0, 1.8, "HOURS AWAKE", 264], [1.8, 5.0, "HOURS AWAKE", null, 0, 24], [5.0, 9.0, "HOURS AWAKE", null, 24, 72], [9.0, 13.5, "HOURS AWAKE", null, 72, 90],
+        [13.5, 18.0, "HOURS AWAKE", null, 90, 110], [18.0, 22.5, "HOURS AWAKE", null, 110, 240], [22.5, 25.5, "HOURS AWAKE", null, 240, 264], [25.5, 28.2, "THEN HE SLEPT", "14 HOURS"], [28.2, 30.1, "HOURS AWAKE", 264]];
+      function uText(str, x, y, s, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) {
+          var gl = FONT[str[i]] || FONT[" "];
+          for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * s + (p % 5) * s, y + Math.floor(p / 5) * s, s, s);
+        }
+      }
+      function counterUI(t) {
+        var e = null;
+        HOURS.forEach(function (h) { if (t >= h[0] && t < h[1]) e = h; });
+        if (!e) return;
+        var val;
+        if (typeof e[3] === "string") val = e[3];
+        else if (e[3] !== null) val = String(e[3]);
+        else val = String(Math.round(lerp(e[4], e[5], clamp01((t - e[0]) / (e[1] - e[0]))))) ;
+        var day = typeof e[3] === "string" ? "" : "DAY " + Math.min(11, Math.floor(Number(val) / 24) + 1);
+        var x = 14, y = 64, w = 128;
+        u.fillStyle = "rgba(6,5,10,0.82)"; u.fillRect(x, y, w, 40);
+        u.fillStyle = C.gold; u.fillRect(x, y, 2, 40);
+        uText(e[2], x + 6, y + 5, 1, C.paper);
+        uText(val, x + 6, y + 15, 2, C.gold);
+        if (day) uText(day, x + 6 + val.length * 12 + 6, y + 21, 1, C.paper);
+        var prog = typeof e[3] === "string" ? 1 : clamp01(Number(val) / 264);
+        u.fillStyle = "#3a3450"; u.fillRect(x + 6, y + 33, w - 12, 2);
+        u.fillStyle = prog > 0.85 ? C.red : C.gold; u.fillRect(x + 6, y + 33, Math.round((w - 12) * prog), 2);
+      }
+
+      PX.setup(C, {
+        scenes: { eyes: sceneEyes, day1: sceneDay1, day2: sceneDay2, clean: sceneBrainClean, halluc: sceneHallucinate, micro: sceneMicrosleep, day11: sceneDay11, sleep: sceneSleep },
+        sceneAt: function (t) {
+          return t < 1.8 ? "eyes" : t < 5.0 ? "day1" : t < 9.0 ? "day2" : t < 13.5 ? "clean" : t < 18.0 ? "halluc" : t < 22.5 ? "micro" : t < 25.5 ? "day11" : t < 28.2 ? "sleep" : "eyes";
+        },
+        cuts: [[1.8, "eyes", "day1"], [5.0, "day1", "day2"], [9.0, "day2", "clean"], [13.5, "clean", "halluc"], [18.0, "halluc", "micro"], [22.5, "micro", "day11"], [25.5, "day11", "sleep"], [28.2, "sleep", "eyes"]],
+        post: function (t, img) {
+          if (t < 0.1) tintImg(img, C.white, 0.7 * (1 - t / 0.1));
+          if (t > 1.6 && t < 2.05) glitchRows(img, 20 * Math.sin((t - 1.6) / 0.45 * Math.PI), Math.floor(t * 30));
+          if (t > 5.6 && t < 9.0) sceneDouble(img, t);
+          if (t > 22.5 && t < 25.5) tintImg(img, "#6a6a90", 0.18);
+        },
+        captions: [
+          { a: 0.1, b: 1.75, lines: [[["THIS TEEN STAYED AWAKE", C.paper]], [["FOR 11 DAYS STRAIGHT", C.gold]]] },
+          { a: 2.4, b: 4.9, lines: [[["RANDY GARDNER, 17", C.gold]], [["A SCIENCE FAIR TEST", C.paper]]] },
+          { a: 5.6, b: 8.8, lines: [[["DAY 2: HIS EYES", C.paper]], [["STOPPED FOCUSING", C.gold]]] },
+          { a: 9.6, b: 11.4, lines: [[["SLEEP WASHES", C.paper]], [["YOUR BRAIN CLEAN", C.gold]]] },
+          { a: 11.6, b: 13.4, lines: [[["NO SLEEP?", C.paper]], [["WASTE PILES UP", C.gold]]] },
+          { a: 14.1, b: 16.5, lines: [[["DAY 4: A STREET SIGN", C.paper]], [["BECAME A PERSON", C.gold]]] },
+          { a: 16.7, b: 17.9, lines: [[["HE THOUGHT HE WAS", C.paper]], [["A FOOTBALL STAR", C.gold]]] },
+          { a: 18.7, b: 22.3, lines: [[["PARTS OF HIS BRAIN", C.paper]], [["FELL ASLEEP WHILE AWAKE", C.gold]]] },
+          { a: 23.0, b: 25.4, lines: [[["DAY 11: HE COULDN'T", C.paper]], [["COUNT DOWN FROM 100", C.gold]]] },
+          { a: 26.2, b: 28.0, lines: [[["HE RECOVERED.", C.paper]], [["DON'T TRY THIS.", C.gold]]] },
+        ],
+        ui: counterUI,
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 30, duration: 30, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
