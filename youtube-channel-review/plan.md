@@ -1,0 +1,71 @@
+# Channel plan: rishish (@hey.rishish)
+
+Started 2026-10-22. Read this at the start of every planning session.
+
+## Where things stand
+
+- I'm the channel owner, a first-year MBBS student at NMCH, Patna. I just finished the first-year exam, and second year starts in about 2–3 weeks (around mid-November 2026).
+- ~1.26K subscribers, but most of them don't watch anymore. Recent views come from non-subscribers, and few of them subscribe.
+- The 485K video (family reaction to my NEET 2025 result) was about timing. I uploaded it within 4 hours of the result, when everyone was searching. Views dropped after it because those viewers came for the event, not for me.
+- I can edit well. What I need help with is ideas, direction and planning.
+- Footage I already have from first year: biochemistry lab, wearing my lab coat, classes, walking to the ground in my apron.
+
+## Strategy
+
+1. **Upload on time for key dates.** Plan uploads around the events people search for:
+   - My first-year MBBS result: film the reaction and upload the same day.
+   - The NEET result (around June): "One year after my NEET result, here's where I am now."
+   - NEET exam day and counselling dates: post advice or reflection just before each one.
+2. **One series that gives people a reason to subscribe.** Second-year MBBS, documented weekly.
+3. **One video a week for 12 weeks**, then check Analytics before changing anything.
+
+## Next actions
+
+- [ ] Send Claude 5–8 moments from first year (funny day, hard week, first lab, exam stress) so it can draft the voiceover script.
+- [ ] Edit and post **"My First Year of MBBS at NMCH (Honest Recap)"** (voiceover over existing footage).
+- [ ] Add a card and a pinned comment on the 485K video pointing to the recap ("Here's what happened after this result").
+- [ ] Cut 3 Shorts from the recap footage.
+- [ ] Start filming 1–2 minute clips every day now (study, hostel, walk to college, end of first year).
+- [ ] Film the first week of second year for **"Second Year MBBS Starts: Following Along"**.
+- [ ] Be ready to film and post on the day the first-year results come out.
+
+## Recap video outline
+
+**Title:** My First Year of MBBS at NMCH (Honest Recap)
+
+1. **0:00–0:15, hook:** best apron-walk clip + "One year ago I was crying over my NEET result. This is what happened next."
+2. **Getting in:** first days, first time in the lab coat.
+3. **Subjects:** biochem lab + class footage, what was hard and what surprised me.
+4. **Life:** hostel, friends, the ground.
+5. **Exams:** what the first-year exam was actually like.
+6. **Ending:** "Second year starts in 2 weeks. I'm documenting all of it." Then ask viewers to subscribe.
+
+**Rule:** never show cadavers or patients.
+
+## Shorts ideas (from existing footage)
+
+- POV: first time wearing the MBBS apron
+- Biochemistry lab in first-year MBBS
+- What an MBBS class actually looks like
+
+## Basics for every video
+
+- **Titles:** searchable phrases ("MBBS first year exam experience", "MBBS second year", "NMCH hostel life"). Clear, no typos, no vague titles.
+- **Thumbnails:** my face, expressive, with 2–3 words of text.
+- **Hook:** put it in the first 10 seconds. Cut slow intros and dead air.
+- **Subscribe ask:** once, after the video has delivered something, with a reason ("every Friday I'll show second year").
+- **Hashtags:** 3–5 relevant ones. Skip #viral/#trending.
+- **Keep off-niche content** (anime, comedy) rare or in its own playlist. Update the channel keywords to MBBS/NEET terms.
+
+## Check every week in YouTube Analytics
+
+- Impressions click-through rate (are titles and thumbnails working?)
+- Average view duration / retention (where do people leave?)
+- Returning vs. new viewers
+- Subscribers gained per video
+
+## Log
+
+| Date | Video | Views (7 days) | CTR | Avg. view duration | Subs gained | Notes |
+|---|---|---|---|---|---|---|
+| | | | | | | |
