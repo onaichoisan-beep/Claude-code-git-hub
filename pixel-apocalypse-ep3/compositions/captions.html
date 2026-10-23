@@ -1,0 +1,25 @@
+<template>
+  <style>
+    @font-face { font-family: "VT323"; src: url("assets/fonts/vt323-latin-400-normal.woff2") format("woff2"); }
+    #root { position: absolute; inset: 0; font-family: "VT323", monospace; }
+    .cap { position: absolute; left: 110px; right: 110px; top: 1095px; text-align: center; opacity: 0; }
+    .who { display: block; font-size: 40px; letter-spacing: 6px; color: #9a9a9a; text-shadow: 3px 3px 0 #000, -3px 3px 0 #000, 3px -3px 0 #000, -3px -3px 0 #000; margin-bottom: 4px; }
+    .who.red { color: #c0262b; }
+    .line { display: block; font-size: 78px; line-height: 0.95; color: #f2f2f2; text-shadow: 5px 5px 0 #000, -5px 5px 0 #000, 5px -5px 0 #000, -5px -5px 0 #000, 0 5px 0 #000, 0 -5px 0 #000, 5px 0 0 #000, -5px 0 0 #000; }
+  </style>
+  <div id="root" data-composition-id="captions" data-width="1080" data-height="1920" data-duration="21">
+    <div id="cap-1" class="cap clip" data-start="6.2" data-duration="1.0"><span class="who ">AARAV</span><span class="line">That's us...</span></div>
+    <div id="cap-2" class="cap clip" data-start="10.9" data-duration="1.65"><span class="who ">AARAV</span><span class="line">I never took this picture.</span></div>
+    <div id="cap-3" class="cap clip" data-start="12.7" data-duration="2.2"><span class="who ">MIRA</span><span class="line">Then why do you look<br />like you remember it?</span></div>
+    <div id="cap-4" class="cap clip" data-start="16.9" data-duration="2.68"><span class="who red">???</span><span class="line">Aarav... it's your<br />turn to choose.</span></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const caps = [["#cap-1", 6.2, 1.0], ["#cap-2", 10.9, 1.65], ["#cap-3", 12.7, 2.2], ["#cap-4", 16.9, 2.68]];
+    for (const [id, s, d] of caps) {
+      tl.fromTo(id, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.1, ease: "steps(3)" }, s);
+      tl.to(id, { opacity: 0, duration: 0.06, ease: "steps(2)" }, s + d - 0.07);
+    }
+    window.__timelines["captions"] = tl;
+  </script>
+</template>
