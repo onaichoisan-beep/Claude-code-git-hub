@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Rubbing Two Matches</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #1fb8ff;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #1fb8ff;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: sound effects only -->
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script>
+      var C = {
+        sky: "#1fb8ff", skyLight: "#7ad8ff", skyPale: "#c8f4ff", deep: "#1a5ad8", deepLight: "#3a8aff",
+        pink: "#ff3d9a", pinkLight: "#ff8ac8", orange: "#ff8a1f", orangeLight: "#ffb24a", purple: "#8a3cff", purpleLight: "#b07aff",
+        skin: "#ffc29a", skinShade: "#e8956a", skinDark: "#c06a48",
+        sleeveA: "#7a3cff", sleeveAShade: "#5a22d0", sleeveB: "#ff3d7a", sleeveBShade: "#c81e5a",
+        wood: "#f5c46a", woodShade: "#d8963a", woodDark: "#9a5a22", char: "#2a1a14", ember: "#ff5a1f",
+        head: "#e8202a", headShade: "#a8101a", headLight: "#ff6a5a", tipWhite: "#fff4d8",
+        flame0: "#fff6b0", flame1: "#ffd23f", flame2: "#ff8a1f", flame3: "#ff3d1f", flameBlue: "#3a7aff",
+        smoke: "#c8cce0", dust: "#f0a080",
+        headBg: "#ff5a6a", glue: "#ffb0c0", crystal: "#f4f8ff", crystalShade: "#a8b8e0", sulfur: "#ffe83a", sulfurShade: "#d8b010", glass: "#7ae8ff", glassShade: "#3ab0d8",
+        strip: "#8a2a3a", stripDark: "#5a1426", stripLight: "#b04050", rp: "#d8203a", rpLight: "#ff6a7a", whiteP: "#fffbe0",
+        box: "#ffd23f", boxShade: "#e0a020", boxBlue: "#2f5fc8", o2: "#5ae8ff",
+        ink: "#06050a", paper: "#f1eef4", gold: "#ffd23f", white: "#ffffff",
+      };
+
+      // ============================================================ shared drawing
+      function sunburst(c1, c2, cx, cy, rot, n) {
+        screen(); rect(0, 0, W, H, c1);
+        g.fillStyle = c2;
+        for (var i = 0; i < n; i++) {
+          var a0 = rot + i * 6.2832 / n, a1 = a0 + 3.1416 / n;
+          g.beginPath(); g.moveTo(cx, cy);
+          g.lineTo(cx + Math.cos(a0) * 420, cy + Math.sin(a0) * 420);
+          g.lineTo(cx + Math.cos(a1) * 420, cy + Math.sin(a1) * 420);
+          g.closePath(); g.fill();
+        }
+      }
+      // teardrop flame with its base at (x, y)
+      function flame(x, y, s, t, seed) {
+        var fl = 1 + 0.12 * Math.sin(t * 23 + seed) + 0.08 * Math.sin(t * 37 + seed * 2.1);
+        lighter(); glow(x, y - 12 * s, 30 * s, C.flame2, 0.55); glow(x, y - 8 * s, 14 * s, C.flame0, 0.5); normalBlend();
+        [[C.flame3, 1, 1], [C.flame2, 0.78, 0.8], [C.flame1, 0.56, 0.6], [C.flame0, 0.32, 0.36]].forEach(function (L, i) {
+          var rw = 7 * s * L[1], hh = 26 * s * L[2] * fl;
+          var tx = x + Math.sin(t * 9 + seed + i * 0.6) * 3 * s * L[2];
+          g.fillStyle = L[0]; g.beginPath();
+          g.moveTo(x - rw, y);
+          g.quadraticCurveTo(x - rw, y - hh * 0.55, tx, y - hh);
+          g.quadraticCurveTo(x + rw, y - hh * 0.55, x + rw, y);
+          g.arc(x, y, rw, 0, 3.1416); g.fill();
+        });
+        ell(x, y + 1.5 * s, 3 * s, 2 * s, 0, C.flameBlue);
+      }
+      // expanding fireball, k = 0..1
+      function fireball(x, y, k, s) {
+        var r = (12 + 70 * easeOut(k * 1.6)) * s, fade = 1 - sstep(0.45, 1, k);
+        if (fade <= 0) return;
+        g.globalAlpha = fade;
+        lighter(); glow(x, y - r * 0.3, r * 1.6, C.flame2, 0.7); normalBlend();
+        disc(x, y - r * 0.25, r, C.flame3);
+        disc(x - r * 0.1, y - r * 0.32, r * 0.78, C.flame2);
+        disc(x, y - r * 0.4, r * 0.55, C.flame1);
+        disc(x + r * 0.05, y - r * 0.45, r * 0.3, C.flame0);
+        for (var i = 0; i < 26; i++) {
+          var a = hash1(i * 3.1) * 6.2832, d = r * (0.9 + 0.9 * easeOut(k * 1.4)) * (0.7 + hash1(i + 9) * 0.6);
+          var px = x + Math.cos(a) * d, py = y - r * 0.25 + Math.sin(a) * d;
+          line(px, py, px - Math.cos(a) * 4 * s, py - Math.sin(a) * 4 * s, 1.2, i % 3 ? C.flame1 : C.white);
+        }
+        g.globalAlpha = 1;
+      }
+      // match lying along angle ang from (bx, by); returns the head centre
+      function drawMatch(bx, by, ang, len, o) {
+        g.save(); g.translate(bx, by); g.rotate(ang);
+        rect(-4, -1.8, len + 4, 3.6, C.wood); rect(-4, 0.7, len + 4, 1.1, C.woodShade);
+        if (o.charK > 0) { rect(len - len * 0.4 * o.charK, -1.8, len * 0.4 * o.charK, 3.6, C.char); }
+        var burnt = o.burnt || 0;
+        ell(len + 2, 0.4, 6, 3.9, 0, burnt > 0.5 ? C.char : C.headShade);
+        ell(len + 1.6, -0.4, 5.4, 3.3, 0, burnt > 0.5 ? C.woodDark : C.head);
+        if (burnt < 0.5) ell(len + 0.4, -1.6, 2.2, 1, 0, C.headLight);
+        if (o.tip && burnt < 0.5) { ell(len + 6, -0.2, 2.4, 2.7, 0, C.tipWhite); }
+        g.restore();
+        return { x: bx + Math.cos(ang) * (len + 3), y: by + Math.sin(ang) * (len + 3) };
+      }
+      function fist(x, y, flip, sl, sls) {
+        g.save(); g.translate(x, y); if (flip) g.scale(-1, 1);
+        rrect(-12, 8, 18, 60, 4, sl); rect(-12, 8, 4, 60, sls);
+        rrect(-10, -7, 17, 17, 5, C.skin);
+        for (var f = 0; f < 3; f++) rect(4, -4 + f * 4.4, 3, 0.8, C.skinShade);
+        ell(-1, -6, 6, 3, -0.3, C.skinShade); ell(-1, -6.8, 5.5, 2.6, -0.3, C.skin);
+        rect(-10, 6, 17, 2, C.skinDark);
+        g.restore();
+      }
+
+      // ============================================================ PAIR (two matches rubbing)
+      // lt: local time; flareAt: when the tips ignite (null = safety matches, nothing happens)
+      function drawPair(t, lt, o) {
+        var cam = camAt(o.cam, t);
+        if (o.flareAt !== null) shake(cam, lt, o.flareAt, 14, 0.6);
+        sunburst(o.bg[0], o.bg[1], W / 2, 190, t * 0.15, 14);
+        lighter(); glow(90, 200, 120, o.bg[2], 0.6); normalBlend();
+        setCam(cam, 1);
+        var act = lt >= o.rubA && lt < o.rubB ? 1 : 0;
+        var r = Math.sin((lt - o.rubA) * 6.2832 * 3) * 5 * act;
+        var apart = o.flareAt !== null ? 12 * easeOut((lt - o.flareAt) / 0.35) : 0;
+        var age = o.flareAt !== null ? lt - o.flareAt : -1;
+        var lit = age >= 0;
+        var mo = { tip: o.tip, burnt: lit ? sstep(0.4, 1.0, age) : 0, charK: lit ? sstep(0.6, 3, age) : 0 };
+        var hl = drawMatch(34 + r - apart, 292 + r * 0.3, -0.9, 92, mo);
+        var hr = drawMatch(146 - r + apart, 292 - r * 0.3, -2.2416, 92, mo);
+        fist(34 + r - apart, 292 + r * 0.3, false, C.sleeveA, C.sleeveAShade);
+        fist(146 - r + apart, 292 - r * 0.3, true, C.sleeveB, C.sleeveBShade);
+        // dust puffs off the scrape
+        if (o.flareAt === null) {
+          for (var k = 0; k < 18; k++) {
+            var tk = o.rubA + (k + 0.25) / 6, a = lt - tk;
+            if (tk > o.rubB || a < 0 || a > 0.5) continue;
+            g.globalAlpha = 0.7 * (1 - a / 0.5);
+            disc(90 + (k % 2 ? 6 : -6) * a * 4, 216 - a * 14, 1.5 + a * 6, C.dust);
+            g.globalAlpha = 1;
+          }
+        } else if (act && lt > o.flareAt - 0.35) {
+          // tips start to smoke + spit sparks just before they catch
+          for (var s = 0; s < 6; s++) {
+            var ph = hash1(Math.floor(lt * 30) + s * 7);
+            line(90, 215, 90 + (ph - 0.5) * 20, 215 - hash1(s + Math.floor(lt * 30)) * 14, 0.8, C.white);
+          }
+        }
+        if (lit) {
+          var fs = age < 0.5 ? 1.7 - 0.9 * easeOut(age / 0.5) : 0.8 + 0.06 * Math.sin(age * 3);
+          flame(hl.x, hl.y + 2, fs, t, 1); flame(hr.x, hr.y + 2, fs, t, 4);
+          if (age < 0.9) fireball(90, 220, age / 0.9, 1.1);
+          // sparks thrown out
+          for (var i = 0; i < 18; i++) {
+            var sa = age * (0.6 + hash1(i) * 0.8);
+            if (sa > 0.7) continue;
+            var ang = -3.1416 * hash1(i + 3), sp = 60 + hash1(i + 5) * 70;
+            var px = 90 + Math.cos(ang) * sp * sa, py = 214 + Math.sin(ang) * sp * sa + 80 * sa * sa;
+            disc(px, py, 1, i % 2 ? C.flame1 : C.white);
+          }
+        }
+        screen();
+        vignette(0.35, "rgba(10,30,90,");
+      }
+      var CAM_HOOK = [[-2, 90, 200, 1.25], [0, 90, 200, 1.25], [0.75, 90, 200, 1.4], [1.8, 90, 194, 1.25]];
+      var CAM_RUB = [[1.8, 90, 194, 1.25], [4.1, 90, 192, 1.4], [5.2, 91, 216, 30]];
+      var CAM_ANY = [[22.5, 90, 200, 1.2], [24.8, 90, 196, 1.45], [25.4, 90, 190, 1.3], [26.4, 90, 190, 1.25]];
+      function sceneHook(t) {
+        var lt = t > 15 ? t - 30 : t;
+        drawPair(t, lt, { cam: CAM_HOOK, bg: [C.sky, C.skyLight, C.skyPale], tip: true, rubA: -0.6, rubB: 0.75, flareAt: 0.75 });
+      }
+      function sceneRub(t) {
+        drawPair(t, t - 1.8, { cam: CAM_RUB, bg: [C.pink, C.pinkLight, C.white], tip: false, rubA: 0.15, rubB: 2.6, flareAt: null });
+      }
+      function sceneAny(t) {
+        drawPair(t, t - 24.15, { cam: CAM_ANY, bg: [C.purple, C.purpleLight, C.pinkLight], tip: true, rubA: -0.9, rubB: 0.75, flareAt: 0.75 });
+      }
+
+      // ============================================================ HEAD (inside the match head)
+      function grains(seed, n, cx, cy, rx, ry, kinds) {
+        var r = rng(seed), a = [];
+        while (a.length < n) {
+          var x = (r() * 2 - 1), y = (r() * 2 - 1);
+          if (x * x + y * y > 0.92) continue;
+          var q = r(), kind = kinds[kinds.length - 1][0], acc = 0;
+          for (var i = 0; i < kinds.length; i++) { acc += kinds[i][1]; if (q < acc) { kind = kinds[i][0]; break; } }
+          a.push({ x: cx + x * rx, y: cy + y * ry, k: kind, s: 2.2 + r() * 2.6, rot: r() * 6.28, ph: r() * 6.28 });
+        }
+        return a;
+      }
+      var HEADG = grains(41, 140, 90, 210, 74, 84, [["cl", 0.45], ["s", 0.3], ["gl", 0.25]]);
+      function drawGrain(p, t, pulse) {
+        var s = p.s * (1 + pulse * 0.35 * (0.5 + 0.5 * Math.sin(t * 10 + p.ph)));
+        var x = p.x + Math.sin(t * 0.8 + p.ph) * 0.6, y = p.y + Math.cos(t * 0.7 + p.ph) * 0.6;
+        if (p.k === "cl") {
+          g.save(); g.translate(x, y); g.rotate(p.rot);
+          rect(-s + 0.8, -s + 0.8, s * 2, s * 2, C.crystalShade); rect(-s, -s, s * 2, s * 2, C.crystal); rect(-s, -s, s, 0.8, C.white);
+          g.restore();
+        } else if (p.k === "s") {
+          disc(x + 0.5, y + 0.6, s, C.sulfurShade); disc(x, y, s * 0.9, C.sulfur); disc(x - s * 0.3, y - s * 0.3, s * 0.3, C.white);
+        } else if (p.k === "gl") {
+          var a = p.rot;
+          poly([[x + Math.cos(a) * s * 1.3, y + Math.sin(a) * s * 1.3], [x + Math.cos(a + 2.3) * s, y + Math.sin(a + 2.3) * s], [x + Math.cos(a + 4) * s, y + Math.sin(a + 4) * s]], C.glass);
+          line(x, y, x + Math.cos(a) * s, y + Math.sin(a) * s, 0.6, C.white);
+        } else if (p.k === "rp") {
+          disc(x + 0.4, y + 0.5, s, C.stripDark); disc(x, y, s * 0.9, C.rp); disc(x - s * 0.3, y - s * 0.3, s * 0.35, C.rpLight);
+        }
+      }
+      function label(str, x, y, col) {
+        var w = str.length * 6 + 3;
+        rect(x - w / 2, y - 2, w, 11, C.ink);
+        worldText(str, x, y, 1, col);
+      }
+      function sceneHead(t) {
+        var cam = camAt(CAM_HEAD, t);
+        sunburst(C.orange, C.orangeLight, W / 2, 120, -t * 0.1, 12);
+        setCam(cam, 1);
+        // stick + head bulb
+        rect(54, 290, 72, 200, C.wood); rect(54, 290, 10, 200, C.woodShade);
+        ell(90, 214, 92, 102, 0, C.headShade); ell(90, 210, 88, 98, 0, C.headBg);
+        ell(90, 210, 80, 90, 0, C.glue);
+        var hi = { cl: t > 5.9 ? 1 : 0, s: t > 6.8 ? 1 : 0, gl: t > 7.6 ? 1 : 0 };
+        var focus = t > 7.6 ? "gl" : t > 6.8 ? "s" : t > 5.9 ? "cl" : "";
+        HEADG.forEach(function (p) { drawGrain(p, t, p.k === focus ? 1 : 0); });
+        if (hi.cl) label("POTASSIUM CHLORATE", 90, 246, C.paper);
+        if (hi.s) label("SULFUR", 90, 262, C.sulfur);
+        if (hi.gl) label("GLASS + GLUE", 90, 278, C.glass);
+        screen(); vignette(0.3, "rgba(120,20,40,");
+      }
+      var CAM_HEAD = [[5.05, 92, 205, 30], [6.0, 90, 212, 1.05], [8.9, 90, 210, 1.15]];
+
+      // ============================================================ BOX + STRIP
+      function sceneBox(t) {
+        var cam = camAt(CAM_BOX, t);
+        sunburst(C.deep, C.deepLight, W / 2, 200, t * 0.12, 14);
+        lighter(); glow(90, 220, 110, C.sky, 0.6); normalBlend();
+        setCam(cam, 1);
+        // matchbox: top face + front face + striking strip
+        poly([[30, 198], [150, 198], [160, 186], [40, 186]], C.boxShade);
+        rect(30, 198, 120, 56, C.box); rect(30, 198, 120, 4, C.white);
+        disc(64, 226, 15, C.head); disc(64, 226, 11, C.boxBlue);
+        flameIcon(64, 232);
+        rect(88, 214, 50, 6, C.boxBlue); rect(88, 226, 38, 4, C.head); rect(88, 236, 44, 4, C.boxBlue);
+        rect(30, 254, 120, 14, C.strip);
+        for (var i = 0; i < 70; i++) disc(31 + hash1(i) * 118, 255 + hash1(i + 50) * 12, 0.7, i % 3 ? C.stripDark : C.rp);
+        // a match lying on the box
+        drawMatch(46, 190, -0.12, 80, { tip: false });
+        screen(); vignette(0.3, "rgba(10,20,80,");
+      }
+      function flameIcon(x, y) {
+        poly([[x - 5, y], [x, y - 13], [x + 5, y]], C.flame2); disc(x, y - 1, 5, C.flame2);
+        poly([[x - 2.5, y], [x, y - 7], [x + 2.5, y]], C.flame1); disc(x, y - 0.5, 2.6, C.flame1);
+      }
+      var CAM_BOX = [[9.0, 90, 214, 1.3], [9.9, 90, 220, 1.5], [10.45, 90, 261, 30]];
+      var STRIPG = grains(53, 170, 90, 210, 120, 140, [["rp", 0.62], ["gl", 0.38]]);
+      function sceneStrip(t) {
+        var cam = camAt(CAM_STRIP, t);
+        screen(); rect(0, 0, W, H, C.strip);
+        setCam(cam, 1);
+        for (var i = 0; i < 40; i++) disc(hash1(i * 2) * 200 - 10, hash1(i * 3 + 1) * 360 - 20, 6 + hash1(i) * 8, i % 2 ? C.stripDark : C.stripLight);
+        var focus = t > 11.5 ? "gl" : t > 10.9 ? "rp" : "";
+        STRIPG.forEach(function (p) { drawGrain(p, t, p.k === focus ? 1 : 0); });
+        if (t > 10.9) label("RED PHOSPHORUS", 90, 246, C.rpLight);
+        if (t > 11.5) label("GROUND GLASS", 90, 264, C.glass);
+        screen(); vignette(0.3, "rgba(40,0,20,");
+      }
+      var CAM_STRIP = [[10.3, 90, 214, 30], [11.1, 90, 212, 1.05], [12.7, 90, 210, 1.2]];
+
+      // ============================================================ STRIKE (slow-mo macro)
+      var EDGE = (function () {
+        var r = rng(61), a = [];
+        for (var i = 0; i < 46; i++) a.push({ x: -40 + i * 6 + r() * 3, s: 2 + r() * 2.2, k: r() < 0.6 ? "rp" : "gl", rot: r() * 6, ph: r() * 6, conv: r() });
+        return a;
+      })();
+      var HEADS = grains(67, 60, 0, 0, 38, 20, [["cl", 0.55], ["s", 0.45]]);
+      function headX(t) { return lerp(-70, 96, easeOut((t - 12.6) / 1.8)); }
+      function sceneStrike(t) {
+        var cam = camAt(CAM_STRIKE, t);
+        shake(cam, t, 14.5, 5, 0.35); shake(cam, t, 16.6, 14, 0.7);
+        var heat = sstep(12.9, 14.4, t);
+        sunburst(C.purple, C.purpleLight, W / 2, 230, t * 0.1, 12);
+        setCam(cam, 1);
+        var hx = headX(t), hy = 222;
+        // the striking strip
+        rect(-200, 250, 600, 200, C.strip); rect(-200, 250, 600, 3, C.stripLight);
+        EDGE.forEach(function (p) {
+          var passed = p.x < hx + 30 && t > 12.9;
+          var turned = passed && p.k === "rp" && p.conv < 0.35 && t > 13.4;
+          var q = { x: p.x, y: 251, s: p.s, k: p.k, rot: p.rot, ph: p.ph };
+          if (turned) {
+            var pop = t > 14.4 && t < 15.4 ? 1 - (t - 14.4) : 0;
+            disc(p.x, 250, p.s, C.whiteP);
+            if (pop > 0) { lighter(); glow(p.x, 248, 10 * pop + 3, C.flame1, 0.9); normalBlend(); flame(p.x, 250, 0.25 * pop + 0.05, t, p.ph); }
+          } else drawGrain(q, t, 0);
+        });
+        // friction heat glow under the head
+        if (heat > 0 && t < 17) { lighter(); glow(hx, 250, 18 + 14 * heat, C.ember, 0.6 * heat); normalBlend(); }
+        // the stick + head (big, side view)
+        rect(hx - 260, hy - 10, 220, 20, C.wood); rect(hx - 260, hy + 5, 220, 5, C.woodShade);
+        var lit = t >= 16.6;
+        ell(hx, hy + 2, 50, 30, 0, lit ? C.char : C.headShade);
+        ell(hx - 1, hy, 47, 27, 0, lit ? C.woodDark : C.head);
+        g.save(); g.translate(hx, hy);
+        HEADS.forEach(function (p) {
+          drawGrain(p, t, t > 15.6 && t < 16.6 ? 1 : 0);
+        });
+        g.restore();
+        // heat creeping into the head
+        if (t > 14.6 && t < 17.2) { lighter(); glow(hx, hy + 24, 30 * sstep(14.6, 16.4, t), C.flame2, 0.8); normalBlend(); }
+        // oxygen bubbles out of the chlorate
+        if (t > 15.5 && t < 17.4) {
+          for (var b = 0; b < 12; b++) {
+            var ph = ((t - 15.5) * 0.9 + b / 12) % 1;
+            var bx = hx - 40 + (b * 7.3) % 80 + Math.sin(t * 4 + b) * 3, by = hy + 10 - ph * 60;
+            g.globalAlpha = 1 - ph;
+            disc(bx, by, 3 + ph * 2, C.o2); disc(bx - 1, by - 1, 1.2, C.white);
+            if (b % 4 === 0) worldText("O2", bx + 8, by - 3, 1, C.white);
+            g.globalAlpha = 1;
+          }
+        }
+        // whoosh: the head erupts
+        if (lit) {
+          var a = t - 16.6;
+          if (a < 0.9) fireball(hx, hy, a / 0.9, 1.4);
+          flame(hx + 4, hy - 6, 2.6 - 0.5 * sstep(0, 1.2, a), t, 2);
+          flame(hx - 22, hy, 1.4, t, 5); flame(hx + 26, hy, 1.3, t, 8);
+        }
+        screen();
+        if (t > 12.6 && t < 14.6) worldText("SLOW-MO", 154, 20, 1, C.white);
+        vignette(0.3, "rgba(30,0,60,");
+      }
+      var CAM_STRIKE = [[12.6, 90, 176, 1.1], [14.2, 96, 180, 1.3], [16.4, 96, 178, 1.25], [17.4, 96, 170, 1.0], [19.0, 96, 166, 0.85]];
+
+      // ============================================================ BURN (lit match)
+      function sceneBurn(t) {
+        var cam = camAt(CAM_BURN, t);
+        sunburst(C.deep, C.deepLight, W / 2, 230, -t * 0.12, 16);
+        setCam(cam, 1);
+        var a = t - 19.0;
+        // stick, charring down from the head
+        rect(87, 232, 6, 110, C.wood); rect(91, 232, 2, 110, C.woodShade);
+        var ch = 6 + 14 * sstep(0, 3.5, a);
+        rect(87, 230, 6, ch, C.char); disc(90, 230 + ch, 3.2, C.ember);
+        // wax glints sliding along the wood
+        for (var i = 0; i < 4; i++) {
+          var gy = 250 + ((a * 18 + i * 22) % 80);
+          if (gy > 232 + ch) rect(88, gy, 1, 3, C.white);
+        }
+        ell(90, 230, 5, 4, 0, C.char);
+        flame(90, 230, 2.0, t, 3);
+        // fingers holding the base
+        rrect(76, 300, 14, 10, 4, C.skin); rrect(90, 296, 14, 12, 4, C.skin); rect(78, 308, 24, 14, C.skinShade);
+        // little embers rising
+        for (var k = 0; k < 8; k++) {
+          var ph = (a * 0.6 + k / 8) % 1;
+          g.globalAlpha = 1 - ph;
+          disc(90 + Math.sin(ph * 9 + k) * 10, 200 - ph * 90, 0.8, k % 2 ? C.flame1 : C.white);
+          g.globalAlpha = 1;
+        }
+        screen(); vignette(0.35, "rgba(10,20,80,");
+      }
+      var CAM_BURN = [[18.9, 90, 210, 1.8], [20.0, 90, 214, 1.35], [22.6, 90, 216, 1.25]];
+
+      // ============================================================ SPLIT (the twist)
+      function sceneSplit(t) {
+        var a = t - 26.2;
+        var cam = camAt(CAM_SPLIT, t);
+        shake(cam, t, 27.75, 10, 0.4);
+        screen();
+        rect(0, 0, W, H, C.pink);
+        poly([[110, 0], [180, 0], [180, 320], [70, 320]], C.sky);
+        setCam(cam, 1);
+        var slide = 22 * (1 - sstep(27.0, 27.75, t));
+        // left: the match (oxygen + fuel)
+        drawMatch(-30 - slide, 240, 0, 92, { tip: false });
+        label("HEAD", 46, 262, C.gold);
+        label("OXYGEN + FUEL", 46, 274, C.paper);
+        // right: the striking strip (the spark-maker)
+        rrect(104 + slide, 232, 70, 18, 3, C.strip);
+        for (var i = 0; i < 30; i++) disc(106 + slide + hash1(i) * 66, 234 + hash1(i + 7) * 14, 0.8, i % 3 ? C.rp : C.stripDark);
+        label("BOX", 136, 262, C.gold);
+        label("SPARK-MAKER", 136, 274, C.paper);
+        if (t > 27.75) {
+          var k = (t - 27.75) / 0.45;
+          fireball(97, 242, Math.min(1, k), 0.6);
+        }
+        screen(); vignette(0.3, "rgba(60,10,60,");
+      }
+      var CAM_SPLIT = [[26.1, 90, 200, 1.0], [28.3, 92, 208, 1.12]];
+
+      // ============================================================ heat meter (upper-left)
+      function uText(str, x, y, s, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) {
+          var gl = FONT[str[i]] || FONT[" "];
+          for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * s + (p % 5) * s, y + Math.floor(p / 5) * s, s, s);
+        }
+      }
+      function heatUI(t) {
+        if (t < 12.75 || t >= 22.4) return;
+        var v = 0.08 + 0.3 * sstep(12.8, 14.4, t) + 0.15 * sstep(14.4, 15.0, t) + 0.47 * sstep(16.4, 16.9, t);
+        var stage = t < 14.4 ? "FRICTION" : t < 16.5 ? "WHITE P LIGHTS" : t < 19 ? "FLAME!" : "WOOD BURNS";
+        var x = 14, y = 64, w = 128;
+        u.fillStyle = "rgba(6,5,10,0.82)"; u.fillRect(x, y, w, 40);
+        u.fillStyle = C.flame2; u.fillRect(x, y, 2, 40);
+        uText("HEAT", x + 6, y + 5, 1, C.paper);
+        uText(stage, x + 6, y + 15, 1, v > 0.9 ? C.flame1 : C.gold);
+        u.fillStyle = "#3a3450"; u.fillRect(x + 6, y + 30, w - 12, 4);
+        u.fillStyle = v > 0.9 ? C.flame3 : v > 0.4 ? C.flame2 : C.flame1;
+        u.fillRect(x + 6, y + 30, Math.round((w - 12) * v), 4);
+      }
+
+      // ============================================================ timeline
+      PX.setup(C, {
+        scenes: { hook: sceneHook, rub: sceneRub, head: sceneHead, box: sceneBox, strip: sceneStrip, strike: sceneStrike, burn: sceneBurn, any: sceneAny, split: sceneSplit },
+        sceneAt: function (t) {
+          return t < 1.8 ? "hook" : t < 5.2 ? "rub" : t < 9.0 ? "head" : t < 10.4 ? "box" : t < 12.6 ? "strip" : t < 19.0 ? "strike" : t < 22.5 ? "burn" : t < 26.2 ? "any" : t < 28.2 ? "split" : "hook";
+        },
+        cuts: [[5.2, "rub", "head"], [9.0, "head", "box"], [10.4, "box", "strip"], [12.6, "strip", "strike"], [19.0, "strike", "burn"], [22.5, "burn", "any"], [26.2, "any", "split"], [28.2, "split", "hook"]],
+        post: function (t, img) {
+          if (t >= 1.45 && t < 1.85) glitchRows(img, 6 + 40 * clamp01((t - 1.45) / 0.3), Math.floor(t * 30));
+          [[0.75, 0.22], [16.6, 0.22], [24.9, 0.22], [27.75, 0.15]].forEach(function (f) {
+            if (t >= f[0] && t < f[0] + f[1]) tintImg(img, C.white, 0.85 * (1 - (t - f[0]) / f[1]));
+          });
+        },
+        captions: [
+          { a: 0.1, b: 1.5, y: 210, lines: [[["RUB TWO MATCHES", C.paper]], [["TOGETHER?", C.gold]]] },
+          { a: 2.0, b: 3.4, lines: [[["NORMAL MATCHES?", C.paper]]] },
+          { a: 3.5, b: 4.9, lines: [[["USUALLY... ", C.paper], ["NOTHING", C.gold]]] },
+          { a: 6.1, b: 7.7, lines: [[["THE HEAD HOLDS", C.paper]], [["OXYGEN + FUEL", C.gold]]] },
+          { a: 7.8, b: 8.9, lines: [[["BUT NO ", C.paper], ["SPARK", C.gold]]] },
+          { a: 9.2, b: 10.4, lines: [[["THE SPARK LIVES", C.paper]], [["ON THE BOX", C.gold]]] },
+          { a: 12.9, b: 14.6, lines: [[["FRICTION MAKES A SPECK", C.paper]], [["OF WHITE PHOSPHORUS", C.gold]]] },
+          { a: 14.7, b: 16.4, lines: [[["IT CATCHES FIRE", C.paper]], [["IN PLAIN AIR", C.gold]]] },
+          { a: 16.8, b: 18.9, lines: [[["CHLORATE DUMPS OXYGEN", C.paper]], [["SULFUR ERUPTS", C.gold]]] },
+          { a: 19.3, b: 22.3, y: 190, lines: [[["WAX-SOAKED WOOD", C.paper]], [["KEEPS IT BURNING", C.gold]]] },
+          { a: 22.7, b: 24.6, y: 210, lines: [[["STRIKE-ANYWHERE MATCHES", C.paper]], [["HIDE PHOSPHORUS IN THE TIP", C.gold]]] },
+          { a: 25.1, b: 26.1, y: 210, lines: [[["RUB TWO: ", C.paper], ["FWOOSH", C.gold]]] },
+          { a: 26.4, b: 28.1, lines: [[["THAT'S WHY THEY'RE CALLED", C.paper]], [["SAFETY MATCHES", C.gold]]] },
+          { a: 28.4, b: 29.7, y: 210, lines: [[["DON'T TRY THIS", C.paper]], [["AT HOME", C.gold]]] },
+        ],
+        ui: heatUI,
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 30, duration: 30, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
