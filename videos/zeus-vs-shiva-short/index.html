@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Zeus vs Shiva — The Final Clash</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #05040c;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #05040c;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: cinematic sound effects only -->
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="chars.js"></script>
+    <script src="sets.js"></script>
+    <script>
+      var SHOTS = [], FLASH = [], SHOTPOST = {}, NOCUT = {};
+    </script>
+    <script src="shots-c.js"></script>
+    <script>
+      // The final clash of the 4-minute film, re-staged for 9:16. Zeus left, Shiva right, the meeting
+      // point between them sits BELOW the centred caption band.
+      var ZX_ = 32, SX_ = 148, GY_ = 262, MX = 90, MY = 218;
+
+      function stage(cam, t, o) {
+        o = o || {};
+        cosmicArena(cam, t, { pull: o.pull });
+        setCam(cam, 1);
+        if (o.platform !== false) finalPlatform(90, GY_ + 2, 118, { glowL: o.glowL || 0.5, glowR: o.glowR || 0.5, crack: o.crack || 0 });
+      }
+      function zPose(name, extra) { return pose(ZPOSE, name, extra); }
+      function sPose(name, extra) { return pose(SPOSE, name, extra); }
+      // both gods locked in the duel, streams feeding the sphere
+      function duelV(t, k, o) {
+        o = o || {};
+        var z = zeus(ZX_, GY_, 1.0, 1, zPose("thrust", { charge: 1, eyeGlow: 1, wind: 1, lean: o.zLean || 0.28, legs: "brace" }), o.ts || t);
+        var s = shiva(SX_, GY_, 1.0, -1, sPose(o.sPose || "thrust", { triGlow: 1, eyes: "glow", aura: 0.6 }), o.ts || t);
+        var zh = [z.hand[0] + 13, z.hand[1]];
+        zeusStream(zh[0], zh[1], lerp(zh[0], MX - 3, k), lerp(zh[1], MY, k), o.ts || t, o.w || 1);
+        shivaStream(s.tip[0], s.tip[1], lerp(s.tip[0], MX + 3, k), lerp(s.tip[1], MY, k), o.ts || t, o.w || 1);
+        return { zh: zh, st: s.tip };
+      }
+      // a vast dark presence behind the rift (no identity)
+      function looming(x, y, sc) {
+        disc(x, y + 60 * sc, 64 * sc, C.shadow);
+        disc(x + 6 * sc, y - 4 * sc, 34 * sc, C.shadow);
+        arcS(x + 6 * sc, y - 4 * sc, 34 * sc, -2.6, -0.5, 1.4, C.portalV, 1);
+      }
+
+      // ---------------------------------------------------------------- 0 · HOOK: the moment they collide
+      function sceneHook(t) {
+        var lt = t < 15 ? t : t - 28.4; // also drawn as the loop-back at the end
+        var cam = t < 15 ? { x: MX, y: MY - 30, z: 1.9 - 0.4 * easeOut(lt / 0.5) } : camAt([[28.4, MX, 160, 1.3], [30, MX, MY - 30, 1.9]], t);
+        if (t < 15) shake(cam, t, 0, 12, 1.2);
+        stage(cam, t, { glowL: 1, glowR: 1, crack: 0.5 });
+        var k = t < 15 ? 1 : ramp(t, 28.4, 29.7);
+        duelV(t, k, { w: 1.3 });
+        if (t < 15) {
+          var r = 6 + 16 * easeOut(clamp01(lt / 0.6)) + 2 * Math.sin(t * 9);
+          energySphere(MX, MY, r, t, 0, 1, {});
+          for (var i = 0; i < 4; i++) shockRing(MX, MY, (lt - i * 0.25) / 1.0, 120, i % 2 ? C.cyanL : C.goldL, 2.4);
+          burst(MX, MY, lt, 70, 101, 90, [C.goldL, C.cyanL, C.white, C.violetL], 0, 1.6);
+        } else if (k > 0.97) {
+          lighter(); glow(MX, MY, 30, C.white, 0.9); normalBlend();
+        }
+        vignette(0.3, "rgba(10,0,30,");
+      }
+      // ---------------------------------------------------------------- 1 · ZEUS gathers the storm
+      function sceneZeus(t) {
+        var cam = camAt([[1.5, 48, 178, 2.1], [5.6, 44, 170, 2.4]], t);
+        stage(cam, t, { glowL: 1 + ramp(t, 2, 5) });
+        var ch = ramp(t, 1.8, 4.8);
+        var p = poseMix(ZPOSE, "low", "raise", ramp(t, 1.7, 2.4));
+        p.charge = ch; p.eyeGlow = ch; p.wind = 0.5 + 0.5 * ch; p.legs = "wide";
+        var z = zeus(ZX_ + 8, GY_, 1.0, 1, p, t);
+        if (ch > 0.1) {
+          var cx = z.hand[0], cy = z.hand[1] - 15;
+          lighter(); glow(cx, cy, 26 * ch, C.gold, 0.5 * ch); glow(cx, cy, 16 * ch, C.eBlue, 0.6 * ch); normalBlend();
+          for (var i = 0; i < 6; i++) {
+            var a0 = t * 3 + i * 1.047;
+            arcS(cx, cy, 9 + 7 * ch, a0, a0 + 0.8, 1.4, i % 2 ? C.gold : C.goldL, ch);
+            if (i % 2 === 0) lightning(cx, cy, cx + Math.cos(a0) * (9 + 7 * ch), cy + Math.sin(a0) * 4 - 9 * ch, 210 + i, t, 0.6);
+          }
+          crackle(cx, cy, 12 + 9 * ch, 4, 220, t, C.eBlue);
+        }
+        if (t > 3.2) lightning(cam.x - 40, cam.y - 90, z.hand[0] + 2, z.hand[1] - 20, 230, t, 1.2 * ramp(t, 3.2, 3.5), { branches: 2 });
+        vignette(0.3, "rgba(10,0,30,");
+      }
+      // ---------------------------------------------------------------- 2 · SHIVA answers with stillness
+      function sceneShiva(t) {
+        var cam = camAt([[5.4, 136, 176, 2.1], [9.6, 140, 168, 2.4]], t);
+        stage(cam, t, { glowR: 1 });
+        var k = ramp(t, 5.9, 7.6);
+        mandala(SX_ - 2, 206, 30, k, t);
+        for (var i = 0; i < 30; i++) {
+          var a = i * 0.21 + t * 0.15, r = 40 + (i % 4) * 8;
+          rect(SX_ + Math.cos(a) * r, 206 + Math.sin(a) * r * 0.8, 1, 1, i % 3 ? C.white : C.cyanL);
+        }
+        var s = shiva(SX_ - 4, GY_, 1.0, -1, sPose("plant", { triGlow: 0.4 + 0.6 * k, eyes: t > 6.3 ? "glow" : "calm", aura: 0.3 + 0.6 * k }), t);
+        var conv = ramp(t, 8.2, 9.4);
+        if (conv > 0) {
+          for (var j = 0; j < 12; j++) {
+            var aa = j * 0.5236 + t * 0.3, px = SX_ - 2 + Math.cos(aa) * 30 * (1 - conv), py = 206 + Math.sin(aa) * 30 * (1 - conv);
+            line(px, py, lerp(px, s.tip[0], conv), lerp(py, s.tip[1], conv), 0.8, j % 2 ? C.cyanW : C.violetL);
+          }
+          lighter(); glow(s.tip[0], s.tip[1], 8 + 10 * conv, C.cyan, 0.8 * conv); normalBlend();
+        }
+        vignette(0.3, "rgba(10,0,30,");
+      }
+      // ---------------------------------------------------------------- 3 · both launch
+      function sceneLaunch(t) {
+        var cam = camAt([[9.4, MX, 168, 1.15], [13.1, MX, 160, 1.3]], t);
+        stage(cam, t, { glowL: 1, glowR: 1 });
+        var go = t > 9.9;
+        var zp = go ? poseMix(ZPOSE, "raise", "thrust", ramp(t, 9.9, 10.1)) : zPose("raise", {});
+        zp.charge = 1; zp.eyeGlow = 1; zp.wind = 1; zp.legs = go ? "brace" : "wide";
+        var sp = go ? poseMix(SPOSE, "plant", "thrust", ramp(t, 9.9, 10.1)) : sPose("plant", {});
+        sp.triGlow = 1; sp.eyes = "glow"; sp.aura = 0.7;
+        var z = zeus(ZX_, GY_, 1.0, 1, zp, t), s = shiva(SX_, GY_, 1.0, -1, sp, t);
+        if (go) {
+          var k = ramp(t, 10.0, 13.0) * 0.94, zh = [z.hand[0] + 13, z.hand[1]];
+          zeusStream(zh[0], zh[1], lerp(zh[0], MX - 3, k), lerp(zh[1], MY, k), t, 1);
+          shivaStream(s.tip[0], s.tip[1], lerp(s.tip[0], MX + 3, k), lerp(s.tip[1], MY, k), t, 1);
+          lighter(); glow(lerp(zh[0], MX - 3, k), lerp(zh[1], MY, k), 9, C.goldW, 0.9); glow(lerp(s.tip[0], MX + 3, k), lerp(s.tip[1], MY, k), 9, C.cyanW, 0.9); normalBlend();
+        }
+        vignette(0.3, "rgba(10,0,30,");
+      }
+      // ---------------------------------------------------------------- 4 · the collision bends the arena
+      var PULL = (function () {
+        var r = rng(501), a = [];
+        for (var i = 0; i < 36; i++) { var an = r() * 6.28, d = 50 + r() * 110; a.push({ x: MX + Math.cos(an) * d, y: MY + Math.sin(an) * d * 0.9, s: 1 + r() * 3, star: r() < 0.5, ph: r() }); }
+        return a;
+      })();
+      function sceneClash(t) {
+        var cam = camAt([[12.8, MX, 160, 1.3], [17.2, MX, 168, 1.55]], t);
+        cam.x += (hash1(frameNo(t)) - 0.5) * 1.2; cam.y += (hash1(frameNo(t) + 7) - 0.5) * 1.2;
+        shake(cam, t, 13.0, 10, 0.8); shake(cam, t, 15.5, 7, 0.5);
+        stage(cam, t, { glowL: 1, glowR: 1, crack: ramp(t, 13.2, 16.8), pull: { x: MX, y: MY, k: 0.2 + 0.7 * ramp(t, 15.5, 16.2) } });
+        duelV(t, 1, { zLean: 0.36 });
+        PULL.forEach(function (p, i) {
+          var f = clamp01(((t - 13) / 4 + p.ph * 0.5) % 1) * 0.85, x = lerp(p.x, MX, f * f), y = lerp(p.y, MY, f * f);
+          if (p.star) rect(x, y, 1.2, 1.2, C.white);
+          else { g.save(); g.translate(x, y); g.rotate(t * 2 + i); rect(-p.s / 2, -p.s / 2, p.s, p.s * 0.7, C.rock); rect(-p.s / 2, -p.s / 2, p.s, p.s * 0.25, C.marble); g.restore(); }
+        });
+        var pu = pulse(t, 13.0, 13.8) + pulse(t, 15.5, 16.3);
+        energySphere(MX, MY, 13 + 5 * pu + 1.4 * Math.sin(t * 8), t, 0, 1, {});
+        shockRing(MX, MY, (t - 13.0) / 1.0, 90, C.white, 2.4);
+        shockRing(MX, MY, (t - 15.5) / 1.0, 120, C.violetL, 3);
+        vignette(0.3, "rgba(10,0,30,");
+      }
+      // ---------------------------------------------------------------- 5 · one heartbeat (slow motion)
+      function sceneSlow(t) {
+        var ts = 17 + (t - 17) * 0.12;
+        var cam = camAt([[16.8, MX, 196, 2.0], [20.6, MX, 208, 2.7]], t);
+        stage(cam, ts, { glowL: 1, glowR: 1, crack: 1 });
+        duelV(t, 1, { ts: ts, w: 1.4 });
+        motes(601, 50, 30, 150, 120, 120, ts, [C.white, C.goldL, C.cyanL, C.violetL], 0, 0, 1.1);
+        var fl = Math.floor((t - 17) / 0.32) % 3;
+        energySphere(MX, MY, 15, ts, 0, 1, { flick: fl, seam: ramp(t, 19.6, 20.4) });
+        vignette(0.4, "rgba(10,0,30,");
+      }
+      // ---------------------------------------------------------------- 6 · the flash
+      function sceneFlash(t) {
+        var cam = camAt([[20.4, MX, 200, 2.2], [23.1, MX, 170, 0.9]], t);
+        stage(cam, t, { platform: false });
+        setCam(cam, 1);
+        var f = ramp(t, 20.5, 22.2);
+        lighter(); glow(MX, MY, 20 + 200 * f, C.goldW, 0.9); glow(MX, MY, 10 + 120 * f, C.white, 1); normalBlend();
+        rays(MX, MY, t, 22, C.goldW, 0.35 * f, 400);
+        disc(MX, MY, 6 + 90 * f * f, C.white);
+        silhouette(cam, function () {
+          zeus(ZX_, GY_, 1.0, 1, zPose("brace", { wind: 1, lean: -0.2 }), t);
+          shiva(SX_, GY_, 1.0, -1, sPose("guard", { lean: -0.1 }), t);
+        }, C.shadow, 1 - ramp(t, 22.2, 22.9));
+      }
+      // ---------------------------------------------------------------- 7 · neither fell
+      function sceneAfter(t) {
+        var cam = camAt([[22.9, MX, 176, 1.25], [26.2, MX, 182, 1.35]], t);
+        spaceBg(cam, t, { neb: 0.8, top: C.void, mid: C.space2, low: C.violetD });
+        setCam(cam, 1);
+        lighter(); mist(t, 0.8); normalBlend();
+        slab(ZX_ + 2, GY_ + 4, 46, 0.1, 701);
+        slab(SX_ - 2, GY_ + 4, 46, -0.12, 702);
+        var z = zeus(ZX_, GY_, 1.0, 1, zPose("low", { wind: 0.3, legs: "wide", charge: 0.3, eyeGlow: 0.6, breathe: 1 }), t);
+        if (hash1(frameNo(t) * 0.37) > 0.55) crackle(z.hand[0], z.hand[1], 8, 3, 710, t, C.eBlue);
+        shiva(SX_, GY_, 1.0, -1, sPose("stand", { triGlow: 0.5, eyes: "glow", aura: 0.35 }), t);
+        motes(720, 30, 0, 120, 180, 200, t, [C.marble, C.rock, C.violetL], 2, 6, 1.4);
+        vignette(0.35, "rgba(10,0,30,");
+      }
+      // ---------------------------------------------------------------- 8 · something else woke up
+      function sceneRift(t) {
+        var cam = camAt([[26.0, MX, 182, 1.3], [28.6, MX, 190, 1.45]], t);
+        var b = ramp(t, 26.2, 28.0);
+        spaceBg(cam, t, { neb: 0.8, top: C.void, mid: C.space2, low: C.violetD, pull: { x: MX, y: 196, k: 0.5 * b } });
+        setCam(cam, 1);
+        lighter(); mist(t, 0.5); glow(MX, 196, 60 + 60 * b, C.portalV, 0.4 * b); normalBlend();
+        slab(ZX_ + 2, GY_ + 4, 46, 0.1, 701);
+        slab(SX_ - 2, GY_ + 4, 46, -0.12, 702);
+        fissure(MX, 196, 70 + 20 * b, 2 + 13 * b, t, 0.6 + 0.4 * b, function () {
+          fillAll(C.white); setCam(cam, 1);
+          lighter(); glow(MX, 196, 30, C.portal, 0.7); normalBlend();
+          looming(MX + 2, 214, 0.55);
+        });
+        var raise = ramp(t, 26.8, 27.6);
+        var zp = poseMix(ZPOSE, "low", "raise", raise); zp.charge = 0.5 + 0.5 * raise; zp.eyeGlow = 1; zp.legs = "wide";
+        zeus(ZX_, GY_, 1.0, 1, zp, t);
+        var sp = poseMix(SPOSE, "stand", "raise", raise); sp.triGlow = 1; sp.eyes = "glow"; sp.aura = 0.6;
+        shiva(SX_, GY_, 1.0, -1, sp, t);
+        vignette(0.4, "rgba(10,0,30,");
+      }
+
+      var gold = C.gold, paper = C.white, cyan = C.cyanL;
+      PX.setup(C, {
+        scenes: { hook: sceneHook, zeus: sceneZeus, shiva: sceneShiva, launch: sceneLaunch, clash: sceneClash, slow: sceneSlow, flash: sceneFlash, after: sceneAfter, rift: sceneRift },
+        sceneAt: function (t) {
+          return t < 1.6 ? "hook" : t < 5.5 ? "zeus" : t < 9.5 ? "shiva" : t < 13 ? "launch" : t < 17 ? "clash" : t < 20.5 ? "slow" : t < 23 ? "flash" : t < 26.1 ? "after" : t < 28.4 ? "rift" : "hook";
+        },
+        cuts: [[1.6, "hook", "zeus"], [5.5, "zeus", "shiva"], [9.5, "shiva", "launch"], [13, "launch", "clash"], [17, "clash", "slow"], [26.1, "after", "rift"], [28.4, "rift", "hook"]],
+        post: function (t, img) {
+          if (t < 0.15) tintImg(img, C.white, 1 - t / 0.15);
+          if (t > 29.75) tintImg(img, C.white, ramp(t, 29.75, 30));
+          if (t > 1.4 && t < 1.85) glitchRows(img, 22 * Math.sin((t - 1.4) / 0.45 * Math.PI), Math.floor(t * 30));
+          if (t > 12.85 && t < 13.3) tintImg(img, C.white, t < 13 ? ramp(t, 12.85, 13) * 0.85 : 0.85 * (1 - ramp(t, 13, 13.3)));
+          if (t > 20.3 && t < 23.6) tintImg(img, C.white, 0.8 * (t < 21.0 ? ramp(t, 20.3, 21.0) : 1 - ramp(t, 21.6, 23.4)));
+        },
+        captions: [
+          { a: 0.15, b: 1.5, lines: [[["ZEUS ", gold], ["VS ", paper], ["SHIVA", cyan]], [["WHO WINS?", paper]]] },
+          { a: 2.2, b: 5.3, lines: [[["ZEUS", gold]], [["KING OF THE STORM", paper]]] },
+          { a: 6.1, b: 9.3, lines: [[["MAHADEV", cyan]], [["CALM AS THE COSMOS", paper]]] },
+          { a: 10.2, b: 12.8, lines: [[["TWO FORCES.", paper]], [["ONE POINT.", gold]]] },
+          { a: 13.6, b: 16.8, lines: [[["EVEN THE ARENA", paper]], [["STARTS TO ", paper], ["BREAK", gold]]] },
+          { a: 17.4, b: 20.2, lines: [[["FOR ONE HEARTBEAT...", paper]]] },
+          { a: 23.5, b: 25.9, lines: [[["NEITHER ", paper], ["FELL.", gold]]] },
+          { a: 26.4, b: 28.3, lines: [[["SOMETHING ELSE", paper]], [["WOKE UP", gold]]] },
+        ],
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 30, duration: 30, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
