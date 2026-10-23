@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face { font-family: "PS2P"; src: url("press-start-2p-latin-400-normal.woff2"); }
+@font-face { font-family: "VT"; src: url("vt323-latin-400-normal.woff2"); }
+html,body { margin:0; width:1080px; height:1920px; overflow:hidden; background:#000; }
+#bg { position:absolute; inset:0; width:1080px; height:1920px; image-rendering:pixelated; filter: brightness(1.7) contrast(1.05); }
+#shade { position:absolute; inset:0; background:
+  linear-gradient(to bottom, rgba(0,0,0,.9) 0px, rgba(0,0,0,.5) 470px, rgba(0,0,0,0) 620px, rgba(0,0,0,0) 1080px, rgba(0,0,0,.7) 1280px, rgba(0,0,0,.95) 1620px); }
+.px { text-shadow: 6px 6px 0 #000,-6px 6px 0 #000,6px -6px 0 #000,-6px -6px 0 #000,0 6px 0 #000,0 -6px 0 #000,6px 0 0 #000,-6px 0 0 #000,0 12px 0 #000; }
+#series { position:absolute; top:300px; left:0; right:0; text-align:center; font-family:"VT"; font-size:58px; letter-spacing:12px; color:#bdbdbd; }
+#part { position:absolute; top:392px; left:0; right:0; text-align:center; }
+#part span { display:inline-block; font-family:"PS2P"; font-size:44px; color:#fff; background:#a3141a; padding:22px 30px 18px; box-shadow: 10px 10px 0 #000; }
+#title { position:absolute; top:1300px; left:40px; right:40px; text-align:center; font-family:"PS2P"; color:#f2f2f2; line-height:1.35; }
+#title .l1 { display:block; font-size:64px; }
+#title .l2 { display:block; font-size:84px; }
+.r { color:#d0242b; }
+#ep { position:absolute; top:1560px; left:0; right:0; text-align:center; font-family:"VT"; font-size:46px; letter-spacing:8px; color:#9a9a9a; }
+</style></head><body>
+<img id="bg" src="frames/ep5.png"><div id="shade"></div>
+<div id="series" class="px">THE PIXEL APOCALYPSE</div>
+<div id="part"><span>PART 5/5 &middot; FINALE</span></div>
+<div id="title" class="px"><span class="l1">THEY CAME</span><span class="l2"><span class="r">FOR US</span></span></div>
+<div id="ep" class="px">ZOMBIE HORROR &middot; PIXEL SERIES</div>
+</body></html>
