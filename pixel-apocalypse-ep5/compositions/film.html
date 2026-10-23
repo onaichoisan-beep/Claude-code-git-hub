@@ -1,0 +1,395 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #000; }
+    #film-cv { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; }
+  </style>
+  <div id="root" data-composition-id="film" data-width="1080" data-height="1920" data-duration="24.4">
+    <canvas id="film-cv" width="216" height="384"></canvas>
+  </div>
+  <script>
+  (function () {
+    // ---------- voice envelopes (30 fps RMS, 0..1) for lip sync ----------
+    const ENV = {"aarav_no":[0.0,0.71,1,1,1,1,1,0.85,1,1,0.67,0.49,0.72,1,1,1,0.81,0.76,0.46,0.46,0.37,0.29,0.28,0.09,0.02,0.0,0.0,0.0],"mira_take":[0.03,1,1,1,1,1,1,0.68,0.36,0.98,0.88,1.0,0.53,0.24,0.3,0.76,0.92,0.87,0.9,0.9,0.91,0.92,0.69,0.69,0.89,0.83,0.35,0.28,0.59,0.36,0.72,0.78,0.66,0.48,0.53,0.24,0.17,0.63,0.68,0.46,0.46,0.1,0.41,0.7,0.79,0.88,0.75,0.54,0.43,0.36,0.27,0.09,0.22,0.04,0.01,0.01,0.01,0.0,0.32,1,1,1,1,1,0.96,0.75,1,1,0.83,0.71,0.52,0.17,0.33,0.96,0.71,0.72,0.8,0.73,0.43,0.89,0.71,0.47,0.37,0.19,0.11,0.02,0.1,0.03,0.01,0.0,0.0,0.0,0.0,0.0,0.27,0.72,1,0.75,0.68,0.74,0.45,0.41,0.59,0.77,0.59,0.51,0.46,0.49,0.55,0.71,0.4,0.06,0.01,0.0,0.0,0.0,0.0,0.0,0.0,0.01,0.74,0.78,0.68,0.12,0.55,0.29,0.81,1,0.32,0.17,0.91,0.39,0.13,0.12,0.61,0.63,0.66,0.41,0.29,0.32,0.27,0.2,0.13,0.18,0.03,0.0,0.0,0.0],"narr_hook":[0.0,0.0,0.0,0.11,0.42,1,0.79,0.71,0.45,0.62,1,0.74,0.84,0.89,0.95,0.66,0.65,0.4,0.54,0.63,0.56,0.47,0.41,0.57,0.22,0.52,0.7,0.72,0.52,0.64,0.57,0.22,0.24,0.28,0.3,0.34,0.67,0.68,0.41,0.22,0.19,0.4,0.53,0.64,0.51,0.36,0.58,0.46,0.45,0.66,0.84,0.97,0.74,0.62,0.51,0.33,0.24,0.35,0.28,0.35,0.29,0.17,0.1,0.12,0.07,0.17,0.29,0.22,0.1,0.05,0.05,0.05,0.01,0.0,0.0,0.0,0.0,0.0,0.0,0.11,0.83,0.93,0.9,0.9,1,1,1,0.78,1,1,0.85,0.88,1,0.7,0.62,0.4,0.27,0.17,0.14,0.1,0.07,0.03,0.02,0.01,0.01,0.0,0.0,0.0,0.0],"older":[0.0,0.01,0.18,0.57,0.65,0.45,0.83,0.87,0.66,0.66,0.4,0.15,0.2,0.15,0.61,1,1,1,1,0.64,0.36,0.48,0.85,0.88,0.69,0.7,0.82,0.84,0.76,0.66,0.86,1,1,0.46,0.41,0.75,0.72,0.62,0.49,0.32,0.27,0.37,0.44,0.78,0.93,0.97,0.85,0.66,0.44,0.34,0.27,0.16,0.14,0.1,0.09,0.07,0.1,0.26,0.24,0.12,0.06,0.03,0.01,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.01,0.22,0.5,0.69,0.65,1,0.68,0.71,0.43,0.31,0.24,0.64,1,1,1,0.94,0.75,0.32,0.3,0.52,0.7,0.66,0.58,0.72,0.64,0.47,0.25,0.39,0.96,0.91,1,1,0.93,0.64,0.49,0.14,0.14,0.08,0.06,0.06,0.04,0.02,0.01,0.0,0.0,0.0,0.0],"radio":[0.04,0.13,0.16,1,1,0.11,0.07,0.28,0.39,0.73,0.54,0.03,0.01,0.06,0.1,0.09,0.09,0.23,0.31,0.32,0.33,0.42,0.42,0.27,0.14,0.13,0.14,0.1,0.1,0.61,0.63,0.06,0.42,0.26,0.15,0.13,0.15,0.33,0.31,0.14,0.03,0.14,0.26,0.53,0.33,0.17,0.05,0.1,0.17,0.2,0.17,0.06,0.05,0.04,0.01,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.09,0.19,0.36,0.31,0.25,0.17,0.06,0.26,0.31,0.29,0.23,0.17,0.07,0.05,0.04,0.03,0.01,0.0,0.0,0.0]};
+    const VO = { narr_hook: 0.05, radio: 3.85, older: 7.7, mira_take: 11.7, aarav_no: 16.75 };
+    function vo(name, t) { const e = ENV[name]; const i = Math.floor((t - VO[name]) * 30); return i >= 0 && i < e.length ? e[i] : 0; }
+
+    // ---------- buffers ----------
+    const W = 216, H = 384, N = W * H;
+    const cv = document.getElementById("film-cv");
+    const ctx = cv.getContext("2d");
+    const img = ctx.createImageData(W, H);
+    const alb = new Float32Array(N), emi = new Float32Array(N), mat = new Uint8Array(N);
+    const rgb = new Uint8ClampedArray(N * 3), tmp = new Uint8ClampedArray(N * 3);
+    const PAL = [6, 16, 30, 50, 78, 116, 164, 232];
+    const BLOOD = [[22, 3, 4], [56, 6, 9], [100, 12, 16], [150, 24, 28], [205, 52, 52]];
+    const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
+
+    let cam, lights, amb, flash, fisheye, frame;
+    function hash(a, b, c) { let h = (a * 374761393 + (b | 0) * 668265263 + (c | 0) * 2147483647) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16; return (h >>> 0) / 4294967296; }
+    const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+    const ease = (v) => { v = clamp(v); return v * v * (3 - 2 * v); };
+    const outq = (v) => { v = clamp(v); return 1 - (1 - v) * (1 - v); };
+    const lerp = (a, b, k) => a + (b - a) * k;
+    function flick(t) { return 1 + 0.07 * Math.sin(t * 23) + 0.05 * Math.sin(t * 37 + 1) + 0.08 * (hash(Math.floor(t * 12), 7) - 0.5); }
+
+    // ---------- rasteriser (world coords -> 216x384 grid) ----------
+    function sx(wx) { return (wx - cam.fx) * cam.z * cam.kx + 108 + cam.sx; }
+    function sy(wy) { return (wy - cam.fy) * cam.z + 192 + cam.sy; }
+    function wxOf(px) { return (px + 0.5 - 108 - cam.sx) / (cam.z * cam.kx) + cam.fx; }
+    function wyOf(py) { return (py + 0.5 - 192 - cam.sy) / cam.z + cam.fy; }
+    function fill(x0, y0, x1, y1, pred, p) {
+      const a0 = Math.max(0, Math.floor(sx(x0)) - 1), a1 = Math.min(W - 1, Math.ceil(sx(x1)) + 1);
+      const b0 = Math.max(0, Math.floor(sy(y0)) - 1), b1 = Math.min(H - 1, Math.ceil(sy(y1)) + 1);
+      for (let py = b0; py <= b1; py++) {
+        const Y = wyOf(py);
+        for (let px = a0; px <= a1; px++) {
+          const X = wxOf(px);
+          if (!pred(X, Y)) continue;
+          const i = py * W + px;
+          if (p.a !== undefined) { alb[i] = typeof p.a === "function" ? p.a(X, Y) : p.a; mat[i] = p.m || 0; emi[i] = 0; }
+          if (p.e) emi[i] += typeof p.e === "function" ? p.e(X, Y) : p.e;
+        }
+      }
+    }
+    const P = (a, m) => ({ a, m });
+    const E = (e) => ({ e });
+    function rect(x, y, w, h, p) { fill(x, y, x + w, y + h, (X, Y) => X >= x && X < x + w && Y >= y && Y < y + h, p); }
+    function ell(cx, cy, rx, ry, p) {
+      const mr = 0.5 / cam.z; rx = Math.max(rx, mr); ry = Math.max(ry, mr);
+      fill(cx - rx, cy - ry, cx + rx, cy + ry, (X, Y) => ((X - cx) / rx) ** 2 + ((Y - cy) / ry) ** 2 <= 1, p);
+    }
+    function line(x0, y0, x1, y1, w, p) {
+      const r = Math.max(w, 1 / cam.z) / 2, dx = x1 - x0, dy = y1 - y0, L2 = dx * dx + dy * dy || 1e-6;
+      fill(Math.min(x0, x1) - r, Math.min(y0, y1) - r, Math.max(x0, x1) + r, Math.max(y0, y1) + r, (X, Y) => {
+        const k = clamp(((X - x0) * dx + (Y - y0) * dy) / L2); const ex = x0 + dx * k - X, ey = y0 + dy * k - Y; return ex * ex + ey * ey <= r * r;
+      }, p);
+    }
+    function poly(pts, p) {
+      let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+      for (const [x, y] of pts) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+      fill(x0, y0, x1, y1, (X, Y) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > Y) !== (yj > Y) && X < ((xj - xi) * (Y - yi)) / (yj - yi) + xi) c = !c; } return c; }, p);
+    }
+    function light(x, y, r, i) { lights.push({ x, y, r, i }); }
+
+    // ---------- 5x7 pixel font for phone screens ----------
+    const G = {
+      A: "01110100011000111111100011000110001", C: "01111100001000010000100001000001111", D: "11110100011000110001100011000111110",
+      E: "11111100001000011110100001000011111", G: "01111100001000010011100011000101111", I: "11111001000010000100001000010011111",
+      L: "10000100001000010000100001000011111", M: "10001110111010110101100011000110001", N: "10001110011010110011100011000110001",
+      O: "01110100011000110001100011000101110", R: "11110100011000111110101001001010001", S: "01111100001000001110000010000111110",
+      T: "11111001000010000100001000010000100", Y: "10001100010101000100001000010000100", U: "10001100011000110001100011000101110",
+      B: "11110100011000111110100011000111110", J: "00111000100001000010000101001001100", H: "10001100011000111111100011000110001",
+      V: "10001100011000110001100010101000100", P: "11110100011000111110100001000010000", F: "11111100001000011110100001000010000",
+      K: "10001100101010011000101001001010001", W: "10001100011000110101101011010101010",
+      0: "01110100111010110101110011000101110", 1: "00100011000010000100001000010001110", 2: "01110100010000100110010001000011111",
+      3: "11110000010000101110000010000111110", 4: "00010001100101010010111110001000010", 5: "11111100001111000001000011000101110",
+      6: "00110010001000011110100011000101110", 7: "11111000010001000100010000100001000", 8: "01110100011000101110100011000101110",
+      9: "01110100011000101111000010001001100", ":": "00000001000010000000001000010000000", ".": "00000000000000000000000000000000100", "'": "00100001000000000000000000000000000", "-": "00000000000000011111000000000000000", " ": "00000000000000000000000000000000000",
+    };
+    function text(str, cx, y, s, p) {
+      const w = str.length * 6 * s - s; let x = cx - w / 2;
+      for (const ch of str) { const g = G[ch] || G[" "]; for (let r = 0; r < 7; r++) for (let c = 0; c < 5; c++) if (g[r * 5 + c] === "1") rect(x + c * s, y + r * s, s, s, p); x += 6 * s; }
+    }
+
+    // ---------- characters ----------
+    function head(o) {
+      const { x, y, s } = o, who = o.who, tr = o.turn || 0, ls = o.ls || 0;
+      const skin = who === "child" ? 0.74 : who === "mira" ? 0.66 : 0.6;
+      const look = o.look || [0, 0], open = o.open === undefined ? 1 : o.open, fear = o.fear || 0;
+      const fx = x + tr * s * 0.3;
+      // back hair (Mira's bob sits behind the face)
+      if (who === "mira") ell(x - tr * s * 0.1, y - s * 0.15, s * 1.18, s * 1.12, P(0.1));
+      rect(x - s * 0.36, y + s * 0.8, s * 0.72, s * 0.9, P(skin * 0.78));
+      if (who !== "mira") {
+        if (tr < 0.6) ell(x - s * 0.97 + tr * s * 0.25, y + s * 0.05, s * 0.16, s * 0.27, P(skin * 0.82));
+        if (tr > -0.6) ell(x + s * 0.97 + tr * s * 0.25, y + s * 0.05, s * 0.16, s * 0.27, P(skin * 0.82));
+      }
+      ell(x, y, s, s * 1.22, P((X, Y) => {
+        const dx = (X - x) / s - tr * 0.3, dy = (Y - y) / s;
+        let a = skin * (1 - 0.3 * clamp(-dx * ls * 1.4) - 0.12 * clamp(dy - 0.6) * 2.5);
+        if (who === "child") a -= 0.05 * clamp(1 - Math.abs(dy + 0.08) * 8) * clamp(Math.abs(dx) * 3 - 0.6); // under-eye hollows
+        return a;
+      }));
+      // eyes
+      for (const side of [-1, 1]) {
+        const near = 1 - Math.abs(tr) * 0.22 * (side * tr < 0 ? 1 : 0);
+        const ex = fx + side * s * 0.4 * near, ey = y - s * 0.08;
+        ell(ex, ey, s * 0.31, s * 0.19, P(skin * 0.68));
+        const eh = s * 0.12 * open * (1 + fear * 0.5), ew = s * 0.24 * near;
+        if (open < 0.2) { line(ex - ew, ey, ex + ew, ey, s * 0.05, P(0.05)); continue; }
+        ell(ex, ey, ew, eh, P(0.84));
+        const ir = s * (0.11 - fear * 0.04), ix = ex + look[0] * s * 0.1, iy = ey + look[1] * s * 0.04;
+        fill(ix - ir, iy - ir, ix + ir, iy + ir, (X, Y) => (X - ix) ** 2 + (Y - iy) ** 2 <= ir * ir && ((X - ex) / ew) ** 2 + ((Y - ey) / eh) ** 2 <= 1, P(0.08));
+        rect(ix - ir * 0.55, iy - ir * 0.6, Math.max(s * 0.04, 1 / cam.z), Math.max(s * 0.04, 1 / cam.z), E(0.75));
+        line(ex - ew * 1.05, ey - eh * 0.85, ex + ew * 1.05, ey - eh * 0.85, s * 0.055, P(0.04));
+        // brows
+        const bl = o.brow === "angry" ? -0.1 : o.brow === "worry" ? 0.1 : 0;
+        const by = ey - s * 0.27 - fear * s * 0.07;
+        line(ex - s * 0.24, by + side * bl * s * -1 + (side > 0 ? 0 : 0), ex + s * 0.22, by + side * bl * s, s * (who === "child" ? 0.05 : 0.08), P(0.07));
+      }
+      // nose
+      line(fx + s * 0.02, y + s * 0.02, fx + s * 0.08 + tr * s * 0.08, y + s * 0.34, s * 0.06, P(skin * 0.72));
+      ell(fx, y + s * 0.4, s * 0.13, s * 0.05, P(skin * 0.6));
+      // mouth
+      const my = y + s * 0.68, mw = s * (who === "child" ? 0.22 : 0.3), mo = o.mouth || 0;
+      if (mo > 0.12) {
+        ell(fx, my, mw * (0.8 + 0.2 * mo), s * 0.035 + s * 0.13 * mo, P(0.05));
+        if (mo > 0.45) line(fx - mw * 0.5, my - s * 0.06 * mo, fx + mw * 0.5, my - s * 0.06 * mo, s * 0.04, P(0.62));
+      } else {
+        line(fx - mw, my, fx + mw, my - (o.smirk ? s * 0.09 : 0), s * 0.05, P(skin * 0.42));
+        if (o.smirk) line(fx + mw * 0.8, my - s * 0.09, fx + mw * 1.05, my - s * 0.15, s * 0.04, P(skin * 0.5));
+      }
+      line(fx - mw * 0.6, my + s * 0.12, fx + mw * 0.6, my + s * 0.12, s * 0.04, P(skin * 0.82));
+      // hair
+      if (who === "mira") {
+        fill(x - s * 1.2, y - s * 1.4, x + s * 1.2, y + s * 0.85, (X, Y) => {
+          const inHair = ((X - x) / (s * 1.12)) ** 2 + ((Y - y + s * 0.15) / (s * 1.12)) ** 2 <= 1;
+          const face = Math.abs(X - x - tr * s * 0.1) < s * (0.84 - Math.max(0, (Y - y) / s) * 0.1) && Y > y - s * 0.5 + (X - x) * 0.25;
+          return inHair && !face;
+        }, P((X, Y) => 0.1 + 0.03 * Math.sin(X * 1.7 + Y * 0.4)));
+        line(fx - s * 0.2, y + s * 0.3, fx - s * 0.1, y + s * 0.24, 0, P(0)); // no-op spacer
+        line(fx + s * 0.48, y + s * 0.3, fx + s * 0.68, y + s * 0.22, s * 0.05, P(0.55, 1)); // cheek cut
+      } else {
+        const hs = who === "child" ? 13 : 3;
+        fill(x - s * 1.12, y - s * 1.45, x + s * 1.12, y - s * 0.1, (X, Y) => {
+          const top = ((X - x) / (s * 1.08)) ** 2 + ((Y - y + s * 0.45) / (s * 0.98)) ** 2 <= 1;
+          const k = Math.floor((X - x + s * 2) / (s * 0.16));
+          const fringe = y - s * (who === "child" ? 0.5 : 0.42) + hash(k, hs) * s * (who === "child" ? 0.16 : 0.28);
+          return top && Y < fringe;
+        }, P((X, Y) => 0.07 + 0.04 * (hash(Math.floor(X * 0.7), Math.floor(Y * 0.25), hs) > 0.7 ? 1 : 0)));
+        if (who === "child") { for (let k = 0; k < 5; k++) { const hx = x - s * 0.5 + k * s * 0.25; line(hx, y - s * 0.5, hx + (hash(k, 3) - 0.5) * s * 0.15, y - s * 0.3 + hash(k, 4) * s * 0.06, s * 0.06, P(0.06)); } for (const sd of [-1, 1]) line(x + sd * s * 0.9, y - s * 0.4, x + sd * s * 0.95, y + s * 0.5, s * 0.14, P(0.07)); }
+      }
+    }
+    function hoodie(x, y, w, hgt, a) {
+      ell(x, y + 6, w * 0.42, w * 0.16, P(a * 0.7));
+      poly([[x - w * 0.5, y + hgt], [x - w * 0.46, y + w * 0.14], [x - w * 0.18, y], [x + w * 0.18, y], [x + w * 0.46, y + w * 0.14], [x + w * 0.5, y + hgt]], P((X) => a - 0.04 * (Math.abs(X - x) > w * 0.36 ? 1 : 0)));
+      line(x - w * 0.08, y + w * 0.05, x - w * 0.1, y + w * 0.3, Math.max(1, w * 0.012), P(0.55));
+      line(x + w * 0.08, y + w * 0.05, x + w * 0.1, y + w * 0.3, Math.max(1, w * 0.012), P(0.55));
+    }
+    function jacket(x, y, w, hgt, a) {
+      poly([[x - w * 0.5, y + hgt], [x - w * 0.47, y + w * 0.15], [x - w * 0.16, y], [x + w * 0.16, y], [x + w * 0.47, y + w * 0.15], [x + w * 0.5, y + hgt]], P(a));
+      poly([[x - w * 0.16, y], [x, y + w * 0.38], [x + w * 0.16, y], [x + w * 0.05, y], [x, y + w * 0.12], [x - w * 0.05, y]], P(0.12));
+      line(x - w * 0.16, y, x - w * 0.02, y + w * 0.4, Math.max(1, w * 0.02), P(a * 0.6));
+      line(x + w * 0.16, y, x + w * 0.02, y + w * 0.4, Math.max(1, w * 0.02), P(a * 0.6));
+      line(x - w * 0.36, y + w * 0.08, x + w * 0.42, y + hgt * 0.9, Math.max(1, w * 0.04), P(0.12)); // pouch strap
+    }
+    function candle(x, y, t) {
+      rect(x - 2, y, 4, 9, P(0.82)); ell(x, y, 2, 1, P(0.9));
+      const f = flick(t), sway = Math.sin(t * 9) * 0.5;
+      ell(x + sway * 0.6, y - 3.5, 1.6, 3.4 * f, E(1.3)); ell(x + sway, y - 3, 4.5, 6, E(0.12));
+      light(x, y - 4, 150, 1.3 * f);
+    }
+
+    // ---------- shots (Episode 5) ----------
+    function concrete(a0) { rect(-60, -60, 340, 520, P((X, Y) => a0 + ((((Math.floor(Y / 12) & 1) ? Math.floor((X + 12) / 24) : Math.floor(X / 24)) & 1) ? 0.015 : 0) - (Math.abs(((Y % 12) + 12) % 12) < 0.8 ? 0.06 : 0) + 0.025 * (hash(Math.floor(X / 2), Math.floor(Y / 2), 5) - 0.5))); }
+    function syringe(x, y, h, dark, w) {
+      rect(x - 1, y - h * 0.32, 2, h * 0.3, P(0.75)); rect(x - w * 0.35, y - h * 0.06, w * 0.7, h * 0.06, P(0.5));
+      rect(x - w / 2, y, w, h * 0.62, { a: 0.7, e: 0.12 }); rect(x - w / 2 + 1, y + h * 0.08, w - 2, h * 0.5, dark ? P(0.08) : { a: 0.85, e: 0.35 });
+      rect(x - w * 0.8, y + h * 0.62, w * 1.6, h * 0.04, P(0.6)); rect(x - 1.5, y + h * 0.66, 3, h * 0.24, P(0.55)); rect(x - w * 0.6, y + h * 0.9, w * 1.2, h * 0.05, P(0.6));
+    }
+    function hsyringe(x, y, L, dark, w) { // lying flat, needle to the left
+      line(x - L * 0.55, y, x - L * 0.32, y, 1, P(0.75)); rect(x - L * 0.32, y - w / 2, L * 0.6, w, { a: 0.7, e: 0.12 });
+      rect(x - L * 0.28, y - w / 2 + 1, L * 0.45, w - 2, dark ? P(0.08) : { a: 0.85, e: 0.35 }); rect(x + L * 0.28, y - w * 0.8, 2, w * 1.6, P(0.6)); rect(x + L * 0.3, y - 1, L * 0.22, 2, P(0.55)); rect(x + L * 0.52, y - w * 0.6, 2, w * 1.2, P(0.6));
+    }
+    function zombieHead(x, y, s, side, scream) {
+      rect(x - s * 0.34, y + s * 0.85, s * 0.68, s * 0.9, P(0.4));
+      ell(x, y, s, s * 1.2, P((X, Y) => 0.5 - 0.14 * (hash(Math.floor(X / 2), Math.floor(Y / 2), 13) > 0.72 ? 1 : 0) - 0.08 * clamp(((X - x) * -side) / s)));
+      for (let i = 0; i < 7; i++) { const hx = x - s * 0.7 + i * s * 0.22; line(hx, y - s * 1.1, hx + (hash(i, 4) - 0.5) * s * 0.4, y - s * 0.55 + hash(i, 5) * s * 0.5, s * 0.06, P(0.06)); }
+      ell(x, y - s * 0.95, s * 0.75, s * 0.3, P(0.07));
+      const ex = x + side * s * 0.12, ey = y - s * 0.1;
+      ell(ex + side * s * 0.36, ey, s * 0.22, s * 0.14, { a: 0.82, e: 0.12 }); ell(ex - side * s * 0.38, ey, s * 0.2, s * 0.17, P(0.02)); line(ex - side * s * 0.38, ey + s * 0.12, ex - side * s * 0.4, ey + s * 0.6, s * 0.07, P(0.5, 1));
+      poly([[ex, y + s * 0.15], [ex + side * s * 0.12, y + s * 0.38], [ex - side * s * 0.1, y + s * 0.38]], P(0.04));
+      const my = y + s * 0.7, mo = 0.24 + 0.3 * scream;
+      ell(ex, my, s * 0.42, s * mo, P(0.03));
+      for (let i = -3; i <= 3; i++) { rect(ex + i * s * 0.1 - s * 0.035, my - s * mo + s * 0.02, s * 0.07, s * 0.1, P(0.7)); rect(ex + i * s * 0.1 - s * 0.035, my + s * mo - s * 0.12, s * 0.07, s * 0.09, P(0.62)); }
+      for (let i = 0; i < 4; i++) line(ex - s * 0.3 + i * s * 0.2, my + s * mo * 0.8, ex - s * 0.31 + i * s * 0.2, my + s * (mo + 0.3 + hash(i, 9) * 0.4), s * 0.06, P(0.5, 1));
+    }
+    function veins(cx, cy, s, g, t, dir) {
+      for (let b = 0; b < 11; b++) { let x = cx + (hash(b, 1) - 0.5) * s * 0.6, y = cy, ang = (dir || -Math.PI / 2) + (hash(b, 2) - 0.5) * 1.4; const L = Math.floor(7 * g); for (let i = 0; i < L; i++) { ang += (hash(b, i, 31) - 0.5) * 0.9; const nx = x + Math.cos(ang) * s * 0.14, ny = y + Math.sin(ang) * s * 0.14; line(x, y, nx, ny, s * 0.025, E(0.95 * (0.7 + 0.3 * Math.sin(t * 9 + b)))); x = nx; y = ny; } }
+    }
+    function fog(t, y0, y1, k) { rect(-60, y0, 340, y1 - y0, E((X, Y) => k * (0.6 + 0.4 * Math.sin(X * 0.04 + t * 0.6 + Math.sin(Y * 0.05) * 2)) * clamp(1 - Math.abs(Y - (y0 + y1) / 2) / ((y1 - y0) / 2)))); }
+    function soldierFig(x, y, s, t) { // standing silhouette, rifle, helmet
+      rect(x - 5 * s, y - 30 * s, 10 * s, 30 * s, P(0.07)); ell(x, y - 34 * s, 5 * s, 5 * s, P(0.08)); rect(x - 6 * s, y - 37 * s, 12 * s, 3 * s, P(0.1));
+      line(x - 6 * s, y - 22 * s, x + 10 * s, y - 28 * s, 2.2 * s, P(0.05)); ell(x + 1 * s, y - 33 * s, 1.6 * s, 1.2 * s, E(0.4));
+      rect(x - 5 * s, y, 4 * s, 2, P(0.05)); rect(x + 1 * s, y, 4 * s, 2, P(0.05));
+    }
+    function kneeler(x, y, s) { rect(x - 4 * s, y - 14 * s, 8 * s, 14 * s, P(0.06)); ell(x, y - 17 * s, 3.4 * s, 3.8 * s, P(0.07)); ell(x, y, 6 * s, 2 * s, P(0.06)); }
+
+    function s1(t, u) { // HOOK: soldiers, fog, a kneeling horde, a masked figure walking
+      const k = ease(u / 3.75); cam.z = 1 + 0.12 * k; cam.fy = 210 - 10 * k;
+      rect(-60, -60, 340, 520, { a: 0.1, e: 0.03 });
+      rect(50, 130, 116, 110, P(0.2)); rect(50, 120, 116, 12, P(0.15)); rect(98, 200, 20, 40, P(0.06)); rect(64, 150, 16, 14, E(0.4)); rect(136, 150, 16, 14, E(0.05));
+      rect(-60, 240, 340, 200, P(0.28));
+      fog(t, 190, 300, 0.12);
+      for (let i = 0; i < 7; i++) { const sx2 = 20 + i * 30 + hash(i, 3) * 8, sy2 = 246 + hash(i, 4) * 6; soldierFig(sx2, sy2, 0.85, t); fill(sx2, sy2 - 70, sx2 + 70, sy2, (X, Y) => Math.abs(Y - (sy2 - 30 + (X - sx2) * (hash(i, 5) - 0.5) * 0.5)) < (X - sx2) * 0.12 + 1 && X > sx2 + 9, { e: 0.06 }); }
+      for (let r = 0; r < 4; r++) for (let c = 0; c < 9; c++) { const kx = 6 + c * 24 + (r & 1) * 12, ky = 300 + r * 22; if (Math.abs(kx - 108) < 18) continue; kneeler(kx, ky, 0.9 + r * 0.25); }
+      const fy = lerp(380, 300, k);
+      fill(84, fy - 64, 132, fy, (X, Y) => Math.abs(X - 108) < 6 + (Y - (fy - 64)) * 0.18, P(0.05)); ell(108, fy - 70, 7, 8, P(0.06)); ell(108, fy - 66, 4, 3, P(0.18)); ell(105, fy - 72, 1.5, 1.2, E(0.5)); ell(111, fy - 72, 1.5, 1.2, E(0.5));
+      fog(t, 270, 384, 0.14);
+      light(108, 150, 200, 0.6); light(20, 230, 160, 0.7); light(200, 230, 160, 0.7);
+      amb = 0.06;
+    }
+    function s2(t, u) { // soldier CU: "Subject zero seven located."
+      cam.z = 1 + 0.06 * u;
+      rect(-60, -60, 340, 520, { a: 0.1, e: 0.04 }); fog(t, 60, 340, 0.1);
+      poly([[30, 384], [40, 270], [80, 240], [140, 240], [180, 270], [190, 384]], P(0.12));
+      ell(108, 160, 62, 70, P(0.16)); ell(108, 118, 70, 46, P(0.1)); rect(38, 120, 140, 10, P(0.08));
+      ell(84, 166, 18, 16, P(0.05)); ell(132, 166, 18, 16, P(0.05)); ell(84, 166, 14, 12, { a: 0.1, e: 0.18 }); ell(132, 166, 14, 12, { a: 0.1, e: 0.18 }); ell(80, 162, 4, 3, E(0.6)); ell(128, 162, 4, 3, E(0.6));
+      ell(108, 210, 22, 20, P(0.08)); for (let i = -2; i <= 2; i++) rect(100, 204 + i * 4, 16, 1.5, P(0.2));
+      rect(160, 150, 18, 40, P(0.1)); rect(166, 120, 2, 30, P(0.2)); ell(169, 160, 2, 2, Math.floor(t * 4) % 2 ? E(0.9) : P(0.3));
+      ell(180, 190, 14, 12, P(0.48));
+      light(108, 330, 260, 0.9); amb = 0.05;
+    }
+    function maskFace(x, y, s, off) { // goggles + respirator; off slides the mask down
+      ell(x, y, s, s * 1.2, P(0.06));
+      const my = y + off * s * 2.2;
+      ell(x - s * 0.4, my - s * 0.15, s * 0.28, s * 0.24, { a: 0.1, e: 0.15 }); ell(x + s * 0.4, my - s * 0.15, s * 0.28, s * 0.24, { a: 0.1, e: 0.15 });
+      ell(x, my + s * 0.55, s * 0.36, s * 0.32, P(0.1)); ell(x, my + s * 0.6, s * 0.18, s * 0.16, P(0.2)); line(x - s * 0.9, my - s * 0.1, x + s * 0.9, my - s * 0.1, s * 0.12, P(0.12));
+    }
+    function s3(t, u) { // the masked figure; hands pull the mask away
+      const k = ease(u / 2.1); cam.z = 1 + 0.12 * k;
+      rect(-60, -60, 340, 520, { a: 0.1, e: 0.04 }); fog(t, 80, 360, 0.1);
+      for (let i = 0; i < 8; i++) kneeler(10 + i * 28, 370, 1.6);
+      poly([[40, 384], [52, 250], [84, 222], [132, 222], [164, 250], [176, 384]], P(0.08));
+      const off = ease((u - 1.35) / 0.5);
+      maskFace(108, 160, 46, off);
+      const hy = lerp(260, 190 + off * 90, ease((u - 1.0) / 0.4));
+      ell(66, hy, 13, 15, P(0.3)); ell(150, hy, 13, 15, P(0.3)); for (let f = 0; f < 4; f++) { line(58 + f * 5, hy - 10, 58 + f * 5, hy - 22, 4, P(0.3)); line(142 + f * 5, hy - 10, 142 + f * 5, hy - 22, 4, P(0.3)); } line(56, 384, 66, hy + 10, 18, P(0.08)); line(160, 384, 150, hy + 10, 18, P(0.08));
+      light(108, 360, 300, 1.2); light(108, 60, 260, 0.5); amb = 0.07;
+    }
+    function s4(t, u) { // older Aarav
+      const k = ease(u / 4); cam.z = 1 + 0.1 * k; cam.fy = 186;
+      rect(-60, -60, 340, 520, { a: 0.1, e: 0.04 }); fog(t, 80, 380, 0.1);
+      poly([[0, 384], [10, 280], [70, 248], [146, 248], [206, 280], [216, 384]], P(0.09)); poly([[80, 248], [108, 300], [136, 248]], P(0.2));
+      head({ x: 108, y: 160, s: 54, who: "aarav", turn: 0, look: [0, 0], ls: 0, mouth: vo("older", t) * 0.7, brow: "angry" });
+      for (let i = 0; i < 9; i++) { const hx = 72 + hash(i, 7) * 72; line(hx, 98, hx + (hash(i, 8) - 0.5) * 8, 120 + hash(i, 9) * 14, 1.6, P(0.55)); }
+      line(70, 176, 98, 222, 2.4, P(0.3)); line(71, 175, 99, 221, 0.8, P(0.72)); line(132, 200, 150, 168, 2, P(0.3)); line(133, 200, 151, 168, 0.7, P(0.72));
+      line(76, 176, 82, 206, 2.2, P(0.36)); line(140, 176, 134, 206, 2.2, P(0.36));
+      for (let i = 0; i < 40; i++) rect(80 + hash(i, 11) * 56, 214 + hash(i, 12) * 22, 1, 1, P(0.3));
+      line(108, 70, 102, 116, 2, P(0.3)); line(102, 116, 112, 128, 2, P(0.3));
+      light(108, 330, 280, 0.95); light(-40, 120, 170, 0.35); amb = 0.05;
+    }
+    function s5(t, u) { // her hand reaches for CONTAINMENT... then takes CURE
+      cam.z = 1.02;
+      rect(-60, -60, 340, 520, P((X, Y) => 0.4 + 0.02 * (hash(Math.floor(X / 3), Math.floor(Y / 3)) - 0.5)));
+      for (let x = -60; x < 280; x += 40) rect(x, -60, 1, 520, P(0.33));
+      const cureLift = ease((u - 1.4) / 0.4);
+      hsyringe(108, 100 - cureLift * 30, 120, false, 18); hsyringe(108, 170, 120, true, 18);
+      rect(150, 160, 34, 20, P(0.86)); text("CONTAIN", 167, 164, 0.75, P(0.07));
+      rect(150, 90 - cureLift * 30, 34, 20, P(0.86)); text("CURE", 167, 94 - cureLift * 30, 1.1, P(0.07));
+      let hx, hy;
+      if (u < 0.9) { hx = lerp(150, 120, ease(u / 0.6)); hy = lerp(400, 196, ease(u / 0.6)); }
+      else if (u < 1.2) { hx = 120 + (hash(frame, 2) - 0.5) * 2; hy = 196; }
+      else { hx = lerp(120, 116, ease((u - 1.2) / 0.3)); hy = lerp(196, 120 - cureLift * 30, ease((u - 1.2) / 0.3)); }
+      line(hx + 20, 420, hx + 6, hy + 30, 24, P(0.38)); ell(hx, hy + 12, 16, 18, P(0.64)); for (let f = 0; f < 4; f++) line(hx - 12 + f * 7, hy, hx - 14 + f * 8, hy - 18, 5, P(0.62));
+      light(108, 60, 300, 1.1); amb = 0.06;
+    }
+    function s6(t, u) { // Mira: "This time, I take it from you."
+      const k = ease(u / 3.1); cam.z = 1 + 0.1 * k; cam.fy = 186;
+      concrete(0.22);
+      jacket(108, 254, 220, 160, 0.38);
+      head({ x: 108, y: 156, s: 54, who: "mira", turn: -0.05, look: u > 2.1 ? [0, 0.3] : [0, 0], ls: 0, brow: "worry", fear: 0.2, mouth: vo("mira_take", t) * 0.7 });
+      const tr = clamp((u - 0.8) / 1.6); if (tr > 0) { ell(78 + tr, 166 + tr * 46, 1.8, 2.6, { a: 0.7, e: 0.4 }); ell(140 - tr, 170 + tr * 36, 1.8, 2.6, { a: 0.7, e: 0.4 }); }
+      syringe(176, 170, 120, false, 14); ell(176, 260, 14, 16, P(0.64));
+      light(108, 60, 300, 1.05); light(176, 200, 70, 0.4); amb = 0.05;
+    }
+    function s7(t, u) { // the injection: the glow drains from his neck into her hand
+      cam.z = 1.0;
+      concrete(0.2);
+      hoodie(140, 268, 200, 140, 0.18); rect(110, 190, 66, 90, P(0.58));
+      head({ x: 142, y: 132, s: 50, who: "aarav", turn: -0.45, look: [-0.9, 0], ls: 0, fear: 0.9, brow: "worry", mouth: vo("aarav_no", t) });
+      const drain = ease((u - 0.3) / 1.0);
+      veins(140, 278, 70, 1 - drain, t);
+      const sx2 = lerp(40, 92, ease(u / 0.2)), sy2 = 236;
+      line(sx2 - 70, sy2 + 30, sx2 - 30, sy2 + 8, 1, P(0.75)); rect(sx2 - 64, sy2 + 4, 34, 10, { a: 0.7, e: 0.2 + 0.5 * drain });
+      line(sx2 - 30, sy2 + 9, sx2 + 4, sy2, 1.2, P(0.8));
+      ell(sx2 - 50, sy2 + 18, 16, 14, P(0.64)); line(sx2 - 60, sy2 + 30, -40, 330, 24, P(0.38));
+      if (drain > 0) { veins(sx2 - 50, sy2 + 22, 50, drain, t, Math.PI * 0.75); for (let i = 0; i < 12; i++) { const k2 = (i / 12 + u * 1.6) % 1; ell(lerp(124, sx2 - 50, k2), lerp(260, sy2 + 18, k2), 1.2, 1.2, E(0.9 * (1 - drain * 0.5))); } }
+      light(108, 40, 300, 1.0); light(100, 250, 120, 0.5); amb = 0.05;
+    }
+    function s8(t, u) { // every zombie screams
+      cam.sx = (hash(frame, 1) - 0.5) * 4; cam.sy = (hash(frame, 2) - 0.5) * 3;
+      rect(-60, -60, 340, 520, { a: 0.1, e: 0.05 }); fog(t, 60, 300, 0.1);
+      zombieHead(46, 170, 30, 1, 1); zombieHead(170, 190, 32, -1, 1); zombieHead(108, 250, 44, 1, 1);
+      light(108, 380, 300, 1.0); amb = 0.06;
+    }
+    function s9(t, u) { // Mira and the soldiers vanish in static
+      cam.z = 1.0;
+      concrete(0.24);
+      rect(-60, 300, 340, 200, P(0.2));
+      const dis = ease((u - 0.15) / 0.65);
+      const keep = (X, Y) => hash(Math.floor(X), Math.floor(Y), frame) > dis;
+      for (const [x0, sc] of [[40, 1.8], [176, 1.8]]) { const y0 = 300; fill(x0 - 14 * sc, y0 - 80 * sc, x0 + 14 * sc, y0, (X, Y) => keep(X, Y) && Math.abs(X - x0) < 8 * sc && Y > y0 - 66 * sc, P(0.08)); fill(x0 - 14 * sc, y0 - 80 * sc, x0 + 14 * sc, y0, (X, Y) => keep(X, Y) && ((X - x0) / (6 * sc)) ** 2 + ((Y - (y0 - 70 * sc)) / (6 * sc)) ** 2 < 1, P(0.1)); }
+      fill(40, 100, 176, 384, (X, Y) => keep(X, Y) && ((Math.abs(X - 108) < 32 - Math.max(0, 210 - Y) * 0.3 && Y > 200) || ((X - 108) / 26) ** 2 + ((Y - 150) / 32) ** 2 < 1), P((X, Y) => (Y > 190 ? 0.38 : 0.62)));
+      if (dis < 0.9) fill(70, 110, 146, 190, (X, Y) => keep(X, Y) && ((X - 108) / 30) ** 2 + ((Y - 140) / 36) ** 2 < 1 && Y < 138, P(0.1));
+      if (dis > 0) for (let i = 0; i < 500 * Math.sin(Math.PI * dis); i++) { const px = 20 + hash(i, frame, 1) * 180, py = 80 + hash(i, frame, 2) * 240; rect(px, py, 1, 1, E(hash(i, frame, 3) > 0.5 ? 0.9 : 0.4)); }
+      light(108, 40, 300, 1.0); amb = 0.06;
+    }
+    function s10(t, u) { // Aarav wakes alone, morning light
+      cam.z = 1 + 0.06 * u;
+      rect(-60, -60, 340, 520, P((X, Y) => 0.22 + 0.02 * (hash(Math.floor(X / 3), Math.floor(Y / 3)) - 0.5)));
+      for (let i = 0; i < 4; i++) fill(-60, -60, 280, 460, (X, Y) => Math.abs((X + Y * 0.5) - (40 + i * 60)) < 12, { e: 0.12 });
+      hoodie(108, 250, 200, 160, 0.2);
+      const wake = u > 0.5 ? 1 : 0.05;
+      head({ x: 108, y: 168, s: 52, who: "aarav", look: [0, 0], ls: 0, open: wake, fear: u > 0.6 ? 0.4 : 0 });
+      light(160, 60, 320, 1.1); amb = 0.08;
+    }
+    function hand(str, x, y, s, p, seed) { const w = str.length * 6 * s; let cx = x - w / 2; for (let i = 0; i < str.length; i++) { const g = G[str[i]] || G[" "], jy = (hash(i, seed) - 0.5) * s * 1.6, jx = (hash(seed, i) - 0.5) * s; for (let r = 0; r < 7; r++) for (let c = 0; c < 5; c++) if (g[r * 5 + c] === "1") rect(cx + jx + c * s + r * s * 0.12, y + jy + r * s, s * 0.9, s * 0.9, p); cx += 6 * s; } }
+    function s11(t, u) { // the note, in his own handwriting
+      const k = ease(u / 1.8); cam.z = 1 + 0.08 * k;
+      rect(-60, -60, 340, 520, P(0.2));
+      rect(24, 70, 168, 210, P((X, Y) => 0.84 - 0.06 * (Math.abs(((X * 0.3 + Y * 0.7) % 40) - 20) < 0.8 ? 1 : 0) - 0.04 * (hash(Math.floor(X / 3), Math.floor(Y / 3), 9) > 0.85 ? 1 : 0)));
+      for (let y = 96; y < 270; y += 18) rect(30, y + 12, 156, 0.8, P(0.7));
+      hand("IF YOU'RE", 108, 94, 2.0, P(0.1), 1); hand("READING THIS...", 108, 116, 1.55, P(0.1), 2);
+      hand("SHE HAS TAKEN", 108, 168, 1.75, P(0.12), 3); hand("YOUR PLACE.", 108, 192, 2.0, P(0.62, 1), 4);
+      ell(40, 300, 22, 18, P(0.6)); line(30, 384, 40, 312, 26, P(0.6));
+      light(160, 40, 320, 1.15); amb = 0.08;
+    }
+    function s12() { amb = 0; }
+
+    const SHOTS = [[0, 3.75, s1], [3.75, 5.5, s2], [5.5, 7.6, s3], [7.6, 11.6, s4], [11.6, 13.6, s5], [13.6, 16.7, s6], [16.7, 18.2, s7], [18.2, 19.1, s8], [19.1, 20.0, s9], [20.0, 21.2, s10], [21.2, 23.0, s11], [23.0, 99, s12]];
+
+    function renderAt(t) {
+      alb.fill(0); emi.fill(0); mat.fill(0);
+      cam = { fx: 108, fy: 192, z: 1, sx: 0, sy: 0, kx: 1 }; lights = []; amb = 0.04; flash = 0; fisheye = false; frame = Math.floor(t * 30 + 1e-4);
+      const shot = SHOTS.find((s) => t >= s[0] && t < s[1]) || SHOTS[SHOTS.length - 1];
+      shot[2](t, t - shot[0]);
+      // shading + dithered quantisation
+      for (let py = 0; py < H; py++) {
+        const Y = wyOf(py);
+        for (let px = 0; px < W; px++) {
+          const i = py * W + px, X = wxOf(px);
+          let L = amb + flash;
+          for (const l of lights) { const dx = X - l.x, dy = Y - l.y, q = (dx * dx + dy * dy) / (l.r * l.r); if (q < 1) L += l.i * (1 - q) * (1 - q); }
+          const nx = (px - 108) / 108, ny = (py - 192) / 192;
+          let v = (alb[i] * L + emi[i]) * (1 - 0.3 * (nx * nx * 0.7 + ny * ny * 0.6));
+          v += (hash(px, py, frame) - 0.5) * 0.03;
+          v = Math.pow(clamp(v), 0.72);
+          const th = BAYER[(py & 3) * 4 + (px & 3)] - 0.5, o = i * 3;
+          if (mat[i] === 1) { const c = BLOOD[clamp(Math.round(v * 1.5 * (BLOOD.length - 1) + th * 0.9), 0, BLOOD.length - 1)]; rgb[o] = c[0]; rgb[o + 1] = c[1]; rgb[o + 2] = c[2]; }
+          else { const g = PAL[clamp(Math.round(v * (PAL.length - 1) + th * 0.9), 0, PAL.length - 1)]; rgb[o] = rgb[o + 1] = rgb[o + 2] = g; }
+        }
+      }
+      if (fisheye) {
+        tmp.set(rgb); const R = 104, cy = 184;
+        for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+          const dx = (px - 108) / R, dy = (py - cy) / R, r = Math.sqrt(dx * dx + dy * dy), o = (py * W + px) * 3;
+          if (r > 1.07) { const g = 8 + ((px + py) & 3 ? 0 : 4); rgb[o] = rgb[o + 1] = rgb[o + 2] = g; continue; }
+          if (r > 1.0) { const g = r < 1.03 ? 70 : 34; rgb[o] = rgb[o + 1] = rgb[o + 2] = g; continue; }
+          const f = 0.62 + 0.38 * r, sxp = Math.round(108 + dx * R * f), syp = Math.round(cy + dy * R * f), so = (clamp(syp, 0, H - 1) * W + clamp(sxp, 0, W - 1)) * 3;
+          const dim = 1 - 0.55 * r * r * r; rgb[o] = tmp[so] * dim; rgb[o + 1] = tmp[so + 1] * dim; rgb[o + 2] = tmp[so + 2] * dim;
+        }
+      }
+      const d = img.data;
+      for (let i = 0, o = 0; i < N; i++, o += 3) { d[i * 4] = rgb[o]; d[i * 4 + 1] = rgb[o + 1]; d[i * 4 + 2] = rgb[o + 2]; d[i * 4 + 3] = 255; }
+      ctx.putImageData(img, 0, 0);
+    }
+
+    window.addEventListener("hf-seek", (e) => renderAt(e.detail.time));
+    renderAt(0);
+    const tl = gsap.timeline({ paused: true });
+    tl.set({}, {}, 24.4);
+    window.__timelines["film"] = tl;
+  })();
+  </script>
+</template>
