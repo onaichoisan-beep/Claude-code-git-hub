@@ -1,0 +1,31 @@
+<template>
+  <style>
+    @font-face { font-family: "Press Start 2P"; src: url("assets/fonts/press-start-2p-latin-400-normal.woff2") format("woff2"); }
+    @font-face { font-family: "VT323"; src: url("assets/fonts/vt323-latin-400-normal.woff2") format("woff2"); }
+    #root { position: absolute; inset: 0; font-family: "Press Start 2P", monospace; color: #f2f2f2; text-align: center; }
+    .px { text-shadow: 6px 6px 0 #000, -6px 6px 0 #000, 6px -6px 0 #000, -6px -6px 0 #000, 0 6px 0 #000, 0 -6px 0 #000, 6px 0 0 #000, -6px 0 0 #000, 0 12px 0 #000; }
+    .red { color: #c0262b; }
+    #t-tag { position: absolute; left: 0; right: 0; top: 196px; font-family: "VT323", monospace; font-size: 46px; letter-spacing: 8px; color: #a8a8a8; }
+    #t-hook1 { position: absolute; left: 60px; right: 60px; top: 300px; font-size: 64px; line-height: 1.35; }
+    #t-hook2 { position: absolute; left: 60px; right: 60px; top: 520px; font-size: 74px; line-height: 1.3; }
+    #t-end { position: absolute; left: 60px; right: 60px; top: 640px; font-size: 62px; line-height: 1.5; }
+    #t-next { position: absolute; left: 0; right: 0; top: 1060px; font-family: "VT323", monospace; font-size: 60px; letter-spacing: 6px; color: #bdbdbd; }
+  </style>
+  <div id="root" data-composition-id="titles" data-width="1080" data-height="1920" data-duration="20.6">
+    <div id="t-tag" class="clip px" data-start="0" data-duration="3.35">THE PIXEL APOCALYPSE &middot; EP 1</div>
+    <div id="t-hook1" class="clip px" data-start="0" data-duration="3.35"><div id="t-hook1-in">ZOMBIES<br />DON'T KNOCK...</div></div>
+    <div id="t-hook2" class="clip px" data-start="1.75" data-duration="1.6"><div id="t-hook2-in">SO WHO'S<br /><span class="red">OUTSIDE?</span></div></div>
+    <div id="t-end" class="clip px" data-start="19.56" data-duration="1.04"><div id="t-end-in">SHE'S ALREADY<br />KILLED YOU<br /><span class="red">11 TIMES.</span></div></div>
+    <div id="t-next" class="clip px" data-start="19.95" data-duration="0.65"><div id="t-next-in">EP 2 &rarr; FOLLOW</div></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // frame 0 already shows the hook (it is the thumbnail); a short pixel jitter sells it
+    tl.fromTo("#t-hook1-in", { x: 0 }, { keyframes: [{ x: -8, duration: 0.05 }, { x: 6, duration: 0.05 }, { x: 0, duration: 0.05 }], ease: "steps(1)" }, 0.9);
+    tl.fromTo("#t-hook2-in", { scale: 1.35, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.12, ease: "steps(3)" }, 1.75);
+    tl.fromTo("#t-hook2-in", { x: 0 }, { keyframes: [{ x: 10, duration: 0.04 }, { x: -10, duration: 0.04 }, { x: 0, duration: 0.04 }], ease: "steps(1)" }, 2.6);
+    tl.fromTo("#t-end-in", { scale: 1.25, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.1, ease: "steps(2)" }, 19.56);
+    tl.fromTo("#t-next-in", { opacity: 0 }, { opacity: 1, duration: 0.1, ease: "steps(2)" }, 19.95);
+    window.__timelines["titles"] = tl;
+  </script>
+</template>
