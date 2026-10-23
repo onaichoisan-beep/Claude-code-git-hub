@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>One Neutron</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #0a0f3a;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #0a0f3a;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: sound effects only -->
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script>
+      var C = {
+        space: "#0a0f3a", space2: "#1c2a80", grid: "#2a3a9a",
+        pu: "#ff4f8a", puDark: "#b8246a", puLight: "#ffa8cc", nn: "#ece6ff", nnDark: "#a094d8",
+        cyan: "#3af0ff", cyanLight: "#d0feff", fragA: "#ff9a2a", fragB: "#9a6aff",
+        sky1: "#141a5e", sky2: "#3a2a9a", sky3: "#b8449e", horizon: "#ff8a5a",
+        mtn: "#2a1a5e", mtn2: "#4e2c86",
+        sand: "#e8a05a", sandDark: "#b8703a", sandLight: "#ffd09a",
+        fire1: "#fff8d0", fire3: "#ff8a2a", fire4: "#ff4a2a", fire5: "#c0242a",
+        smoke: "#b0606a", smokeDark: "#6a3460", smokeLight: "#ffa08a",
+        glass: "#3ae87a", glassDark: "#14946a", glassLight: "#c0ffd8",
+        metal: "#dfe6f4", metalDark: "#8a94b4", scale: "#2a2a44", scaleTop: "#4a4a6a", lcd: "#a8ff6a", lcdDark: "#16341c",
+        bg2: "#3a1a7a", bg3: "#6a2aa0", tower: "#2a1a3a",
+        ink: "#06050a", paper: "#f1eef4", gold: "#ffd23f", white: "#ffffff", red: "#ff3a3a",
+      };
+
+      // ============================================================ atoms
+      // a nucleus: packed balls (protons pink, neutrons white), drawn outer -> inner for depth
+      var NUC = (function () {
+        var a = [];
+        for (var i = 0; i < 40; i++) a.push({ r: Math.sqrt((i + 0.5) / 40), a: i * 2.39996, p: hash1(i * 3.7) > 0.42 });
+        return a;
+      })();
+      function nucleus(x, y, R, o) {
+        o = o || {};
+        var n = o.count || 40, stretch = o.stretch || 0, wob = o.wob || 0, t = o.t || 0;
+        var br = R * (n < 40 ? 0.34 : 0.3);
+        for (var i = n - 1; i >= 0; i--) {
+          var b = NUC[i];
+          var side = Math.cos(b.a) < 0 ? -1 : 1;
+          var jig = wob * Math.sin(t * 40 + i * 1.7);
+          var bx = x + Math.cos(b.a) * b.r * R + side * stretch * R + jig;
+          var by = y + Math.sin(b.a) * b.r * R * (1 - stretch * 0.35) + wob * Math.cos(t * 37 + i);
+          disc(bx, by, br, b.p ? C.puDark : C.nnDark);
+          disc(bx - br * 0.18, by - br * 0.18, br * 0.8, b.p ? C.pu : C.nn);
+          disc(bx - br * 0.4, by - br * 0.4, br * 0.28, b.p ? C.puLight : C.white);
+        }
+      }
+      function neutron(x, y, r, dx, dy) {
+        lighter(); glow(x, y, r * 4, C.cyan, 0.6); normalBlend();
+        for (var k = 1; k <= 5; k++) { g.globalAlpha = 0.5 - k * 0.08; disc(x - dx * k * r * 1.1, y - dy * k * r * 1.1, r * (1 - k * 0.14), C.cyan); }
+        g.globalAlpha = 1;
+        disc(x, y, r, C.cyan); disc(x - r * 0.3, y - r * 0.3, r * 0.45, C.cyanLight);
+      }
+      var STARS = (function () { var r = rng(5), a = []; for (var i = 0; i < 70; i++) a.push([r() * 260 - 40, r() * 420 - 50, r()]); return a; })();
+      function spaceBg(cam, t) {
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.space], [1, C.space2]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 0.4);
+        STARS.forEach(function (s, i) { var on = Math.sin(t * 3 + i) > -0.6; if (on) rect(s[0], s[1], 1, 1, s[2] > 0.7 ? C.cyanLight : C.grid); });
+      }
+
+      // nucleus is hit at th; splits at th + 0.9
+      function atomFrame(t, th, cam) {
+        var nx = 90, ny = 232;
+        spaceBg(cam, t);
+        setCam(cam, 1);
+        lighter(); glow(nx, ny, 44, C.pu, 0.25); normalBlend();
+        var ts = th + 0.9;
+        if (t < ts) {
+          var hitK = clamp01((t - th) / 0.9);
+          nucleus(nx, ny, 26, { stretch: 0.55 * hitK * hitK, wob: t > th ? 1.4 * (0.4 + hitK) : 0.25, t: t });
+          if (t < th) {
+            // incoming neutron, from the upper left
+            var k = clamp01(1 - (th - t) / 2.6), ke = k * k;
+            var sx = -30, sy = 120, ex = nx - 24, ey = ny - 10;
+            var dx = ex - sx, dy = ey - sy, L = Math.sqrt(dx * dx + dy * dy);
+            neutron(lerp(sx, ex, ke), lerp(sy, ey, ke), 4, dx / L, dy / L);
+            worldText("PU-239", nx, ny + 36, 1, C.puLight);
+          } else {
+            lighter(); glow(nx, ny, 40 + 10 * Math.sin(t * 30), C.cyan, 0.35 * hitK); normalBlend();
+          }
+        } else {
+          var s = t - ts, fly = easeOut(s / 2.2);
+          // flash of energy
+          lighter(); glow(nx, ny, 30 + 120 * easeOut(s / 0.6), C.fire1, 0.9 * (1 - clamp01(s / 0.7))); normalBlend();
+          g.strokeStyle = C.gold; g.lineWidth = 2 * (1 - clamp01(s / 0.8)); g.beginPath(); g.arc(nx, ny, 10 + 90 * easeOut(s / 0.8), 0, 6.2832); g.stroke();
+          // two fragments fly apart
+          var ax = nx - 8 - 52 * fly, ay = ny + 6 * fly, bx = nx + 8 + 52 * fly, by = ny - 6 * fly;
+          lighter(); glow(ax, ay, 26, C.fragA, 0.5); glow(bx, by, 24, C.fragB, 0.5); normalBlend();
+          nucleus(ax, ay, 18, { count: 24, wob: 0.5, t: t });
+          nucleus(bx, by, 16, { count: 21, wob: 0.5, t: t + 3 });
+          worldText("XE-134", ax, ay + 24, 1, C.fragA);
+          worldText("ZR-103", bx, by + 22, 1, C.fragB);
+          // three new neutrons
+          [[-1.9, 1.15], [-0.15, 1.0], [2.0, 1.1]].forEach(function (d) {
+            var dist = 6 + 120 * easeOut(s / 1.9) * d[1];
+            neutron(nx + Math.cos(d[0]) * dist, ny + Math.sin(d[0]) * dist, 3.2, Math.cos(d[0]), Math.sin(d[0]));
+          });
+        }
+      }
+      function sceneAtom(t) {
+        var cam = camAt([[1.8, 90, 200, 1.7], [2.5, 90, 168, 1.15], [4.6, 90, 176, 1.3], [5.6, 90, 178, 1.35], [6.6, 90, 166, 1.0], [8.6, 90, 168, 0.95]], t);
+        shake(cam, t, 4.7, 4, 0.6); shake(cam, t, 5.6, 12, 0.8);
+        atomFrame(t, 4.7, cam);
+      }
+      function sceneLoop(t) {
+        var cam = camAt([[28.2, 90, 172, 1.0], [30, 80, 222, 1.9]], t);
+        shake(cam, t, 29.9, 6, 0.3);
+        atomFrame(t, 30.05, cam);
+      }
+
+      // ============================================================ chain reaction tree
+      var TREE = (function () {
+        var nodes = [{ x: 90, y: 232, g: 0, p: -1, ang: 0 }];
+        var r = rng(77), start = [-1.9, -0.15, 2.0];
+        var front = [0];
+        for (var gen = 1; gen <= 8; gen++) {
+          var next = [];
+          front.forEach(function (pi) {
+            var p = nodes[pi];
+            var kids = gen === 1 ? 3 : r() > 0.72 ? 3 : 2;
+            var spread = gen === 1 ? 0 : 1.5 / Math.pow(gen, 0.75);
+            var L = 20 * Math.pow(1.13, gen);
+            for (var k = 0; k < kids; k++) {
+              var a = gen === 1 ? start[k] : p.ang + (k - (kids - 1) / 2) * spread + (r() - 0.5) * 0.4;
+              var l = L * (0.8 + r() * 0.4);
+              nodes.push({ x: p.x + Math.cos(a) * l, y: p.y + Math.sin(a) * l, g: gen, p: pi, ang: a });
+              next.push(nodes.length - 1);
+            }
+          });
+          front = next;
+        }
+        return nodes;
+      })();
+      var GEN0 = 8.7, GDT = 0.72;
+      function genTime(gn) { return GEN0 + gn * GDT; }
+      var FUEL = (function () { var r = rng(31), a = []; for (var i = 0; i < 520; i++) a.push([r() * 520 - 170, r() * 760 - 150, r()]); return a; })();
+      function sceneChain(t) {
+        var cam = camAt([[8.5, 90, 222, 1.6], [10.0, 90, 226, 1.15], [12.5, 90, 228, 0.7], [14.6, 90, 232, 0.46], [16.5, 90, 232, 0.36]], t);
+        shake(cam, t, 14.6, 3 + 10 * ramp(t, 14.6, 16.4), 2.0);
+        spaceBg(cam, t);
+        setCam(cam, 1);
+        // fuel: unsplit plutonium nuclei everywhere
+        var flood = ramp(t, 14.4, 16.4);
+        FUEL.forEach(function (f, i) {
+          var gone = hash1(i * 1.3) < flood * 1.1;
+          if (!gone) { disc(f[0], f[1], 2.2, C.puDark); disc(f[0] - 0.4, f[1] - 0.4, 1.6, C.pu); }
+        });
+        // neutron tracks
+        TREE.forEach(function (n) {
+          if (n.p < 0) return;
+          var p = TREE[n.p], t0 = genTime(n.g - 1), k = clamp01((t - t0) / GDT);
+          if (k <= 0) return;
+          line(p.x, p.y, lerp(p.x, n.x, k), lerp(p.y, n.y, k), 0.7, C.grid);
+        });
+        lighter();
+        TREE.forEach(function (n, i) {
+          var ts = genTime(n.g), s = t - ts;
+          if (s >= 0) glow(n.x, n.y, 4 + 10 * easeOut(s / 0.3), s < 0.25 ? C.fire1 : C.gold, 0.9 * Math.max(0.25, 1 - s / 0.8));
+        });
+        normalBlend();
+        TREE.forEach(function (n, i) {
+          var ts = genTime(n.g), s = t - ts;
+          if (s < 0) { disc(n.x, n.y, 3, C.puDark); disc(n.x - 0.5, n.y - 0.5, 2.3, C.pu); return; }
+          var d = 2 + 6 * easeOut(s / 1.2), a = n.ang + 1.57;
+          disc(n.x + Math.cos(a) * d, n.y + Math.sin(a) * d, 2, C.fragA);
+          disc(n.x - Math.cos(a) * d, n.y - Math.sin(a) * d, 1.8, C.fragB);
+        });
+        // neutrons in flight
+        TREE.forEach(function (n) {
+          if (n.p < 0) return;
+          var p = TREE[n.p], t0 = genTime(n.g - 1), k = (t - t0) / GDT;
+          if (k <= 0 || k >= 1) return;
+          var dx = n.x - p.x, dy = n.y - p.y, L = Math.sqrt(dx * dx + dy * dy);
+          neutron(lerp(p.x, n.x, k), lerp(p.y, n.y, k), n.g < 3 ? 2.6 : 2, dx / L, dy / L);
+        });
+        // runaway: sparks everywhere
+        if (flood > 0) {
+          lighter();
+          for (var j = 0; j < 260; j++) {
+            if (hash1(j * 2.1) > flood) continue;
+            var x = -200 + hash1(j * 5.3) * 580, y = -300 + hash1(j * 7.9) * 1060;
+            var ph = (t * 3 + hash1(j)) % 1;
+            glow(x, y, 6 + 10 * ph, ph < 0.3 ? C.fire1 : C.gold, 0.8 * (1 - ph));
+          }
+          normalBlend();
+        }
+      }
+
+      // ============================================================ the desert, the fireball, the cloud
+      var CAPB = (function () { var r = rng(13), a = []; for (var i = 0; i < 34; i++) a.push({ a: r() * 6.2832, d: 0.35 + 0.65 * r(), s: 0.55 + 0.5 * r(), y: r() }); return a; })();
+      var GY = 262;
+      function desert(cam, glowK) {
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.sky1], [0.45, C.sky2], [0.72, mix(C.sky3, C.horizon, glowK)], [0.8, C.horizon]]);
+        g.fillRect(0, 0, W, H);
+        setCam(cam, 0.5);
+        STARS.forEach(function (s) { if (s[1] < 150) rect(s[0], s[1], 1, 1, C.cyanLight); });
+        setCam(cam, 0.8);
+        poly([[-80, 270], [-40, 228], [-10, 244], [30, 214], [70, 240], [110, 222], [150, 236], [190, 210], [260, 250], [260, 270]], C.mtn2);
+        setCam(cam, 1);
+        poly([[-80, GY], [-30, 246], [20, 256], [140, 250], [200, 242], [260, GY]], C.mtn);
+        g.fillStyle = vgrad(GY, GY + 120, [[0, mix(C.sandLight, C.sand, 1 - glowK)], [0.3, C.sand], [1, C.sandDark]]);
+        g.fillRect(-200, GY, 600, 300);
+        for (var i = 0; i < 60; i++) rect(-100 + hash1(i * 3.1) * 380, GY + 4 + hash1(i * 1.7) * 100, 2, 1, C.sandDark);
+        // joshua-tree-ish scrub
+        [[22, 0], [158, 1], [-10, 2], [190, 3]].forEach(function (b) { line(b[0], GY + 14, b[0], GY + 4, 1.5, C.tower); line(b[0], GY + 7, b[0] + 4, GY + 3, 1, C.tower); line(b[0], GY + 8, b[0] - 3, GY + 5, 1, C.tower); });
+      }
+      // lt: seconds since detonation
+      function blast(lt) {
+        var cx = 90;
+        var R = 10 + 46 * easeOut(lt / 2.6);
+        var rise = ramp(lt, 2.2, 5.6);
+        var heat = 1 - clamp01((lt - 0.8) / 4.5);
+        // ground shock ring and dust skirt
+        var ring = 20 + 260 * easeOut(lt / 3.0);
+        g.strokeStyle = C.fire1; g.globalAlpha = 0.8 * (1 - clamp01(lt / 3)); g.lineWidth = 2;
+        g.beginPath(); g.ellipse(cx, GY + 2, ring, ring * 0.08, 0, 0, 6.2832); g.stroke(); g.globalAlpha = 1;
+        var dust = clamp01((lt - 0.4) / 3);
+        if (dust > 0) {
+          for (var d = 0; d < 14; d++) {
+            var dx = (d - 6.5) * 9 * (0.6 + dust), dr = (5 + 7 * hash1(d * 4.1)) + 8 * dust * (1 - Math.abs(d - 6.5) / 8);
+            disc(cx + dx, GY - dr * 0.3, dr, mix(C.sandDark, C.smoke, 0.5));
+            disc(cx + dx - 2, GY - dr * 0.5, dr * 0.6, mix(C.sand, C.smokeLight, 0.4 + 0.4 * heat));
+          }
+        }
+        // the stem
+        var capY = lerp(GY - R * 0.55, 72, rise), capR = lerp(R, 50, rise);
+        if (rise > 0) {
+          var top = capY + capR * 0.3, wTop = 9 + 4 * rise, wBot = 14;
+          poly([[cx - wBot, GY], [cx - wTop, top], [cx + wTop, top], [cx + wBot, GY]], C.smokeDark);
+          poly([[cx - wBot + 4, GY], [cx - wTop + 3, top], [cx + 1, top], [cx + 2, GY]], C.smoke);
+          for (var s = 0; s < 6; s++) { var yy = lerp(top, GY, (s + ((lt * 0.8) % 1)) / 6); rect(cx - 4, yy, 5, 2, C.smokeLight); }
+          // condensation ring around the stem
+          g.strokeStyle = C.white; g.globalAlpha = 0.55 * rise * (1 - ramp(lt, 7, 9)); g.lineWidth = 2;
+          g.beginPath(); g.ellipse(cx, lerp(GY - 20, 180, rise), 22 + 18 * rise, 5, 0, 0, 6.2832); g.stroke(); g.globalAlpha = 1;
+        }
+        // the fireball / cap: churning blobs, hot underside
+        lighter(); glow(cx, capY, capR * 2.6, heat > 0.4 ? C.fire1 : C.fire3, 0.55 * heat + 0.15); normalBlend();
+        var flat = lerp(1, 0.58, rise);
+        CAPB.forEach(function (b, i) {
+          var a = b.a + lt * 0.6 * (b.y > 0.5 ? 1 : -1);
+          var bx = cx + Math.cos(a) * capR * 0.75 * b.d, by = capY + Math.sin(a) * capR * 0.75 * b.d * flat;
+          if (rise < 0.05 && by > GY) by = GY - 1;
+          var br = capR * 0.36 * b.s;
+          var shade = clamp01(heat * 1.3 - 0.15 + (Math.sin(a) > 0 ? 0.25 : -0.1));
+          var col = shade > 0.8 ? C.fire1 : shade > 0.6 ? C.gold : shade > 0.4 ? C.fire3 : shade > 0.2 ? C.fire4 : C.smoke;
+          var dark = shade > 0.6 ? C.fire3 : shade > 0.4 ? C.fire4 : shade > 0.2 ? C.fire5 : C.smokeDark;
+          disc(bx, by + br * 0.2, br, dark);
+          disc(bx - br * 0.2, by - br * 0.15, br * 0.8, col);
+        });
+        // glowing core / underside
+        lighter(); glow(cx, capY + capR * 0.2 * rise, capR * (0.9 - 0.4 * rise), C.fire3, 0.5 + 0.4 * heat); glow(cx, capY, capR * 0.6 * heat, C.fire1, 0.9 * heat); normalBlend();
+        // cut the dome flat at the ground while it's still sitting there
+        if (rise < 0.2) { rect(-200, GY + 1, 600, 3, C.fire1); }
+      }
+      function sceneHook(t) {
+        var lt = 0.25 + t * 2.0;
+        var cam = camAt([[0, 90, 168, 1.15], [1.8, 90, 158, 0.9]], t);
+        shake(cam, t, 0, 9, 1.6);
+        desert(cam, 1);
+        setCam(cam, 1);
+        blast(lt);
+      }
+      function sceneTrinity(t) {
+        var lt = t - 16.5;
+        var cam = camAt([[16.5, 90, 166, 1.1], [19.5, 90, 160, 0.9], [23.2, 90, 160, 0.8]], t);
+        shake(cam, t, 16.5, 10, 1.4); shake(cam, t, 19.6, 4, 1.5);
+        desert(cam, 1 - ramp(lt, 1, 6) * 0.7);
+        setCam(cam, 1);
+        line(90, GY, 90, GY - 18, 1.2, C.tower);
+        blast(lt);
+      }
+      // the ground right after: sand melted into green glass (trinitite)
+      var PUD = (function () { var r = rng(44), a = []; for (var i = 0; i < 16; i++) a.push({ x: 8 + r() * 164, y: 206 + r() * 100, rx: 6 + r() * 12, ry: 3 + r() * 5, d: r() }); return a; })();
+      var GRAIN = (function () { var r = rng(45), a = []; for (var i = 0; i < 240; i++) a.push([r() * 200 - 10, 192 + r() * 140, r()]); return a; })();
+      function sceneGlass(t) {
+        var lt = t - 23.0;
+        var cam = camAt([[22.9, 90, 168, 0.85], [23.6, 90, 168, 1.0], [25.5, 90, 178, 1.15]], t);
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.sky1], [0.4, C.sky3], [0.6, C.horizon]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 0.6);
+        // the cloud far away, still towering
+        poly([[84, 196], [86, 70], [94, 70], [96, 196]], C.smokeDark);
+        CAPB.slice(0, 16).forEach(function (b) { disc(90 + Math.cos(b.a) * 34 * b.d, 64 + Math.sin(b.a) * 16 * b.d, 13 * b.s, b.y > 0.5 ? C.smoke : C.smokeDark); });
+        setCam(cam, 1);
+        rect(-100, 190, 400, 200, C.sand);
+        GRAIN.forEach(function (gr) { rect(gr[0], gr[1], 1, 1, gr[2] > 0.5 ? C.sandDark : C.sandLight); });
+        // heat shimmer from above
+        lighter(); glow(90, 190, 140, C.fire3, 0.5 * (1 - ramp(lt, 0.3, 2.2))); normalBlend();
+        PUD.forEach(function (p, i) {
+          var melt = ramp(lt, 0.1 + p.d * 0.5, 0.7 + p.d * 0.5);
+          var cool = ramp(lt, 0.6 + p.d * 0.5, 1.0 + p.d * 0.5);
+          if (melt <= 0) return;
+          var rx = p.rx * melt, ry = p.ry * melt;
+          var hot = cool < 1 ? (cool < 0.5 ? C.fire3 : C.gold) : C.glass;
+          ell(p.x, p.y + 1, rx, ry, 0, cool < 1 ? C.fire4 : C.glassDark);
+          ell(p.x - 0.5, p.y - 0.5, rx * 0.88, ry * 0.8, 0, hot);
+          if (cool >= 1) {
+            ell(p.x - rx * 0.35, p.y - ry * 0.35, rx * 0.3, ry * 0.25, 0, C.glassLight);
+            disc(p.x + rx * 0.3, p.y + ry * 0.1, 0.8, C.glassDark); disc(p.x - rx * 0.1, p.y + ry * 0.3, 0.7, C.glassDark);
+            var tw = Math.sin(t * 6 + i * 2.1);
+            if (tw > 0.85) { rect(p.x - rx * 0.4 - 2, p.y - ry * 0.4, 5, 1, C.white); rect(p.x - rx * 0.4, p.y - ry * 0.4 - 2, 1, 5, C.white); }
+          } else {
+            lighter(); glow(p.x, p.y, rx * 1.6, C.fire3, 0.5 * (1 - cool)); normalBlend();
+          }
+        });
+      }
+
+      // ============================================================ the twist: a paperclip's worth of mass
+      function paperclip(cx, cy, s, col, w) {
+        g.save(); g.translate(cx, cy); g.rotate(-0.25); g.scale(s, s);
+        g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.lineJoin = "round";
+        g.beginPath();
+        g.moveTo(4, -14); g.lineTo(4, 10); g.arc(0, 10, 4, 0, Math.PI); g.lineTo(-4, -16);
+        g.arc(1, -16, 5, Math.PI, 0); g.lineTo(6, 14); g.arc(-1, 14, 7, 0, Math.PI); g.lineTo(-8, -8);
+        g.stroke(); g.restore();
+      }
+      function sceneClip(t) {
+        var lt = t - 25.5;
+        var cam = camAt([[25.4, 90, 190, 1.3], [26.0, 90, 168, 1.0], [28.2, 90, 170, 1.08]], t);
+        shake(cam, t, 27.0, 4, 0.5);
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.space], [0.6, C.bg2], [1, C.bg3]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        // E = mc2, glowing above the caption band
+        var em = ramp(lt, 0.3, 0.8);
+        if (em > 0) {
+          lighter(); glow(90, 96, 60, C.cyan, 0.45 * em); normalBlend();
+          g.globalAlpha = em; worldText("E=MC", 85, 86, 3, C.cyanLight); worldText("2", 128, 80, 2, C.cyanLight); g.globalAlpha = 1;
+        }
+        // kitchen scale
+        rrect(36, 252, 108, 34, 4, C.scale); rect(28, 244, 124, 8, C.scaleTop); rect(28, 244, 124, 2, C.metalDark);
+        rrect(62, 260, 56, 18, 2, C.lcdDark);
+        var val = lt < 0.6 ? "0.0 G" : lt < 0.75 ? "0.6 G" : "1.0 G";
+        worldText(val, 90, 265, 1, C.lcd);
+        // the paperclip drops onto the scale, then glows
+        var drop = easeOut(clamp01(lt / 0.55)), bob = lt > 0.6 ? Math.sin(lt * 3) * 1.2 : 0;
+        var py = lerp(150, 214, drop) + bob;
+        var hot = ramp(lt, 1.6, 2.2);
+        lighter(); glow(90, py, 46, C.gold, 0.25 + 0.5 * hot); normalBlend();
+        paperclip(90, py, 1.6, C.metalDark, 2.6);
+        paperclip(89.5, py - 0.5, 1.6, hot > 0.5 ? C.gold : C.metal, 1.6);
+        if (Math.sin(lt * 4) > 0.6) { rect(100, py - 22, 7, 1, C.white); rect(103, py - 25, 1, 7, C.white); }
+      }
+
+      // ============================================================ counter box (upper left)
+      function uText(str, x, y, s, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) {
+          var gl = FONT[str[i]] || FONT[" "];
+          for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * s + (p % 5) * s, y + Math.floor(p / 5) * s, s, s);
+        }
+      }
+      function commas(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+      function genAt(t) {
+        if (t < genTime(8)) return Math.max(0, Math.floor((t - GEN0) / GDT) + 1);
+        return Math.min(80, Math.floor(9 + 71 * Math.pow(clamp01((t - genTime(8)) / 1.7), 1.3)));
+      }
+      function box(x, y, w, h) {
+        u.fillStyle = "rgba(6,5,10,0.82)"; u.fillRect(x, y, w, h);
+        u.fillStyle = C.cyan; u.fillRect(x, y, 2, h);
+      }
+      function counterUI(t) {
+        var x = 14, y = 60;
+        if (t >= 8.7 && t < 16.5) {
+          var gn = genAt(t), total = Math.pow(2, gn + 1) - 1;
+          box(x, y, 150, 44);
+          uText("ATOMS SPLIT", x + 7, y + 5, 1, C.paper);
+          if (total < 1e7) uText(commas(total), x + 7, y + 15, 2, C.gold);
+          else {
+            var e = Math.floor(Math.log10(total)), m = (total / Math.pow(10, e)).toFixed(1);
+            var s = m + "X10";
+            uText(s, x + 7, y + 15, 2, C.gold);
+            uText(String(e), x + 7 + s.length * 12, y + 12, 1, C.gold);
+          }
+          uText("AFTER " + gn * 10 + " NS", x + 7, y + 33, 1, C.cyan);
+        } else if (t >= 16.7 && t < 23.0) {
+          box(x, y, 124, 30);
+          uText("NEW MEXICO", x + 7, y + 5, 1, C.paper);
+          uText("5:29 AM", x + 7, y + 15, 2, C.gold);
+        }
+      }
+
+      PX.setup(C, {
+        scenes: { hook: sceneHook, atom: sceneAtom, chain: sceneChain, trinity: sceneTrinity, glass: sceneGlass, clip: sceneClip, loop: sceneLoop },
+        sceneAt: function (t) {
+          return t < 1.8 ? "hook" : t < 8.5 ? "atom" : t < 16.5 ? "chain" : t < 23.0 ? "trinity" : t < 25.5 ? "glass" : t < 28.2 ? "clip" : "loop";
+        },
+        cuts: [[1.8, "hook", "atom"], [8.5, "atom", "chain"], [23.0, "trinity", "glass"], [25.5, "glass", "clip"], [28.2, "clip", "loop"]],
+        post: function (t, img) {
+          if (t < 0.25) tintImg(img, C.white, 0.85 * (1 - t / 0.25));
+          if (t > 1.6 && t < 2.05) glitchRows(img, 20 * Math.sin((t - 1.6) / 0.45 * Math.PI), Math.floor(t * 30));
+          if (t > 5.6 && t < 6.1) tintImg(img, C.fire1, 0.6 * (1 - (t - 5.6) / 0.5));
+          if (t > 15.6 && t < 16.5) tintImg(img, C.white, ramp(t, 15.6, 16.45));
+          if (t >= 16.5 && t < 17.3) tintImg(img, C.white, 1 - ramp(t, 16.5, 17.3));
+          if (t > 29.8) tintImg(img, C.white, (t - 29.8) / 0.2 * 0.85);
+        },
+        captions: [
+          { a: 0.15, b: 1.75, lines: [[["ONE INVISIBLE PARTICLE", C.paper]], [["DID THIS", C.gold]]] },
+          { a: 2.4, b: 4.6, lines: [[["A NEUTRON HITS", C.paper]], [["PLUTONIUM-239", C.gold]]] },
+          { a: 5.9, b: 8.4, lines: [[["IT SPLITS IN TWO", C.paper]], [["AND FIRES 3 NEW NEUTRONS", C.gold]]] },
+          { a: 9.2, b: 11.7, lines: [[["EACH ONE SPLITS", C.paper]], [["ANOTHER ATOM", C.gold]]] },
+          { a: 11.9, b: 14.4, lines: [[["THE SPLITS DOUBLE", C.paper]], [["EVERY 10 NANOSECONDS", C.gold]]] },
+          { a: 14.6, b: 16.3, lines: [[["80 ROUNDS IN UNDER", C.paper]], [["A MILLIONTH OF A SECOND", C.gold]]] },
+          { a: 17.3, b: 20.6, lines: [[["JULY 16, 1945", C.paper]], [["THE TRINITY TEST", C.gold]]] },
+          { a: 20.8, b: 22.9, lines: [[["AS POWERFUL AS", C.paper]], [["25,000 TONS OF TNT", C.gold]]] },
+          { a: 23.5, b: 25.4, lines: [[["THE HEAT MELTED SAND", C.paper]], [["INTO GREEN GLASS", C.gold]]] },
+          { a: 26.0, b: 27.1, lines: [[["THE MASS THAT VANISHED?", C.paper]], [["JUST 1 GRAM", C.gold]]] },
+          { a: 27.2, b: 28.15, lines: [[["THE WEIGHT OF", C.paper]], [["A PAPERCLIP", C.gold]]] },
+        ],
+        ui: counterUI,
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 30, duration: 30, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
