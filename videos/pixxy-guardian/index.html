@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>PIXXY — The Guardian</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #000000;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000000;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="19.2"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="19.2" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: cinematic sound effects only -->
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="19.2" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script>
+      var C = {
+        sky: "#121838", sky2: "#26357a", sky3: "#4a4aa8", haze: "#7a6ad0",
+        bld: "#2a2858", bldLight: "#3c3c80", bldDark: "#1a1838", win: "#ffd25a", winDim: "#d0803a", winBlue: "#6ab8ff",
+        road: "#30365a", roadWet: "#4a5494", lane: "#eef0ff", curb: "#8a8ab8",
+        lamp: "#ffb84a", lampCore: "#fff2b8", red: "#ff3a4a", redDark: "#a81a3a", green: "#3cff9a",
+        car: "#e8487a", carDark: "#9a2050", glass: "#7ad0ff", tyre: "#14121e", head: "#fffbe0",
+        rain: "#a8c4ff", water: "#1c4a9a", waterLight: "#3a7ad8",
+        skin: "#f0aa78", skinShade: "#c07a50", hair: "#2a1a14",
+        coatBlue: "#3a7aff", coatOrange: "#ff7a2a", coatPurple: "#a050ff", coatTeal: "#20c8b0", pants: "#24244a",
+        vest: "#d8ff3a", vestDark: "#8ab020", helmet: "#ffd02a", steel: "#9aa4c8", steelDark: "#5a6288",
+        brick: "#e0603a", pot: "#d86a3a", leaf: "#3ae070", flower: "#ff5ac8",
+        bus: "#ff3a3a", busDark: "#a81a2a", busWhite: "#f4f4ff", sleeve: "#3a3a6a",
+        white: "#ffffff", glowCyan: "#bff6ff", cyan: "#5ae0ff", cyanDeep: "#2a8aff", gold: "#ffe27a", goldDark: "#e0a020",
+        ink: "#06050a", black: "#000000", spark: "#ffcf5a",
+      };
+
+      // ============================================================ PIXXY — the pixel guardian
+      var SPARK = (function () { var r = rng(7), a = []; for (var i = 0; i < 14; i++) a.push({ a: r() * 6.28, r: 10 + r() * 22, v: 0.6 + r() * 1.6, p: r() }); return a; })();
+      function pixxy(x, y, s, open, t, a) {
+        if (a <= 0) return;
+        g.globalAlpha = a;
+        lighter();
+        glow(x, y, 46 * s, C.cyanDeep, 0.45);
+        glow(x, y, 26 * s, C.cyan, 0.55);
+        glow(x, y - 2 * s, 12 * s, C.white, 0.8);
+        normalBlend();
+        // wings: five stepped feathers per side
+        var flap = Math.sin(t * 9) * 0.07 * open;
+        [-1, 1].forEach(function (side) {
+          for (var k = 4; k >= 0; k--) {
+            var ang = lerp(1.35 + k * 0.08, -0.55 + k * 0.42, open) + flap;
+            var L = (24 - k * 2.5) * s * (0.55 + 0.45 * open), wd = (5 - k * 0.5) * s;
+            var sx = x + side * 3 * s, sy = y - 5 * s;
+            var dx = side * Math.cos(ang), dy = -Math.sin(ang);
+            var px = -dy, py = dx;
+            poly([[sx + px * wd * 0.5, sy + py * wd * 0.5], [sx + dx * L + px * wd * 0.3, sy + dy * L + py * wd * 0.3], [sx + dx * (L + 4 * s), sy + dy * (L + 4 * s)], [sx + dx * L - px * wd * 0.3, sy + dy * L - py * wd * 0.3], [sx - px * wd * 0.5, sy - py * wd * 0.5]], k % 2 ? C.glowCyan : C.white);
+          }
+        });
+        // robe body + head
+        poly([[x - 3 * s, y - 6 * s], [x + 3 * s, y - 6 * s], [x + 6 * s, y + 10 * s], [x, y + 12 * s], [x - 6 * s, y + 10 * s]], C.white);
+        poly([[x - 1 * s, y - 4 * s], [x + 1 * s, y - 4 * s], [x + 2 * s, y + 10 * s], [x - 2 * s, y + 10 * s]], C.glowCyan);
+        disc(x, y - 10 * s, 5 * s, C.white);
+        rect(x - 2.5 * s, y - 11 * s, 1.4 * s, 2 * s, C.cyanDeep); rect(x + 1.1 * s, y - 11 * s, 1.4 * s, 2 * s, C.cyanDeep);
+        // halo
+        g.strokeStyle = C.gold; g.lineWidth = Math.max(1, 1.3 * s);
+        g.beginPath(); g.ellipse(x, y - 18 * s, 6 * s, 1.8 * s, 0, 0, 6.2832); g.stroke();
+        // orbiting sparkles
+        SPARK.forEach(function (p) {
+          var aa = p.a + t * p.v, rr = p.r * s;
+          var k = (Math.sin(t * 6 + p.p * 20) + 1) / 2;
+          rect(x + Math.cos(aa) * rr, y + Math.sin(aa) * rr * 0.8, Math.max(1, s * (0.6 + k)), Math.max(1, s * (0.6 + k)), k > 0.5 ? C.white : C.gold);
+        });
+        g.globalAlpha = 1;
+      }
+      // light streak (the guardian arriving)
+      function streak(x1, y1, x2, y2, k, w) {
+        if (k <= 0 || k >= 1.3) return;
+        var h = Math.min(1, k), tail = Math.max(0, k - 0.35);
+        lighter();
+        line(lerp(x1, x2, tail), lerp(y1, y2, tail), lerp(x1, x2, h), lerp(y1, y2, h), w * 1.8, C.cyanDeep);
+        line(lerp(x1, x2, tail), lerp(y1, y2, tail), lerp(x1, x2, h), lerp(y1, y2, h), w, C.white);
+        normalBlend();
+      }
+
+      // ============================================================ PEOPLE
+      // origin at the feet; o: coat, pose(walk|stand|fall|crouch|ride), ph, rot, umbrella, vest, helmet, armsUp
+      function person(x, fy, s, o) {
+        var ph = o.ph || 0, sw = o.pose === "walk" ? Math.sin(ph) * 0.45 : 0;
+        g.save(); g.translate(x, fy - 13 * s); g.rotate(o.rot || 0); g.scale(o.flip ? -1 : 1, 1);
+        // legs
+        var l1 = o.pose === "fall" ? 0.6 : o.pose === "crouch" ? 1.0 : sw, l2 = o.pose === "fall" ? -0.4 : o.pose === "crouch" ? -0.6 : -sw;
+        line(0, 0, Math.sin(l1) * 13 * s, Math.cos(l1) * 13 * s * (o.pose === "crouch" ? 0.6 : 1), 3.2 * s, C.pants);
+        line(0, 0, Math.sin(l2) * 13 * s, Math.cos(l2) * 13 * s * (o.pose === "crouch" ? 0.6 : 1), 3.2 * s, C.pants);
+        // torso
+        rrect(-3.5 * s, -12 * s, 7 * s, 13 * s, 2 * s, o.coat);
+        if (o.vest) { rect(-3.5 * s, -10 * s, 7 * s, 7 * s, C.vest); rect(-3.5 * s, -7 * s, 7 * s, 1 * s, C.white); }
+        // arms
+        var up = o.pose === "fall" || o.armsUp;
+        var ax = up ? 7 : Math.sin(-sw) * 6, ay = up ? -20 : 2;
+        line(0, -10 * s, ax * s, ay * s, 2.4 * s, o.coat);
+        line(0, -10 * s, (up ? -6 : Math.sin(sw) * 6) * s, (up ? -19 : 2) * s, 2.4 * s, o.coat);
+        disc(ax * s, ay * s, 1.3 * s, C.skin);
+        // head
+        disc(0, -16 * s, 3.6 * s, C.skin);
+        if (o.helmet) { ell(0, -18 * s, 4.2 * s, 2.6 * s, 0, C.helmet); rect(-4.4 * s, -18 * s, 8.8 * s, 1 * s, C.goldDark); }
+        else { ell(0, -18.4 * s, 3.8 * s, 2 * s, 0, C.hair); }
+        disc(1.6 * s, -16.4 * s, 0.6 * s, C.ink);
+        if (o.umbrella) {
+          line(ax * s, ay * s, ax * s, (ay - 10) * s, 1 * s, C.ink);
+          g.fillStyle = o.umbrella; g.beginPath(); g.arc(ax * s, (ay - 10) * s, 10 * s, Math.PI, 0); g.closePath(); g.fill();
+        }
+        g.restore();
+      }
+
+      // ============================================================ CITY KIT
+      function nightSky(c) {
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.sky], [0.55, C.sky2], [1, C.sky3]]); g.fillRect(0, 0, W, H);
+      }
+      function skyline(seed, baseY, x0, x1, hMin, hMax, col) {
+        var r = rng(seed), x = x0;
+        while (x < x1) {
+          var w = 14 + r() * 22, h = hMin + r() * (hMax - hMin);
+          rect(x, baseY - h, w, h, col);
+          for (var wy = baseY - h + 4; wy < baseY - 3; wy += 6) for (var wx = x + 3; wx < x + w - 3; wx += 5) {
+            var hv = hash1(wx * 3.1 + wy * 7.7 + seed);
+            if (hv > 0.55) rect(wx, wy, 2, 3, hv > 0.9 ? C.winBlue : hv > 0.75 ? C.win : C.winDim);
+          }
+          x += w + 1 + r() * 3;
+        }
+      }
+      function streetLamp(x, y, h) {
+        rect(x - 1, y - h, 2, h, C.bldDark);
+        rect(x - 1, y - h, 9, 2, C.bldDark);
+        lighter(); glow(x + 7, y - h + 3, 26, C.lamp, 0.55); normalBlend();
+        rect(x + 4, y - h + 2, 6, 2, C.lampCore);
+      }
+      function rain(t, amt, slant) {
+        screen();
+        slant = slant === undefined ? 0.25 : slant;
+        g.strokeStyle = C.rain; g.lineWidth = 1; g.globalAlpha = 0.55;
+        g.beginPath();
+        for (var i = 0; i < amt; i++) {
+          var x = hash1(i * 3.7) * (W + 60) - 30, sp = 420 + hash1(i * 9.1) * 260;
+          var y = ((hash1(i * 5.3) * (H + 40) + t * sp) % (H + 40)) - 20;
+          x += (y + 20) * slant;
+          g.moveTo(x, y); g.lineTo(x + 5 * slant, y + 7);
+        }
+        g.stroke(); g.globalAlpha = 1;
+      }
+      function puddleShine(x, y, w, col) { g.globalAlpha = 0.5; ell(x, y, w, 2, 0, col); g.globalAlpha = 1; }
+      function carSide(x, y, s, col, lights) {
+        // facing left; (x,y) = ground under the middle
+        rrect(x - 26 * s, y - 15 * s, 52 * s, 11 * s, 4 * s, col);
+        poly([[x - 14 * s, y - 15 * s], [x - 8 * s, y - 24 * s], [x + 12 * s, y - 24 * s], [x + 18 * s, y - 15 * s]], col);
+        poly([[x - 11 * s, y - 15 * s], [x - 7 * s, y - 22 * s], [x + 1 * s, y - 22 * s], [x + 1 * s, y - 15 * s]], C.glass);
+        poly([[x + 3 * s, y - 15 * s], [x + 3 * s, y - 22 * s], [x + 11 * s, y - 22 * s], [x + 15 * s, y - 15 * s]], C.glass);
+        rect(x - 26 * s, y - 8 * s, 52 * s, 2 * s, C.carDark);
+        disc(x - 15 * s, y - 4 * s, 5 * s, C.tyre); disc(x + 15 * s, y - 4 * s, 5 * s, C.tyre);
+        disc(x - 15 * s, y - 4 * s, 2 * s, C.steel); disc(x + 15 * s, y - 4 * s, 2 * s, C.steel);
+        rect(x + 24 * s, y - 13 * s, 2 * s, 3 * s, C.red);
+        rect(x - 27 * s, y - 13 * s, 3 * s, 3 * s, C.head);
+        if (lights > 0) {
+          lighter();
+          g.globalAlpha = 0.5 * lights;
+          poly([[x - 26 * s, y - 13 * s], [x - 26 * s - 90 * s, y - 30 * s], [x - 26 * s - 90 * s, y + 6 * s]], C.head);
+          g.globalAlpha = 1;
+          glow(x - 26 * s, y - 12 * s, 18 * s * lights, C.head, 0.9);
+          normalBlend();
+        }
+      }
+
+      // ============================================================ 1. CROSSING  (0 – 2.27)
+      function sceneCross(t) {
+        var cam = camAt([[0, 90, 200, 1.0], [0.9, 92, 206, 1.12], [2.4, 84, 206, 1.6]], t);
+        shake(cam, t, 0.92, 8, 0.5);
+        nightSky();
+        setCam(cam, 0.5); skyline(11, 200, -40, 230, 50, 130, C.bld);
+        setCam(cam, 1);
+        skyline(23, 196, -40, 230, 20, 60, C.bldLight);
+        // traffic light
+        rect(26, 150, 2, 46, C.bldDark); rrect(22, 138, 10, 16, 2, C.ink); disc(27, 142, 2.5, C.red); disc(27, 149, 2.5, C.redDark);
+        lighter(); glow(27, 142, 14, C.red, 0.6); normalBlend();
+        streetLamp(150, 196, 60);
+        // road + zebra + wet reflections
+        rect(-60, 196, 300, 140, C.road);
+        for (var z = 0; z < 7; z++) poly([[50 + z * 11, 252], [56 + z * 11, 252], [52 + z * 11, 266], [45 + z * 11, 266]], C.curb);
+        puddleShine(27, 230, 6, C.red); puddleShine(157, 236, 10, C.lamp);
+        // the car brakes hard
+        var k = easeOut(clamp01(t / 1.0)), cx = lerp(270, 132, k);
+        if (t > 0.6) for (var sk = 0; sk < 2; sk++) line(cx + 10, 242 + sk * 3, cx + 10 + 70 * clamp01((t - 0.6) / 0.4), 242 + sk * 3, 1.2, C.tyre);
+        // pedestrian crosses, then freezes
+        var px = 74 + Math.min(t, 0.9) * 14;
+        // the guardian blooms behind him
+        var open = ramp(t, 0.95, 1.6) * (1 - 0.55 * ramp(t, 1.8, 2.3));
+        pixxy(px - 2, 226, 1.25, open, t, ramp(t, 0.86, 1.0));
+        person(px, 248, 0.95, { coat: C.coatBlue, pose: t < 0.9 ? "walk" : "stand", ph: t * 9, flip: false });
+        carSide(cx, 250, 1.0, C.car, 1);
+        rain(t, 90);
+        vignette(0.45, "rgba(6,5,20,");
+      }
+      // ============================================================ 2. ROOFTOP SCAFFOLD (2.27 – 4.07)
+      function sceneRoof(t) {
+        var cam = camAt([[2.1, 96, 170, 1.15], [3.0, 104, 182, 1.3], [4.2, 98, 166, 1.2]], t);
+        shake(cam, t, 2.92, 7, 0.4);
+        nightSky();
+        setCam(cam, 0.3); skyline(41, 330, -40, 240, 40, 120, C.bld);
+        setCam(cam, 1);
+        // tower wall
+        rect(-60, -40, 120, 400, C.bldLight);
+        for (var wy = -30; wy < 320; wy += 18) for (var wx = -50; wx < 56; wx += 14) rect(wx, wy, 8, 11, hash1(wx + wy * 3) > 0.5 ? C.win : C.bldDark);
+        // scaffold plank
+        rect(60, 150, 56, 4, C.steel); rect(60, 154, 56, 2, C.steelDark);
+        line(66, 154, 60, 176, 1.5, C.steelDark); line(110, 154, 60, 196, 1.5, C.steelDark);
+        // the worker slips and falls; the guardian catches and lifts him back
+        var lt = t - 2.27, px, py, rot, pose;
+        if (lt < 0.25) { px = 100; py = 150; rot = 0; pose = "stand"; }
+        else if (lt < 0.68) { var f = (lt - 0.25) / 0.43; px = 100 + 18 * f; py = 150 + 52 * f * f; rot = 1.6 * f; pose = "fall"; }
+        else { var u2 = ramp(lt, 0.75, 1.65); px = lerp(118, 96, u2); py = lerp(202, 150, u2); rot = lerp(1.6, 0, u2); pose = u2 < 1 ? "fall" : "stand"; }
+        streak(210, 30, 124, 196, (lt - 0.38) / 0.3, 3);
+        var on = ramp(lt, 0.62, 0.72);
+        pixxy(px + 4, py - 10, 1.1, on * (0.4 + 0.6 * Math.abs(Math.sin(lt * 2))), t, on);
+        person(px, py, 0.9, { coat: C.coatOrange, pose: pose, rot: rot, helmet: true, vest: true });
+        rain(t, 70, 0.15);
+        vignette(0.45, "rgba(6,5,20,");
+      }
+      // ============================================================ 3. CONSTRUCTION SITE (4.07 – 5.9)
+      function sceneSite(t) {
+        var lt = t - 4.07;
+        var cam = camAt([[3.9, 90, 190, 1.0], [4.3, 90, 196, 1.08], [5.9, 92, 186, 1.25]], t);
+        shake(cam, t, 4.12, 10, 0.5); shake(cam, t, 4.82, 8, 0.4);
+        nightSky();
+        setCam(cam, 0.5); skyline(57, 240, -40, 230, 40, 110, C.bld);
+        setCam(cam, 1);
+        // crane mast + jib
+        for (var cy = 40; cy < 252; cy += 10) { line(10, cy, 22, cy + 10, 1, C.goldDark); line(22, cy, 10, cy + 10, 1, C.goldDark); }
+        rect(9, 40, 2, 212, C.helmet); rect(21, 40, 2, 212, C.helmet);
+        rect(0, 36, 200, 4, C.helmet);
+        // the load: a steel beam on a cable, which snaps
+        var drop = lt < 0.55 ? 0 : Math.min(1, Math.pow((lt - 0.55) / 0.25, 2));
+        var beamY = lerp(110, 184, drop);
+        if (lt < 0.55) line(118, 40, 118, beamY, 1, C.steelDark);
+        else line(118, 40, 118, 70 - 20 * clamp01((lt - 0.55) * 3), 1, C.steelDark);
+        // ground + worker
+        rect(-60, 252, 300, 90, C.road); rect(-60, 252, 300, 3, C.curb);
+        puddleShine(60, 270, 18, C.cyan);
+        // pillar of light slams down
+        var bk = lt < 0 ? 0 : lt < 0.15 ? lt / 0.15 : 1 - ramp(lt, 0.4, 0.9);
+        if (bk > 0) { lighter(); g.globalAlpha = bk; rect(110 - 10 * bk, -40, 20 * bk + 16, 300, C.glowCyan); rect(115, -40, 6, 300, C.white); g.globalAlpha = 1; normalBlend(); }
+        pixxy(118, 204, 1.15, ramp(lt, 0.25, 0.7), t, ramp(lt, 0.15, 0.35));
+        person(118, 256, 1.05, { coat: C.coatTeal, vest: true, helmet: true, pose: lt > 0.85 ? "crouch" : "stand", armsUp: lt > 0.85 });
+        g.save(); g.translate(118, beamY); g.rotate(drop * 0.1);
+        rect(-34, -4, 68, 8, C.steel); rect(-34, -4, 68, 2, C.white); rect(-34, 2, 68, 2, C.steelDark);
+        g.restore();
+        if (lt > 0.8 && lt < 1.3) { var sp = (lt - 0.8) / 0.5; for (var i = 0; i < 8; i++) rect(118 + (hash1(i) - 0.5) * 80 * sp, 184 - 30 * sp + 40 * sp * sp * hash1(i + 4), 1.5, 1.5, C.spark); }
+        rain(t, 60, 0.2);
+        vignette(0.45, "rgba(6,5,20,");
+      }
+      // ============================================================ 4. WET STAIRS (5.9 – 8.07)
+      function sceneStairs(t) {
+        var lt = t - 5.9;
+        var cam = camAt([[5.75, 90, 170, 1.1], [6.6, 96, 182, 1.25], [8.2, 92, 176, 1.15]], t);
+        nightSky();
+        setCam(cam, 0.5); skyline(71, 200, -40, 230, 60, 150, C.bld);
+        setCam(cam, 1);
+        streetLamp(26, 170, 70);
+        // stair flight going down to the right
+        for (var s = 0; s < 12; s++) {
+          var sx = 20 + s * 13, sy = 150 + s * 9;
+          rect(sx, sy, 200, 9, s % 2 ? C.bldLight : C.curb);
+          rect(sx, sy, 200, 1, C.roadWet);
+        }
+        rect(16, 92, 2, 70, C.steel); line(20, 120, 200, 228, 1.5, C.steel);
+        puddleShine(60, 170, 14, C.lamp);
+        // slip, tumble, caught
+        var px, py, rot, pose;
+        if (lt < 0.35) { px = 40 + lt * 30; py = 150 + lt * 20; rot = 0; pose = "walk"; }
+        else if (lt < 0.7) { var f = (lt - 0.35) / 0.35; px = 50 + 26 * f; py = 157 + 26 * f * f; rot = 1.9 * f; pose = "fall"; }
+        else { var u2 = ramp(lt, 0.8, 1.7); px = lerp(76, 70, u2); py = lerp(183, 168, u2); rot = lerp(1.9, 0, u2); pose = u2 < 1 ? "fall" : "stand"; }
+        pixxy(px + 10, py + 2, 1.1, ramp(lt, 0.6, 1.0) * (1 - 0.4 * ramp(lt, 1.6, 2.1)), t, ramp(lt, 0.5, 0.66));
+        person(px, py, 0.95, { coat: C.coatPurple, pose: pose, ph: lt * 9, rot: rot, umbrella: lt < 0.4 ? C.red : null });
+        // umbrella flies off and floats down
+        if (lt >= 0.4) {
+          var ux = 60 + 60 * clamp01((lt - 0.4) / 1.6), uy = 130 - 30 * Math.sin(clamp01((lt - 0.4) / 1.6) * 2.4) + 40 * clamp01((lt - 1.2) / 1.0);
+          g.save(); g.translate(ux, uy); g.rotate(lt * 1.5); g.fillStyle = C.red; g.beginPath(); g.arc(0, 0, 9, Math.PI, 0); g.closePath(); g.fill(); line(0, 0, 0, 9, 1, C.ink); g.restore();
+        }
+        rain(t, 80);
+        vignette(0.45, "rgba(6,5,20,");
+      }
+      // ============================================================ 5. TRAIN PLATFORM (8.07 – 9.83)
+      function scenePlatform(t) {
+        var lt = t - 8.07;
+        var cam = camAt([[7.9, 92, 170, 1.05], [8.5, 96, 176, 1.2], [9.9, 90, 170, 1.1]], t);
+        shake(cam, t, 8.4, 8, 0.4);
+        if (lt > 0.9) { var tr = 1.4 * (1 - ramp(lt, 1.4, 1.8)); cam.x += (hash1(Math.floor(t * 30)) - 0.5) * tr; cam.y += (hash1(Math.floor(t * 30) + 3) - 0.5) * tr; }
+        screen(); g.fillStyle = C.bldDark; g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        // station wall, lights, sign
+        rect(-60, 20, 300, 120, C.bld);
+        for (var lx = -40; lx < 240; lx += 40) { rect(lx, 26, 24, 3, C.lampCore); lighter(); glow(lx + 12, 30, 22, C.lamp, 0.35); normalBlend(); }
+        rrect(70, 60, 40, 14, 2, C.ink); worldText("12", 90, 64, 1, C.green);
+        // track pit behind the platform edge
+        rect(-60, 140, 300, 50, C.ink);
+        rect(-60, 172, 300, 2, C.steel); rect(-60, 182, 300, 2, C.steel);
+        // the train: headlight first, then it rushes through
+        var tk = clamp01((lt - 0.85) / 0.5);
+        if (lt > 0.6) { lighter(); glow(-40 + 40 * clamp01((lt - 0.6) / 0.3), 160, 60, C.head, 0.7 * (1 - tk)); normalBlend(); }
+        if (tk > 0) {
+          var tx = lerp(-260, 400, clamp01((lt - 0.85) / 0.95));
+          rect(tx - 300, 96, 560, 88, C.steel); rect(tx - 300, 110, 560, 22, C.ink);
+          for (var w = 0; w < 18; w++) rect(tx - 290 + w * 32, 112, 22, 18, C.winBlue);
+          rect(tx - 300, 166, 560, 6, C.red);
+          lighter(); glow(tx + 258, 156, 30, C.head, 0.9); normalBlend();
+        }
+        // platform floor (foreground) with yellow safety line
+        rect(-60, 190, 300, 160, C.curb); rect(-60, 190, 300, 2, C.white); rect(-60, 196, 300, 3, C.helmet);
+        for (var ty = 210; ty < 340; ty += 18) rect(-60, ty, 300, 1, C.steelDark);
+        puddleShine(130, 236, 18, C.lamp);
+        // man stumbles toward the edge, pushed back
+        var px, py, rot, pose;
+        if (lt < 0.15) { px = 80; py = 226; rot = 0; pose = "walk"; }
+        else if (lt < 0.35) { var f = (lt - 0.15) / 0.2; px = 80 + 8 * f; py = 226 - 26 * f; rot = 0.9 * f; pose = "fall"; }
+        else { var u2 = ramp(lt, 0.35, 0.8); px = lerp(88, 70, u2); py = lerp(200, 226, u2); rot = lerp(0.9, -0.15, u2) * (1 - ramp(lt, 0.9, 1.3)); pose = u2 < 1 ? "fall" : "stand"; }
+        pixxy(px + 16, py - 16, 1.1, ramp(lt, 0.28, 0.6), t, ramp(lt, 0.26, 0.36) * (1 - 0.4 * ramp(lt, 1.2, 1.7)));
+        person(px, py, 1.05, { coat: C.coatOrange, pose: pose, ph: lt * 9, rot: rot });
+        vignette(0.4, "rgba(6,5,20,");
+      }
+      // ============================================================ 6. FALLING FLOWERPOT (9.83 – 11.8)
+      function scenePot(t) {
+        var lt = t - 9.83;
+        var follow = clamp01((lt - 0.3) / 0.8);
+        var cam = { x: 92, y: lerp(70, 170, ease(follow)), z: lerp(1.3, 1.05, ease(follow)) };
+        shake(cam, t, 10.75, 7, 0.4);
+        nightSky();
+        setCam(cam, 1);
+        // facade with balconies
+        rect(-60, -80, 300, 340, C.bld);
+        for (var by = -60; by < 230; by += 50) {
+          for (var bx = 6; bx < 180; bx += 56) { rect(bx, by, 30, 26, hash1(bx + by) > 0.4 ? C.win : C.winDim); rect(bx - 4, by + 26, 38, 3, C.steel); for (var r = 0; r < 6; r++) rect(bx - 3 + r * 7, by + 18, 1, 8, C.steel); }
+        }
+        // street
+        rect(-60, 240, 300, 100, C.road); rect(-60, 240, 300, 3, C.curb);
+        puddleShine(120, 256, 16, C.win);
+        // the pot tips off a balcony rail, falls, and is caught
+        var potX = 128, potY;
+        if (lt < 0.3) potY = 34 - 2 * Math.sin(lt * 20) * (lt / 0.3);
+        else if (lt < 0.95) { var f = (lt - 0.3) / 0.65; potY = 34 + 150 * f * f; }
+        else potY = 184 - 4 * Math.sin((lt - 0.95) * 3);
+        var held = lt >= 0.92;
+        streak(10, 330, 128, 196, (lt - 0.6) / 0.32, 3);
+        pixxy(potX, potY + 14, 1.05, ramp(lt, 0.9, 1.3), t, ramp(lt, 0.88, 0.98));
+        g.save(); g.translate(potX, potY); g.rotate(held ? 0 : lt * 4);
+        poly([[-5, -4], [5, -4], [4, 5], [-4, 5]], C.pot); rect(-6, -5, 12, 2, C.brick);
+        disc(-2, -7, 2.5, C.leaf); disc(2, -8, 2.5, C.leaf); disc(0, -10, 2, C.flower);
+        g.restore();
+        // pedestrian with umbrella walks under, unaware
+        person(60 + lt * 22, 244, 1.0, { coat: C.coatBlue, pose: "walk", ph: lt * 8, umbrella: C.coatTeal });
+        rain(t, 70);
+        vignette(0.45, "rgba(6,5,20,");
+      }
+      // ============================================================ 7. CAR DOOR (top-down) (11.8 – 13.73)
+      function sceneDoor(t) {
+        var lt = t - 11.8;
+        var cam = camAt([[11.65, 90, 170, 1.0], [12.6, 94, 178, 1.2], [13.9, 92, 170, 1.12]], t);
+        shake(cam, t, 12.55, 6, 0.35);
+        screen(); g.fillStyle = C.road; g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        g.translate(28, 0);
+        // pavement, kerb, bike lane, road
+        rect(-60, -80, 70, 480, C.curb);
+        rect(10, -80, 30, 480, C.coatTeal); for (var d = -80; d < 400; d += 24) rect(24, d, 2, 12, C.lane);
+        rect(40, -80, 2, 480, C.lane);
+        for (var d2 = -80; d2 < 400; d2 += 30) rect(130, d2, 3, 16, C.lane);
+        // rain rings in puddles
+        for (var i = 0; i < 10; i++) { var rp = (t * 1.5 + hash1(i)) % 1; g.globalAlpha = 1 - rp; g.strokeStyle = C.rain; g.lineWidth = 1; g.beginPath(); g.ellipse(hash1(i * 3) * 180, hash1(i * 7) * 320, 2 + rp * 6, 1 + rp * 3, 0, 0, 6.28); g.stroke(); g.globalAlpha = 1; }
+        // parked car (top-down) and its door
+        rrect(46, 140, 40, 80, 8, C.car); rrect(52, 158, 28, 20, 4, C.glass); rrect(52, 196, 28, 14, 4, C.glass); rrect(54, 180, 24, 14, 2, C.carDark);
+        var doorA = lt < 0.4 ? 0 : lt < 0.75 ? -1.0 * ease((lt - 0.4) / 0.35) * 0.8 : lerp(-0.8, 0, ramp(lt, 0.75, 1.0));
+        g.save(); g.translate(46, 162); g.rotate(doorA); rect(-3, 0, 3, 20, C.carDark); g.restore();
+        lighter(); glow(66, 140, 12, C.head, 0.6); normalBlend();
+        // cyclist coming up the lane
+        var cyY = lerp(360, -40, clamp01(lt / 1.8));
+        rect(23, cyY - 12, 3, 24, C.ink); disc(24.5, cyY - 13, 3, C.tyre); disc(24.5, cyY + 12, 3, C.tyre);
+        ell(24.5, cyY, 5, 4, 0, C.coatOrange); disc(24.5, cyY - 2, 3, C.helmet);
+        line(19, cyY - 6, 30, cyY - 6, 1.5, C.steel);
+        lighter(); glow(24.5, cyY - 18, 14, C.head, 0.7); normalBlend();
+        // guardian pins the door shut
+        pixxy(30, 172, 1.0, ramp(lt, 0.6, 0.95), t, ramp(lt, 0.55, 0.7));
+        rain(t, 40, 0);
+        vignette(0.4, "rgba(6,5,20,");
+      }
+      // ============================================================ 8. MOTORBIKE SKID (13.73 – 15.9)
+      function sceneBike(t) {
+        var lt = t - 13.73;
+        var cam = camAt([[13.6, 80, 190, 1.0], [14.6, 104, 196, 1.2], [16.0, 112, 190, 1.15]], t);
+        shake(cam, t, 14.87, 12, 0.6);
+        nightSky();
+        setCam(cam, 0.5); skyline(91, 210, -40, 240, 30, 120, C.bld);
+        setCam(cam, 1);
+        streetLamp(30, 204, 60); streetLamp(160, 204, 60);
+        rect(-60, 204, 320, 140, C.road);
+        for (var d = -40; d < 260; d += 30) rect(d, 238, 16, 2, C.lane);
+        puddleShine(40, 222, 20, C.lamp); puddleShine(170, 226, 20, C.lamp);
+        // guardrail
+        rect(-60, 196, 320, 3, C.steel); for (var p = -50; p < 260; p += 20) rect(p, 196, 2, 8, C.steelDark);
+        // bike: rides in, skids, slides away; rider thrown and caught
+        var bx, by = 246, tilt = 0;
+        if (lt < 0.67) bx = -40 + lt * 190;
+        else { var sl = clamp01((lt - 0.67) / 1.1); bx = 87 + 70 * easeOut(sl); tilt = Math.min(1, (lt - 0.67) * 6) * 1.45; }
+        g.save(); g.translate(bx, by); g.rotate(tilt);
+        disc(-10, -4, 5, C.tyre); disc(12, -4, 5, C.tyre); disc(-10, -4, 2, C.steel); disc(12, -4, 2, C.steel);
+        poly([[-10, -6], [12, -6], [8, -14], [-6, -12]], C.red); rect(-8, -15, 10, 3, C.ink);
+        line(10, -12, 14, -18, 1.5, C.steel);
+        g.restore();
+        lighter(); if (tilt < 1) glow(bx + 16, by - 12, 24, C.head, 0.8); normalBlend();
+        if (lt > 0.7 && lt < 1.9) for (var i = 0; i < 12; i++) { var a = hash1(i + Math.floor(t * 30)); rect(bx - 14 - a * 30, by - 2 - a * 8, 1.5, 1.5, C.spark); }
+        var rx, ry, rot, pose = "ride";
+        if (lt < 0.72) { rx = bx - 2; ry = by - 10; rot = 0.3; }
+        else if (lt < 0.92) { var f = (lt - 0.72) / 0.2; rx = lerp(85, 112, f); ry = by - 10 - 40 * Math.sin(f * 1.6); rot = lerp(0.3, 1.6, f); }
+        else { var u2 = ramp(lt, 1.0, 1.9); rx = lerp(112, 118, u2); ry = lerp(196, 244, u2); rot = lerp(1.6, 0, u2); }
+        pixxy(rx + 2, ry - 12, 1.25, ramp(lt, 0.25, 0.6) * (lt < 0.9 ? 1 : 1 - 0.5 * ramp(lt, 1.0, 1.6)), t, ramp(lt, 0.2, 0.4));
+        person(rx, ry, 0.95, { coat: C.ink, helmet: true, pose: lt < 0.72 ? "crouch" : lt < 1.9 ? "fall" : "stand", rot: rot });
+        rain(t, 90);
+        vignette(0.45, "rgba(6,5,20,");
+      }
+      // ============================================================ 9. POV BUS (15.9 – 17.2)
+      function sceneBus(t) {
+        var lt = t - 15.9;
+        var cam = { x: 90, y: 160, z: 1 + 0.12 * lt };
+        shake(cam, t, 16.6, 4, 1.0);
+        nightSky();
+        setCam(cam, 0.5); skyline(101, 190, -40, 230, 60, 140, C.bld);
+        setCam(cam, 1);
+        rect(-60, 186, 300, 160, C.road);
+        for (var d = 0; d < 5; d++) rect(84, 196 + d * 26 + d * d * 6, 12, 8 + d * 4, C.lane);
+        // bus front, growing as it closes in
+        var k = Math.pow(clamp01(lt / 1.25), 1.7), s = lerp(0.35, 2.4, k), bx = lerp(140, 96, k), by = lerp(196, 250, k);
+        g.save(); g.translate(bx, by); g.scale(s, s);
+        rrect(-30, -70, 60, 70, 6, C.bus); rrect(-26, -62, 52, 28, 4, C.glass); rect(-22, -68, 44, 5, C.ink); worldText("42", 0, -68, 0.7, C.spark);
+        rect(-30, -14, 60, 4, C.busWhite); rect(-12, -8, 24, 6, C.ink);
+        g.restore();
+        lighter(); glow(bx - 22 * s, by - 8 * s, 14 * s, C.head, 0.9); glow(bx + 22 * s, by - 8 * s, 14 * s, C.head, 0.9); normalBlend();
+        // the viewer's own hand reaching out
+        screen();
+        var hy = 296 - 14 * ramp(lt, 0.4, 1.0);
+        poly([[150, 330], [190, 330], [162, hy - 22], [144, hy - 26]], C.sleeve);
+        disc(154, hy - 30, 9, C.skin); rect(146, hy - 48, 4, 14, C.skin); rect(151, hy - 50, 4, 16, C.skin); rect(156, hy - 48, 4, 14, C.skin); rect(161, hy - 44, 3, 10, C.skin);
+        // light pours in from behind
+        var b = ramp(lt, 0.7, 1.3);
+        if (b > 0) { lighter(); glow(90, 320, 260 * b, C.glowCyan, 0.8 * b); normalBlend(); }
+        rain(t, 70, 0.1);
+        vignette(0.35, "rgba(6,5,20,");
+      }
+      // ============================================================ 10. REVEAL (17.2 – 18.27)
+      function sceneReveal(t) {
+        var lt = t - 17.2;
+        screen(); g.fillStyle = C.cyanDeep; g.fillRect(0, 0, W, H);
+        lighter();
+        for (var i = 0; i < 16; i++) { var a = i / 16 * 6.283 + t * 0.4; g.globalAlpha = 0.35; poly([[90, 150], [90 + Math.cos(a - 0.08) * 300, 150 + Math.sin(a - 0.08) * 300], [90 + Math.cos(a + 0.08) * 300, 150 + Math.sin(a + 0.08) * 300]], C.glowCyan); }
+        g.globalAlpha = 1; normalBlend();
+        pixxy(90, 168, 4.0 + 0.5 * lt, 1, t, 1);
+      }
+      function sceneBlack(t) { screen(); g.fillStyle = C.black; g.fillRect(0, 0, W, H); }
+
+      // ============================================================ TITLE (drawn on the caption layer, no box)
+      function title(cx, cy, S, a) {
+        var str = "PIXXY", w = str.length * 6 * S - S, x0 = Math.round(cx - w / 2), y0 = Math.round(cy - 3.5 * S);
+        u.globalAlpha = a;
+        [[C.ink, 1], [C.cyanDeep, 0.5], [C.white, 0]].forEach(function (pass) {
+          u.fillStyle = pass[0];
+          for (var i = 0; i < str.length; i++) {
+            var gl = FONT[str[i]];
+            for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x0 + i * 6 * S + (p % 5) * S + pass[1] * 2, y0 + Math.floor(p / 5) * S + pass[1] * 2, S, S);
+          }
+        });
+        u.globalAlpha = 1;
+      }
+
+      PX.setup(C, {
+        scenes: { cross: sceneCross, roof: sceneRoof, site: sceneSite, stairs: sceneStairs, platform: scenePlatform, pot: scenePot, door: sceneDoor, bike: sceneBike, bus: sceneBus, reveal: sceneReveal, black: sceneBlack },
+        sceneAt: function (t) {
+          return t < 2.27 ? "cross" : t < 4.07 ? "roof" : t < 5.9 ? "site" : t < 8.07 ? "stairs" : t < 9.83 ? "platform" : t < 11.8 ? "pot" : t < 13.73 ? "door" : t < 15.9 ? "bike" : t < 17.2 ? "bus" : t < 18.27 ? "reveal" : "black";
+        },
+        cuts: [[2.27, "cross", "roof"], [4.07, "roof", "site"], [5.9, "site", "stairs"], [8.07, "stairs", "platform"], [9.83, "platform", "pot"], [11.8, "pot", "door"], [13.73, "door", "bike"], [15.9, "bike", "bus"]],
+        post: function (t, img) {
+          if (t > 0.86 && t < 1.25) tintImg(img, C.white, t < 0.95 ? ramp(t, 0.86, 0.95) : 1 - ramp(t, 0.95, 1.25));
+          if (t > 4.07 && t < 4.4) tintImg(img, C.white, 0.5 * (1 - ramp(t, 4.07, 4.4)));
+          if (t > 8.36 && t < 8.6) tintImg(img, C.white, 0.6 * (1 - ramp(t, 8.36, 8.6)));
+          if (t > 14.6 && t < 14.95) tintImg(img, C.white, 0.6 * (1 - ramp(t, 14.6, 14.95)));
+          if (t > 16.9 && t < 17.45) tintImg(img, C.white, t < 17.2 ? ramp(t, 16.9, 17.2) : 1 - ramp(t, 17.2, 17.45));
+          if (t > 17.6 && t < 18.27) tintImg(img, C.white, ramp(t, 17.6, 18.2));
+        },
+        captions: [],
+        ui: function (t) {
+          if (t >= 15.9 && t < 18.27) title(180, 488, 6, 1);
+          else if (t >= 18.27) title(180, 320, 7, ramp(t, 18.27, 18.4));
+        },
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 19.2, duration: 19.2, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
