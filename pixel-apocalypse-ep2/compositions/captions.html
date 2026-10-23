@@ -1,0 +1,25 @@
+<template>
+  <style>
+    @font-face { font-family: "VT323"; src: url("assets/fonts/vt323-latin-400-normal.woff2") format("woff2"); }
+    #root { position: absolute; inset: 0; font-family: "VT323", monospace; }
+    .cap { position: absolute; left: 110px; right: 110px; top: 1095px; text-align: center; opacity: 0; }
+    .who { display: block; font-size: 40px; letter-spacing: 6px; color: #9a9a9a; text-shadow: 3px 3px 0 #000, -3px 3px 0 #000, 3px -3px 0 #000, -3px -3px 0 #000; margin-bottom: 4px; }
+    .who.red { color: #c0262b; }
+    .line { display: block; font-size: 78px; line-height: 0.95; color: #f2f2f2; text-shadow: 5px 5px 0 #000, -5px 5px 0 #000, 5px -5px 0 #000, -5px -5px 0 #000, 0 5px 0 #000, 0 -5px 0 #000, 5px 0 0 #000, -5px 0 0 #000; }
+  </style>
+  <div id="root" data-composition-id="captions" data-width="1080" data-height="1920" data-duration="19.8">
+    <div id="cap-1" class="cap clip" data-start="3.95" data-duration="2.45"><span class="who red">MIRA &middot; VOICEMAIL</span><span class="line">Don't let her choose<br />containment again.</span></div>
+    <div id="cap-2" class="cap clip" data-start="6.42" data-duration="0.68"><span class="who">MIRA</span><span class="line">Don't!</span></div>
+    <div id="cap-3" class="cap clip" data-start="10.6" data-duration="1.9"><span class="who">AARAV</span><span class="line">That kid... was me.</span></div>
+    <div id="cap-4" class="cap clip" data-start="15.0" data-duration="3.35"><span class="who">MIRA</span><span class="line">We were both immune.<br />That's why they took us.</span></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const caps = [["#cap-1", 3.95, 2.45], ["#cap-2", 6.42, 0.68], ["#cap-3", 10.6, 1.9], ["#cap-4", 15.0, 3.35]];
+    for (const [id, s, d] of caps) {
+      tl.fromTo(id, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.1, ease: "steps(3)" }, s);
+      tl.to(id, { opacity: 0, duration: 0.06, ease: "steps(2)" }, s + d - 0.07);
+    }
+    window.__timelines["captions"] = tl;
+  </script>
+</template>
