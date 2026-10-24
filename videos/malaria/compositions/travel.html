@@ -1,0 +1,166 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #5a0b12; font-family: "Montserrat", sans-serif; }
+    #root canvas { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+    .travel-lbl { position: absolute; left: 0; width: 1080px; text-align: center; color: #fff; font-weight: 800; letter-spacing: 0.02em; text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); }
+    #travel-hour { top: 300px; font-size: 64px; }
+    #travel-hour b { display: block; font-size: 150px; line-height: 1; letter-spacing: -0.02em; }
+    #travel-liver { top: 520px; font-size: 64px; }
+  </style>
+  <div data-hf-id="hf-wqzf" id="root" data-composition-id="travel" data-width="1080" data-height="1920">
+    <canvas data-hf-id="hf-hfs8" id="travel-cv"></canvas>
+    <div data-hf-id="hf-091j" id="travel-hour" class="travel-lbl clip" data-start="0.15" data-duration="2.3"><span data-hf-id="hf-jpyb" id="travel-hour-in">UNDER<b data-hf-id="hf-uuui">1 HOUR</b></span></div>
+    <div data-hf-id="hf-53ni" id="travel-liver" class="travel-lbl clip" data-start="2.66" data-duration="0.8"><span data-hf-id="hf-wf79" id="travel-liver-in">LIVER</span></div>
+  </div>
+  <script>
+    (function () {
+      const B = Bio3D, T = THREE, D = 6.0;
+      const r = B.renderer(document.getElementById("travel-cv"));
+      const env = B.env(r);
+      const rnd = B.rng(23);
+      const spGeo = B.sporozoiteGeometry();
+      const spMat = B.parasiteMaterial();
+      const rbcGeo = B.rbcGeometry(40);
+      const dummy = new T.Object3D();
+
+      // ---- A: inside the vessel ----
+      const sA = new T.Scene();
+      sA.environment = env;
+      sA.background = new T.Color(0x4a0a10);
+      sA.fog = new T.Fog(0x4a0a10, 4, 36);
+      sA.add(new T.HemisphereLight(0xffd8d0, 0x601018, 0.9));
+      const headLamp = new T.PointLight(0xfff0e0, 60, 30, 2);
+      sA.add(headLamp);
+      const veinTex = B.canvasTex(512, 512, (g, w, h) => {
+        g.fillStyle = "#b8424c"; g.fillRect(0, 0, w, h);
+        for (let i = 0; i < 40; i++) {
+          g.strokeStyle = `rgba(110,15,25,${0.25 + rnd() * 0.3})`; g.lineWidth = 2 + rnd() * 5;
+          g.beginPath(); const x = rnd() * w; g.moveTo(x, 0);
+          g.bezierCurveTo(x + rnd() * 80 - 40, h * 0.3, x + rnd() * 80 - 40, h * 0.7, x + rnd() * 60 - 30, h); g.stroke();
+        }
+      });
+      veinTex.wrapS = veinTex.wrapT = T.RepeatWrapping;
+      veinTex.repeat.set(3, 18);
+      const vessel = new T.Mesh(new T.CylinderGeometry(2.4, 2.4, 140, 48, 1, true), new T.MeshPhysicalMaterial({ map: veinTex, side: T.BackSide, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.15 }));
+      vessel.rotation.x = Math.PI / 2;
+      vessel.position.z = -60;
+      sA.add(vessel);
+      const NA = 240;
+      const flow = new T.InstancedMesh(rbcGeo, B.rbcMaterial(), NA);
+      const fc = [];
+      for (let i = 0; i < NA; i++) {
+        const a = rnd() * Math.PI * 2, rad = 0.5 + Math.sqrt(rnd()) * 1.55;
+        fc.push({ x: Math.cos(a) * rad, y: Math.sin(a) * rad, z: -rnd() * 70, rx: rnd() * 6, ry: rnd() * 6, w: 0.5 + rnd() });
+      }
+      sA.add(flow);
+      const wormA = new T.Mesh(spGeo, spMat);
+      sA.add(wormA);
+      const camA = B.camera(52);
+
+      // ---- B: the liver on the cyan cutaway ground ----
+      const sB = new T.Scene();
+      sB.environment = env;
+      B.cyanBackground(sB);
+      B.lights(sB, { key: 2.8 });
+      const liver = B.liver();
+      sB.add(liver);
+      const camB = B.camera(32);
+
+      // ---- C: liver tissue, a honeycomb of hepatocytes ----
+      const sC = new T.Scene();
+      sC.environment = env;
+      sC.background = new T.Color(0x8e2a2e);
+      sC.fog = new T.Fog(0x8e2a2e, 9, 20);
+      B.lights(sC, { key: 2.6, hemi: 0.8 });
+      const floor = new T.Mesh(new T.PlaneGeometry(60, 60), new T.MeshPhysicalMaterial({ color: 0x9e1f27, roughness: 0.3, clearcoat: 0.8 }));
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.y = -0.4;
+      sC.add(floor);
+      const cellGeo = new T.CylinderGeometry(0.86, 0.9, 1.1, 6, 1);
+      cellGeo.rotateY(Math.PI / 6);
+      const cellMat = new T.MeshPhysicalMaterial({ color: 0xe0a08a, roughness: 0.45, sheen: 0.7, sheenColor: new T.Color(0xffe0d0), clearcoat: 0.3 });
+      const nucMat = new T.MeshPhysicalMaterial({ color: 0x7a4fa0, roughness: 0.35, clearcoat: 0.6 });
+      let target = null;
+      for (let i = -5; i <= 5; i++) for (let j = -6; j <= 6; j++) {
+        const x = i * 1.62 + (j % 2 ? 0.81 : 0), z = j * 1.42;
+        const c = new T.Mesh(cellGeo, cellMat);
+        c.position.set(x, 0.15, z);
+        const n = new T.Mesh(new T.SphereGeometry(0.3, 24, 16), nucMat);
+        n.scale.y = 0.45;
+        n.position.set(x + (rnd() - 0.5) * 0.3, 0.7, z + (rnd() - 0.5) * 0.3);
+        sC.add(c, n);
+        if (i === 0 && j === 0) target = c;
+      }
+      // a few red cells squeezing through the sinusoids between them
+      const sinus = new T.InstancedMesh(rbcGeo, B.rbcMaterial(), 30);
+      for (let k = 0; k < 30; k++) {
+        dummy.position.set((rnd() - 0.5) * 16, -0.25, (rnd() - 0.5) * 16);
+        dummy.rotation.set(Math.PI / 2 + (rnd() - 0.5), 0, rnd() * 6);
+        dummy.scale.setScalar(0.22);
+        dummy.updateMatrix();
+        sinus.setMatrixAt(k, dummy.matrix);
+      }
+      sC.add(sinus);
+      const wormC = new T.Mesh(spGeo, spMat);
+      sC.add(wormC);
+      const camC = B.camera(34);
+
+      function render(t) {
+        if (t < 2.62) {
+          // ride with the parasite down the vessel, cells streaming past
+          const z = -t * 9;
+          camA.position.set(Math.sin(t * 1.3) * 0.25, 0.2 + Math.cos(t * 1.1) * 0.15, z);
+          camA.lookAt(0, 0, z - 10);
+          camA.rotation.z = Math.sin(t * 0.8) * 0.12;
+          headLamp.position.set(0.5, 0.8, z + 0.5);
+          fc.forEach((c, i) => {
+            const rel = c.z + t * 4 - z;
+            const cz = z + ((((rel + 68) % 70) + 70) % 70) - 68;
+            dummy.position.set(c.x, c.y, cz);
+            dummy.rotation.set(c.rx + t * c.w, c.ry + t, 0);
+            dummy.scale.setScalar(0.42);
+            dummy.updateMatrix();
+            flow.setMatrixAt(i, dummy.matrix);
+          });
+          flow.instanceMatrix.needsUpdate = true;
+          const arrive = B.outExpo(B.seg(t, 0, 0.6));
+          wormA.position.set(0.05, -0.08, z - 1.7 - 2.4 * (1 - arrive));
+          wormA.rotation.set(0.2, Math.PI / 2 + Math.sin(t * 6) * 0.25, Math.sin(t * 9) * 0.3);
+          wormA.scale.setScalar(0.55);
+          r.render(sA, camA);
+        } else if (t < 3.4) {
+          // the liver: fast arrival, then the camera dives at its surface
+          const k = B.seg(t, 2.62, 3.4);
+          liver.rotation.set(0.35, -0.6 + k * 0.5, 0.1);
+          const arrive = B.outExpo(B.seg(t, 2.62, 3.0));
+          const dive = B.inCubic(B.seg(t, 3.05, 3.4));
+          camB.position.set(0.4, 0.6, B.lerp(12, 8.5, arrive) - dive * 6.3);
+          camB.lookAt(0.3 * dive, 0.1, 0);
+          r.render(sB, camB);
+        } else {
+          // tissue: the worm crawls across the cells and sinks into one, then we dive into that cell
+          const arrive = B.outExpo(B.seg(t, 3.4, 3.9));
+          const dive = B.inCubic(B.seg(t, 5.55, 6.0));
+          const tp = target.position;
+          camC.position.set(B.lerp(1.2, 0.8, arrive), B.lerp(9, 6.2, arrive) - dive * 4.6, B.lerp(7, 5.2, arrive) - dive * 4.9);
+          camC.lookAt(tp.x, 0.4, tp.z);
+          const crawl = B.inOut(B.seg(t, 3.4, 4.35));
+          const sink = B.inOut(B.seg(t, 4.35, 4.9));
+          wormC.position.set(B.lerp(-3.6, tp.x, crawl), 0.78 - sink * 0.75, B.lerp(1.6, tp.z, crawl));
+          wormC.rotation.set(0.0, -0.4 + Math.sin(t * 7) * 0.2, 0);
+          wormC.scale.setScalar(0.62);
+          target.scale.set(1, 1 - 0.06 * Math.sin(Math.PI * sink), 1);
+          r.render(sC, camC);
+        }
+      }
+      const st = { t: 0 };
+      const tl = gsap.timeline({ paused: true });
+      tl.to(st, { t: D, duration: D, ease: "none", onUpdate: () => render(st.t) }, 0);
+      tl.fromTo("#travel-hour-in", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.18, ease: "power4.out" }, 0.15);
+      tl.to("#travel-hour-in", { opacity: 0, duration: 0.15, ease: "power2.in" }, 2.3);
+      tl.fromTo("#travel-liver-in", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.15, ease: "power4.out" }, 2.66);
+      render(0);
+      window.__timelines["travel"] = tl;
+    })();
+  </script>
+</template>

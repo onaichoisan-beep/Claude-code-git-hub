@@ -1,0 +1,150 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #2cbbd9; font-family: "Montserrat", sans-serif; }
+    #root canvas { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+    #inject-label { position: absolute; left: 0; width: 1080px; top: 470px; text-align: center; }
+    #inject-label span { display: inline-block; color: #fff; font-weight: 800; font-size: 60px; letter-spacing: 0.02em; text-shadow: 0 4px 12px rgba(0, 0, 0, 0.45); }
+    #inject-label i { display: block; margin: 14px auto 0; width: 4px; height: 150px; background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); transform-origin: top; }
+  </style>
+  <div data-hf-id="hf-xtqe" id="root" data-composition-id="inject" data-width="1080" data-height="1920">
+    <canvas data-hf-id="hf-zcq1" id="inject-cv"></canvas>
+    <div data-hf-id="hf-xxdx" id="inject-label" class="clip" data-start="3.1" data-duration="2.1"><span data-hf-id="hf-x87h" id="inject-label-text">SPOROZOITES</span><i data-hf-id="hf-ss9e" id="inject-label-line"></i></div>
+  </div>
+  <script>
+    (function () {
+      const B = Bio3D, T = THREE, D = 5.4;
+      const r = B.renderer(document.getElementById("inject-cv"));
+      const scene = new T.Scene();
+      scene.environment = B.env(r);
+      B.cyanBackground(scene);
+      B.lights(scene, { key: 2.6 });
+
+      // ---- skin block, cut open at z = 2 ----
+      const face = (draw) => B.canvasTex(1024, 512, draw);
+      const plain = (c) => new T.MeshPhysicalMaterial({ color: c, roughness: 0.55, sheen: 0.4, sheenColor: new T.Color(0xffd0c0) });
+      const rnd = B.rng(11);
+      const dermisTex = face((g, w, h) => {
+        g.fillStyle = "#e8a49a"; g.fillRect(0, 0, w, h);
+        g.strokeStyle = "rgba(196,104,104,0.45)"; g.lineWidth = 3;
+        for (let i = 0; i < 70; i++) {
+          const y = rnd() * h, x = rnd() * w;
+          g.beginPath(); g.moveTo(x, y);
+          g.bezierCurveTo(x + 60, y - 30 + rnd() * 60, x + 120, y - 30 + rnd() * 60, x + 200, y + rnd() * 30);
+          g.stroke();
+        }
+      });
+      const fatTex = face((g, w, h) => {
+        g.fillStyle = "#e7a48f"; g.fillRect(0, 0, w, h);
+        for (let i = 0; i < 260; i++) {
+          const x = rnd() * w, y = rnd() * h, rr = 22 + rnd() * 26;
+          const gr = g.createRadialGradient(x - rr * 0.3, y - rr * 0.3, 2, x, y, rr);
+          gr.addColorStop(0, "#fbe57a"); gr.addColorStop(1, "#e8b931");
+          g.fillStyle = gr; g.beginPath(); g.arc(x, y, rr, 0, Math.PI * 2); g.fill();
+          g.strokeStyle = "rgba(200,120,90,0.5)"; g.lineWidth = 2; g.stroke();
+        }
+      });
+      const epiTex = face((g, w, h) => {
+        const gr = g.createLinearGradient(0, 0, 0, h);
+        gr.addColorStop(0, "#c98868"); gr.addColorStop(0.35, "#e7b597"); gr.addColorStop(1, "#d99a84");
+        g.fillStyle = gr; g.fillRect(0, 0, w, h);
+        g.strokeStyle = "rgba(150,90,70,0.35)"; g.lineWidth = 2;
+        for (let k = 1; k < 6; k++) { g.beginPath(); for (let x = 0; x <= w; x += 16) g.lineTo(x, (k * h) / 6 + Math.sin(x * 0.03 + k) * 6); g.stroke(); }
+      });
+      const skinTop = B.skinMaterial();
+      function slab(y0, y1, tex, side) {
+        const geo = new T.BoxGeometry(9, y1 - y0, 4);
+        const mats = [plain(side), plain(side), y1 >= 3 ? skinTop : plain(side), plain(side), new T.MeshPhysicalMaterial({ map: tex, roughness: 0.5, sheen: 0.3 }), plain(side)];
+        const m = new T.Mesh(geo, mats);
+        m.position.set(0, (y0 + y1) / 2, 0);
+        scene.add(m);
+        return m;
+      }
+      slab(-2.4, 0.0, fatTex, 0xe9be4e);
+      slab(0.0, 0.85, dermisTex, 0xe39a90);
+      slab(1.55, 2.7, dermisTex, 0xe39a90);
+      slab(2.7, 3.0, epiTex, 0xd9a184);
+      // open capillary channel: back half of a tube whose axis lies on the cut face
+      const wallTex = B.canvasTex(512, 256, (g, w, h) => {
+        g.fillStyle = "#c9545c"; g.fillRect(0, 0, w, h);
+        g.strokeStyle = "rgba(120,20,30,0.5)"; g.lineWidth = 3;
+        for (let i = 0; i < 30; i++) { g.beginPath(); const y = rnd() * h; g.moveTo(0, y); g.bezierCurveTo(w * 0.3, y + 20, w * 0.6, y - 20, w, y + 10); g.stroke(); }
+      });
+      const tubeGeo = new T.CylinderGeometry(0.35, 0.35, 9, 48, 1, true, Math.PI / 2, Math.PI);
+      tubeGeo.rotateZ(Math.PI / 2);
+      const tube = new T.Mesh(tubeGeo, new T.MeshPhysicalMaterial({ map: wallTex, side: T.DoubleSide, roughness: 0.35, clearcoat: 0.8, clearcoatRoughness: 0.2 }));
+      tube.position.set(0, 1.2, 2);
+      scene.add(tube);
+      // blood cells streaming along the channel
+      const rbcGeo = B.rbcGeometry(40);
+      const N = 70;
+      const rbcs = new T.InstancedMesh(rbcGeo, B.rbcMaterial(), N);
+      const cells = [];
+      for (let i = 0; i < N; i++) cells.push({ x: -4.5 + rnd() * 9, y: 1.2 + (rnd() - 0.5) * 0.36, z: 1.78 + rnd() * 0.24, rx: rnd() * 6, ry: rnd() * 6, s: 0.11 + rnd() * 0.03 });
+      scene.add(rbcs);
+      // the proboscis enters from above, its tip ending in the channel
+      const prob = new T.Mesh(new T.CylinderGeometry(0.035, 0.06, 8, 12), new T.MeshPhysicalMaterial({ color: 0x2a1e18, roughness: 0.45, clearcoat: 0.5 }));
+      prob.geometry.translate(0, 4, 0);
+      prob.rotation.z = -0.32;
+      scene.add(prob);
+      // sporozoites
+      const spGeo = B.sporozoiteGeometry();
+      const spMat = B.parasiteMaterial();
+      const worms = [];
+      for (let i = 0; i < 26; i++) {
+        const m = new T.Mesh(spGeo, spMat);
+        m.userData = { t0: 2.15 + i * 0.055, dir: rnd() < 0.8 ? 1 : -1, sp: 0.5 + rnd() * 0.6, dy: (rnd() - 0.5) * 0.36, dz: rnd() * 0.22, ph: rnd() * 6, s: 0.42 + rnd() * 0.12 };
+        scene.add(m);
+        worms.push(m);
+      }
+      const cam = B.camera(30);
+      const dummy = new T.Object3D();
+      const tipBase = new T.Vector3(0.35, 1.22, 2.06);
+
+      function render(t) {
+        // proboscis drives in from the surface to the vessel (fast, lands on a long tail)
+        const push = B.outExpo(B.seg(t, 0.0, 1.0));
+        const tip = tipBase.clone().add(new T.Vector3(Math.sin(0.32) * 1.9 * (1 - push), 1.9 * (1 - push) * Math.cos(0.32), 0));
+        prob.position.copy(tip);
+        // flowing cells
+        cells.forEach((c, i) => {
+          let x = c.x + t * 0.9;
+          x = ((x + 4.5) % 9 + 9) % 9 - 4.5;
+          dummy.position.set(x, c.y, c.z);
+          dummy.rotation.set(c.rx + t * 1.5, c.ry + t, 0);
+          dummy.scale.setScalar(c.s);
+          dummy.updateMatrix();
+          rbcs.setMatrixAt(i, dummy.matrix);
+        });
+        rbcs.instanceMatrix.needsUpdate = true;
+        // worms pour from the tip, then swim with the flow, wriggling
+        worms.forEach((m) => {
+          const u = m.userData;
+          const age = t - u.t0;
+          if (age < 0) { m.visible = false; return; }
+          m.visible = true;
+          const out = B.outCubic(B.clamp(age / 0.5));
+          m.position.set(tip.x + u.dir * (0.25 * out + age * u.sp), tip.y + u.dy * out, 1.82 + u.dz);
+          m.rotation.set(0.3, u.dir > 0 ? 0 : Math.PI, Math.sin(age * 9 + u.ph) * 0.35);
+          m.scale.setScalar(u.s * B.outBack(B.clamp(age / 0.3)));
+        });
+        // camera: arrives fast from the surface, settles wide, pushes to the vessel, dives in at the end
+        const arrive = B.outExpo(B.seg(t, 0, 0.7));
+        const push2 = B.inOut(B.seg(t, 0.6, 3.4));
+        const dive = B.inCubic(B.seg(t, 4.95, 5.4));
+        const look = new T.Vector3(0.6, 1.7, 2).lerp(new T.Vector3(0.9, 1.25, 2), push2).lerp(new T.Vector3(2.5, 1.2, 2), dive);
+        const pos = new T.Vector3(1.0, 7.5, 9.0).lerp(new T.Vector3(4.2, 4.9, 11.0), arrive).lerp(new T.Vector3(2.4, 2.4, 6.2), push2).lerp(new T.Vector3(2.2, 1.25, 2.2), dive);
+        cam.position.copy(pos);
+        cam.lookAt(look);
+        r.render(scene, cam);
+      }
+      const st = { t: 0 };
+      const tl = gsap.timeline({ paused: true });
+      tl.to(st, { t: D, duration: D, ease: "none", onUpdate: () => render(st.t) }, 0);
+      tl.fromTo("#inject-label-text", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.18, ease: "power4.out" }, 3.1);
+      tl.fromTo("#inject-label-line", { scaleY: 0 }, { scaleY: 1, duration: 0.35, ease: "expo.out" }, 3.18);
+      tl.to("#inject-label", { opacity: 0, duration: 0.15, ease: "power2.in" }, 4.75);
+      render(0);
+      window.__timelines["inject"] = tl;
+    })();
+  </script>
+</template>
