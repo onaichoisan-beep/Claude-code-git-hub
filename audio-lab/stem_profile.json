@@ -1,0 +1,44 @@
+{
+ "diy_projector": {
+  "voice_lufs": -23.7,
+  "background_lufs": -26.8,
+  "voice_over_bg_db": 3.1,
+  "bg_tempo_bpm": 133.9,
+  "bg_key_guess": "A#",
+  "bg_hits_per_sec": 2.49,
+  "pitch_median_hz": 117.2,
+  "pitch_p10_p90": [
+   96.2,
+   357.6
+  ],
+  "pitch_spread_semitones": 22.7
+ },
+ "ear_hack": {
+  "voice_lufs": -17.7,
+  "background_lufs": -38.2,
+  "voice_over_bg_db": 20.6,
+  "bg_tempo_bpm": 144.2,
+  "bg_key_guess": "C",
+  "bg_hits_per_sec": 6.01,
+  "pitch_median_hz": 163.8,
+  "pitch_p10_p90": [
+   102.0,
+   260.0
+  ],
+  "pitch_spread_semitones": 16.2
+ },
+ "store_riddle": {
+  "voice_lufs": -17.7,
+  "background_lufs": -42.8,
+  "voice_over_bg_db": 25.1,
+  "bg_tempo_bpm": 125.0,
+  "bg_key_guess": "C",
+  "bg_hits_per_sec": 4.24,
+  "pitch_median_hz": 167.1,
+  "pitch_p10_p90": [
+   94.6,
+   300.4
+  ],
+  "pitch_spread_semitones": 20.0
+ }
+}
