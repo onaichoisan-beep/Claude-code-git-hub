@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>How Heavy Is a Cloud?</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #4aa8f0;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #4aa8f0;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="61.5"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="61.5" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: female narration (edge-tts neural voice) + ducked cinematic SFX -->
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="61.5" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = 61.5;
+      var C = {
+        skyTop: "#1f6ad8", sky: "#3a9af0", skyLow: "#8ad4ff", haze: "#d4f0ff", deep: "#123c9a",
+        cloudW: "#ffffff", cloudL: "#e6f1fc", cloudS: "#b4c8e2", cloudD: "#8098bc",
+        storm1: "#62708e", storm2: "#3e4864", storm3: "#242a40", stormL: "#9aa8c4",
+        sea: "#1a64c8", land: "#46c05a", landD: "#2a8a3e", field: "#d8c050",
+        eleph: "#8c8ca0", elephL: "#b4b6c8", elephD: "#5a5a6e", tusk: "#fff6e0", pink: "#ff98b0",
+        metal: "#c4ccd8", metalL: "#f4f8ff", metalD: "#76829a",
+        lime: "#c8ff3a", limeD: "#6aa010",
+        water: "#3ad0ff", waterL: "#b4f6ff", waterD: "#1488d0", deck: "#e8eef4", lane: "#ff4a5a",
+        hair: "#5a321c", hairL: "#8a5432", hairD: "#2e1a0e", bolt: "#fffaa0",
+        skin: "#f0a878", shirt: "#ff5a3a", jeans: "#2a4ab0",
+        gold: "#ffc83a", ink: "#06050a", paper: "#f1eef4", white: "#ffffff",
+      };
+      DISSOLVE = 0.1; // captions follow the voice quickly: short dissolve
+
+      // ============================================================ helpers
+      function bump(t, times, amt) {
+        var z = 1;
+        times.forEach(function (ti) { if (t >= ti) z += amt * Math.exp(-(t - ti) * 9); });
+        return z;
+      }
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function skyBg(top, mid, low) {
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, top], [0.6, mid], [1, low]]);
+        g.fillRect(0, 0, W, H);
+      }
+      // lime label box with dark pixel text (the video's accent)
+      function tag(text, cx, cy, s, k, bg) {
+        if (k <= 0) return;
+        var w = text.length * 6 * s + 6, h = 7 * s + 6;
+        g.save(); g.translate(cx, cy); g.scale(k, k);
+        rrect(-w / 2 - 1, -h / 2 - 1, w + 2, h + 2, 3, C.ink);
+        rrect(-w / 2, -h / 2, w, h, 3, bg || C.lime);
+        worldText(text, 0, -h / 2 + 3, s, C.ink);
+        g.restore();
+      }
+      // dimension bracket under/over something: |----|
+      function bracket(x1, x2, y, k, col) {
+        if (k <= 0) return;
+        var m = (x1 + x2) / 2, hw = (x2 - x1) / 2 * k;
+        rect(m - hw, y, hw * 2, 1, col); rect(m - hw, y - 3, 1, 7, col); rect(m + hw - 1, y - 3, 1, 7, col);
+      }
+
+      // ============================================================ clouds
+      var PUFFS = {};
+      function puffs(seed, n) {
+        var id = seed + ":" + n;
+        if (PUFFS[id]) return PUFFS[id];
+        var r = rng(seed), a = [];
+        for (var i = 0; i < n; i++) {
+          var u = r() * 2 - 1;
+          var top = Math.pow(1 - u * u, 0.6);
+          a.push({ u: u, v: r() * top, r: 0.16 + 0.14 * r() * (0.5 + 0.5 * top) });
+        }
+        a.sort(function (p, q) { return p.v - q.v; });
+        return (PUFFS[id] = a);
+      }
+      // fluffy cumulus: base at (cx, by), width w, height h
+      function cumulus(cx, by, w, h, seed, pal, t) {
+        pal = pal || [C.cloudD, C.cloudS, C.cloudL, C.cloudW];
+        var P = puffs(seed, 18), hw = w / 2;
+        var wob = t ? Math.sin(t * 0.8 + seed) * 0.6 : 0;
+        // shade, mid, light, highlight passes give a bright pixel 3D look
+        [[1.6, 1.8, 1.0, 0], [0.4, 0.4, 0.96, 1], [-0.8, -1.2, 0.84, 2], [-1.8, -2.6, 0.55, 3]].forEach(function (pass) {
+          P.forEach(function (p) {
+            var x = cx + p.u * hw * 0.82 + wob, y = by - p.v * h * 0.78 - p.r * w * 0.3;
+            disc(x + pass[0] * w / 60, y + pass[1] * w / 60, p.r * w * 0.5 * pass[2], pal[pass[3]]);
+          });
+        });
+        // flat base
+        ell(cx, by - 2, hw * 0.8, 4 * w / 60, 0, pal[1]);
+      }
+      function cirrus(x, y, len, t, k) {
+        g.globalAlpha = 0.85 * k;
+        g.strokeStyle = C.cloudW; g.lineCap = "round";
+        for (var i = 0; i < 5; i++) {
+          var oy = i * 3 - 6, ox = i * 4 + Math.sin(t * 0.6 + i) * 2;
+          g.lineWidth = 2.2 - i * 0.3;
+          g.beginPath(); g.moveTo(x - len / 2 + ox, y + oy + 4);
+          g.quadraticCurveTo(x + ox, y + oy - 4, x + len / 2 + ox, y + oy - 10);
+          g.quadraticCurveTo(x + len / 2 + ox + 6, y + oy - 14, x + len / 2 + ox + 3, y + oy - 18);
+          g.stroke();
+        }
+        g.globalAlpha = 1;
+      }
+      // towering thundercloud with an anvil top; base at (cx, by)
+      function thunderhead(cx, by, s, t) {
+        var dark = [C.storm3, C.storm2, C.storm1, C.stormL];
+        // anvil
+        ell(cx + 6 * s, by - 196 * s, 92 * s, 16 * s, 0, C.storm1);
+        ell(cx + 4 * s, by - 200 * s, 86 * s, 11 * s, 0, C.stormL);
+        ell(cx + 2 * s, by - 203 * s, 70 * s, 6 * s, 0, C.cloudS);
+        // tower: stacked cumulus layers, lit from above, darkest at the base
+        var pals = [[C.storm3, C.storm3, C.storm2, C.storm1], dark, dark, [C.storm2, C.storm1, C.stormL, C.cloudS],
+          [C.storm2, C.storm1, C.stormL, C.cloudS], [C.storm1, C.stormL, C.cloudS, C.cloudL]];
+        for (var k = 5; k >= 0; k--) {
+          cumulus(cx + Math.sin(k * 1.7) * 4 * s, by - k * 32 * s, (k === 0 ? 150 : 112 - k * 8) * s, 48 * s, 31 + k, pals[k], t);
+        }
+        ell(cx, by - 4 * s, 72 * s, 6 * s, 0, C.storm3);
+      }
+      function rainLines(x0, x1, y0, y1, t, n, col, speed) {
+        g.strokeStyle = col; g.lineWidth = 1; g.lineCap = "butt";
+        for (var i = 0; i < n; i++) {
+          var x = x0 + hash1(i * 3.3) * (x1 - x0), sp = speed * (0.8 + 0.4 * hash1(i + 9));
+          var y = y0 + ((hash1(i * 7.1) * (y1 - y0) + t * sp) % (y1 - y0));
+          g.beginPath(); g.moveTo(x, y); g.lineTo(x - 1.5, y + 6); g.stroke();
+        }
+      }
+      function bolt(x, y0, y1, seed, k) {
+        if (k <= 0) return;
+        var pts = [[x, y0]], yy = y0, xx = x, i = 0;
+        while (yy < y1) { yy += 10 + hash1(seed + i) * 8; xx += (hash1(seed + i * 3.7) - 0.5) * 18; pts.push([xx, yy]); i++; }
+        g.globalAlpha = k;
+        g.strokeStyle = C.white; g.lineWidth = 3; g.lineJoin = "round";
+        g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); pts.forEach(function (p) { g.lineTo(p[0], p[1]); }); g.stroke();
+        g.strokeStyle = C.bolt; g.lineWidth = 1.2; g.stroke();
+        g.globalAlpha = 1;
+      }
+
+      // ============================================================ elephants + people
+      function elephant(x, y, s, dir, t, rot) {
+        g.save(); g.translate(x, y); g.rotate(rot || 0); g.scale(dir * s, s);
+        var sw = Math.sin((t || 0) * 5) * 0.8;
+        // legs
+        [-8, -3.5, 3, 7].forEach(function (lx, i) { rect(lx - 1.6, 2, 3.4, 8 + (i % 2 ? sw : -sw) * 0.4, i % 2 ? C.elephD : C.eleph); });
+        // body
+        ell(0, 0, 11.5, 7.5, 0, C.elephD);
+        ell(-0.5, -0.8, 10.8, 6.6, 0, C.eleph);
+        ell(-2, -3, 7, 3, 0, C.elephL);
+        line(-11, -1, -14, 4 + sw, 1, C.elephD);
+        // head, ear, trunk, tusk, eye
+        disc(11, -3, 6.2, C.eleph);
+        disc(10, -4.5, 3.5, C.elephL);
+        ell(7.5, -2, 4, 5.4, 0.1, C.elephD);
+        ell(7.8, -2.4, 3, 4.4, 0.1, C.pink);
+        g.strokeStyle = C.eleph; g.lineWidth = 3; g.lineCap = "round";
+        g.beginPath(); g.moveTo(15.5, -1); g.quadraticCurveTo(19, 4, 17.5 + sw * 0.5, 9); g.stroke();
+        line(14, 1.5, 17, 3, 1.2, C.tusk);
+        disc(13, -4.5, 0.9, C.ink);
+        g.restore();
+      }
+      function person(x, y, s, lookUp) {
+        rect(x - 2 * s, y - 7 * s, 1.8 * s, 7 * s, C.jeans); rect(x + 0.2 * s, y - 7 * s, 1.8 * s, 7 * s, C.jeans);
+        rrect(x - 2.8 * s, y - 14 * s, 5.6 * s, 8 * s, 1.5 * s, C.shirt);
+        disc(x, y - 17 * s + (lookUp ? -0.5 * s : 0), 2.6 * s, C.skin);
+        g.fillStyle = C.hairD; g.beginPath(); g.arc(x - (lookUp ? 0.8 * s : 0), y - 17.6 * s, 2.7 * s, Math.PI * 0.9, Math.PI * 1.9); g.fill();
+        if (lookUp) line(x + 2.4 * s, y - 13 * s, x + 4 * s, y - 18 * s, 1.2 * s, C.skin);
+      }
+      function ground(y, t) {
+        rect(-200, y, 580, 200, C.land);
+        rect(-200, y, 580, 2, C.field);
+        for (var i = -10; i < 30; i++) { var tx = i * 14 + 6 * hash1(i); disc(tx, y + 1, 3 + 2 * hash1(i + 5), C.landD); }
+      }
+      function earthFar(y) {
+        rect(-200, y, 580, 300, C.sea);
+        rect(-200, y, 580, 1, C.haze);
+        for (var i = -6; i < 16; i++) ell(i * 26 + 10 * hash1(i), y + 10 + 8 * hash1(i + 3), 14 + 8 * hash1(i + 7), 3, 0, C.land);
+      }
+
+      // ============================================================ the balance scale
+      // pivot (cx, py); tilt > 0 = left side down; left/right are drawing callbacks given the pan centre
+      function scale(cx, py, tilt, left, right, t) {
+        var L = 60, hang = 44;
+        rect(cx - 3, py, 6, 220, C.metalD); rect(cx - 2, py, 2, 220, C.metalL);
+        ell(cx, py + 2, 8, 4, 0, C.metalD);
+        var ca = Math.cos(tilt), sa = Math.sin(tilt);
+        var lx = cx - L * ca, ly = py + L * sa, rx = cx + L * ca, ry = py - L * sa;
+        line(lx, ly, rx, ry, 4, C.metalD); line(lx, ly - 1, rx, ry - 1, 1.5, C.metalL);
+        disc(cx, py, 5, C.metal); disc(cx, py, 2, C.metalD);
+        disc(cx, py - 9, 3.5, C.metal); rect(cx - 1.5, py - 8, 3, 6, C.metal);
+        [[lx, ly, left], [rx, ry, right]].forEach(function (e) {
+          var px = e[0], pyy = e[1] + hang;
+          line(e[0], e[1], px - 22, pyy, 0.8, C.metalD); line(e[0], e[1], px + 22, pyy, 0.8, C.metalD); line(e[0], e[1], px, pyy, 0.8, C.metalD);
+          disc(e[0], e[1], 2, C.metal);
+          if (e[2]) e[2](px, pyy - 1);
+          ell(px, pyy + 2, 26, 5, 0, C.metalD);
+          ell(px, pyy, 25, 3.6, 0, C.metal);
+          rect(px - 18, pyy, 36, 1, C.metalL);
+        });
+      }
+      function pile(px, by, n, t) {
+        // a pyramid of small elephants
+        var rows = n >= 80 ? [6, 5, 4, 3, 2, 1] : n >= 5 ? [3, 2] : [n];
+        var s = n >= 80 ? 0.36 : 0.5;
+        rows.forEach(function (cnt, r) {
+          for (var i = 0; i < cnt; i++) {
+            var x = px + (i - (cnt - 1) / 2) * 24 * s * 0.75, y = by - 5 * s - r * 13 * s;
+            elephant(x, y, s, i % 2 ? -1 : 1, 0);
+          }
+        });
+      }
+
+      // ============================================================ SCENES
+      // HOOK: a cloud slams onto the scale (also the loop ending)
+      function sceneHook(t) {
+        var lt = t < 30 ? t : t - DUR;
+        var land = 0.12;
+        var cam = t < 30 ? { x: 90, y: 152, z: 1.12 - 0.12 * easeOut(t / 0.5) } : camAt([[60.3, 90, 146, 0.92], [61.5, 90, 152, 1.12]], t);
+        if (t < 30) shake(cam, t, land, 10, 0.7);
+        skyBg(C.skyTop, C.sky, C.skyLow);
+        setCam(cam, 0.35);
+        earthFar(300);
+        cumulus(30, 290, 60, 26, 3, null, t); cumulus(160, 296, 50, 20, 4, null, t);
+        setCam(cam, 1);
+        var drop = lt < land ? 1 - Math.pow(clamp01((lt + 1.2) / (land + 1.2)), 2) : 0;
+        var since = lt - land;
+        var tilt = lt < land ? 0 : 0.36 + 0.12 * Math.exp(-since * 5) * Math.cos(since * 18);
+        scale(90, 186, tilt, function (px, py) {
+          cumulus(px, py - drop * 150, 50, 30, 7, null, t);
+        }, null, t);
+        if (since > 0 && since < 0.4) { var k = since / 0.4; g.globalAlpha = 1 - k; disc(30, 236, 10 + 30 * k, C.white); g.globalAlpha = 1; }
+        vignette(0.18, "rgba(10,30,80,");
+      }
+      // BLUE SKY: cumulus, the 1 km ruler, elephants appear, guesses
+      var GUESS = ["15", "47", "83", "258"];
+      function sceneSky(t) {
+        var cam = camAt([[2.8, 90, 150, 0.7], [4.4, 90, 175, 1.0], [7.0, 90, 182, 1.08], [8.6, 90, 176, 0.98], [11.7, 90, 170, 0.92]], t);
+        skyBg(C.skyTop, C.sky, C.skyLow);
+        setCam(cam, 0.4);
+        cumulus(20, 120, 40, 18, 11, null, t); cumulus(165, 90, 36, 16, 12, null, t); cumulus(150, 250, 46, 20, 13, null, t);
+        setCam(cam, 0.8);
+        ground(312, t);
+        setCam(cam, 1);
+        cumulus(-20, 290, 60, 26, 14, null, t);
+        cumulus(200, 284, 56, 22, 15, null, t);
+        // the hero cumulus
+        cumulus(90, 252, 96, 58, 5, null, t);
+        // 1 km ruler
+        var rk = ramp(t, 7.1, 7.6) * (1 - ramp(t, 8.5, 8.7));
+        bracket(42, 138, 262, rk, C.lime);
+        tag("1 KM", 90, 274, 1, pop(t, 7.15) * (1 - ramp(t, 8.5, 8.7)));
+        // elephants pop in around the cloud
+        for (var i = 0; i < 9; i++) {
+          var ta = 8.7 + 0.13 * i, k = pop(t, ta);
+          if (k <= 0) continue;
+          var a = i * 0.7 + 0.4, ex = 90 + Math.cos(a * 2.3) * 68, ey = 230 + Math.sin(a * 1.7) * 52 + Math.sin(t * 2 + i) * 3;
+          elephant(ex, ey, 0.55 * k, i % 2 ? 1 : -1, t, Math.sin(t * 1.5 + i) * 0.25);
+        }
+        // guesses: lime boxes above the caption, drum roll highlights them in turn
+        var hl = t > 10.95 && t < 11.72 ? Math.floor((t - 10.95) / 0.12) % 4 : -1;
+        GUESS.forEach(function (gs, k) {
+          var kk = pop(t, 9.7 + 0.35 * k);
+          tag(gs + "?", 46 + k * 30, 64 + (k % 2) * 16, 1, kk, hl === k ? C.white : C.lime);
+        });
+        vignette(0.15, "rgba(10,30,80,");
+      }
+      // SCALE: cloud = 83 elephants
+      function scene83(t) {
+        var cam = { x: 90, y: 154, z: 1.08 * bump(t, [11.75], 0.08) };
+        shake(cam, t, 11.75, 7, 0.4);
+        skyBg(C.skyTop, C.sky, C.skyLow);
+        setCam(cam, 0.35); earthFar(300);
+        setCam(cam, 1);
+        var tilt = 0.08 * Math.exp(-(t - 11.75) * 4) * Math.cos((t - 11.75) * 14);
+        scale(90, 186, tilt, function (px, py) { cumulus(px, py, 50, 30, 7, null, t); }, function (px, py) { pile(px, py, 83, t); }, t);
+        tag("83 ELEPHANTS", 126, 104, 1, pop(t, 11.8));
+        tag("1 KM CLOUD", 42, 104, 1, pop(t, 11.9), C.white);
+        vignette(0.15, "rgba(10,30,80,");
+      }
+      // elephants floating in the sky
+      function sceneFloat(t) {
+        var lt = t - 12.7;
+        var cam = { x: 90, y: 170 - lt * 6, z: 1.05 + lt * 0.03 };
+        skyBg(C.skyTop, C.sky, C.skyLow);
+        setCam(cam, 0.5);
+        cumulus(40, 200, 60, 24, 21, null, t); cumulus(150, 120, 50, 20, 22, null, t);
+        setCam(cam, 1);
+        for (var i = 0; i < 16; i++) {
+          var x = 10 + (i * 47) % 170 + Math.sin(t * 0.7 + i) * 6, y = 40 + (i * 83) % 280 - lt * (6 + (i % 4) * 3);
+          if (Math.abs(y - 160) < 14) y += 30;
+          elephant(x, y, 0.6 + 0.35 * hash1(i), i % 2 ? 1 : -1, t, Math.sin(t * 1.2 + i) * 0.35);
+        }
+        vignette(0.15, "rgba(10,30,80,");
+      }
+      // CIRRUS: rise high up, wispy ice cloud
+      function sceneCirrus(t) {
+        var cam = camAt([[15.1, 90, 250, 1.0], [17.0, 90, 180, 1.0], [18.1, 90, 176, 1.06]], t);
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.deep], [0.5, C.skyTop], [1, C.sky]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        g.fillStyle = vgrad(160, 420, [[0, "rgba(0,0,0,0)"], [1, C.skyLow]]); g.fillRect(-50, 160, 280, 260);
+        cumulus(50, 400, 70, 26, 41, null, t); cumulus(150, 410, 60, 22, 42, null, t);
+        var k = ramp(t, 15.6, 16.6);
+        cirrus(84, 236, 90, t, k);
+        cirrus(120, 214, 60, t, k * 0.8);
+        cirrus(40, 256, 44, t, k * 0.7);
+        // altitude ticks on the left
+        for (var a = 0; a <= 10; a += 2) { var ay = 400 - a * 22; rect(4, ay, 6, 1, C.white); if (a % 4 === 0) worldText(a + "KM", 24, ay - 3, 1, C.white); }
+        tag("CIRRUS", 84, 202, 1, pop(t, 16.0));
+        tag("~8 KM UP", 140, 276, 1, pop(t, 16.4), C.white);
+        vignette(0.15, "rgba(10,30,80,");
+      }
+      function scene5(t) {
+        var cam = camAt([[18.1, 90, 150, 1.12], [21.6, 90, 154, 1.0]], t);
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.deep], [0.6, C.skyTop], [1, C.sky]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        var drop = ramp(t, 18.1, 18.3);
+        var tilt = 0.06 * Math.exp(-(t - 18.25) * 4) * Math.cos((t - 18.25) * 14) * (t > 18.25 ? 1 : 0);
+        scale(90, 186, tilt, function (px, py) { cirrus(px - 6, py - 8, 40, t, 1); }, function (px, py) { g.save(); g.translate(0, -(1 - drop) * 60); pile(px, py, 5, t); g.restore(); }, t);
+        tag("CIRRUS", 38, 104, 1, pop(t, 18.2), C.white);
+        tag("5 ELEPHANTS", 128, 104, 1, pop(t, 18.3));
+        tag("SAME SIZE", 90, 268, 1, pop(t, 19.0), C.white);
+        vignette(0.15, "rgba(10,30,80,");
+      }
+      // THUNDERCLOUD
+      var FLASH = [22.5, 24.3, 26.6];
+      function flashK(t) { var k = 0; FLASH.forEach(function (f) { if (t > f && t < f + 0.35) k = Math.max(k, 1 - (t - f) / 0.35); }); return k; }
+      function sceneStorm(t) {
+        var cam = camAt([[21.6, 90, 250, 1.35], [24.0, 90, 190, 0.85], [28.3, 90, 170, 0.62]], t);
+        var fk = flashK(t);
+        skyBg(C.storm2, C.storm1, C.stormL);
+        setCam(cam, 0.6);
+        ground(330, t);
+        setCam(cam, 1);
+        rect(-400, 312, 980, 300, C.landD);
+        for (var i = -12; i < 25; i++) disc(i * 18, 312, 5 + 3 * hash1(i), C.landD);
+        rainLines(-40, 220, 236, 312, t, 120, C.stormL, 140);
+        thunderhead(90, 236, 1.0, t);
+        // lightning
+        FLASH.forEach(function (f, n) { if (t > f && t < f + 0.3) bolt(60 + n * 30, 236, 312, n * 11 + 1, 1 - (t - f) / 0.3); });
+        // tiny houses for scale
+        for (var hI = 0; hI < 6; hI++) { var hx = 10 + hI * 32; rect(hx, 306, 7, 6, C.paper); poly([[hx - 1, 306], [hx + 3.5, 302], [hx + 8, 306]], C.lane); }
+        var rk = ramp(t, 24.4, 25.0);
+        bracket(15, 165, 324, rk, C.lime);
+        tag("10 KM", 90, 336, 2, pop(t, 24.5));
+        setCam(cam, 1);
+        if (fk > 0) { screen(); g.globalAlpha = 0.35 * fk; rect(0, 0, W, H, C.white); g.globalAlpha = 1; }
+        vignette(0.3, "rgba(10,10,30,");
+      }
+      // "you wanna guess?" — counter racing on the scale
+      function counterVal(t) {
+        if (t < 29.4) return 0;
+        if (t >= 31.1) return 330000;
+        var k = clamp01((t - 29.4) / 1.7);
+        return Math.floor(305022 * Math.pow(k, 0.6) / 7) * 7 + (Math.floor(t * 30) % 10);
+      }
+      function fmt(n) { var s = String(n); return s.replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+      function sceneWhopper(t) {
+        var cam = { x: 90, y: 154, z: 1.0 + 0.05 * ramp(t, 28.3, 31.1) };
+        var sh = ramp(t, 29.4, 31.1) * 2.5; cam.x += (hash1(Math.floor(t * 30)) - 0.5) * sh;
+        skyBg(C.storm2, C.storm1, C.stormL);
+        setCam(cam, 0.35); earthFar(300);
+        setCam(cam, 1);
+        scale(90, 186, 0.36 * ramp(t, 28.3, 28.7), function (px, py) {
+          g.save(); g.translate(px, py); g.scale(0.26, 0.26); thunderhead(0, 0, 1, t); g.restore();
+        }, null, t);
+        tag(fmt(counterVal(t)), 90, 92, 2, pop(t, 29.4));
+        vignette(0.25, "rgba(10,10,30,");
+      }
+      // 330,000 ELEPHANTS: a herd stretching to the horizon
+      function sceneHerd(t) {
+        var lt = t - 31.1;
+        screen();
+        g.fillStyle = vgrad(0, 110, [[0, C.sky], [1, C.haze]]); g.fillRect(0, 0, W, 110);
+        rect(0, 100, W, 220, "#9a9a8a");
+        var rush = lt * 0.35;
+        for (var r = 26; r >= 0; r--) {
+          var d = 1 + r * 0.5 - (rush % 0.5);
+          var y = 100 + 200 / d, s = 1.6 / d;
+          var n = Math.ceil(200 / (24 * s * 0.8)) + 2;
+          for (var i = 0; i < n; i++) {
+            var x = (i - n / 2) * 24 * s * 0.8 + 90 + (r % 2) * 9 * s + Math.sin(lt * 3 + r + i) * s;
+            elephant(x, y, s, (r + i) % 3 ? 1 : -1, t + i * 0.2);
+          }
+        }
+        var k = 1 - ramp(t, 31.1, 31.25);
+        if (k > 0) { g.globalAlpha = k; rect(0, 0, W, H, C.white); g.globalAlpha = 1; }
+        var bz = bump(t, [31.1], 0.4);
+        tag("330,000", 90, 78, 2, pop(t, 31.12) * bz);
+        tag("ELEPHANTS", 90, 100, 1, pop(t, 31.3));
+        vignette(0.25, "rgba(10,10,30,");
+      }
+      // 800 OLYMPIC POOLS
+      function scenePools(t) {
+        var lt = t - 33.8;
+        screen();
+        g.fillStyle = vgrad(0, 120, [[0, C.sky], [1, C.haze]]); g.fillRect(0, 0, W, 120);
+        rect(0, 96, W, 230, C.deck);
+        var hz = 96, off = (lt * 0.6) % 1;
+        for (var r = 40; r >= 0; r--) {
+          var z0 = r + 1 - off, z1 = z0 + 0.8;
+          if (z0 < 0.1) continue;
+          var y0 = hz + 160 / z0, y1 = hz + 160 / z1;
+          for (var c = -6; c <= 6; c++) {
+            var xa0 = 90 + (c - 0.42) * 70 / z0, xb0 = 90 + (c + 0.42) * 70 / z0;
+            var xa1 = 90 + (c - 0.42) * 70 / z1, xb1 = 90 + (c + 0.42) * 70 / z1;
+            poly([[xa0, y0], [xb0, y0], [xb1, y1], [xa1, y1]], C.water);
+            for (var l = 1; l < 8; l++) { var f = l / 8; line(lerp(xa0, xb0, f), y0, lerp(xa1, xb1, f), y1, Math.max(0.4, 0.6 / z0 * 2), l % 2 ? C.waterL : C.lane); }
+          }
+        }
+        tag("800", 90, 64, 2, pop(t, 34.6));
+        tag("OLYMPIC POOLS", 90, 86, 1, pop(t, 34.8));
+        vignette(0.2, "rgba(10,30,80,");
+      }
+      // ...right over your head: a tiny person under the giant cloud full of pool water
+      function sceneOverhead(t) {
+        var cam = camAt([[36.3, 90, 230, 1.6], [38.7, 90, 190, 1.0]], t);
+        skyBg(C.storm1, C.stormL, C.skyLow);
+        setCam(cam, 1);
+        ground(296, t);
+        thunderhead(90, 210, 0.9, t);
+        person(90, 296, 1.1, true);
+        vignette(0.2, "rgba(10,10,30,");
+      }
+      // INSIDE THE CLOUD: droplets
+      var DROPS = (function () { var r = rng(77), a = []; for (var i = 0; i < 70; i++) a.push({ x: r() * 220 - 20, y: r() * 360 - 20, s: 0.6 + r() * 1.4, p: r() * 6 }); return a; })();
+      function droplet(x, y, r) {
+        disc(x, y, r + 0.6, C.waterD);
+        disc(x, y, r, C.water);
+        disc(x - r * 0.15, y + r * 0.15, r * 0.75, C.waterL);
+        disc(x - r * 0.35, y - r * 0.35, Math.max(0.6, r * 0.28), C.white);
+      }
+      function inside(t, fog) {
+        skyBg(C.haze, C.cloudL, C.cloudS);
+        g.globalAlpha = 0.5; for (var i = 0; i < 8; i++) disc(hash1(i) * 180, hash1(i + 3) * 320, 40 + 20 * hash1(i + 6), C.cloudW); g.globalAlpha = 1;
+      }
+      function sceneDroplets(t) {
+        var lt = t - 38.7;
+        var cam = { x: 90, y: 160, z: 0.8 + lt * 0.12 };
+        inside(t);
+        setCam(cam, 1);
+        DROPS.forEach(function (d, i) {
+          var y = d.y + Math.sin(t * 1.3 + d.p) * 3, x = d.x + Math.sin(t * 0.7 + d.p) * 2;
+          if (Math.abs(y - 160) < 10 && Math.abs(x - 90) < 70) return;
+          droplet(x, y, 2.2 * d.s);
+        });
+        vignette(0.12, "rgba(40,80,140,");
+      }
+      // 20 microns vs a human hair
+      function sceneMicron(t) {
+        var cam = camAt([[42.4, 90, 170, 0.8], [43.4, 90, 176, 1.0], [46.3, 90, 176, 1.02], [47.0, 100, 178, 0.86], [49.0, 100, 178, 0.84]], t);
+        inside(t);
+        setCam(cam, 1);
+        DROPS.slice(0, 30).forEach(function (d, i) {
+          var y = d.y + Math.sin(t * 1.3 + d.p) * 3;
+          if (Math.abs(y - 160) < 14) return;
+          droplet(d.x, y, 1.6 * d.s);
+        });
+        // the hair: a huge rough strand, 3.5x the droplet's width
+        var hk = ramp(t, 46.4, 47.0);
+        if (hk > 0) {
+          g.save(); g.translate(150 + (1 - hk) * 120, 230); g.rotate(-0.35);
+          rect(-35, -260, 70, 520, C.hairD); rect(-32, -260, 64, 520, C.hair); rect(-24, -260, 14, 520, C.hairL);
+          for (var s = -10; s < 10; s++) { line(-32, s * 26, 32, s * 26 - 8, 1.2, C.hairD); }
+          g.restore();
+          tag("HAIR ~70 MICRONS", 120, 98, 1, pop(t, 46.7));
+        }
+        var dy = 232 + Math.sin(t * 1.5) * 2;
+        droplet(70, dy, 10);
+        bracket(60, 80, dy - 16, ramp(t, 43.3, 43.6), C.lime);
+        tag("~20 MICRONS", 70, dy - 28, 1, pop(t, 43.35));
+        vignette(0.12, "rgba(40,80,140,");
+      }
+      // rising air holds them up
+      function sceneUpdraft(t) {
+        var lt = t - 49.0;
+        inside(t);
+        var cam = { x: 90, y: 165, z: 1.0 };
+        setCam(cam, 1);
+        // rising arrows (chevrons)
+        for (var i = 0; i < 14; i++) {
+          var x = 12 + (i * 37) % 160, y = 340 - ((lt * 40 + i * 53) % 380);
+          g.globalAlpha = 0.85;
+          line(x - 5, y + 5, x, y, 2, C.lime); line(x + 5, y + 5, x, y, 2, C.lime);
+          line(x - 5, y + 11, x, y + 6, 1.4, C.limeD); line(x + 5, y + 11, x, y + 6, 1.4, C.limeD);
+          g.globalAlpha = 1;
+        }
+        DROPS.slice(0, 40).forEach(function (d) {
+          var y = d.y - lt * 3 + Math.sin(t * 2 + d.p) * 2;
+          if (Math.abs(y - 165) < 12) return;
+          droplet(d.x, y, 1.8 * d.s);
+        });
+        vignette(0.12, "rgba(40,80,140,");
+      }
+      // droplets crash together and grow
+      function sceneMerge(t) {
+        var lt = t - 52.3;
+        inside(t);
+        var cam = { x: 90, y: 165, z: 1.0 + lt * 0.05 };
+        setCam(cam, 1);
+        var grow = ramp(t, 52.4, 54.2);
+        // small droplets get pulled into the big one
+        for (var i = 0; i < 18; i++) {
+          var a = i * 0.349 + lt * 0.8, rr = 90 * (1 - ramp(t, 52.35 + i * 0.09, 52.85 + i * 0.09)) + 4;
+          if (rr <= 5) continue;
+          droplet(90 + Math.cos(a) * rr, 236 + Math.sin(a) * rr * 0.9, 2.4);
+        }
+        var R = 4 + 20 * grow;
+        var fall = Math.max(0, t - 53.9);
+        droplet(90, 236 + fall * fall * 400, R);
+        tag("X 1,000,000", 90, 96, 1, pop(t, 53.4));
+        vignette(0.12, "rgba(40,80,140,");
+      }
+      // ...and fall as rain
+      function sceneRain(t) {
+        var lt = t - 54.3;
+        var cam = camAt([[54.3, 90, 180, 1.2], [57.0, 90, 176, 1.0]], t);
+        skyBg(C.storm1, C.stormL, C.skyLow);
+        setCam(cam, 1);
+        ground(296, t);
+        cumulus(90, 120, 200, 70, 51, [C.storm2, C.storm1, C.stormL, C.cloudS], t);
+        rainLines(-30, 210, 118, 296, t, 160, C.waterL, 180);
+        // splashes
+        for (var i = 0; i < 14; i++) { var ph = (t * 3 + hash1(i) * 7) % 1, x = hash1(i * 5) * 180; g.globalAlpha = 1 - ph; ell(x, 297, 1 + ph * 4, 0.8 + ph, 0, C.waterL); g.globalAlpha = 1; }
+        person(120, 296, 1.1, true);
+        // umbrella
+        g.fillStyle = C.lane; g.beginPath(); g.arc(120, 271, 10, Math.PI, 0); g.fill(); line(120, 271, 120, 282, 0.8, C.ink);
+        tag("RAIN", 90, 236, 2, pop(t, 55.5));
+        vignette(0.2, "rgba(10,10,30,");
+      }
+      // OUTRO: look up — the cloud is shaped like an elephant
+      function sceneOutro(t) {
+        var cam = camAt([[57.0, 90, 220, 1.2], [60.3, 90, 170, 0.9]], t);
+        skyBg(C.skyTop, C.sky, C.skyLow);
+        setCam(cam, 1);
+        ground(306, t);
+        cumulus(30, 120, 60, 22, 61, null, t);
+        // elephant-shaped cloud
+        g.save(); g.translate(96, 228); g.scale(4.2, 4.2);
+        var pal = [C.cloudS, C.cloudL, C.cloudW];
+        [[0, 0, 11, 8], [11, -3, 7, 7], [-6, -3, 6, 6], [5, -5, 7, 6]].forEach(function (p) { ell(p[0] + 0.3, p[1] + 0.4, p[2], p[3], 0, pal[0]); });
+        [[-8, 6], [-3, 7], [4, 7], [8, 6]].forEach(function (p) { disc(p[0], p[1] + 2, 2.6, pal[0]); disc(p[0] - 0.3, p[1] + 1.6, 2.2, pal[1]); });
+        [[0, 0, 10.4, 7.4], [11, -3, 6.4, 6.4], [-6, -3, 5.4, 5.4], [5, -5, 6.4, 5.4]].forEach(function (p) { ell(p[0], p[1], p[2], p[3], 0, pal[1]); });
+        [[-2, -3, 6, 3.6], [10, -5, 3.6, 3], [4, -7, 4, 3]].forEach(function (p) { ell(p[0], p[1], p[2], p[3], 0, pal[2]); });
+        g.strokeStyle = pal[1]; g.lineWidth = 3.6; g.lineCap = "round";
+        g.beginPath(); g.moveTo(16, -1); g.quadraticCurveTo(20, 5, 18, 10); g.stroke();
+        ell(8, -2, 3.6, 4.6, 0, pal[0]);
+        g.restore();
+        person(70, 306, 1.2, true);
+        person(84, 306, 0.9, true);
+        vignette(0.15, "rgba(10,30,80,");
+      }
+
+      PX.setup(C, {
+        scenes: {
+          hook: sceneHook, sky: sceneSky, s83: scene83, float: sceneFloat, cirrus: sceneCirrus, s5: scene5, storm: sceneStorm,
+          whopper: sceneWhopper, herd: sceneHerd, pools: scenePools, overhead: sceneOverhead, droplets: sceneDroplets,
+          micron: sceneMicron, updraft: sceneUpdraft, merge: sceneMerge, rain: sceneRain, outro: sceneOutro,
+        },
+        sceneAt: function (t) {
+          return t < 2.8 ? "hook" : t < 11.72 ? "sky" : t < 12.7 ? "s83" : t < 15.1 ? "float" : t < 18.1 ? "cirrus" : t < 21.6 ? "s5"
+            : t < 28.3 ? "storm" : t < 31.1 ? "whopper" : t < 33.8 ? "herd" : t < 36.3 ? "pools" : t < 38.7 ? "overhead"
+            : t < 42.4 ? "droplets" : t < 49.0 ? "micron" : t < 52.3 ? "updraft" : t < 54.3 ? "merge" : t < 57.0 ? "rain"
+            : t < 60.3 ? "outro" : "hook";
+        },
+        cuts: [[12.7, "s83", "float"], [15.1, "float", "cirrus"], [18.1, "cirrus", "s5"], [21.6, "s5", "storm"], [28.3, "storm", "whopper"],
+          [33.8, "herd", "pools"], [36.3, "pools", "overhead"], [38.7, "overhead", "droplets"], [42.4, "droplets", "micron"],
+          [49.0, "micron", "updraft"], [52.3, "updraft", "merge"], [54.3, "merge", "rain"], [57.0, "rain", "outro"], [60.3, "outro", "hook"]],
+        post: function (t, img) {
+          if (t < 0.12) tintImg(img, C.white, 1 - t / 0.12);
+          if (t > 2.55 && t < 3.0) glitchRows(img, 22 * Math.sin((t - 2.55) / 0.45 * Math.PI), Math.floor(t * 30));
+          if (t > 11.6 && t < 11.9) tintImg(img, C.white, t < 11.72 ? ramp(t, 11.6, 11.72) : 1 - ramp(t, 11.72, 11.9));
+          if (t > DUR - 0.25) tintImg(img, C.white, ramp(t, DUR - 0.25, DUR));
+        },
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: [c.segs.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; })] };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
