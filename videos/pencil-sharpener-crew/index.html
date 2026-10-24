@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Pencil Sharpener Crew</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #2ec0ff;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #2ec0ff;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: sound effects only -->
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script>
+      var C = {
+        sky: "#2ec0ff", skyLight: "#8ae0ff", skyPale: "#d0f6ff",
+        wall: "#1f78ff", wallLight: "#4aa8ff", wallDark: "#1248c0", wallDeep: "#0a2a88",
+        steel: "#d0dcf0", steelShade: "#8a9ac0", steelDark: "#4a5680", brass: "#ffc83a", brassShade: "#c8861a",
+        red: "#ff2e3e", redLight: "#ff7a80", redShade: "#b8142a",
+        cedar: "#ffcf8a", cedarShade: "#e8a058", graphite: "#3a3a4e", graphiteLight: "#8a8aa8",
+        desk: "#e8a24a", deskShade: "#b86a28", deskLight: "#ffc878",
+        shell: "#2a8aff", shellShade: "#1a5ad0", shellLight: "#7ac8ff", glass: "#a8e8ff", plate: "#1a1a2a",
+        skin: "#ffc29a", skinShade: "#e0906a", shirt: "#ff8ab8", shirtShade: "#e0508a",
+        fur: "#b0662a", furLight: "#e8a060", furDark: "#6a3414", tail: "#4a2a18", tailLine: "#2a160a",
+        fox: "#ff9a3a", foxLight: "#ffe0b0", foxShade: "#d0661a", ear: "#ff9ac8",
+        rex: "#4ad83a", rexShade: "#2a8a22", hat: "#d8f0ff", hatBand: "#2a5ad8",
+        plaid: "#e8303a", plaidDark: "#8a1022", jeans: "#3a5ad0", hair: "#3a2214", boot: "#4a2a14",
+        overall: "#2a6aff", overallShade: "#1a40b0", helmet: "#ffffff", helmetShade: "#b8c4d8", visor: "#e8ff3a",
+        axe: "#c8d0e0", handle: "#a85a22", board: "#a8662a", paper: "#f6f4ff", lineBlue: "#a8c8ff", rope: "#2a2a3a",
+        ink: "#06050a", gold: "#ffd23f", white: "#ffffff", green: "#3aff7a", warn: "#ff3a3a",
+      };
+
+      // ============================================================ shared drawing
+      function sunburst(c1, c2, cx, cy, rot, n) {
+        screen(); rect(0, 0, W, H, c1);
+        g.fillStyle = c2;
+        for (var i = 0; i < n; i++) {
+          var a0 = rot + i * 6.2832 / n, a1 = a0 + 3.1416 / n;
+          g.beginPath(); g.moveTo(cx, cy);
+          g.lineTo(cx + Math.cos(a0) * 420, cy + Math.sin(a0) * 420);
+          g.lineTo(cx + Math.cos(a1) * 420, cy + Math.sin(a1) * 420);
+          g.closePath(); g.fill();
+        }
+      }
+      function gear(x, y, r, n, rot, col, shade, hole) {
+        g.save(); g.translate(x, y); g.rotate(rot);
+        var th = Math.max(2, r * 0.17), tw = 3.1416 * r / n * 0.9;
+        g.fillStyle = shade;
+        for (var i = 0; i < n; i++) {
+          g.save(); g.rotate(i * 6.2832 / n); g.fillRect(r - 1, -tw / 2, th + 1, tw); g.restore();
+        }
+        disc(0, 0, r, shade); disc(0, 0, r - 1, col);
+        if (r > 9) {
+          disc(0, 0, r * 0.72, hole);
+          g.fillStyle = col;
+          for (var s = 0; s < 4; s++) { g.save(); g.rotate(s * 1.5708); g.fillRect(-r * 0.09, 0, r * 0.18, r * 0.75); g.restore(); }
+          disc(0, 0, r * 0.26, col);
+        }
+        disc(0, 0, r * 0.16 + 0.8, C.brass); disc(0, 0, r * 0.07 + 0.4, C.brassShade);
+        g.restore();
+      }
+      // pencil pointing along ang, tip at (tx, ty); k = sharpness 0 (blunt) .. 1 (needle)
+      function pencil(tx, ty, s, k, ang) {
+        g.save(); g.translate(tx, ty); g.rotate(ang || 0); g.scale(s, s);
+        var hh = 9, cl = 24, tw = lerp(3.4, 0.35, k), gc = 2.6, L = 400;
+        rect(-L, -hh, L - cl + 0.6, hh * 2, C.red);
+        rect(-L, -hh, L - cl + 0.6, 3, C.redLight);
+        rect(-L, hh - 4, L - cl + 0.6, 4, C.redShade);
+        rect(-L, -1.2, L - cl + 0.6, 0.8, C.redShade);
+        poly([[-cl, -hh], [0, -tw], [0, tw], [-cl, hh]], C.cedar);
+        poly([[-cl, hh * 0.3], [0, tw * 0.3], [0, tw], [-cl, hh]], C.cedarShade);
+        for (var i = 0; i < 3; i++) ell(-cl, -hh + 3 + i * 6, 2.4, 3, 0, i === 2 ? C.redShade : C.red);
+        if (tw < gc) {
+          var gx = -cl * (gc - tw) / (hh - tw);
+          poly([[gx, -gc], [0, -tw], [0, tw], [gx, gc]], C.graphite);
+          line(gx + 0.5, -gc * 0.5, -0.5, -tw * 0.4, 0.5, C.graphiteLight);
+        } else rect(-1.4, -gc, 1.8, gc * 2, C.graphite);
+        g.restore();
+      }
+      function beaver(x, y, s, o) {
+        g.save(); g.translate(x, y); g.scale(o.flip ? -s : s, s);
+        g.save(); g.translate(-7, -3); g.rotate(0.35 + (o.wag || 0));
+        rrect(-12, -2.6, 13, 5.2, 2.6, C.tail);
+        for (var i = 0; i < 3; i++) line(-10 + i * 3.5, -2, -8 + i * 3.5, 2, 0.5, C.tailLine);
+        g.restore();
+        ell(0, -8, 7.5, 8.5, 0, C.fur); ell(1.8, -7, 4.5, 6, 0, C.furLight);
+        ell(-2, -0.6, 3, 1.4, 0, C.furDark); ell(4.5, -0.6, 3, 1.4, 0, C.furDark);
+        disc(4, -18, 6, C.fur); disc(0.4, -23, 1.9, C.furDark);
+        ell(9, -16, 3.6, 3, 0, C.furLight); disc(11.8, -17.6, 1.2, C.ink);
+        var j = (o.chomp || 0) * 2.2;
+        ell(8.8, -12.6 + j, 2.6, 1.3, 0, C.furDark);
+        rect(8.4, -14.4, 1.5, 2.8 + j * 0.3, C.white); rect(10, -14.4, 1.5, 2.8 + j * 0.3, C.white);
+        if (o.pop) {
+          var pp = o.pop;
+          line(4, -21, 4 + pp * 2, -24 - pp * 3, 0.8, C.furDark);
+          disc(4 + pp * 2, -25 - pp * 3, 2.8, C.white); disc(5 + pp * 2, -25 - pp * 3, 1.3, C.ink);
+        } else { disc(6, -20, 1.3, C.ink); rect(6, -20.8, 0.7, 0.7, C.white); }
+        ell(7.5, -9.5, 2.4, 1.4, -0.4, C.furDark);
+        g.restore();
+      }
+      function fox(x, y, s, o) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        var ph = o.run || 0, sp = o.speed || 0, lie = o.lie || 0;
+        ell(-11, -8 + Math.sin(ph) * sp, 6, 2.6, -0.4 + lie * 0.4, C.fox); disc(-16, -10 + lie * 3, 2.2, C.foxLight);
+        for (var i = 0; i < 4; i++) {
+          var lx = -5 + i * 3.4, a = Math.sin(ph + i * 1.7) * 0.8 * sp + lie * 1.2;
+          line(lx, -6, lx + Math.sin(a) * 5.5, -6 + Math.cos(a) * 5.5 * (1 - lie * 0.6), 1.7, i % 2 ? C.foxShade : C.fox);
+        }
+        var by = lie * 3 + Math.abs(Math.sin(ph)) * sp * -1.5;
+        ell(0, -8.5 + by, 8, 4.6, 0, C.fox); ell(1, -7 + by, 5, 2.6, 0, C.foxLight);
+        g.save(); g.translate(0, by);
+        disc(9, -12, 4.6, C.fox);
+        poly([[5.5, -14], [3.2, -27], [9, -16]], C.fox); poly([[6, -15], [4.4, -24], [8, -16.5]], C.ear);
+        poly([[9.5, -15.5], [14.2, -27], [12.6, -13]], C.fox); poly([[10.6, -15.5], [13.4, -24], [12, -14]], C.ear);
+        ell(13, -10.5, 3, 2, 0, C.foxLight); disc(15.8, -11, 0.9, C.ink);
+        if (o.sleep) rect(9.2, -13, 2.4, 0.6, C.ink);
+        else { disc(10.6, -13, o.scared ? 2.1 : 1.5, C.ink); rect(10.9, -13.9, 0.8, 0.8, C.white); }
+        g.restore();
+        g.restore();
+      }
+      function trex(x, y, s, open) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        rrect(-16, -11, 22, 13, 5, C.rex); rrect(-3, -9, 18, 8, 3, C.rex);
+        g.save(); g.translate(-8, 1); g.rotate(open * 0.55);
+        rrect(0, -1.5, 21, 5, 2, C.rexShade);
+        for (var i = 0; i < 5; i++) poly([[6 + i * 3, -1.5], [7.5 + i * 3, -4], [9 + i * 3, -1.5]], C.white);
+        g.restore();
+        for (var k = 0; k < 5; k++) poly([[1 + k * 3, -1], [2.5 + k * 3, 2], [4 + k * 3, -1]], C.white);
+        disc(-5, -6, 2.2, C.white); disc(-4.4, -6, 1.1, C.ink); rect(-8.5, -9.6, 7, 1.6, C.rexShade);
+        rect(12, -7, 1.4, 1, C.rexShade);
+        ell(-6, -11, 9, 1.8, 0, C.hat); rrect(-10.5, -18, 9.5, 7.5, 2, C.hat); rect(-10.5, -13.4, 9.5, 1.8, C.hatBand);
+        g.restore();
+      }
+      // a crew member, feet at (x, y), facing right unless flip. o: kind, armA, armB, tool, rope
+      function worker(x, y, s, o) {
+        g.save(); g.translate(x, y); g.scale(o.flip ? -s : s, s);
+        if (o.rope) line(0, -26, 0, -400, 0.9, C.rope);
+        var lj = o.kind === "lumber";
+        var shirt = lj ? C.plaid : C.overall, shade = lj ? C.plaidDark : C.overallShade, pants = lj ? C.jeans : C.overall;
+        var sw = o.legs || 0;
+        line(-1.8, -12, -1.8 - sw, -1, 3.2, pants); line(1.8, -12, 1.8 + sw, -1, 3.2, pants);
+        rect(-4.6 - sw, -1.8, 4, 2, C.boot); rect(0.6 + sw, -1.8, 4.6, 2, C.boot);
+        rrect(-5, -24, 10, 13, 2, shirt);
+        if (lj) { rect(-5, -20, 10, 0.8, shade); rect(-5, -16, 10, 0.8, shade); rect(-1, -24, 0.8, 13, shade); }
+        else { rect(-5, -13.5, 10, 1.5, C.visor); rect(-2.5, -24, 5, 4, C.white); }
+        // back arm
+        arm(-2, -22, o.armB === undefined ? 1.9 : o.armB, shirt, null);
+        disc(0, -28.5, 4.2, C.skin);
+        if (lj) { ell(-0.5, -31.5, 4.6, 2.6, 0, C.hair); rect(-4.8, -31.5, 2.4, 4, C.hair); }
+        else { ell(0, -31.2, 5, 3.2, 0, C.helmet); rect(-6, -30.8, 12, 1.4, C.helmetShade); rect(-0.5, -29.8, 5, 1.8, C.visor); }
+        if (o.panic) rect(2, -27, 2, 1.6, C.ink); else rect(2.2, -29.2, 1, 1.2, C.ink);
+        arm(2, -22, o.armA === undefined ? 1.2 : o.armA, shirt, o.tool);
+        g.restore();
+      }
+      function arm(sx, sy, a, col, tool) {
+        var hx = sx + Math.cos(a) * 8, hy = sy + Math.sin(a) * 8;
+        line(sx, sy, hx, hy, 2.8, col); disc(hx, hy, 1.7, C.skin);
+        if (!tool) return;
+        g.save(); g.translate(hx, hy); g.rotate(a);
+        if (tool === "axe") {
+          line(0, 0, 11, 0, 1.2, C.handle);
+          poly([[8, -1], [13, -1], [14, 4.5], [8.5, 3.2]], C.axe); rect(8, -1, 5, 0.8, C.white);
+        } else if (tool === "file") {
+          rect(0, -0.8, 3, 1.6, C.handle); rect(3, -0.9, 9, 1.8, C.steelShade);
+          for (var i = 0; i < 4; i++) rect(4 + i * 2, -0.9, 0.6, 1.8, C.steelDark);
+        } else if (tool === "thumb") {
+          rect(-0.8, -3.6, 1.6, 2.6, C.skin);
+        }
+        g.restore();
+      }
+      function clipboard(x, y, s, mark, markW, bad) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        rrect(-9, -12, 18, 25, 1.5, C.board); rect(-7.5, -9, 15, 20.5, C.paper);
+        for (var i = 0; i < 5; i++) rect(-7.5, -5 + i * 3.6, 15, 0.5, C.lineBlue);
+        rrect(-4, -14, 8, 3.6, 1, C.steelShade);
+        if (mark > 0) rect(-markW / 2 - 0.5, -7, markW, mark, C.graphite);
+        if (bad > 0) { line(-6, -6, 6, 8, 1.8, C.warn); line(6, -6, -6, 8, 1.8, C.warn); }
+        g.restore();
+      }
+      function chips(t, t0, t1, rate, x, y, dir, seed) {
+        for (var k = Math.floor(t0 * rate); k <= Math.floor(t * rate); k++) {
+          var tk = k / rate, age = t - tk;
+          if (tk < t0 || tk > t1 || age < 0 || age > 0.9) continue;
+          var a = dir + (hash1(k * 1.7 + seed) - 0.5) * 1.6, sp = 40 + hash1(k + seed * 3) * 50;
+          var px = x + Math.cos(a) * sp * age, py = y + Math.sin(a) * sp * age + 90 * age * age;
+          g.save(); g.translate(px, py); g.rotate(age * 12 + k);
+          var c = hash1(k + seed) < 0.25 ? C.red : hash1(k * 2.3 + seed) < 0.5 ? C.cedarShade : C.cedar;
+          rect(-1.6, -0.8, 3.2, 1.6, c);
+          g.restore();
+        }
+      }
+      function chamber(t, sp) {
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.wallDark], [0.45, C.wall], [1, C.wallLight]]); g.fillRect(0, 0, W, H);
+      }
+      function backGears(t, sp) {
+        var r = t * sp;
+        gear(48, 112, 42, 22, r * 0.5, C.wallDark, C.wallDeep, C.wall);
+        gear(128, 96, 30, 16, -r * 0.7, C.steelShade, C.steelDark, C.wallDark);
+        gear(150, 300, 34, 18, r * 0.6, C.wallDark, C.wallDeep, C.wall);
+        gear(22, 312, 30, 16, -r * 0.7, C.steelShade, C.steelDark, C.wallDark);
+        for (var i = 0; i < 40; i++) disc((i * 37) % 180 + 3, ((i * 71) % 330), 0.9, C.wallLight);
+      }
+
+      // ============================================================ WORKSHOP (pencil + crew)
+      var TX = 112, TY = 232, PS = 1.5;
+      function sharp(t) {
+        if (t < 9.4 || t >= 25.0) return 0;
+        return 0.48 * sstep(9.6, 16.2, t) + 0.52 * sstep(19.0, 20.9, t);
+      }
+      // o: tipX, k, mode ('hook' | 'work'), lt (local time)
+      function workshop(t, cam, o) {
+        chamber(t);
+        setCam(cam, 0.5); backGears(t, o.gearSp || 0.6);
+        setCam(cam, 1);
+        // the entry hole on the left wall
+        disc(2, TY, 24, C.plate); disc(2, TY, 19, C.steelDark);
+        if (o.light > 0) { lighter(); glow(14, TY, 60 * o.light, C.skyLight, 0.7 * o.light); normalBlend(); disc(2, TY, 17, o.light > 0.5 ? C.skyPale : C.skyLight); }
+        // platforms the crew stand on
+        rect(124, 274, 48, 5, C.steelShade); rect(124, 274, 48, 1.5, C.steel);
+        gear(140, 300, 20, 12, t * 1.2, C.steel, C.steelShade, C.wallDark);
+        // the pencil
+        if (o.tipX > -10) pencil(o.tipX, TY, PS, o.k, 0);
+        var m = o.mode, lt = o.lt;
+        // crew
+        var bx = o.tipX - 44;
+        if (m === "work") {
+          var fast = t > 18.8 && t < 21.0, gn = (t > 9.5 && t < 16.4) || fast;
+          var ch = gn ? 0.5 + 0.5 * Math.sin(t * (fast ? 46 : 26)) : 0;
+          beaver(bx, TY - 13, 1.3, { chomp: ch, wag: Math.sin(t * 6) * 0.15 });
+          if (gn) chips(t, 9.6, 21, fast ? 26 : 12, bx + 16, TY - 12, -1.9, 1);
+          var chop = (t > 12.0 && t < 16.4) || fast;
+          var sw = chop ? Math.pow(0.5 + 0.5 * Math.sin(t * (fast ? 22 : 9)), 3) : 0.2;
+          worker(TX + 30, TY - 30, 1.25, { kind: "lumber", flip: true, rope: true, armA: lerp(-2.4, 0.5, sw), armB: lerp(-2.2, 0.7, sw), tool: "axe", legs: 1.2 });
+          if (chop) chips(t, 12.0, 21, fast ? 18 : 6, TX - 12, TY - 8, -1.2, 7);
+          var fl = (t > 14.2 && t < 16.4) || fast;
+          var fx_ = fl ? Math.sin(t * (fast ? 40 : 24)) * 2.5 : 0;
+          worker(TX + 22 + fx_, 274, 1.2, { kind: "crew", flip: true, armA: -2.55, armB: 2.2, tool: "file" });
+          if (fl && hash1(Math.floor(t * 30)) > 0.4) { disc(TX + 1, TY + 1, 1.2, C.white); disc(TX + 3, TY + 3, 0.7, C.gold); }
+          inspector(t, cam);
+        } else {
+          // hook / panic: crew scramble when the pencil arrives
+          var hit = lt >= 0.45, pa = hit ? lt - 0.45 : 0;
+          var pop = clamp01((lt + 4) / 0.3);
+          var bjx = hit ? 22 * easeOut(pa / 0.4) : 0, bjy = hit ? -30 * Math.sin(Math.min(pa / 0.6, 1) * 3.1416) : 0;
+          beaver(84 + bjx, TY - 13 + bjy + (o.tipX > 40 ? 0 : 0), 1.3, { pop: pop, chomp: 1, flip: !hit && lt < 0 ? false : false });
+          var shk = Math.sin(t * 30) * 0.3;
+          worker(TX + 30, TY - 30, 1.25, { kind: "lumber", flip: true, rope: true, armA: -2.0 + shk, armB: -1.0 - shk, panic: true, legs: 2 });
+          worker(TX + 24, 274, 1.2, { kind: "crew", flip: true, armA: -1.9 - shk, armB: -1.1 + shk, panic: true });
+          worker(152, 274, 1.2, { kind: "crew", flip: true, armA: -2.1 + shk, armB: -1.0, panic: true });
+          if (hit) chips(t, lt < 1.8 ? t - pa : 0, t - pa + 0.3, 40, o.tipX - 20, TY - 10, -1.6, 3);
+        }
+        screen(); vignette(0.35, "rgba(5,10,60,");
+      }
+      function inspector(t, cam) {
+        var a1 = sstep(16.4, 16.8, t) * (1 - sstep(18.1, 18.5, t)), a2 = sstep(21.0, 21.4, t) * (1 - sstep(22.7, 23.0, t));
+        var a = Math.max(a1, a2), test2 = t > 20;
+        var ix = lerp(152, TX + 24, a), iy = 274;
+        var t0 = test2 ? 21.45 : 16.85, d = 10 * sstep(t0, t0 + 0.45, t) * a;
+        var thumbs = test2 && t > 21.95 && t < 22.8;
+        worker(ix, iy, 1.2, { kind: "crew", flip: true, armA: thumbs ? -1.57 : -2.3, armB: -2.6, tool: thumbs ? "thumb" : null });
+        if (a > 0.02) {
+          var bad = !test2 && t > 17.55 ? 1 : 0;
+          clipboard(TX + 8, TY + 6 + d, 1.0, d, test2 ? 0.9 : 4.6, bad);
+          pencil(TX, TY, PS, sharp(t), 0);
+        }
+        if (thumbs) {
+          for (var i = 0; i < 6; i++) {
+            var ang = i * 1.047 + t * 2, rr = 14 + 4 * Math.sin(t * 9 + i);
+            var sx = ix - 8 + Math.cos(ang) * rr, sy = iy - 40 + Math.sin(ang) * rr;
+            rect(sx - 2, sy - 0.5, 4, 1, C.gold); rect(sx - 0.5, sy - 2, 1, 4, C.gold);
+          }
+        }
+      }
+      var CAM_WORK = [[9.4, 82, 176, 2.4], [11.8, 84, 178, 2.25], [12.4, 124, 178, 2.0], [14.0, 124, 180, 2.1], [14.6, 116, 206, 2.4], [16.2, 116, 206, 2.55],
+        [16.8, 120, 210, 1.85], [18.6, 120, 210, 1.9], [19.2, 102, 196, 1.4], [20.8, 102, 196, 1.45], [21.4, 120, 210, 1.9], [23.2, 120, 208, 2.05]];
+      function sceneWork(t) {
+        var cam = camAt(CAM_WORK, t);
+        if (t > 18.8 && t < 21) shake(cam, t, 18.8 + Math.floor((t - 18.8) / 0.35) * 0.35, 4, 0.3);
+        if (t > 17.55) shake(cam, t, 17.55, 6, 0.35);
+        workshop(t, cam, { tipX: TX, k: sharp(t), mode: "work", gearSp: t > 18.8 && t < 21 ? 3 : 0.8, light: 0 });
+      }
+      // hook + panic + loop (lt runs -4 .. 1.8; t = 26..30 maps to lt -4..0)
+      var CAM_HOOK = [[-4, 84, 172, 2.3], [-3.1, 84, 174, 2.1], [-2.3, 100, 186, 1.3], [-1.0, 92, 186, 1.25], [0, 86, 180, 1.35], [0.45, 88, 178, 1.5], [1.8, 92, 176, 1.4]];
+      function sceneHook(t) {
+        var lt = t > 15 ? t - 30 : t;
+        var cam = camAt(CAM_HOOK, lt);
+        shake(cam, lt, 0.45, 16, 0.6); shake(cam, lt, -3.9, 6, 0.4);
+        var tipX = lt < -0.3 ? -40 : 2 + 104 * easeOut(clamp01((lt + 0.3) / 0.75));
+        var light = lt < -0.3 ? 1 - 0.6 * sstep(-1.5, -0.3, lt) : 0;
+        workshop(t, cam, { tipX: tipX, k: 0.05, mode: "hook", lt: lt, gearSp: 1.5, light: light });
+      }
+
+      // ============================================================ DESK
+      function sceneDesk(t) {
+        var cam = camAt(CAM_DESK, t);
+        sunburst(C.sky, C.skyLight, W / 2, 120, t * 0.12, 14);
+        setCam(cam, 1);
+        // the owner behind the desk (pink shirt, chin)
+        rrect(26, 92, 130, 200, 30, C.shirt); rect(26, 230, 130, 40, C.shirtShade);
+        rrect(70, 60, 42, 40, 14, C.skin); rect(80, 92, 22, 8, C.skinShade);
+        rect(84, 72, 14, 2, C.skinShade);
+        // desk
+        rect(-60, 250, 300, 120, C.desk); rect(-60, 250, 300, 3, C.deskLight);
+        for (var i = 0; i < 7; i++) rect(-60, 262 + i * 9, 300, 1, C.deskShade);
+        // sharpener: left face (hole), front with window, top
+        poly([[58, 176], [70, 168], [70, 250], [58, 256]], C.shellShade);
+        disc(64, 204, 8, C.plate); disc(64, 204, 4.5, C.ink);
+        rrect(70, 168, 66, 84, 4, C.shell); rect(70, 168, 66, 3, C.shellLight);
+        rect(74, 188, 56, 50, C.glass); rect(74, 188, 56, 2, C.white);
+        // tiny workshop inside the window
+        g.save(); g.beginPath(); g.rect(74, 188, 56, 50); g.clip();
+        var spd = crankA(t);
+        gear(92, 202, 10, 10, spd, C.steel, C.steelShade, C.glass);
+        gear(111, 214, 8, 9, -spd * 1.25, C.brass, C.brassShade, C.glass);
+        gear(84, 228, 7, 8, -spd * 1.4, C.steel, C.steelShade, C.glass);
+        beaver(116, 236, 0.6, { chomp: t > 3 ? 0.5 + 0.5 * Math.sin(t * 26) : 0 });
+        fox(96, 236, 0.5, { run: t * 18, speed: t > 3 ? 1 : 0 });
+        g.restore();
+        rect(70, 240, 66, 12, C.shellShade);
+        // crank on the right
+        var a = crankA(t), kx = 142 + Math.cos(a) * 14, ky = 200 + Math.sin(a) * 14;
+        disc(140, 200, 4, C.steelDark); line(140, 200, kx, ky, 2.5, C.steel); disc(kx, ky, 3, C.ink);
+        // right hand on the crank
+        line(kx + 4, ky + 3, 200, 300, 12, C.shirt); disc(kx + 2, ky + 1, 6, C.skin);
+        // pencil + left hand
+        var px = lerp(30, 62, ease((t - 2.0) / 0.8));
+        pencil(px, 204, 0.5, 0.05, 0);
+        line(px - 46, 212, -40, 300, 12, C.shirt); rrect(px - 54, 196, 14, 14, 5, C.skin); rect(px - 44, 200, 3, 1, C.skinShade);
+        screen(); vignette(0.25, "rgba(10,40,120,");
+      }
+      function crankA(t) { return t < 2.9 ? -1.5 : -1.5 + 9 * (t - 2.9) - 2.5 * Math.min(t - 2.9, 0.5); }
+      var CAM_DESK = [[1.8, 92, 196, 1.12], [3.6, 98, 204, 1.4], [4.4, 100, 210, 1.7], [5.2, 102, 213, 30]];
+
+      // ============================================================ GEARS (the drive train)
+      function sceneGears(t) {
+        var cam = camAt(CAM_GEARS, t);
+        chamber(t);
+        setCam(cam, 0.6); backGears(t, 0.8);
+        setCam(cam, 1);
+        var r = t * 2.2;
+        gear(90, 214, 36, 20, r, C.steel, C.steelShade, C.wallDark);
+        gear(90 + 36 + 22 + 2, 214 - 12, 22, 12, -r * 20 / 12 + 0.13, C.brass, C.brassShade, C.wallDark);
+        gear(60, 214 + 36 + 14, 16, 9, -r * 20 / 9, C.steel, C.steelShade, C.wallDark);
+        gear(40, 168, 20, 11, -r * 20 / 11 + 0.1, C.brass, C.brassShade, C.wallDark);
+        // crank axle coming in from the right
+        rect(150, 198, 40, 8, C.steelDark); rect(150, 198, 40, 2, C.steel);
+        screen(); vignette(0.35, "rgba(5,10,60,");
+      }
+      var CAM_GEARS = [[5.2, 101, 210, 30], [5.9, 96, 212, 1.15], [7.0, 92, 200, 1.0]];
+
+      // ============================================================ POWER (T-rex scares the fox onto the treadmill)
+      function scenePower(t) {
+        var cam = camAt(CAM_POWER, t);
+        shake(cam, t, 7.55, 12, 0.6);
+        chamber(t);
+        setCam(cam, 0.6); backGears(t, t > 7.7 ? 2.5 : 0.4);
+        setCam(cam, 1);
+        var run = sstep(7.65, 8.0, t);
+        var belt = t < 7.65 ? 0 : (t - 7.65) * 60 - 20 * Math.min(t - 7.65, 0.35);
+        // drive gears above the treadmill
+        gear(146, 196, 18, 11, -belt / 7, C.brass, C.brassShade, C.wallDark);
+        gear(120, 172, 13, 8, belt / 7 * 18 / 13, C.steel, C.steelShade, C.wallDark);
+        // treadmill
+        var y0 = 252;
+        rect(60, y0 + 6, 88, 30, C.steelDark);
+        for (var i = 0; i < 14; i++) {
+          var sx = 52 + ((i * 7 - belt) % 98 + 98) % 98;
+          if (sx > 56 && sx < 150) rect(sx, y0 - 2, 5.2, 4, C.steelShade);
+        }
+        rect(56, y0 - 2, 96, 1, C.steel);
+        gear(60, y0 + 2, 7, 8, belt / 7, C.steel, C.steelShade, C.wallDark);
+        gear(148, y0 + 2, 7, 8, belt / 7, C.steel, C.steelShade, C.wallDark);
+        line(148, y0 + 2, 146, 196, 1.2, C.steelDark);
+        // T-rex on a swinging arm
+        var sw = lerp(-0.55, 0.42, sstep(7.2, 7.55, t)) + 0.08 * Math.sin(t * 7) * sstep(7.6, 8, t);
+        var hx = 30 + Math.sin(sw) * 70, hy = 140 + Math.cos(sw) * 70;
+        line(30, 140, hx, hy, 2.4, C.steelShade); gear(30, 140, 10, 9, sw, C.steel, C.steelShade, C.wallDark);
+        var roar = t > 7.5 && t < 8.6 ? sstep(7.5, 7.6, t) * (1 - sstep(8.3, 8.6, t)) : 0;
+        trex(hx + 2, hy, 1.35, roar);
+        if (roar > 0.3) {
+          for (var w = 0; w < 3; w++) {
+            var ph = ((t - 7.5) * 2.5 + w / 3) % 1;
+            g.globalAlpha = 1 - ph;
+            g.strokeStyle = C.white; g.lineWidth = 1;
+            g.beginPath(); g.arc(hx + 18, hy, 6 + ph * 24, -0.7, 0.7); g.stroke();
+            g.globalAlpha = 1;
+          }
+        }
+        // fox
+        fox(108, y0 - 2, 1.5, { run: belt * 0.45, speed: run, lie: 1 - run, sleep: t < 7.5, scared: t > 7.5 });
+        if (run > 0.5) for (var s = 0; s < 4; s++) line(76 - s * 2, 228 + s * 5, 66 - s * 2 - 10 * hash1(Math.floor(t * 15) + s), 228 + s * 5, 0.8, C.white);
+        if (t < 7.5) worldText("Z", 128 + Math.sin(t * 3) * 2, 220 - ((t * 10) % 12), 1, C.white);
+        screen(); vignette(0.35, "rgba(5,10,60,");
+      }
+      var CAM_POWER = [[7.0, 100, 214, 1.55], [7.5, 96, 212, 1.6], [9.4, 104, 210, 1.75]];
+
+      // ============================================================ DRAW (back on the desk: hatching, then SNAP)
+      function sceneDraw(t) {
+        var cam = camAt(CAM_DRAW, t);
+        shake(cam, t, 25.0, 12, 0.45);
+        screen(); rect(0, 0, W, H, C.paper);
+        setCam(cam, 1);
+        for (var i = 0; i < 16; i++) rect(-40, 40 + i * 18, 260, 1, C.lineBlue);
+        for (var r2 = 0; r2 < 14; r2++) { disc(166, 40 + r2 * 20, 5, C.steelShade); disc(166, 40 + r2 * 20, 3, C.paper); }
+        // the drawing so far (hatching a little bush, like the reference)
+        var stop = Math.min(t, 25.0);
+        g.strokeStyle = C.graphite; g.lineWidth = 1.1; g.lineCap = "round";
+        g.beginPath();
+        var first = true;
+        for (var tt = 23.2; tt <= stop; tt += 1 / 60) {
+          var p = tipPos(tt);
+          if (first) { g.moveTo(p[0], p[1]); first = false; } else g.lineTo(p[0], p[1]);
+        }
+        g.stroke();
+        var p0 = tipPos(stop), snapped = t >= 25.0;
+        var lift = snapped ? 6 * easeOut((t - 25.0) / 0.3) : 0;
+        pencil(p0[0] + lift, p0[1] - lift, 1.25, snapped ? 0 : 0.9, -2.15);
+        // fingers + sleeve
+        var hx = p0[0] + lift + 30, hy = p0[1] - lift + 46;
+        line(hx + 6, hy + 6, 240, 400, 16, C.shirt);
+        rrect(hx - 9, hy - 8, 18, 16, 6, C.skin); ell(hx - 7, hy + 6, 4, 3, 0.5, C.skin); rect(hx - 4, hy - 1, 8, 1, C.skinShade);
+        if (snapped) {
+          var a = t - 25.0;
+          if (a < 1.0) {
+            var fx2 = p0[0] - 30 * a, fy2 = p0[1] - 50 * a + 120 * a * a;
+            g.save(); g.translate(fx2, fy2); g.rotate(a * 20);
+            poly([[-2, -2], [3, 0], [-2, 2]], C.graphite); g.restore();
+          }
+          if (a < 0.4) { lighter(); glow(p0[0], p0[1], 26, C.white, 0.8 * (1 - a / 0.4)); normalBlend(); }
+          for (var c = 0; c < 6; c++) {
+            if (a > 0.5) break;
+            var ang = c * 1.05 + 0.3;
+            line(p0[0] + Math.cos(ang) * (4 + a * 20), p0[1] + Math.sin(ang) * (4 + a * 20), p0[0] + Math.cos(ang) * (8 + a * 30), p0[1] + Math.sin(ang) * (8 + a * 30), 1, C.ink);
+          }
+        }
+        screen(); vignette(0.2, "rgba(40,30,90,");
+      }
+      function tipPos(tt) {
+        var a = tt - 23.2;
+        return [56 + a * 14 + Math.sin(a * 22) * 9, 232 + a * 4 + Math.cos(a * 22) * 5 + Math.sin(a * 3) * 4];
+      }
+      var CAM_DRAW = [[23.2, 76, 214, 1.5], [24.8, 82, 222, 1.75], [26.0, 84, 222, 1.9]];
+
+      // ============================================================ point meter (upper-left)
+      function uText(str, x, y, s, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) {
+          var gl = FONT[str[i]] || FONT[" "];
+          for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * s + (p % 5) * s, y + Math.floor(p / 5) * s, s, s);
+        }
+      }
+      function pointUI(t) {
+        if (t < 9.5 || t >= 23.15) return;
+        var v = 0.06 + 0.94 * sharp(t);
+        var stage = t < 16.4 ? "SHAPING" : t < 18.8 ? "TOO BLUNT" : t < 21.4 ? "SHARPENING" : "PERFECT";
+        var x = 14, y = 64, w = 128;
+        u.fillStyle = "rgba(6,5,10,0.82)"; u.fillRect(x, y, w, 40);
+        u.fillStyle = C.red; u.fillRect(x, y, 2, 40);
+        uText("POINT", x + 6, y + 5, 1, C.paper);
+        uText(stage, x + 6, y + 15, 1, stage === "TOO BLUNT" ? C.warn : stage === "PERFECT" ? C.green : C.gold);
+        u.fillStyle = "#3a3450"; u.fillRect(x + 6, y + 30, w - 12, 4);
+        u.fillStyle = v > 0.95 ? C.green : C.gold;
+        u.fillRect(x + 6, y + 30, Math.round((w - 12) * v), 4);
+      }
+
+      // ============================================================ timeline
+      PX.setup(C, {
+        scenes: { hook: sceneHook, desk: sceneDesk, gears: sceneGears, power: scenePower, work: sceneWork, draw: sceneDraw },
+        sceneAt: function (t) {
+          return t < 1.8 ? "hook" : t < 5.2 ? "desk" : t < 7.0 ? "gears" : t < 9.4 ? "power" : t < 23.2 ? "work" : t < 26.0 ? "draw" : "hook";
+        },
+        cuts: [[7.0, "gears", "power"], [9.4, "power", "work"], [23.2, "work", "draw"], [26.0, "draw", "hook"]],
+        post: function (t, img) {
+          if (t >= 1.45 && t < 1.85) glitchRows(img, 6 + 40 * clamp01((t - 1.45) / 0.3), Math.floor(t * 30));
+          [[0.45, 0.2], [7.55, 0.15], [25.0, 0.18]].forEach(function (f) {
+            if (t >= f[0] && t < f[0] + f[1]) tintImg(img, C.white, 0.85 * (1 - (t - f[0]) / f[1]));
+          });
+        },
+        captions: [
+          { a: 0.1, b: 1.5, lines: [[["WHO'S INSIDE YOUR", C.paper]], [["PENCIL SHARPENER?", C.gold]]] },
+          { a: 2.0, b: 3.4, y: 200, lines: [[["YOU TURN THE CRANK...", C.paper]]] },
+          { a: 3.5, b: 5.0, y: 200, lines: [[["...BUT WHO DOES", C.paper]], [["THE WORK?", C.gold]]] },
+          { a: 5.6, b: 6.95, lines: [[["THE CRANK TURNS", C.paper]], [["A RING OF GEARS", C.gold]]] },
+          { a: 7.6, b: 9.3, y: 190, lines: [[["STEP 1: SCARE THE FOX", C.paper]], [["FOX POWER: ON", C.gold]]] },
+          { a: 9.6, b: 11.8, lines: [[["THE WOOD IS USUALLY", C.paper]], [["CEDAR", C.gold]]] },
+          { a: 12.2, b: 14.0, lines: [[["CHOPPED INTO", C.paper]], [["A CONE", C.gold]]] },
+          { a: 14.4, b: 16.2, lines: [[["NO LEAD INSIDE!", C.paper]], [["JUST GRAPHITE + CLAY", C.gold]]] },
+          { a: 16.6, b: 18.6, lines: [[["QUALITY CHECK:", C.paper]], [["TOO BLUNT", C.gold]]] },
+          { a: 19.0, b: 20.8, lines: [[["AGAIN. ", C.paper], ["FASTER.", C.gold]]] },
+          { a: 21.2, b: 23.0, lines: [[["QUALITY CHECK:", C.paper]], [["PERFECT POINT", C.gold]]] },
+          { a: 23.4, b: 24.9, lines: [[["GRAPHITE IS BRITTLE...", C.paper]]] },
+          { a: 25.05, b: 25.95, lines: [[["SNAP!", C.gold]]] },
+          { a: 26.2, b: 27.8, lines: [[["NOT ", C.paper], ["AGAIN!", C.gold]]] },
+          { a: 28.1, b: 29.75, y: 200, lines: [[["REALITY: GEARS SPIN", C.paper]], [["SPIRAL BLADES", C.gold]]] },
+        ],
+        ui: pointUI,
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 30, duration: 30, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
