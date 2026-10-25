@@ -1,0 +1,21 @@
+[
+  ["ai", "I don't read your words. I read... these."],
+  ["kid", "Hey A.I.! What's a token? Explain it like I'm five."],
+  ["ai", "Easy! A token is a sub-word unit from byte-pair encoding, mapped to an integer I.D. inside a high-dimensional"],
+  ["kid", "I'm five."],
+  ["ai", "Right. Okay. Think of building blocks."],
+  ["ai", "When you type, I snap your sentence into little blocks. Each block is a token."],
+  ["ai", "Small words, like cat, are one block. Bigger words split up. Jelly... plus fish."],
+  ["kid", "Ooh! Do Tyrannosaurus!"],
+  ["ai", "Four blocks. Tyre. Ann. Oss. Aurus."],
+  ["ai", "On average, one token is about three quarters of a word."],
+  ["kid", "Why does that matter?"],
+  ["ai", "Because A.I. is priced by the token. Every block costs a tiny bit."],
+  ["ai", "And my memory only fits so many blocks at once. It's called the context window."],
+  ["kid", "What happens when it's full?"],
+  ["ai", "Older blocks get pushed out... and I can start to forget."],
+  ["kid", "Wait. So you don't see letters?"],
+  ["ai", "Nope. To me, strawberry is one block. That's a big reason A.I. used to miscount its R's."],
+  ["kid", "So how many R's are in strawberry?"],
+  ["ai", "Three. I checked."]
+]

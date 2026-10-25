@@ -1,0 +1,986 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>What Is a Token?</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #2a6cf0;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #2a6cf0;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="66.3"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="66.3" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: two neural voices (robot + kid) + ducked cinematic SFX -->
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="66.3" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = 66.3;
+      var C = {
+        // block world
+        spaceTop: "#1438c8", space: "#2a6cf0", spaceL: "#62aaff", floor: "#1a2a9c", grid: "#4a8cff",
+        // the room
+        wallTop: "#6a4cff", wall: "#8a6cff", wallL: "#b6a2ff", wallD: "#4a32c0",
+        sky: "#4ac0ff", skyL: "#b4ecff", desk: "#ffa83a", deskL: "#ffd890", deskD: "#c86a1e", chair: "#2ad0a0", chairD: "#169070",
+        // token blocks
+        pink: "#ff5aa0", pinkL: "#ffb0d6", pinkD: "#c02c6c",
+        lime: "#9cf03a", limeL: "#dcff9a", limeD: "#58a01a",
+        cyan: "#36dcff", cyanL: "#b4f6ff", cyanD: "#1a90c8",
+        yellow: "#ffe03a", yellowL: "#fff4a8", yellowD: "#d0901a",
+        // robot
+        shell: "#f4f6ff", shellS: "#c8d2ec", shellD: "#7c88b0", screen: "#141c44", screenL: "#2c3c7c",
+        // kid
+        skin: "#c47a4a", skinL: "#e29c68", skinD: "#8a4e2a", hair: "#2a1610", hairL: "#5a3422", hairD: "#160a06",
+        hoodie: "#ff4a3a", hoodieD: "#c02a22", mouth: "#6a1424",
+        // creatures + props
+        green: "#3ad06a", greenL: "#9af07a", greenD: "#1a8a44",
+        orange: "#ff8a2a", orangeL: "#ffc080", orangeD: "#c4561a",
+        purple: "#b46cff", purpleL: "#e2b8ff",
+        red: "#ff3a4a", redL: "#ff8a96", redD: "#b81a30",
+        metal: "#a8b4cc", metalD: "#5a6480",
+        gold: "#ffc83a", goldD: "#c88a10", ink: "#06050a", paper: "#f1eef4", white: "#ffffff",
+      };
+      DISSOLVE = 0.1; // captions follow the voice quickly: short dissolve
+      var BCOL = [[C.pink, C.pinkL, C.pinkD], [C.lime, C.limeL, C.limeD], [C.cyan, C.cyanL, C.cyanD], [C.yellow, C.yellowL, C.yellowD]];
+
+      // ============================================================ dialogue timing (from captions.js)
+      var VO = window.VO || [], MOUTH = window.MOUTH || { ai: "", kid: "" };
+      function A(i) { return VO[i] ? VO[i].a : 0; }
+      function B(i) { return VO[i] ? VO[i].b : 0; }
+      function wkey(w) { return w.toLowerCase().replace(/[^a-z0-9']/g, ""); }
+      // absolute time of the n-th occurrence of a spoken word in line i
+      function WT(i, word, n) {
+        n = n || 0;
+        var ws = VO[i] ? VO[i].w : [], k = wkey(word), c = 0;
+        for (var j = 0; j < ws.length; j++) {
+          if (wkey(ws[j][0]).indexOf(k) === 0) { if (c === n) return ws[j][1]; c++; }
+        }
+        return A(i);
+      }
+      function talk(who, t) {
+        var s = MOUTH[who] || "", f = Math.floor(t * 30);
+        return f >= 0 && f < s.length ? +s[f] / 9 : 0;
+      }
+
+      // ============================================================ helpers
+      function bump(t, times, amt) {
+        var z = 1;
+        times.forEach(function (ti) { if (t >= ti) z += amt * Math.exp(-(t - ti) * 9); });
+        return z;
+      }
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function skyBg(top, mid, low) {
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, top], [0.6, mid], [1, low]]);
+        g.fillRect(0, 0, W, H);
+      }
+      // label box with dark pixel text
+      function tag(text, cx, cy, s, k, bg) {
+        if (k <= 0) return;
+        var w = text.length * 6 * s + 6, h = 7 * s + 6;
+        g.save(); g.translate(cx, cy); g.scale(k, k);
+        rrect(-w / 2 - 1, -h / 2 - 1, w + 2, h + 2, 3, C.ink);
+        rrect(-w / 2, -h / 2, w, h, 3, bg || C.white);
+        worldText(text, 0, -h / 2 + 3, s, C.ink);
+        g.restore();
+      }
+      // a token block: chunky toy brick with its text on it
+      function bw(label) { return label.length * 6 + 5; }
+      function block(cx, cy, label, ci, k, w, h) {
+        if (k <= 0) return;
+        w = w || bw(label); h = h || 13;
+        var c = BCOL[((ci % 4) + 4) % 4];
+        g.save(); g.translate(cx, cy); g.scale(k, k);
+        rrect(-w / 2 - 1, -h / 2 - 1, w + 2, h + 4, 3, C.ink);
+        rrect(-w / 2, -h / 2 + 2, w, h, 2, c[2]);
+        rrect(-w / 2, -h / 2, w, h, 2, c[0]);
+        rect(-w / 2 + 2, -h / 2 + 1, w - 4, 1, c[1]);
+        if (label) worldText(label, 0, -3, 1, C.ink);
+        g.restore();
+      }
+      // positions of a row of blocks, centred on cx, with a gap between them
+      function rowX(labels, cx, gap) {
+        var ws = labels.map(bw), tot = ws.reduce(function (a, b) { return a + b; }, 0) + gap * (labels.length - 1);
+        var x = cx - tot / 2, out = [];
+        ws.forEach(function (w) { out.push(x + w / 2); x += w + gap; });
+        return out;
+      }
+      function sparkle(x, y, r, col) {
+        line(x - r, y, x + r, y, 1, col); line(x, y - r, x, y + r, 1, col);
+        line(x - r * 0.45, y - r * 0.45, x + r * 0.45, y + r * 0.45, 0.8, col);
+        line(x - r * 0.45, y + r * 0.45, x + r * 0.45, y - r * 0.45, 0.8, col);
+      }
+      function star(x, y, r, col) {
+        var pts = [];
+        for (var i = 0; i < 10; i++) { var a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; pts.push([x + Math.cos(a) * rr, y + Math.sin(a) * rr]); }
+        poly(pts, col);
+      }
+      function coin(x, y, r, spin) {
+        g.save(); g.translate(x, y); g.scale(Math.max(0.15, Math.abs(Math.cos(spin || 0))), 1);
+        disc(0, 0, r + 0.8, C.ink); disc(0, 0, r, C.goldD); disc(0, -0.6, r - 1, C.gold);
+        if (r >= 5) worldText("$", 0, -3.6, 1, C.goldD);
+        g.restore();
+      }
+
+      // ============================================================ the robot (original character)
+      // x,y = head centre; o: { t, talk, eyes, arm, pa (point angle), sweat, mouth }
+      function robot(x, y, s, o) {
+        var t = o.t || 0, k = o.talk || 0, eyes = o.eyes || "open", arm = o.arm || "rest";
+        var bob = Math.sin(t * 3.2) * 1.3;
+        g.save(); g.translate(x, y + bob * s); g.scale(s, s);
+        // hover glow
+        lighter(); glow(0, 29 - bob, 12, C.cyan, 0.45 + 0.12 * Math.sin(t * 23)); normalBlend();
+        ell(0, 27.5, 5 + Math.sin(t * 21) * 0.6, 1.5, 0, C.cyanL);
+        // body
+        rrect(-8.5, 9.5, 17, 14, 6, C.shellD);
+        rrect(-8.5, 8.5, 17, 13, 6, C.shell);
+        rect(-5, 10, 6, 1, C.white);
+        disc(0, 15, 2.6, C.screen); disc(0, 15, 1.6, k > 0.1 ? C.cyanL : C.cyan);
+        // arms
+        function limb(x1, y1) {
+          line(8.5 * (x1 < 0 ? -1 : 1), 12.5, x1, y1, 2.4, C.shellD);
+          disc(x1, y1, 2.4, C.shellD); disc(x1 - 0.3, y1 - 0.3, 1.9, C.shellS);
+        }
+        limb(-13, 19.5);
+        if (arm === "point") { var pa = o.pa === undefined ? -0.6 : o.pa; limb(8.5 + Math.cos(pa) * 9, 12.5 + Math.sin(pa) * 9); }
+        else if (arm === "wave") { var wa = -1.25 + Math.sin(t * 13) * 0.45; limb(8.5 + Math.cos(wa) * 9, 12.5 + Math.sin(wa) * 9); }
+        else if (arm === "scratch") { limb(15.5 + Math.sin(t * 30) * 0.6, -6); }
+        else if (arm === "thumb") { limb(15, 3); line(15, 1.5, 15, -2.5, 1.8, C.shellS); }
+        else limb(13, 19.5);
+        // antenna
+        line(0, -12, 0, -18, 1.4, C.shellD);
+        disc(0, -19.5, 2.7, C.pinkD); disc(-0.4, -19.9, 2.0, C.pink);
+        if (k > 0.1) { lighter(); glow(0, -19.5, 7, C.pink, 0.55 * k); normalBlend(); }
+        // ears
+        rrect(-17.5, -6, 4.5, 9, 2, C.shellD); rrect(13, -6, 4.5, 9, 2, C.shellD);
+        disc(-15.4, -1.5, 1.2, C.cyan); disc(15.4, -1.5, 1.2, C.cyan);
+        // head
+        rrect(-14.5, -11, 29, 23, 7, C.shellD);
+        rrect(-14.5, -12, 29, 22.5, 7, C.shell);
+        rect(-9, -11, 12, 1.2, C.white);
+        // face screen
+        rrect(-11.5, -9, 23, 16, 5, C.screen);
+        rect(-8, -8, 7, 1, C.screenL);
+        var blink = (t % 3.7) < 0.11;
+        lighter(); glow(0, -2.5, 10, C.cyan, 0.22); normalBlend();
+        [-5, 5].forEach(function (ex, i) {
+          var mode = eyes === "wink" ? (i ? "happy" : "open") : eyes;
+          g.strokeStyle = C.cyan; g.lineWidth = 1.6; g.lineCap = "round";
+          if (mode === "happy") { g.beginPath(); g.moveTo(ex - 2.4, -1.4); g.lineTo(ex, -4.2); g.lineTo(ex + 2.4, -1.4); g.stroke(); }
+          else if (mode === "q") { worldText("?", ex, -6.5, 1, C.cyan); }
+          else if (mode === "x") { line(ex - 2, -4.5, ex + 2, -0.5, 1.4, C.cyan); line(ex + 2, -4.5, ex - 2, -0.5, 1.4, C.cyan); }
+          else if (mode === "dizzy") {
+            g.lineWidth = 0.9; g.beginPath();
+            for (var a = 0; a < 11; a += 0.35) { var r = a * 0.24, an = a + t * 9 * (i ? 1 : -1); g.lineTo(ex + Math.cos(an) * r, -2.5 + Math.sin(an) * r); }
+            g.stroke();
+          } else {
+            var h = blink ? 0.8 : 6;
+            rrect(ex - 2.2, -2.5 - h / 2, 4.4, h, 1.8, C.cyan);
+            if (!blink) rect(ex - 1.3, -4.8, 1.2, 1.2, C.cyanL);
+          }
+        });
+        // mouth
+        if (k > 0.08) { rrect(-3.5, 2.6, 7, 1 + k * 3.2, 1.2, C.cyan); if (k > 0.35) rect(-2, 3.4, 4, k * 1.6, C.screenL); }
+        else if (o.mouth === "flat") line(-3, 3.6, 3, 3.6, 1.2, C.cyan);
+        else if (o.mouth === "wobble") { g.strokeStyle = C.cyan; g.lineWidth = 1.1; g.beginPath(); for (var q = 0; q <= 6; q++) g.lineTo(-3.5 + q * 1.17, 3.6 + (q % 2 ? -0.8 : 0.8)); g.stroke(); }
+        else { g.strokeStyle = C.cyan; g.lineWidth = 1.2; g.beginPath(); g.arc(0, 1.2, 3, 0.22 * Math.PI, 0.78 * Math.PI); g.stroke(); }
+        // embarrassed sweat drop
+        if (o.sweat) { var sy = -9 + ((t * 6) % 3); poly([[16, sy - 3], [14, sy + 1], [18, sy + 1]], C.cyanL); disc(16, sy + 1.3, 2, C.cyanL); }
+        g.restore();
+      }
+
+      // ============================================================ the kid (original character)
+      // x,y = head centre; o: { t, talk, pose, eyes, look, brow, mouth }
+      function kid(x, y, s, o) {
+        var t = o.t || 0, k = o.talk || 0, pose = o.pose || "rest", eyes = o.eyes || "open", lx = o.look || 0;
+        g.save(); g.translate(x, y); g.scale(s, s);
+        // hair buns
+        disc(-10, -9, 5.8, C.hairD); disc(10, -9, 5.8, C.hairD);
+        disc(-10.3, -9.5, 4.9, C.hair); disc(9.7, -9.5, 4.9, C.hair);
+        disc(-11.4, -11.2, 1.6, C.hairL); disc(8.6, -11.2, 1.6, C.hairL);
+        // hoodie
+        rrect(-11.5, 9, 23, 27, 8, C.hoodieD);
+        rrect(-11.5, 8.4, 23, 26, 8, C.hoodie);
+        ell(0, 9.5, 8, 2.6, 0, C.hoodieD);
+        rrect(-5.5, 24, 11, 5, 2, C.hoodieD); rect(-4.5, 24, 9, 0.8, C.hoodie);
+        line(-2.5, 11, -3, 17.5, 0.8, C.white); line(2.5, 11, 3, 17.5, 0.8, C.white);
+        // head
+        disc(-10.8, 2.4, 2.3, C.skinD); disc(10.8, 2.4, 2.3, C.skinD);
+        disc(0, 0.7, 11, C.skinD);
+        disc(0, 0, 10.8, C.skin);
+        g.globalAlpha = 0.45; disc(-3, -2, 7, C.skinL); g.globalAlpha = 1;
+        // hair cap + fringe
+        g.fillStyle = C.hair; g.beginPath(); g.arc(0, -1.2, 11.4, Math.PI, Math.PI * 2); g.fill();
+        disc(-7.2, -2.8, 3.5, C.hair); disc(-1.6, -3.5, 3.8, C.hair); disc(4.4, -3.1, 3.6, C.hair); disc(9, -1.8, 2.7, C.hair);
+        rect(-6, -10.2, 7, 1, C.hairL);
+        // brows
+        var br = o.brow || "flat";
+        [-1, 1].forEach(function (sd) {
+          var bx = sd * 4.3, by = 0.2, tilt = br === "worry" ? -sd * 0.9 : br === "angry" ? sd * 0.9 : 0;
+          if (br === "skeptic" && sd > 0) by -= 1.2;
+          if (br === "up") by -= 1;
+          line(bx - 1.8, by - tilt, bx + 1.8, by + tilt, 0.9, C.hairD);
+        });
+        // eyes
+        var blink = ((t + 1.3) % 3.3) < 0.12 && eyes !== "dizzy" && eyes !== "stars";
+        [-1, 1].forEach(function (sd) {
+          var ex = sd * 4.2, ey = 3.3;
+          if (eyes === "dizzy") {
+            g.strokeStyle = C.ink; g.lineWidth = 0.7; g.beginPath();
+            for (var a = 0; a < 11; a += 0.35) { var r = a * 0.22, an = a + t * 8 * sd; g.lineTo(ex + Math.cos(an) * r, ey + Math.sin(an) * r); }
+            g.stroke(); return;
+          }
+          if (eyes === "stars") { star(ex, ey, 3.1 * (1 + 0.15 * Math.sin(t * 12)), C.gold); return; }
+          if (blink) { line(ex - 2, ey, ex + 2, ey, 0.9, C.ink); return; }
+          var big = eyes === "wide" ? 1.2 : 1;
+          ell(ex, ey, 2.4 * big, 2.9 * big, 0, C.white);
+          disc(ex + lx * 0.9, ey + 0.3, eyes === "wide" ? 1.15 : 1.6, C.ink);
+          disc(ex + lx * 0.9 - 0.6, ey - 0.5, 0.55, C.white);
+          if (eyes === "half") { rect(ex - 2.7, ey - 3.2, 5.4, 3.3, C.skin); line(ex - 2.6, ey, ex + 2.6, ey, 0.8, C.ink); }
+        });
+        // cheeks
+        g.globalAlpha = 0.6; ell(-7.2, 6.6, 1.9, 1.1, 0, C.pinkL); ell(7.2, 6.6, 1.9, 1.1, 0, C.pinkL); g.globalAlpha = 1;
+        // mouth
+        var my = 7.9;
+        g.strokeStyle = C.mouth; g.lineWidth = 0.8; g.lineCap = "round";
+        if (k > 0.08) { ell(0, my, 1.7 + k * 1.2, 0.5 + k * 2.2, 0, C.mouth); if (k > 0.45) ell(0, my + k * 1.1, 1.3, 0.6, 0, C.pinkL); }
+        else if (o.mouth === "flat") line(-1.8, my, 1.8, my, 0.8, C.mouth);
+        else if (o.mouth === "wobble") { g.beginPath(); for (var q = 0; q <= 5; q++) g.lineTo(-2.2 + q * 0.88, my + (q % 2 ? -0.5 : 0.5)); g.stroke(); }
+        else if (o.mouth === "o") ell(0, my, 1.2, 1.6, 0, C.mouth);
+        else if (o.mouth === "smirk") { g.beginPath(); g.moveTo(-2, my + 0.2); g.quadraticCurveTo(0.6, my + 1.2, 2.6, my - 1.1); g.stroke(); }
+        else { g.beginPath(); g.arc(0, my - 1.5, 2.5, 0.22 * Math.PI, 0.78 * Math.PI); g.stroke(); }
+        // arms
+        function arm(x0, y0, x1, y1) { line(x0, y0, x1, y1, 4.8, C.hoodieD); line(x0, y0 - 0.3, x1, y1 - 0.3, 3.7, C.hoodie); }
+        function hand(hx, hy, r) { r = r || 2.6; disc(hx, hy, r, C.skinD); disc(hx - 0.3, hy - 0.3, r - 0.5, C.skin); }
+        var bnc = Math.abs(Math.sin(t * 9)) * 1.5;
+        if (pose === "type") { arm(-9.5, 13, -3, 27); hand(-2, 28); arm(9.5, 13, 14, 26); hand(15, 27); }
+        else if (pose === "wave") { arm(-9.5, 13, -11.5, 27); hand(-11.5, 28); var wv = Math.sin(t * 14) * 1.8; arm(9.5, 13, 16 + wv * 0.4, 0); hand(17 + wv, -2); }
+        else if (pose === "up") { arm(-9.5, 13, -17, -1 - bnc); hand(-18, -3 - bnc); arm(9.5, 13, 17, -1 - bnc); hand(18, -3 - bnc); }
+        else if (pose === "five") {
+          arm(-9.5, 13, -11.5, 27); hand(-11.5, 28);
+          arm(9.5, 13, 15, 4);
+          [-0.5, -0.16, 0.16, 0.5].forEach(function (d) {
+            var a = -Math.PI / 2 + d, L = 6.6 - Math.abs(d) * 1.6;
+            line(16, -1, 16 + Math.cos(a) * L, -1 + Math.sin(a) * L, 2.5, C.skinD);
+            line(16, -1, 16 + Math.cos(a) * L, -1 + Math.sin(a) * L, 1.6, C.skin);
+          });
+          line(16, 0, 11.6, -3, 2.5, C.skinD); line(16, 0, 11.6, -3, 1.6, C.skin);
+          hand(16, 0, 3.4);
+        }
+        else if (pose === "cross") { arm(-9.5, 13, -5, 20); arm(9.5, 13, 5, 21); arm(-5, 20, 7, 17.5); hand(8, 17.5); arm(5, 21, -7, 19); hand(-8, 19); }
+        else if (pose === "chin") { arm(-9.5, 13, -11.5, 27); hand(-11.5, 28); arm(9.5, 13, 8, 18); arm(8, 18, 4, 11.5); hand(3.5, 11); }
+        else if (pose === "cheeks") { arm(-9.5, 13, -12.5, 10); hand(-10.5, 5.5); arm(9.5, 13, 12.5, 10); hand(10.5, 5.5); }
+        else if (pose === "point") { arm(-9.5, 13, -11.5, 27); hand(-11.5, 28); arm(9.5, 13, 15, -1); hand(15.5, -2.5); line(15.6, -3, 16.2, -8.5, 2.4, C.skinD); line(15.6, -3, 16.2, -8.5, 1.5, C.skin); }
+        else { arm(-9.5, 13, -11.5, 27); hand(-11.5, 28); arm(9.5, 13, 11.5, 27); hand(11.5, 28); }
+        g.restore();
+      }
+
+      // ============================================================ creatures + props
+      function trex(x, y, s, o) { // x,y = feet; faces left
+        var t = o.t || 0, jaw = o.jaw || 0, st = o.step || 0;
+        g.save(); g.translate(x, y); g.scale(s, s);
+        // tail
+        poly([[8, -40], [36, -33], [60, -20], [38, -24], [8, -26]], C.greenD);
+        poly([[8, -40], [36, -34], [58, -22], [36, -27], [8, -29]], C.green);
+        // far leg
+        ell(8, -22, 8, 11, -0.2, C.greenD); rect(5, -15 - st, 6, 13, C.greenD); rect(2, -3 - st, 12, 3, C.greenD);
+        // body
+        ell(0, -36, 20, 14.5, -0.35, C.greenD);
+        ell(-0.5, -37, 19.5, 13.5, -0.35, C.green);
+        ell(-7, -31, 10, 7.5, -0.45, C.greenL);
+        [[4, -44], [12, -40], [-2, -47], [8, -33]].forEach(function (p) { disc(p[0], p[1], 1.6, C.greenD); });
+        // near leg
+        ell(3, -23, 9, 12, -0.2, C.green); rect(-1, -15 + st, 7, 14, C.green); rect(-5, -3 + st, 13, 3.5, C.green);
+        rect(-6, -1 + st, 2, 1.5, C.white); rect(-2, -1 + st, 2, 1.5, C.white);
+        // tiny arms
+        line(-13, -37, -19, -33, 2.4, C.greenD); line(-19, -33, -21, -34.5, 1.2, C.white);
+        // neck + head
+        ell(-13, -50, 8.5, 10, 0.4, C.green);
+        g.save(); g.translate(-14, -52); g.rotate(jaw * 0.45);
+        rrect(-24, -1, 24, 7.5, 3, C.greenD);
+        for (var i = 0; i < 5; i++) poly([[-22 + i * 4, -1], [-20 + i * 4, -3.6], [-18 + i * 4, -1]], C.white);
+        g.restore();
+        rrect(-40, -67, 32, 16, 6, C.green);
+        rect(-36, -65, 18, 1.5, C.greenL);
+        for (var j = 0; j < 6; j++) poly([[-38 + j * 4, -51], [-36 + j * 4, -48], [-34 + j * 4, -51]], C.white);
+        disc(-24, -61, 2.6, C.white); disc(-25, -61, 1.4, C.ink);
+        line(-28, -65, -20, -64, 1.2, C.greenD);
+        disc(-37, -62, 0.8, C.greenD);
+        g.restore();
+      }
+      function cat(x, y, s, t) { // y = bottom
+        g.save(); g.translate(x, y); g.scale(s, s);
+        g.strokeStyle = C.orangeD; g.lineWidth = 2.4; g.lineCap = "round";
+        g.beginPath(); g.moveTo(4, -2); g.quadraticCurveTo(12, -3 + Math.sin(t * 3) * 2, 9 + Math.sin(t * 3), -12); g.stroke();
+        ell(0, -6, 6.5, 6, 0, C.orange); ell(0, -4.5, 4, 3.8, 0, C.orangeL);
+        disc(0, -14, 5.6, C.orange);
+        poly([[-5.4, -16], [-4.6, -22.5], [-1.4, -18.4]], C.orange); poly([[5.4, -16], [4.6, -22.5], [1.4, -18.4]], C.orange);
+        poly([[-4.4, -17], [-4.1, -20.6], [-2.3, -18.3]], C.pinkL); poly([[4.4, -17], [4.1, -20.6], [2.3, -18.3]], C.pinkL);
+        line(-1.5, -19, -1, -16.8, 0.8, C.orangeD); line(1.5, -19, 1, -16.8, 0.8, C.orangeD);
+        var bl = (t % 2.9) < 0.12;
+        if (bl) { line(-3, -14.4, -1.4, -14.4, 0.8, C.ink); line(1.4, -14.4, 3, -14.4, 0.8, C.ink); }
+        else { disc(-2.2, -14.5, 1.1, C.ink); disc(2.2, -14.5, 1.1, C.ink); }
+        disc(0, -12.6, 0.7, C.pink);
+        line(-2.5, -12, -7, -12.8, 0.4, C.white); line(2.5, -12, 7, -12.8, 0.4, C.white);
+        disc(-3, -0.6, 1.6, C.orangeL); disc(3, -0.6, 1.6, C.orangeL);
+        g.restore();
+      }
+      function jellyfish(x, y, s, t) { // y = dome base
+        g.save(); g.translate(x, y); g.scale(s, s);
+        for (var i = 0; i < 5; i++) {
+          var tx = -6 + i * 3;
+          g.strokeStyle = i % 2 ? C.purpleL : C.pinkL; g.lineWidth = 1.3; g.lineCap = "round"; g.beginPath(); g.moveTo(tx, 1);
+          for (var j = 1; j <= 6; j++) g.lineTo(tx + Math.sin(t * 4 + j * 0.9 + i) * 1.6, 1 + j * 2.7);
+          g.stroke();
+        }
+        g.fillStyle = C.purple; g.beginPath(); g.arc(0, 1, 9.5, Math.PI, 0); g.closePath(); g.fill();
+        ell(0, 1, 9.5, 2.2, 0, C.purple);
+        g.fillStyle = C.purpleL; g.beginPath(); g.arc(-2.5, -2, 4.5, Math.PI * 1.1, Math.PI * 1.7); g.lineTo(-2.5, -2); g.fill();
+        disc(-3, -1, 1, C.ink); disc(3, -1, 1, C.ink);
+        g.strokeStyle = C.ink; g.lineWidth = 0.6; g.beginPath(); g.arc(0, 0, 1.4, 0.2 * Math.PI, 0.8 * Math.PI); g.stroke();
+        g.globalAlpha = 0.6; ell(-5, 0.5, 1.3, 0.8, 0, C.pinkL); ell(5, 0.5, 1.3, 0.8, 0, C.pinkL); g.globalAlpha = 1;
+        g.restore();
+      }
+      function strawberry(x, y, s, t) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        function body(col, k) {
+          g.fillStyle = col; g.beginPath();
+          g.moveTo(-14 * k, -6); g.quadraticCurveTo(-16 * k, 10, 0, 22 * k); g.quadraticCurveTo(16 * k, 10, 14 * k, -6);
+          g.quadraticCurveTo(0, -13, -14 * k, -6); g.fill();
+        }
+        body(C.redD, 1); g.save(); g.translate(-0.6, -0.8); body(C.red, 0.93); g.restore();
+        ell(-6, 0, 3, 6, 0.35, C.redL);
+        for (var r = 0; r < 5; r++) for (var c = -2; c <= 2; c++) {
+          var sx = c * 5 + (r % 2) * 2.5, sy = -3 + r * 5;
+          if (Math.abs(sx) < 13 - r * 2.2) ell(sx, sy, 0.8, 1.2, 0, C.yellowL);
+        }
+        for (var i = 0; i < 6; i++) { var a = Math.PI * (1.1 + i * 0.16); poly([[0, -9], [Math.cos(a) * 11, -9 + Math.sin(a) * 4 + 2], [Math.cos(a + 0.2) * 7, -9 + Math.sin(a + 0.2) * 2]], i % 2 ? C.limeD : C.lime); }
+        line(0, -10, 1, -16, 1.8, C.limeD);
+        g.restore();
+      }
+
+      // ============================================================ backgrounds
+      // the bright "block world": blue gradient, drifting pixel squares, a perspective grid floor
+      function space(t, floorY) {
+        skyBg(C.spaceTop, C.space, C.spaceL);
+        for (var i = 0; i < 22; i++) {
+          var sz = 2 + Math.floor(hash1(i + 11) * 4);
+          var x = (hash1(i) * 210 + t * (2 + hash1(i + 3) * 5)) % 210 - 15, y = hash1(i + 7) * 280;
+          g.globalAlpha = 0.3 + 0.25 * hash1(i + 2); rect(x, y, sz, sz, i % 3 ? C.spaceL : C.cyanL);
+        }
+        g.globalAlpha = 1;
+        var fy = floorY || 288;
+        rect(0, fy, W, H - fy, C.floor);
+        rect(0, fy, W, 1, C.cyan);
+        var off = (t * 0.5) % 1;
+        for (var r = 0; r < 8; r++) { var y = fy + 4 * Math.pow(1.45, r + off) - 4; if (y < H) rect(0, Math.round(y), W, 1, C.grid); }
+        for (var c = -8; c <= 8; c++) line(90 + c * 14, fy, 90 + c * 60, H + 20, 0.8, C.grid);
+      }
+      // the kid's room (world coords): window, shelf, poster, desk, chair, laptop
+      function room(t, glowK) {
+        g.fillStyle = vgrad(-60, 262, [[0, C.wallTop], [1, C.wall]]); g.fillRect(-120, -60, 420, 322);
+        for (var i = -8; i < 20; i++) rect(i * 16, -60, 6, 300, C.wallTop);
+        rect(-120, 236, 420, 26, C.wallD); rect(-120, 236, 420, 2, C.wallL);
+        // window
+        rrect(12, 56, 64, 74, 3, C.white);
+        g.fillStyle = vgrad(60, 126, [[0, C.sky], [1, C.skyL]]); g.fillRect(16, 60, 56, 66);
+        disc(60, 74, 6, C.gold); disc(60, 74, 4, C.yellowL);
+        disc(28, 98, 6, C.white); disc(36, 95, 7, C.white); disc(44, 99, 5, C.white); rect(24, 99, 26, 4, C.white);
+        rect(43, 60, 2, 66, C.white); rect(16, 92, 56, 2, C.white);
+        rect(8, 128, 72, 4, C.wallL);
+        // shelf with books in the block colours
+        rect(100, 92, 76, 4, C.deskD); rect(100, 91, 76, 2, C.desk);
+        [[104, 16, 0], [111, 19, 1], [118, 14, 2], [124, 18, 3], [131, 15, 0], [138, 20, 2]].forEach(function (b) {
+          rect(b[0], 91 - b[1], 6, b[1], BCOL[b[2]][2]); rect(b[0], 91 - b[1], 5, b[1], BCOL[b[2]][0]); rect(b[0] + 1, 93 - b[1], 3, 1, BCOL[b[2]][1]);
+        });
+        disc(160, 82, 7, C.green); disc(155, 78, 4, C.greenL); rect(155, 84, 10, 8, C.orange);
+        // poster
+        rrect(112, 108, 44, 30, 2, C.ink); rrect(113, 109, 42, 28, 2, C.yellow);
+        block(122, 123, "A", 0, 1); block(134, 123, "B", 1, 1); block(146, 123, "C", 2, 1);
+        // chair back
+        rrect(42, 228, 40, 40, 6, C.chairD); rrect(43, 227, 38, 38, 6, C.chair);
+      }
+      function desk(t, glowK) {
+        // laptop (screen faces the viewer, the kid looks across at it)
+        rrect(104, 226, 40, 31, 3, C.metalD);
+        rrect(107, 229, 34, 25, 2, C.screen);
+        if (glowK > 0) {
+          g.globalAlpha = glowK; rrect(107, 229, 34, 25, 2, C.cyanD); g.globalAlpha = 1;
+          for (var l = 0; l < 4; l++) rect(110, 233 + l * 5, 12 + 14 * hash1(l + Math.floor(t * 2)), 2, C.cyanL);
+        }
+        poly([[100, 262], [148, 262], [144, 256], [104, 256]], C.metal);
+        rect(100, 261, 48, 2, C.metalD);
+        lighter(); glow(124, 242, 30, C.cyan, 0.25 * glowK); normalBlend();
+        // desk
+        rect(-20, 262, 220, 6, C.deskL); rect(-20, 266, 220, 60, C.desk);
+        rect(-20, 268, 220, 2, C.deskD);
+        rrect(118, 276, 46, 18, 2, C.deskD); rrect(119, 277, 44, 16, 2, C.deskL); rect(134, 284, 14, 2, C.deskD);
+        rect(4, 268, 6, 60, C.deskD);
+      }
+
+      // ============================================================ SCENES
+      var HOOK = ["HELLO", "!", "HOW", "ARE", "YOU", "?"];
+      // HOOK: a message slams down and shatters into its 6 tokens (also the loop ending)
+      function sceneHook(t) {
+        var lt = t < 30 ? t : t - DUR;
+        var th = WT(0, "these");
+        var cam = { x: 90, y: 160, z: 1.1 - 0.1 * easeOut(clamp01(lt / 0.5)) };
+        if (lt >= 0) { shake(cam, lt, 0, 9, 0.6); shake(cam, lt, th, 6, 0.4); }
+        space(t);
+        setCam(cam, 1);
+        var talkK = lt >= 0 ? talk("ai", t) : 0;
+        robot(90, 92, 1.55, { t: t, talk: talkK, eyes: lt >= 0 && lt < 0.6 ? "x" : "open", arm: lt > 1.0 ? "point" : "rest", pa: 0.9 });
+        var y = 218;
+        if (lt < 0) {
+          // the message falls in as a chat bubble
+          var fy = 192 + 26 * Math.pow(clamp01((lt + 0.6) / 0.6), 2);
+          rrect(18, fy - 9, 144, 18, 5, C.ink); rrect(19, fy - 10, 142, 18, 5, C.white);
+          poly([[30, fy + 7], [26, fy + 13], [40, fy + 7]], C.white);
+          worldText("HELLO! HOW ARE YOU?", 90, fy - 4, 1, C.ink);
+        } else {
+          var xs = rowX(HOOK, 90, 3 * easeOut(clamp01(lt / 0.35)) + 0.5);
+          var bz = bump(t, [th], 0.28);
+          HOOK.forEach(function (lb, i) {
+            var ti = 0.12 + 0.09 * i, kk = pop(lt, ti - 0.12);
+            var jump = lt < 0.6 ? -Math.sin(clamp01((lt - ti + 0.12) / 0.45) * Math.PI) * (8 + 4 * hash1(i)) : 0;
+            var rot = lt < 0.6 ? (hash1(i + 4) - 0.5) * 0.5 * (1 - clamp01(lt / 0.6)) : 0;
+            g.save(); g.translate(xs[i], y + jump); g.rotate(rot);
+            block(0, 0, lb, i, kk * bz);
+            g.restore();
+          });
+          // shards from the bubble
+          if (lt < 0.5) for (var s = 0; s < 16; s++) {
+            var a = s * 0.39 + 0.3, sp = 40 + 50 * hash1(s), u = lt;
+            rect(90 + Math.cos(a) * sp * u * 1.6 + (hash1(s + 5) - 0.5) * 120, y + Math.sin(a) * sp * u - 20 * u + 120 * u * u, 2, 2, C.white);
+          }
+          if (t >= th) { lighter(); xs.forEach(function (x) { glow(x, y, 14, C.cyan, 0.35 * Math.exp(-(t - th) * 3)); }); normalBlend(); }
+          tag("6 TOKENS", 90, 254, 1, pop(t, th + 0.05), C.gold);
+        }
+        vignette(0.2, "rgba(10,20,80,");
+      }
+
+      // ROOM: the kid types, the robot pops out of the laptop
+      function sceneRoom(t) {
+        var t0 = A(1) - 0.3, pop0 = WT(1, "a.i.");
+        var cam = camAt([[t0, 92, 186, 0.96], [A(2) - 0.2, 96, 184, 1.16]], t);
+        screen(); rect(0, 0, W, H, C.wall);
+        setCam(cam, 1);
+        room(t, 1);
+        var k = talk("kid", t);
+        var pose = t < WT(1, "hey") + 0.05 ? "type" : t < WT(1, "what's") ? "wave" : t < WT(1, "explain") ? "chin" : "rest";
+        kid(62, 222, 1.2, { t: t, talk: k, pose: pose, look: 1, brow: t > WT(1, "what's") && t < WT(1, "explain") ? "skeptic" : "flat" });
+        desk(t, 1);
+        // robot pops out of the screen
+        var pk = clamp01((t - pop0) / 0.35);
+        if (pk > 0) {
+          var ry = 240 - 26 * easeOut(pk);
+          lighter(); glow(124, ry, 26 * (1 - pk) + 4, C.cyanL, 0.6 * (1 - pk)); normalBlend();
+          robot(128, ry, 0.85 * pop(t, pop0), { t: t, talk: talk("ai", t), eyes: "happy", arm: t < WT(1, "what's") + 0.4 ? "wave" : "rest" });
+        }
+        // "?" over the kid
+        var qk = pop(t, WT(1, "token") + 0.1) * (1 - ramp(t, WT(1, "explain") + 0.2, WT(1, "explain") + 0.4));
+        if (qk > 0) { g.save(); g.translate(30, 214 + Math.sin(t * 6) * 1.5); g.scale(qk, qk); tag("?", 0, 0, 2, 1, C.gold); g.restore(); }
+        vignette(0.18, "rgba(30,10,60,");
+      }
+
+      // JARGON: the robot buries the kid in words
+      var JARGON = [["SUB-WORD UNIT", "sub-word"], ["BYTE-PAIR", "byte-pair"], ["ENCODING", "encoding"], ["MERGE RULES", "encoding", 0.45],
+        ["INTEGER ID", "mapped"], ["ID #48213", "i.d."], ["EMBEDDING", "inside"], ["[0.12,-0.83,", "inside", 0.15], ["0.41,1.07...]", "inside", 0.3]];
+      function sceneJargon(t) {
+        var cam = camAt([[A(2), 92, 192, 1.25], [B(2), 70, 198, 1.75]], t);
+        screen(); rect(0, 0, W, H, C.wall);
+        setCam(cam, 1);
+        room(t, 1);
+        var dz = ramp(t, WT(2, "byte-pair"), WT(2, "mapped"));
+        kid(62, 222, 1.2, { t: t, pose: "rest", eyes: dz > 0.5 ? "dizzy" : "open", look: 1, brow: "worry", mouth: "wobble" });
+        desk(t, 1);
+        // orbiting "?"s
+        var nq = Math.floor(1 + 6 * ramp(t, A(2) + 0.6, B(2)));
+        for (var q = 0; q < nq; q++) {
+          var a = q * 1.05 + t * 2.2;
+          worldText("?", 62 + Math.cos(a) * 25, 214 + Math.sin(a) * 4, 1, q % 2 ? C.gold : C.white);
+        }
+        // hologram panel + robot, in screen space at the top
+        screen();
+        g.globalAlpha = 0.45; rect(0, 0, W, 148, C.screen); g.globalAlpha = 1;
+        var glitch = t > B(2) - 0.12 ? (hash1(Math.floor(t * 60)) - 0.5) * 8 : 0;
+        robot(150, 66, 1.15, { t: t, talk: talk("ai", t), eyes: "open", arm: "point", pa: Math.PI + 0.3 });
+        g.save(); g.translate(glitch, 0);
+        g.globalAlpha = 0.55; rrect(6, 14, 120, 124, 4, C.screen); g.globalAlpha = 1;
+        g.strokeStyle = C.cyan; g.lineWidth = 1; g.strokeRect(6.5, 14.5, 119, 123);
+        lighter(); glow(128, 70, 22, C.cyan, 0.3); normalBlend();
+        worldText("TOKEN.TXT", 66, 19, 1, C.cyanL);
+        rect(10, 28, 112, 1, C.cyan);
+        var shown = JARGON.filter(function (j) { return t >= WT(2, j[1]) + (j[2] || 0); });
+        shown.forEach(function (j, i) {
+          var row = i - Math.max(0, shown.length - 9);
+          if (row < 0) return;
+          var ti = WT(2, j[1]) + (j[2] || 0);
+          var k = clamp01((t - ti) / 0.12);
+          worldText(j[0].slice(0, Math.ceil(j[0].length * k)), 66, 33 + row * 11, 1, i % 3 === 0 ? C.gold : C.white);
+        });
+        for (var sl = 0; sl < 124; sl += 3) { g.globalAlpha = 0.12; rect(6, 14 + sl, 120, 1, C.cyanL); }
+        g.globalAlpha = 1;
+        g.restore();
+        vignette(0.2, "rgba(30,10,60,");
+      }
+
+      // "I'M FIVE." close-up, deadpan, five fingers up
+      function kidCU(t, o, keys) {
+        var cam = camAt(keys, t);
+        if (o.bumpAt) cam.z *= bump(t, [o.bumpAt], 0.1);
+        screen(); rect(0, 0, W, H, C.wall);
+        setCam(cam, 1);
+        room(t, 1);
+        kid(62, 222, 1.2, o);
+        desk(t, 1);
+        if (o.extra) o.extra(t);
+        vignette(0.2, "rgba(30,10,60,");
+      }
+      function sceneFive(t) {
+        kidCU(t, { t: t, talk: talk("kid", t), pose: "five", eyes: "half", brow: "flat", mouth: "flat", bumpAt: WT(3, "five") },
+          [[A(3) - 0.1, 66, 194, 2.4], [A(4), 66, 194, 2.55]]);
+      }
+
+      // BUILDING BLOCKS: the robot backs up, alphabet blocks stack up
+      function sceneBlocks(t) {
+        var b0 = WT(4, "blocks") + 0.12;
+        var cam = camAt([[A(4) - 0.2, 90, 162, 1.08], [A(5), 90, 166, 1.0]], t);
+        space(t);
+        setCam(cam, 1);
+        var em = t < WT(4, "think") - 0.1;
+        robot(90, 92, 1.5, { t: t, talk: talk("ai", t), eyes: em ? "happy" : "open", arm: em ? "scratch" : "point", pa: 1.1, sweat: em });
+        var spots = [[66, 276], [90, 276], [114, 276], [78, 255], [102, 255], [90, 234]];
+        "ABCDEF".split("").forEach(function (ch, i) {
+          var ti = b0 + 0.13 * i, u = clamp01((t - ti + 0.18) / 0.18);
+          if (u <= 0) return;
+          var sp = spots[i];
+          block(sp[0], sp[1] - 14 * (1 - u * u), ch, i, 1, 22, 18);
+        });
+        vignette(0.2, "rgba(10,20,80,");
+      }
+
+      // SNAP: the kid's message is typed, then snapped into 6 tokens
+      var MSG1 = "EXPLAIN IT LIKE", MSG2 = "I'M FIVE.";
+      var TOK1 = ["EXPLAIN", "IT", "LIKE"], TOK2 = ["I'M", "FIVE", "."];
+      function sceneSnap(t) {
+        var sn = WT(5, "snap") + 0.1, typeEnd = WT(5, "i") - 0.05;
+        var cam = { x: 90, y: 160, z: 1.0 + 0.04 * ramp(t, A(5), A(6)) };
+        shake(cam, t, sn, 5, 0.3);
+        space(t);
+        setCam(cam, 1);
+        robot(90, 90, 1.4, { t: t, talk: talk("ai", t), eyes: t > sn && t < sn + 0.5 ? "x" : "open", arm: t > sn - 0.3 ? "point" : "rest", pa: 1.2 });
+        if (t < sn) {
+          var n = Math.floor((MSG1.length + MSG2.length) * clamp01((t - A(5)) / (typeEnd - A(5))));
+          rrect(15, 193, 150, 44, 6, C.ink); rrect(16, 192, 148, 43, 6, C.white);
+          worldText(MSG1.slice(0, n), 90, 202, 1, C.ink);
+          worldText(MSG2.slice(0, Math.max(0, n - MSG1.length)), 90, 218, 1, C.ink);
+          if (Math.floor(t * 4) % 2 === 0) rect(150, 222, 6, 1, C.ink);
+          worldText("TYPE A MESSAGE", 90, 241, 1, C.white);
+        } else {
+          var gap = 2 + 4 * easeOut(clamp01((t - sn) / 0.3));
+          var x1 = rowX(TOK1, 90, gap), x2 = rowX(TOK2, 90, gap);
+          TOK1.forEach(function (lb, i) { block(x1[i], 206, lb, i, pop(t, sn + 0.1 * i)); });
+          TOK2.forEach(function (lb, i) { block(x2[i], 228, lb, i + 3, pop(t, sn + 0.1 * (i + 3))); });
+          if (t < sn + 0.2) { g.globalAlpha = 1 - (t - sn) / 0.2; rect(15, 192, 150, 44, C.white); g.globalAlpha = 1; }
+          var ek = pop(t, WT(5, "each"));
+          tag("6 TOKENS", 90, 258, 1, ek, C.gold);
+          g.globalAlpha = ek > 0 ? 1 : 0; worldText("SPLITS VARY BY MODEL", 90, 274, 1, C.cyanL); g.globalAlpha = 1;
+        }
+        vignette(0.2, "rgba(10,20,80,");
+      }
+
+      // CAT = 1 block, JELLYFISH = JELLY + FISH
+      function sceneCatJelly(t) {
+        var cam = camAt([[A(6) - 0.2, 90, 160, 1.0], [A(7), 92, 164, 1.06]], t);
+        space(t);
+        setCam(cam, 1);
+        var pointR = t > WT(6, "bigger") - 0.2;
+        robot(90, 88, 1.3, { t: t, talk: talk("ai", t), eyes: "open", arm: "point", pa: pointR ? 1.0 : 2.3 });
+        // cat
+        var ck = pop(t, WT(6, "cat") - 0.05);
+        block(46, 270, "CAT", 2, ck, 30, 15);
+        if (ck > 0) cat(46, 262, 1.1 * ck, t);
+        tag("1 BLOCK", 46, 292, 1, pop(t, WT(6, "one")), C.white);
+        // jellyfish
+        var jk = pop(t, WT(6, "bigger") - 0.05), sp = WT(6, "plus") - 0.05;
+        if (jk > 0) jellyfish(132, 218 + Math.sin(t * 2.5) * 2.5, 1.15 * jk, t);
+        var hl = t > WT(6, "jelly") - 0.05;
+        if (t < sp) {
+          block(132, 270, "JELLYFISH", 0, jk);
+          if (hl) { g.globalAlpha = 0.5 + 0.3 * Math.sin(t * 16); rect(132 - 29.5, 263.5, 36, 13, C.white); g.globalAlpha = 1; }
+        } else {
+          var u = easeOut(clamp01((t - sp) / 0.25));
+          block(132 - 12 * u - (1 - u) * 12, 270, "JELLY", 0, 1);
+          block(132 + 18.5 * u + (1 - u) * 15, 270, "FISH", 1, 1);
+          if (t < sp + 0.3) { lighter(); glow(132, 270, 20, C.white, 0.6 * (1 - (t - sp) / 0.3)); normalBlend(); sparkle(130, 270, 9 * u, C.white); }
+          tag("2 BLOCKS", 132, 292, 1, pop(t, sp + 0.25), C.white);
+        }
+        vignette(0.2, "rgba(10,20,80,");
+      }
+
+      // "OOH! DO TYRANNOSAURUS!"
+      function sceneOoh(t) {
+        kidCU(t, {
+          t: t, talk: talk("kid", t), pose: "up", eyes: "stars", brow: "up",
+          extra: function (tt) { for (var i = 0; i < 6; i++) { var a = i * 1.05 + tt * 1.5; sparkle(62 + Math.cos(a) * 28, 218 + Math.sin(a) * 7, 2 + 1.5 * Math.abs(Math.sin(tt * 8 + i)), i % 2 ? C.gold : C.white); } },
+        }, [[A(7) - 0.1, 62, 196, 2.0], [WT(7, "tyrannosaurus"), 62, 192, 2.3]]);
+      }
+
+      // T-REX stomps in; TYRANNOSAURUS splits into 4 tokens
+      var TREX = ["TYR", "ANN", "OS", "AURUS"];
+      function sceneTrex(t) {
+        var t0 = WT(7, "tyrannosaurus"), roarT = t0 + 1.15;
+        var steps = [t0 + 0.05, t0 + 0.47, t0 + 0.89];
+        var cam = { x: 90, y: 160, z: 1.0 };
+        steps.forEach(function (s) { shake(cam, t, s, 7, 0.3); });
+        shake(cam, t, roarT, 6, 1.0);
+        space(t, 300);
+        setCam(cam, 1);
+        var walk = clamp01((t - t0) / 1.0);
+        var tx = 230 - 125 * easeOut(walk);
+        var st = t < t0 + 1.0 ? Math.abs(Math.sin((t - t0) * Math.PI / 0.42)) * 3 : 0;
+        var jaw = t > roarT && t < roarT + 1.2 ? Math.sin(clamp01((t - roarT) / 1.2) * Math.PI) : 0.1;
+        trex(tx, 300, 1.15, { t: t, jaw: jaw, step: st });
+        if (jaw > 0.3) for (var r = 0; r < 4; r++) { var rr = 8 + ((t - roarT) * 40 + r * 7) % 26; g.globalAlpha = 0.7; g.strokeStyle = C.white; g.lineWidth = 1; g.beginPath(); g.arc(tx - 46, 234, rr, Math.PI * 0.75, Math.PI * 1.25); g.stroke(); g.globalAlpha = 1; }
+        // the word, then its 4 blocks
+        var fk = pop(t, WT(8, "four") - 0.1);
+        var cuts = [WT(8, "tyre"), WT(8, "ann"), WT(8, "oss"), WT(8, "aurus")];
+        var nCut = cuts.filter(function (c) { return t >= c - 0.03; }).length;
+        if (fk > 0) {
+          if (nCut === 0) block(90, 200, "TYRANNOSAURUS", 1, fk);
+          else {
+            // each cut snaps one piece off the front of the word; the uncut rest slides along to its spot
+            var xs = rowX(TREX, 90, 4);
+            var edge = function (i) { return i === 0 ? 90 - bw("TYRANNOSAURUS") / 2 : xs[i] - bw(TREX[i]) / 2; };
+            for (var i = 0; i < nCut; i++) {
+              var u = i === nCut - 1 ? easeOut(clamp01((t - cuts[i] + 0.03) / 0.2)) : 1;
+              block(lerp(edge(i) + bw(TREX[i]) / 2, xs[i], u), 200 - 6 * Math.sin(u * Math.PI), TREX[i], i, 1);
+            }
+            if (nCut < 4) {
+              var rest = TREX.slice(nCut).join(""), j = nCut - 1, u2 = easeOut(clamp01((t - cuts[j] + 0.03) / 0.2));
+              block(lerp(edge(j) + TREX[j].length * 6, edge(nCut), u2) + bw(rest) / 2, 200, rest, nCut, 1);
+            }
+          }
+          tag("4 TOKENS", 90, 220, 1, pop(t, WT(8, "aurus") + 0.25), C.gold);
+        }
+        vignette(0.2, "rgba(10,20,80,");
+      }
+
+      // 1 TOKEN ~ 3/4 OF A WORD
+      function sceneRatio(t) {
+        var cam = camAt([[A(9) - 0.2, 90, 162, 1.02], [A(10), 90, 160, 1.08]], t);
+        space(t);
+        setCam(cam, 1);
+        robot(90, 90, 1.35, { t: t, talk: talk("ai", t), eyes: "open", arm: "point", pa: 1.4 });
+        var wk = pop(t, A(9) + 0.1);
+        if (wk > 0) {
+          g.save(); g.translate(90, 206); g.scale(wk, wk);
+          rrect(-45, -8, 90, 16, 3, C.ink); rrect(-44, -7, 88, 14, 3, C.white);
+          worldText("1 WORD", 0, -3, 1, C.ink);
+          g.restore();
+        }
+        var u = easeOut(clamp01((t - WT(9, "one") + 0.05) / 0.4));
+        if (u > 0) block(-60 + (78 + 60) * u, 230, "1 TOKEN", 2, 1, 66, 14);
+        var tk = ramp(t, WT(9, "three") - 0.05, WT(9, "three") + 0.25);
+        if (tk > 0) {
+          for (var y = 196; y < 240; y += 4) rect(111, y, 1, 2, C.gold);
+          tag("3/4", 130, 230, 1, pop(t, WT(9, "three")), C.gold);
+        }
+        tag("100 TOKENS ~ 75 WORDS", 90, 262, 1, pop(t, WT(9, "word") + 0.15), C.white);
+        vignette(0.2, "rgba(10,20,80,");
+      }
+
+      // "WHY DOES THAT MATTER?"
+      function sceneWhy(t) {
+        kidCU(t, { t: t, talk: talk("kid", t), pose: "cross", eyes: "open", look: 0.6, brow: "skeptic", mouth: "smirk" },
+          [[A(10) - 0.1, 70, 196, 2.1], [A(11), 66, 196, 2.3]]);
+      }
+
+      // PRICED BY THE TOKEN: blocks ride a belt into the meter, a coin pops out for each
+      var BELT = ["HOW", "BIG", "IS", "THE", "SUN", "?", "IT", "IS", "HUGE"];
+      function scenePrice(t) {
+        var c0 = WT(11, "by") + 0.1;
+        var cam = camAt([[A(11) - 0.2, 90, 164, 1.0], [A(12), 92, 166, 1.05]], t);
+        space(t);
+        setCam(cam, 1);
+        robot(44, 92, 1.15, { t: t, talk: talk("ai", t), eyes: t > WT(11, "tiny") ? "happy" : "open", arm: "point", pa: 0.6 });
+        tag("$ PER TOKEN", 126, 74, 1, pop(t, WT(11, "priced")), C.gold);
+        // belt
+        rect(-10, 262, 140, 8, C.metalD); rect(-10, 262, 140, 2, C.metal);
+        for (var i = 0; i < 12; i++) { var bx = ((i * 14 - t * 30) % 168 + 168) % 168 - 14; rect(bx, 265, 6, 2, C.ink); }
+        for (var r = 0; r < 7; r++) disc(4 + r * 20, 272, 3, C.metal);
+        // blocks: each reaches the meter at c0 + 0.32 i
+        BELT.forEach(function (lb, i) {
+          var arrive = c0 + 0.32 * i, x = 128 - (arrive - t) * 60;
+          if (x < -30 || x > 132) return;
+          block(x - bw(lb) / 2 + 8, 254, lb, i, 1);
+        });
+        // meter box
+        rrect(124, 222, 52, 56, 4, C.ink); rrect(125, 221, 50, 55, 4, C.metal);
+        rrect(130, 228, 40, 16, 2, C.screen);
+        var paid = BELT.filter(function (lb, i) { return t >= c0 + 0.32 * i; }).length;
+        worldText("x" + paid, 150, 233, 1, C.lime);
+        worldText("TOKENS", 150, 262, 1, C.ink);
+        rect(130, 250, 40, 4, C.ink);
+        // coins popping out of the top
+        for (var j = 0; j < paid; j++) {
+          var ct = t - (c0 + 0.32 * j);
+          if (ct > 0.9) continue;
+          coin(150 + (j % 2 ? 6 : -6) * ct * 3, 218 - 60 * ct + 50 * ct * ct, 5, ct * 12);
+        }
+        if (t > WT(11, "tiny")) tag("TINY!", 150, 204, 1, pop(t, WT(11, "tiny")), C.white);
+        vignette(0.2, "rgba(10,20,80,");
+      }
+
+      // CONTEXT WINDOW: a real window that fills up with blocks
+      var WIN = { x0: 34, x1: 146, y0: 194, y1: 298, cols: 5, rows: 6 };
+      var WORDS = ["THE", "CAT", "SAT", "ON", "A", "MAT", "AND", "IT", "WAS", "SO", "NAP", "PED", "!", "THEN", "IT", "ATE", "A", "BUG"];
+      function cellXY(c) {
+        var cw = (WIN.x1 - WIN.x0) / WIN.cols, ch = (WIN.y1 - WIN.y0) / WIN.rows;
+        var col = ((c % WIN.cols) + WIN.cols) % WIN.cols, row = Math.floor(c / WIN.cols);
+        return [WIN.x0 + cw * (col + 0.5), WIN.y1 - ch * (row + 0.5)];
+      }
+      function windowFrame(front) {
+        if (!front) {
+          rrect(WIN.x0 - 7, WIN.y0 - 7, WIN.x1 - WIN.x0 + 14, WIN.y1 - WIN.y0 + 14, 3, C.ink);
+          rrect(WIN.x0 - 6, WIN.y0 - 6, WIN.x1 - WIN.x0 + 12, WIN.y1 - WIN.y0 + 12, 3, C.desk);
+          g.globalAlpha = 0.5; rect(WIN.x0, WIN.y0, WIN.x1 - WIN.x0, WIN.y1 - WIN.y0, C.skyL); g.globalAlpha = 1;
+          return;
+        }
+        rect(WIN.x0 - 6, WIN.y0 - 6, WIN.x1 - WIN.x0 + 12, 5, C.deskL);
+        rect(WIN.x0 - 9, WIN.y1 + 4, WIN.x1 - WIN.x0 + 18, 4, C.deskD);
+        g.globalAlpha = 0.35; line(WIN.x0 + 10, WIN.y0 + 40, WIN.x0 + 40, WIN.y0 + 4, 3, C.white); line(WIN.x0 + 20, WIN.y0 + 50, WIN.x0 + 56, WIN.y0 + 8, 1.5, C.white); g.globalAlpha = 1;
+      }
+      function landT(i) { return A(12) + 0.15 + i * 0.075; }
+      function cellBlock(i, x, y, k) { block(x, y, WORDS[i % WORDS.length], i, k, 20, 14); }
+      function sceneWindow(t) {
+        var cam = camAt([[A(12) - 0.2, 90, 162, 1.0], [A(13), 90, 166, 1.06]], t);
+        space(t);
+        setCam(cam, 1);
+        var full = t > landT(29) + 0.1;
+        robot(34, 96, 1.05, { t: t, talk: talk("ai", t), eyes: "open", arm: "point", pa: 0.9 });
+        tag("CONTEXT WINDOW", 112, 96, 1, pop(t, WT(12, "context")), C.gold);
+        windowFrame(false);
+        for (var i = 0; i < 30; i++) {
+          var lt = t - landT(i);
+          if (lt < -0.22) continue;
+          var p = cellXY(i), u = clamp01((lt + 0.22) / 0.22);
+          cellBlock(i, p[0], lerp(WIN.y0 + 6, p[1], u * u), 1);
+        }
+        windowFrame(true);
+        if (full && Math.floor(t * 4) % 2 === 0) tag("FULL!", 90, 186, 1, 1, C.red);
+        vignette(0.2, "rgba(10,20,80,");
+      }
+
+      // "WHAT HAPPENS WHEN IT'S FULL?"
+      function sceneFull(t) {
+        kidCU(t, {
+          t: t, talk: talk("kid", t), pose: "cheeks", eyes: "wide", brow: "worry", mouth: "o",
+          extra: function (tt) { if (Math.floor(tt * 4) % 2 === 0) tag("FULL!", 62, 184, 1, 1, C.red); },
+        }, [[A(13) - 0.1, 62, 197, 2.2], [A(14), 62, 196, 2.45]]);
+      }
+
+      // PUSHED OUT: new blocks shove the oldest ones out, the robot forgets
+      function sceneForget(t) {
+        var pushes = [0, 1, 2, 3, 4].map(function (k) { return WT(14, "pushed") - 0.1 + 0.2 * k; });
+        var cam = camAt([[A(14) - 0.2, 90, 164, 1.04], [A(15), 90, 162, 1.0]], t);
+        space(t);
+        setCam(cam, 1);
+        var fg = t > WT(14, "forget") - 0.1;
+        robot(34, 96, 1.05, { t: t, talk: talk("ai", t), eyes: fg ? "q" : "open", mouth: fg ? "wobble" : "", arm: fg ? "scratch" : "rest" });
+        tag("OLDEST OUT", 118, 96, 1, pop(t, WT(14, "out")), C.white);
+        windowFrame(false);
+        var shift = 0;
+        pushes.forEach(function (p) { shift += easeOut(clamp01((t - p) / 0.18)); });
+        for (var i = 0; i < 35; i++) {
+          var pos = i - shift;
+          if (i >= 30) { // new blocks drop in once their push starts
+            var pt = pushes[i - 30];
+            if (t < pt) continue;
+          }
+          if (pos < 0) { // falling out of the window
+            var leave = pushes[i], u = t - leave;
+            if (u > 1.2) continue;
+            var p0 = cellXY(0);
+            var fade = clamp01(1 - (t - WT(14, "forget")) / 0.6);
+            g.save(); g.globalAlpha = fg ? fade : 1; g.translate(p0[0] - 34 * u, p0[1] - 10 * u + 160 * u * u); g.rotate(-u * 3);
+            cellBlock(i, 0, 0, 1); g.restore(); g.globalAlpha = 1;
+            continue;
+          }
+          var a = cellXY(Math.floor(pos)), b = cellXY(Math.ceil(pos)), f = pos - Math.floor(pos);
+          var x = lerp(a[0], b[0], f), y = lerp(a[1], b[1], f) - Math.sin(f * Math.PI) * 4;
+          cellBlock(i, x, y, 1);
+        }
+        windowFrame(true);
+        // forgotten blocks dissolve into pixels
+        if (fg) for (var s = 0; s < 30; s++) {
+          var du = t - WT(14, "forget"), px = 20 + hash1(s) * 40 - du * 20, py = 240 + hash1(s + 9) * 80 - du * 30 * hash1(s + 3);
+          g.globalAlpha = clamp01(1 - du); rect(px, py, 2, 2, BCOL[s % 4][0]); g.globalAlpha = 1;
+        }
+        vignette(0.2, "rgba(10,20,80,");
+      }
+
+      // "WAIT. SO YOU DON'T SEE LETTERS?"
+      function sceneLetters(t) {
+        kidCU(t, {
+          t: t, talk: talk("kid", t), pose: "chin", eyes: "open", look: -0.6, brow: t < WT(15, "so") ? "up" : "skeptic",
+          extra: function (tt) { "ABC".split("").forEach(function (ch, i) { var k = pop(tt, WT(15, "letters") + 0.08 * i); if (k > 0) { g.save(); g.translate(44 + i * 14, 186 + Math.sin(tt * 4 + i) * 1.5); g.scale(k, k); tag(ch, 0, 0, 1, 1, C.white); g.restore(); } }); },
+        }, [[A(15) - 0.1, 66, 196, 2.2], [A(16), 62, 195, 2.4]]);
+      }
+
+      // STRAWBERRY = ONE BLOCK; miscount
+      var LET = "STRAWBERRY".split("");
+      function letterX(i) { return 90 + (i - 4.5) * 11; }
+      function sceneStraw(t) {
+        var fuse = WT(16, "one") - 0.05;
+        var cam = camAt([[A(16) - 0.2, 90, 162, 1.02], [A(17), 90, 164, 1.07]], t);
+        shake(cam, t, fuse + 0.15, 4, 0.3);
+        space(t);
+        setCam(cam, 1);
+        var think = t > WT(16, "reason") - 0.05;
+        robot(80, 92, 1.3, { t: t, talk: talk("ai", t), eyes: think ? "dizzy" : "open", arm: think ? "scratch" : "point", pa: 1.3 });
+        strawberry(90, 262, 1.15, t);
+        var u = easeOut(clamp01((t - fuse) / 0.18));
+        if (t < fuse + 0.18) {
+          LET.forEach(function (ch, i) {
+            var k = pop(t, A(16) + 0.1 + 0.05 * i);
+            var x = lerp(letterX(i), 90 + (i - 4.5) * 6, u);
+            if (k > 0) block(x, 204, ch, 0, k, u > 0 ? 11 - 5 * u : 11, 14);
+          });
+        } else {
+          block(90, 204, "STRAWBERRY", 0, bump(t, [fuse + 0.18], 0.3), 0, 15);
+          tag("1 TOKEN", 90, 224, 1, pop(t, fuse + 0.25), C.gold);
+        }
+        if (t < fuse + 0.4 && t > fuse + 0.1) { lighter(); glow(90, 204, 40, C.white, 0.7 * (1 - (t - fuse - 0.1) / 0.3)); normalBlend(); }
+        // thought bubble: "2 R'S?" -> buzzed wrong
+        var bk = pop(t, WT(16, "reason"));
+        if (bk > 0) {
+          g.save(); g.translate(140, 52); g.scale(bk, bk);
+          disc(-18, 34, 2, C.white); disc(-12, 28, 3, C.white);
+          rrect(-24, -12, 48, 28, 10, C.ink); rrect(-23, -11, 46, 26, 10, C.white);
+          worldText("2 R'S?", 0, -2 + Math.sin(t * 9) * 0.8, 1, C.ink);
+          if (t > WT(16, "r's") + 0.05) { line(-14, -7, 14, 11, 3, C.red); line(14, -7, -14, 11, 3, C.red); }
+          g.restore();
+        }
+        vignette(0.2, "rgba(10,20,80,");
+      }
+
+      // "SO HOW MANY R'S ARE IN STRAWBERRY?"
+      function sceneHowMany(t) {
+        kidCU(t, { t: t, talk: talk("kid", t), pose: "point", eyes: "open", look: 0.8, brow: "skeptic", mouth: "smirk" },
+          [[A(17) - 0.1, 64, 195, 2.1], [A(18), 62, 194, 2.6]]);
+      }
+
+      // THREE: the block opens up, three R's light up gold
+      function sceneThree(t) {
+        var t0 = A(18), Rs = [2, 7, 8];
+        var cam = { x: 90, y: 162, z: 1.0 * bump(t, [t0], 0.12) + 0.03 * ramp(t, t0, DUR) };
+        space(t);
+        setCam(cam, 1);
+        var ck = WT(18, "checked");
+        robot(90, 90, 1.4, { t: t, talk: talk("ai", t), eyes: t > ck + 0.2 ? "wink" : "happy", arm: t > ck ? "thumb" : "point", pa: 1.2 });
+        strawberry(90, 266, 1.2 * bump(t, [t0], 0.15), t);
+        LET.forEach(function (ch, i) {
+          var ri = Rs.indexOf(i), lit = ri >= 0 && t >= t0 + 0.12 + 0.09 * ri;
+          var k = lit ? bump(t, [t0 + 0.12 + 0.09 * ri], 0.5) : 1;
+          var y = 204 - (lit ? 3 : 0);
+          if (lit) { lighter(); glow(letterX(i), y, 10, C.gold, 0.5); normalBlend(); rrect(letterX(i) - 6.5, y - 8.5, 13, 17, 2, C.gold); }
+          block(letterX(i), y, ch, lit ? 3 : 0, k, 11, 14);
+        });
+        tag("3 R'S", 90, 230, 2, pop(t, t0 + 0.35), C.gold);
+        // confetti
+        for (var c = 0; c < 40; c++) {
+          var u = t - t0 - 0.1;
+          if (u < 0) break;
+          var cx = 90 + (hash1(c) - 0.5) * 40 + (hash1(c + 3) - 0.5) * 220 * Math.min(1, u * 2), cy = 210 - 90 * hash1(c + 6) * Math.min(1, u * 2) + 60 * u * u;
+          if (cy > 186 && cy < 320) rect(cx, cy, 2, 2, BCOL[c % 4][0]);
+        }
+        vignette(0.2, "rgba(10,20,80,");
+      }
+
+      var LOOP = DUR - 0.6;
+      PX.setup(C, {
+        scenes: {
+          hook: sceneHook, room: sceneRoom, jargon: sceneJargon, five: sceneFive, blocks: sceneBlocks, snap: sceneSnap,
+          catjelly: sceneCatJelly, ooh: sceneOoh, trex: sceneTrex, ratio: sceneRatio, why: sceneWhy, price: scenePrice,
+          window: sceneWindow, full: sceneFull, forget: sceneForget, letters: sceneLetters, straw: sceneStraw,
+          howmany: sceneHowMany, three: sceneThree,
+        },
+        sceneAt: function (t) {
+          var tr = WT(7, "tyrannosaurus") - 0.05;
+          return t < A(1) - 0.3 ? "hook" : t < A(2) ? "room" : t < A(3) ? "jargon" : t < A(4) ? "five" : t < A(5) ? "blocks"
+            : t < A(6) ? "snap" : t < A(7) ? "catjelly" : t < tr ? "ooh" : t < A(9) ? "trex" : t < A(10) ? "ratio"
+            : t < A(11) ? "why" : t < A(12) ? "price" : t < A(13) ? "window" : t < A(14) ? "full" : t < A(15) ? "forget"
+            : t < A(16) ? "letters" : t < A(17) ? "straw" : t < A(18) ? "howmany" : t < LOOP ? "three" : "hook";
+        },
+        cuts: [[A(2), "room", "jargon"], [A(4), "five", "blocks"], [A(5), "blocks", "snap"], [A(6), "snap", "catjelly"],
+          [A(7), "catjelly", "ooh"], [A(9), "trex", "ratio"], [A(10), "ratio", "why"], [A(11), "why", "price"],
+          [A(12), "price", "window"], [A(13), "window", "full"], [A(14), "full", "forget"], [A(15), "forget", "letters"],
+          [A(16), "letters", "straw"], [A(17), "straw", "howmany"]],
+        post: function (t, img) {
+          if (t < 0.12) tintImg(img, C.white, 1 - t / 0.12);
+          var gl = A(1) - 0.55;
+          if (t > gl && t < gl + 0.45) glitchRows(img, 22 * Math.sin((t - gl) / 0.45 * Math.PI), Math.floor(t * 30));
+          var cut = B(2) - 0.08;
+          if (t > cut && t < cut + 0.2) glitchRows(img, 10 * Math.sin((t - cut) / 0.2 * Math.PI), Math.floor(t * 30) + 7);
+          var tr = WT(7, "tyrannosaurus") - 0.05;
+          if (t > tr && t < tr + 0.1) tintImg(img, C.white, 1 - (t - tr) / 0.1);
+          if (t > A(18) && t < A(18) + 0.15) tintImg(img, C.white, 0.8 * (1 - (t - A(18)) / 0.15));
+          if (t > DUR - 0.25) tintImg(img, C.white, ramp(t, DUR - 0.25, DUR));
+        },
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: [c.segs.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; })] };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
