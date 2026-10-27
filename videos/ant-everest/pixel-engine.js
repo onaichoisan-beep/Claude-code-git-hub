@@ -226,7 +226,10 @@ PX.setup = function (C, cfg) {
   CAPTIONS = cfg.captions || [];
 };
 PX.scene = function (name, t) {
+  // a fresh context per scene: a draw call that throws mid-clip can't leak its clip/transform into later frames
+  if (g.reset) g.reset();
   g.globalAlpha = 1;
+  g.globalCompositeOperation = "source-over";
   g.setTransform(1, 0, 0, 1, 0, 0);
   PX.cfg.scenes[name](t);
   g.globalAlpha = 1;
