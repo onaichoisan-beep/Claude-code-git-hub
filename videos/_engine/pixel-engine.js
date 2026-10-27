@@ -1,14 +1,23 @@
-// Pixel explainer engine — shared by the bright pixel science shorts.
-// A 180x320 world canvas (palette-locked, 4x4 Bayer dither, upscaled 6x) plus a
-// 360x640 caption canvas (small 5x7 bitmap text centred mid-frame, upscaled 3x).
-// Each project defines its palette, scenes, cuts and captions, then calls
-// PX.render(t) from a paused GSAP proxy tween. Everything is a pure function of t.
+// Pixel explainer engine v2 — SHARP HD pixel art (the owner's house style since Oct 2026).
+// Scenes are written in a 180x320 world coordinate space, but render on a 360x640 pixel
+// buffer (RES 2: each art pixel is 3x3 screen pixels at 1080x1920), palette-locked with a
+// LIGHT 4x4 Bayer dither (DAMP 6), so shapes stay crisp and gradients don't turn into dots.
+// Living characters go through character(fn): an automatic dark outline around their silhouette.
+// Captions: a 360x640 canvas (small 5x7 bitmap text centred mid-frame, upscaled 3x).
+// Each project defines its palette, scenes, cuts and captions, then calls PX.render(t) from a
+// paused GSAP proxy tween. Everything is a pure function of t.
+//
+// Overrides (set before this script): PX_W/PX_H (world size; landscape), PX_RES (render scale,
+// default 2 = sharp; 1 = the old chunky look), PX_DITHER (dither strength, default 6; old = 22).
 
 var W = window.PX_W || 180, H = window.PX_H || 320; // portrait by default; set PX_W/PX_H for landscape
+var RES = window.PX_RES || 2, PW = Math.round(W * RES), PH = Math.round(H * RES);
+var DAMP = window.PX_DITHER === undefined ? 6 : window.PX_DITHER;
 var world = document.getElementById("world");
+world.width = PW; world.height = PH;
 var wctx = world.getContext("2d");
 var buf = document.createElement("canvas");
-buf.width = W; buf.height = H;
+buf.width = PW; buf.height = PH;
 var g = buf.getContext("2d", { willReadFrequently: true });
 var ui = document.getElementById("ui");
 var u = ui.getContext("2d", { willReadFrequently: true });
@@ -72,9 +81,9 @@ function setCam(cam, f) {
   f = f === undefined ? 1 : f;
   var z = Math.pow(cam.z, f);
   var cx = W / 2 + (cam.x - W / 2) * f, cy = H / 2 + (cam.y - H / 2) * f;
-  g.setTransform(z, 0, 0, z, W / 2 - cx * z, H / 2 - cy * z);
+  g.setTransform(z * RES, 0, 0, z * RES, (W / 2 - cx * z) * RES, (H / 2 - cy * z) * RES);
 }
-function screen() { g.setTransform(1, 0, 0, 1, 0, 0); }
+function screen() { g.setTransform(RES, 0, 0, RES, 0, 0); }
 
 // ---------------------------------------------------------------- drawing
 function disc(x, y, r, col) {
@@ -141,10 +150,10 @@ function nearest(r, gg, b) {
 }
 function quantize(img) {
   var d = img.data;
-  for (var y = 0; y < H; y++) {
-    for (var x = 0; x < W; x++) {
-      var i = (y * W + x) * 4;
-      var off = (BAYER[(y & 3) * 4 + (x & 3)] / 16 - 0.47) * 22;
+  for (var y = 0; y < PH; y++) {
+    for (var x = 0; x < PW; x++) {
+      var i = (y * PW + x) * 4;
+      var off = (BAYER[(y & 3) * 4 + (x & 3)] / 16 - 0.47) * DAMP;
       var r = d[i] + off, gg = d[i + 1] + off, b = d[i + 2] + off;
       r = r < 0 ? 0 : r > 255 ? 255 : r; gg = gg < 0 ? 0 : gg > 255 ? 255 : gg; b = b < 0 ? 0 : b > 255 ? 255 : b;
       var key = ((r >> 2) << 12) | ((gg >> 2) << 6) | (b >> 2);
@@ -219,7 +228,7 @@ function drawCaption(cap, t) {
 
 // ---------------------------------------------------------------- frame
 // cfg: { scenes: {name: fn(t)}, sceneAt: fn(t) -> name, cuts: [[time, from, to]], captions: [...] }
-var PX = { cfg: null };
+var PX = { cfg: null, RES: RES, W: W, H: H };
 PX.setup = function (C, cfg) {
   setPalette(C);
   PX.cfg = cfg;
@@ -230,10 +239,11 @@ PX.scene = function (name, t) {
   if (g.reset) g.reset();
   g.globalAlpha = 1;
   g.globalCompositeOperation = "source-over";
-  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.setTransform(RES, 0, 0, RES, 0, 0);
   PX.cfg.scenes[name](t);
   g.globalAlpha = 1;
-  return g.getImageData(0, 0, W, H);
+  g.globalCompositeOperation = "source-over";
+  return g.getImageData(0, 0, PW, PH);
 };
 PX.render = function (t) {
   var cfg = PX.cfg, img = null;
@@ -242,9 +252,9 @@ PX.render = function (t) {
     if (Math.abs(t - c[0]) < 0.15) {
       var p = (t - (c[0] - 0.15)) / 0.3;
       var A = PX.scene(c[1], t), B = PX.scene(c[2], t), a = A.data, b = B.data;
-      for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
+      for (var y = 0; y < PH; y++) for (var x = 0; x < PW; x++) {
         if (BAYER[(y & 3) * 4 + (x & 3)] / 16 < p) {
-          var k = (y * W + x) * 4;
+          var k = (y * PW + x) * 4;
           a[k] = b[k]; a[k + 1] = b[k + 1]; a[k + 2] = b[k + 2];
         }
       }
@@ -262,18 +272,18 @@ PX.render = function (t) {
 // ---------------------------------------------------------------- post effects (operate on ImageData)
 // VHS-style rewind tear: rows slide sideways in bands, with bright scan lines
 function glitchRows(img, amount, seed) {
-  var d = img.data, row = new Uint8ClampedArray(W * 4);
-  for (var y = 0; y < H; y++) {
-    var band = Math.floor(y / 6);
-    var off = Math.round((hash1(band * 7.3 + seed) - 0.5) * 2 * amount);
+  var d = img.data, row = new Uint8ClampedArray(PW * 4);
+  for (var y = 0; y < PH; y++) {
+    var band = Math.floor(y / (6 * RES));
+    var off = Math.round((hash1(band * 7.3 + seed) - 0.5) * 2 * amount * RES);
     if (off === 0) continue;
-    var base = y * W * 4;
-    for (var x = 0; x < W; x++) {
-      var sx = ((x - off) % W + W) % W;
+    var base = y * PW * 4;
+    for (var x = 0; x < PW; x++) {
+      var sx = ((x - off) % PW + PW) % PW;
       row[x * 4] = d[base + sx * 4]; row[x * 4 + 1] = d[base + sx * 4 + 1]; row[x * 4 + 2] = d[base + sx * 4 + 2];
     }
-    for (var x2 = 0; x2 < W; x2++) { d[base + x2 * 4] = row[x2 * 4]; d[base + x2 * 4 + 1] = row[x2 * 4 + 1]; d[base + x2 * 4 + 2] = row[x2 * 4 + 2]; }
-    if (hash1(band + seed * 3.1) > 0.82) for (var x3 = 0; x3 < W; x3++) { d[base + x3 * 4] = 255; d[base + x3 * 4 + 1] = 255; d[base + x3 * 4 + 2] = 255; }
+    for (var x2 = 0; x2 < PW; x2++) { d[base + x2 * 4] = row[x2 * 4]; d[base + x2 * 4 + 1] = row[x2 * 4 + 1]; d[base + x2 * 4 + 2] = row[x2 * 4 + 2]; }
+    if (hash1(band + seed * 3.1) > 0.82) for (var x3 = 0; x3 < PW; x3++) { d[base + x3 * 4] = 255; d[base + x3 * 4 + 1] = 255; d[base + x3 * 4 + 2] = 255; }
   }
 }
 // blend the whole frame toward a colour (flash / fade)
@@ -295,3 +305,32 @@ function glow(x, y, r, col, a) {
 }
 function lighter() { g.globalCompositeOperation = "lighter"; }
 function normalBlend() { g.globalCompositeOperation = "source-over"; }
+
+// ---------------------------------------------------------------- living characters: automatic dark outline
+// House rule: EVERY person, animal or creature has a dark outline. Draw it inside character(fn):
+//   character(function () { cat(90, 250, 1.2, { t: t }); });
+// The shape is rendered off-screen with the current camera, a 1-render-pixel (3 screen px) dark
+// outline is stamped around its silhouette, then the shape goes on top. Transparency is kept
+// (a ghost gets a ghostly outline). opts: { col: outline colour (default OUTLINE), px: thickness }.
+var OUTLINE = window.PX_OUTLINE || "#0a0614";
+var cbuf = document.createElement("canvas"); cbuf.width = PW; cbuf.height = PH;
+var cg = cbuf.getContext("2d");
+var obuf = document.createElement("canvas"); obuf.width = PW; obuf.height = PH;
+var og = obuf.getContext("2d");
+function character(drawFn, opts) {
+  opts = opts || {};
+  var m = g.getTransform(), alpha = g.globalAlpha, main = g;
+  cg.setTransform(1, 0, 0, 1, 0, 0); cg.globalAlpha = 1; cg.globalCompositeOperation = "source-over"; cg.clearRect(0, 0, PW, PH);
+  cg.setTransform(m);
+  g = cg;
+  try { drawFn(); } finally { g = main; cg.globalAlpha = 1; cg.globalCompositeOperation = "source-over"; }
+  og.setTransform(1, 0, 0, 1, 0, 0); og.globalCompositeOperation = "source-over"; og.clearRect(0, 0, PW, PH);
+  og.drawImage(cbuf, 0, 0);
+  og.globalCompositeOperation = "source-in"; og.fillStyle = opts.col || OUTLINE; og.fillRect(0, 0, PW, PH);
+  og.globalCompositeOperation = "source-over";
+  var r = opts.px || 1;
+  g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = alpha; g.globalCompositeOperation = "source-over";
+  for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) if ((dx || dy) && dx * dx + dy * dy <= r * r + 0.5) g.drawImage(obuf, dx, dy);
+  g.drawImage(cbuf, 0, 0);
+  g.restore();
+}

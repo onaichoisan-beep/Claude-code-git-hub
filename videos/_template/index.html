@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Style Sample</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #1a1450;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #1a1450;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      HOUSE-STYLE TEMPLATE (videos/_engine/new_video.sh copies this). Rules: STYLE_GUIDE.md at the repo root.
+      - SHARP HD pixel art: the engine renders the 180x320 world on a 360x640 buffer (3x3 screen px per pixel)
+        with a light dither. Use half-pixel coordinates (0.5) for fine detail: eyes, highlights, whiskers.
+      - EVERY living character is drawn inside character(fn) -> automatic dark outline. Don't hand-draw ink outlines.
+      - Characters are big (about a third of the frame tall) and stand below the caption band (world y 150-172).
+      - Narrated: captions.js (from scripts/synth_audio.py) gives VO word timings, MOUTH flaps and BEATS.
+      Replace the scenes below with the story; keep the structure.
+    -->
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="9.8"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="9.8" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: narration (one voice per character) + ducked open-source SFX -->
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="9.8" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = window.DUR || 9.8;
+      var C = {
+        // sky + land
+        sky1: "#2a2a8a", sky2: "#a84ac8", sky3: "#ff7a8a", sky4: "#ffb85a", sun: "#fff0a0", sunG: "#ffd060",
+        hillFar: "#7a4ab8", hillMid: "#3a8a7a", grass: "#3ac05a", grassD: "#1e8a3e", grassL: "#8ae86a",
+        rock: "#8a8aa8", rockD: "#5a5a78", rockL: "#c0c0d8", cloud: "#ffd0e0", trunk: "#7a4a2a", leaf: "#2aa85a",
+        // the kid
+        skin: "#e8a878", skinD: "#c07a50", skinL: "#ffc8a0", hair: "#3a1a10", hairL: "#6a3a20",
+        hoodie: "#ff4a6a", hoodieD: "#c02a4a", jeans: "#3a6ad8", jeansD: "#2a4aa0", shoe: "#ffffff", shoeD: "#c8c8e0",
+        // the cat
+        fur: "#ff8a2a", furD: "#c8541a", furL: "#ffb868", eye: "#5ae86a", pink: "#ff8ab0",
+        white: "#ffffff", ink: "#0a0614", paper: "#f1eef4", gold: "#ffc83a",
+      };
+      DISSOLVE = 0.12;
+
+      // ============================================================ narration timing (captions.js)
+      var VO = window.VO || [], MOUTH = window.MOUTH || {}, BEATS = window.BEATS || {};
+      function A(i) { return VO[i] ? VO[i].a : 0; }
+      function B(i) { return VO[i] ? VO[i].b : 0; }
+      function wkey(w) { return w.toLowerCase().replace(/[^a-z0-9']/g, ""); }
+      function WT(i, word, n) {
+        n = n || 0;
+        var ws = VO[i] ? VO[i].w : [], k = wkey(word), c = 0;
+        for (var j = 0; j < ws.length; j++) if (wkey(ws[j][0]).indexOf(k) === 0) { if (c === n) return ws[j][1]; c++; }
+        return A(i);
+      }
+      function talk(who, t) { var s = MOUTH[who] || "", f = Math.floor(t * 30); return f >= 0 && f < s.length ? +s[f] / 9 : 0; }
+      var T_OUTLINE = BEATS.OUTLINE || 4, T_CAT = BEATS.CAT || 5.5, LOOP = DUR - 0.1;
+
+      // ============================================================ helpers
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function sky(stops) { screen(); g.fillStyle = vgrad(0, H, stops); g.fillRect(0, 0, W, H); }
+      function sparkles(x, y, t, t0, n, r, col) {
+        var u = t - t0; if (u < 0 || u > 0.9) return;
+        for (var i = 0; i < n; i++) { var a = i / n * 6.2832 + u * 2, d = r + u * 30; g.globalAlpha = 1 - u / 0.9; rect(x + Math.cos(a) * d, y + Math.sin(a) * d, 1.5, 1.5, col || C.white); }
+        g.globalAlpha = 1;
+      }
+
+      // ============================================================ characters (drawn without ink lines: character() adds the outline)
+      // a kid: feet at (x, y), about 66*s tall. o: { t, talk, walk, wave, look (+1/-1), blink }
+      function limb(x1, y1, x2, y2, x3, y3, w, col, colD) {
+        line(x1, y1, x2, y2, w, colD); line(x2, y2, x3, y3, w, colD);
+        line(x1 - 0.4, y1 - 0.4, x2 - 0.4, y2 - 0.4, w - 1, col); line(x2 - 0.4, y2 - 0.4, x3 - 0.4, y3 - 0.4, w - 1, col);
+      }
+      function kid(x, y, s, o) {
+        var t = o.t || 0, sw = o.walk ? Math.sin(t * 10) : 0, bob = o.walk ? Math.abs(Math.cos(t * 10)) * 1.2 : Math.sin(t * 2) * 0.4;
+        g.save(); g.translate(x, y - bob); g.scale(s * (o.look || 1), s);
+        // legs (jeans) + shoes
+        limb(-3.5, -24, -3.5 - sw * 4, -12, -3.5 - sw * 6, -2, 5.5, C.jeans, C.jeansD);
+        limb(3.5, -24, 3.5 + sw * 4, -12, 3.5 + sw * 6, -2, 5.5, C.jeans, C.jeansD);
+        ell(-3 - sw * 6, -1.5, 4.2, 2.2, 0, C.shoeD); ell(-3.4 - sw * 6, -2, 3.8, 1.8, 0, C.shoe);
+        ell(4 + sw * 6, -1.5, 4.2, 2.2, 0, C.shoeD); ell(3.6 + sw * 6, -2, 3.8, 1.8, 0, C.shoe);
+        // back arm
+        limb(-8, -42, -10 + sw * 3, -32, -9 + sw * 4, -23, 4.5, C.hoodie, C.hoodieD); disc(-9 + sw * 4, -22.5, 2.2, C.skinD);
+        // hoodie body
+        rrect(-10, -46, 20, 24, 6, C.hoodieD); rrect(-9.5, -46, 18.5, 22.5, 6, C.hoodie);
+        rrect(-5.5, -34, 11, 6, 2, C.hoodieD); rect(-1.5, -45, 0.6, 8, C.white); rect(1, -45, 0.6, 7, C.white);
+        rect(-10, -25, 20, 2.5, C.hoodieD);
+        // front arm (waves on cue)
+        if (o.wave) { var wa = Math.sin(t * 14) * 0.35; limb(8, -42, 14, -50, 15 + wa * 8, -60, 4.5, C.hoodie, C.hoodieD); disc(15.5 + wa * 8, -61, 2.4, C.skin); }
+        else { limb(8, -42, 10 - sw * 3, -32, 9 - sw * 4, -23, 4.5, C.hoodie, C.hoodieD); disc(9 - sw * 4, -22.5, 2.2, C.skin); }
+        // head
+        rect(-2.5, -50, 5, 5, C.skinD);
+        disc(0, -58, 10.5, C.skin); ell(-2.5, -61, 4, 3, -0.4, C.skinL);
+        // hair: messy fringe + bun
+        disc(0, -63, 9.5, C.hair); disc(-6, -60, 5, C.hair); disc(7, -61, 4.5, C.hair); disc(5, -72, 4.6, C.hair); disc(4.4, -72.6, 2, C.hairL);
+        poly([[-9, -60], [-4, -66], [2, -62], [6, -66], [9, -59], [9, -64], [-9, -64]], C.hair);
+        // face
+        var blink = o.blink || (Math.sin(t * 1.7) > 0.985);
+        if (blink) { line(-5.5, -56.5, -2.5, -56.5, 1, C.ink); line(2.5, -56.5, 5.5, -56.5, 1, C.ink); }
+        else {
+          ell(-4, -56.5, 2.2, 2.8, 0, C.white); ell(4, -56.5, 2.2, 2.8, 0, C.white);
+          ell(-3.6, -56.2, 1.4, 2, 0, C.ink); ell(4.4, -56.2, 1.4, 2, 0, C.ink);
+          rect(-4.4, -57.8, 0.8, 0.8, C.white); rect(3.6, -57.8, 0.8, 0.8, C.white);
+        }
+        line(-6, -60.5, -2.5, -61, 0.8, C.hair); line(2.5, -61, 6, -60.5, 0.8, C.hair);
+        disc(-7, -53.5, 1.6, C.pink); disc(7, -53.5, 1.6, C.pink);
+        var k = o.talk || 0;
+        if (k > 0.12) { ell(0.5, -51.8, 2.2, 0.6 + 1.8 * k, 0, C.hoodieD); rect(-1, -52.6 - 0.9 * k, 3, 0.7, C.white); }
+        else { g.strokeStyle = C.skinD; g.lineWidth = 0.8; g.beginPath(); g.arc(0.5, -53, 2.2, 0.3, Math.PI - 0.3); g.stroke(); }
+        g.restore();
+      }
+      // a cat sitting: feet at (x, y), about 34*s tall. o: { t, talk, eyes: open|smug|shock, look, splay }
+      function cat(x, y, s, o) {
+        var t = o.t || 0, eyes = o.eyes || "open";
+        g.save(); g.translate(x, y); if (o.rot) g.rotate(o.rot); g.scale(s * (o.look || 1), s);
+        g.lineCap = "round";
+        g.strokeStyle = C.furD; g.lineWidth = 3.4; g.beginPath(); g.moveTo(5, -3); g.quadraticCurveTo(16, -4, 13 + Math.sin(t * 3) * 2, -16); g.stroke();
+        g.strokeStyle = C.fur; g.lineWidth = 2.4; g.stroke();
+        if (o.splay) { [[-1, -14, -12, -22], [1, -14, 12, -22], [-1, -4, -11, 3], [1, -4, 11, 3]].forEach(function (l) { line(l[0] * 5, l[1], l[2], l[3], 3.2, C.fur); disc(l[2], l[3], 1.8, C.white); }); }
+        else { ell(-6, -3.5, 4, 3.4, 0, C.furD); ell(6, -3.5, 4, 3.4, 0, C.furD); ell(-6, -3.8, 3.5, 3, 0, C.fur); ell(6, -3.8, 3.5, 3, 0, C.fur); }
+        ell(0, -9, 8, 9, 0, C.fur); ell(0, -8, 4.6, 6.4, 0, C.white);
+        line(-6, -13, -4, -10, 0.8, C.furD); line(6, -13, 4, -10, 0.8, C.furD);
+        if (!o.splay) { ell(-3.2, -0.9, 2.3, 1.4, 0, C.white); ell(3.2, -0.9, 2.3, 1.4, 0, C.white); }
+        var hy = -21;
+        poly([[-7.3, hy - 4.5], [-6.3, hy - 11.6], [-2.6, hy - 7]], C.fur); poly([[7.3, hy - 4.5], [6.3, hy - 11.6], [2.6, hy - 7]], C.fur);
+        poly([[-6.3, hy - 5.5], [-5.9, hy - 9.4], [-3.8, hy - 6.8]], C.pink); poly([[6.3, hy - 5.5], [5.9, hy - 9.4], [3.8, hy - 6.8]], C.pink);
+        ell(0, hy, 8.2, 7.8, 0, C.fur);
+        rect(-0.5, hy - 7.6, 1, 3, C.furD); line(-3.2, hy - 7, -2.6, hy - 4.6, 0.8, C.furD); line(3.2, hy - 7, 2.6, hy - 4.6, 0.8, C.furD);
+        ell(-2.4, hy + 3.6, 3.2, 2.4, 0, C.white); ell(2.4, hy + 3.6, 3.2, 2.4, 0, C.white);
+        [-3.5, 3.5].forEach(function (ex) {
+          ell(ex, hy - 0.6, 1.9, 2.3, 0, C.eye);
+          if (eyes === "shock") { ell(ex, hy - 0.6, 1.9, 2.3, 0, C.white); disc(ex, hy - 0.6, 0.6, C.ink); }
+          else ell(ex, hy - 0.6, 0.5, 1.8, 0, C.ink);
+          rect(ex - 1.1, hy - 2.1, 0.7, 0.7, C.white);
+          if (eyes === "smug") { rect(ex - 2.1, hy - 3, 4.2, 2.3, C.fur); line(ex - 1.8, hy - 0.7, ex + 1.8, hy - 0.7, 0.6, C.furD); }
+        });
+        poly([[-1.1, hy + 1.8], [1.1, hy + 1.8], [0, hy + 2.9]], C.pink);
+        var k = o.talk || 0;
+        if (k > 0.12) ell(0, hy + 4.8, 1.3, 0.4 + 1.2 * k, 0, C.furD);
+        g.strokeStyle = C.white; g.lineWidth = 0.4;
+        [[-4, -11, 0.5], [-4, -11.5, -0.6], [4, 11, 0.5], [4, 11.5, -0.6]].forEach(function (w) { g.beginPath(); g.moveTo(w[0], hy + 3.6); g.lineTo(w[1], hy + 3.6 + w[2] * 2); g.stroke(); });
+        g.restore();
+      }
+
+      // ============================================================ the scene
+      function scene(t) {
+        var tl = t > LOOP - 0.3 ? 0 : t;
+        var cam = camAt([[0, 92, 166, 1.16], [A(1), 90, 154, 1.04], [T_CAT, 96, 154, 1.06], [DUR, 94, 154, 1.1]], tl);
+        shake(cam, tl, 0, 5, 0.5);
+        sky([[0, C.sky1], [0.4, C.sky2], [0.7, C.sky3], [1, C.sky4]]);
+        setCam(cam, 0.2);
+        lighter(); glow(120, 180, 70, C.sunG, 0.55); normalBlend();
+        disc(120, 180, 24, C.sun);
+        setCam(cam, 0.4);
+        [[30, 70, 26], [140, 52, 32], [80, 110, 20]].forEach(function (c, i) { var x = c[0] + tl * (i % 2 ? -1.5 : 2); ell(x, c[1], c[2] * 0.6, 4, 0, C.cloud); disc(x - 6, c[1] - 3, 6, C.cloud); disc(x + 5, c[1] - 4, 7, C.cloud); });
+        poly([[-80, 240], [-20, 196], [40, 226], [100, 190], [170, 222], [260, 200], [260, 330], [-80, 330]], C.hillFar);
+        setCam(cam, 0.7);
+        poly([[-80, 262], [10, 236], [90, 254], [190, 230], [260, 250], [260, 340], [-80, 340]], C.hillMid);
+        rect(150, 214, 4, 30, C.trunk); disc(152, 208, 12, C.leaf); disc(144, 214, 8, C.leaf); disc(160, 214, 8, C.leaf);
+        setCam(cam, 1);
+        g.fillStyle = vgrad(276, 330, [[0, C.grass], [1, C.grassD]]); g.fillRect(-60, 276, 300, 80);
+        for (var i = 0; i < 40; i++) { var gx = -50 + hash1(i) * 280, gy = 280 + hash1(i + 5) * 40; line(gx, gy, gx + Math.sin(tl * 2 + i) * 1.2, gy - 3, 1, i % 3 ? C.grassL : C.grassD); }
+        // the rock the cat lands on
+        ell(130, 282, 22, 9, 0, C.rockD); ell(130, 279, 20, 10, 0, C.rock); ell(124, 275, 8, 3, 0, C.rockL);
+        // the kid walks in, then waves
+        var walkU = clamp01((tl - 0.4) / 2.0), kx = lerp(-20, 62, ease(walkU));
+        var outlineFlash = tl > T_OUTLINE && tl < T_OUTLINE + 0.18;
+        character(function () { kid(kx, 282, 1.4, { t: tl, walk: walkU > 0 && walkU < 1, talk: talk("kid", tl), wave: tl > T_OUTLINE - 0.2 && tl < T_CAT + 0.5 || tl > B(2) }); },
+          { col: outlineFlash ? C.white : undefined, px: outlineFlash ? 2 : 1 });
+        sparkles(kx, 230, tl, T_OUTLINE, 14, 30, C.gold);
+        // the cat leaps onto the rock
+        var cu = clamp01((tl - T_CAT) / 0.4);
+        if (cu > 0) {
+          var cx = lerp(210, 130, cu), cy = lerp(220, 272, cu) - Math.sin(cu * Math.PI) * 40;
+          character(function () { cat(cx, cy, 1.45, { t: tl, splay: cu < 1, eyes: cu < 1 ? "shock" : tl > A(2) + 0.2 ? "smug" : "open", talk: talk("cat", tl), look: -1 }); });
+        }
+        vignette(0.25, "rgba(30,10,60,");
+      }
+
+      PX.setup(C, {
+        scenes: { main: scene },
+        sceneAt: function () { return "main"; },
+        cuts: [],
+        post: function (t, img) {
+          if (t < 0.14) tintImg(img, C.white, 1 - t / 0.14);
+          if (t > LOOP - 0.3 && t < LOOP) tintImg(img, C.white, ramp(t, LOOP - 0.3, LOOP));
+          if (t >= LOOP) tintImg(img, C.white, 1);
+        },
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: c.segs.map(function (ln) { return ln.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; }); }) };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

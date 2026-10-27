@@ -1,12 +1,13 @@
 ---
 name: pixel-short
-description: Make a viral 15–30-second vertical pixel-art science, mythology or fiction short in the owner's established style (bright pixel art, cold-open hook, small centred key-fact captions, cinematic sound effects only, loop ending), built with the shared engine in videos/_engine. Use for any "make a video about X" request in this repo, and for writing the matching Instagram caption.
+description: Make a viral vertical pixel-art science, mythology or fiction short in the owner's house style (SHARP HD pixel art, dark outlines on every living character, narration with character-matched voices, open-source sound effects, cold-open hook, small centred captions, loop ending), built with the shared engine in videos/_engine. Use for any "make a video about X" request in this repo, and for writing the matching Instagram caption.
 ---
 
 # Pixel short — the owner's house style
 
-The owner makes ~30s Instagram Reels / Shorts. Everything below is their confirmed preference,
-learned over many videos (see `videos/` for 15+ finished examples). Follow it without re-asking.
+The owner makes Instagram Reels / Shorts. Everything below is their confirmed preference,
+learned over many videos (see `videos/` for 25+ finished examples; `videos/style-sample/` shows the
+current look). The one-page rules are in `/STYLE_GUIDE.md`. Follow them without re-asking.
 
 ## How to work with the owner
 
@@ -19,16 +20,22 @@ learned over many videos (see `videos/` for 15+ finished examples). Follow it wi
 - When done: send the MP4(s), summarise the story beat by beat, note any fixes and fact corrections,
   and include an **Instagram caption** in their format (below). Commit and push.
 
-## The look
+## The look: SHARP HD pixel art (owner's rule, Oct 2026; full rules in /STYLE_GUIDE.md)
 
-- 9:16, **1080×1920 @ 30fps, 30.0s exactly** for explainers; **15–20s** when the owner asks for short
-  viral ones (hook 0–1.5s, rewind, 3–5 beats of ~3s, twist, loop). World canvas **180×320** upscaled 6×, captions on a
-  **360×640** layer upscaled 3×. Palette-locked + 4×4 Bayer dither (the engine does this).
+- 9:16, **1080×1920 @ 30fps**. Scenes are written in a **180×320 world**, rendered **sharp at 360×640**
+  (3×3 screen px per art pixel) with a **light dither** — the engine defaults (`PX_RES 2`, `PX_DITHER 6`).
+  The owner rated the old 180×320 + heavy dither look "too much pixel, not visually clear": never go back to it
+  unless asked. Use half-pixel coordinates (0.5) for fine detail (eyes, highlights, whiskers, fingers).
+- **Dark outline on every living character** (humans, animals, creatures, gods): draw them inside
+  `character(function () { ... })` → automatic 1-pixel dark outline. Don't hand-draw ink underlays.
+  `character(fn, { col, px })` changes the colour/thickness (e.g. a white flash outline on a reveal).
+- **Big, readable characters** (main one ≈ a third of the frame tall), clear faces, mouths that flap with
+  their own voice (`talk(who, t)` from `MOUTH`).
 - **Brightest colours possible** that still read clearly; one accent colour per video for the key thing.
-- **Text: only important facts, small, centred in the middle of the frame** (engine default, scale 2,
-  black box, gold for the key word). 1–3 short lines. Frame every scene so the action sits
+- **Text: only important words, small, centred in the middle of the frame** (engine default, scale 2,
+  black box, gold for the key word), word-synced to the narration. Frame every scene so the action sits
   **below/around** the caption band (world y≈150–172) — never behind it. Use `cam.y` ≈ object_y − 70.
-- Optional upper-left **counter/timeline box** when time matters (Big Bang timeline, hours awake) via `cfg.ui`.
+- Optional upper-left **counter/timeline box** when numbers matter (lives left, years, seconds) via `cfg.ui`.
 
 ## The pacing (viral format)
 
@@ -38,61 +45,65 @@ learned over many videos (see `videos/` for 15+ finished examples). Follow it wi
 4. Twist near the end ("Hanu means jaw", "Blue is the hardest to make", "Don't try this").
 5. **Loop**: the last frame returns to the hook so replays are seamless.
 
-## Sound
+## Voice: narrate everything (owner's rule)
 
-- **Sound effects only by default.** No narration unless the owner asks for it in that request (they did
-  for e.g. "2 of the 5 narrated"). Never put sounds on captions/text.
-- **Narration, when asked:** `cp ../_engine/make_voices.py scripts/`, write `scripts/lines.json`
-  ([speaker, text]) + `scripts/voices.json` ({speaker: [voice, rate, pitch]}), run
-  `python3 scripts/make_voices.py .` (edge-tts, word timings), then a synth_audio that places lines at
-  fixed SLOTS, ducks SFX under the voice and writes word-synced `captions.js` (copy
-  `../dream-film-crew/scripts/synth_audio.py`). Voices that worked: playful/insider →
-  en-US-AndrewMultilingualNeural +10%; epic trailer → en-US-ChristopherNeural −4%, −12 Hz + low boost and
-  hall reverb; casual human → en-US-EmmaMultilingualNeural; shouty director → en-US-GuyNeural.
-- **Real foley** to sit on top of the procedural kit: `python3 ../_engine/fetch_sfx.py . name="query" ...`
-  (Openverse CC0/CC BY, slow and flaky; run it in the background) → `assets/sfx/<name>.wav` + CREDITS.md.
-  **Check every pick's title** (searches return wrong sounds, e.g. "sizzle" → cabinets): delete bad ones and
-  run `python3 ../_engine/prune_credits.py .`. Load with `load()` and always give a procedural fallback.
-  The bundled HyperFrames library (`LIB`: whoosh, whoosh-short, whoosh-cinematic, pop, sparkle, glitch-1/2/3,
-  notification, error, chime, riser, impact-bass-1/2, ping, click, typing) is available offline.
-- **Narrated fables (35–45s, when the owner asks for story + narration):** `_engine/voicelib.py` (lay out
-  lines, word-synced captions with `|` line breaks, ducking, final limiter) + `_engine/foley.py` (synth
-  foley: sea, splash, sizzle, boil, creak, gull, crickets, wind, ice, fire, fireworks, meow, purr, tick,
-  gears, page flips, whispers, glass, rumble…). Copy `../clockmaker-one-second/scripts/` as the template.
-  Voices that worked: Indian storyteller en-IN-PrabhatNeural −3% −3 Hz; Indian woman
-  en-IN-NeerjaExpressiveNeural; smug cat en-GB-RyanNeural +12%; hushed librarian en-GB-SoniaNeural −6%;
-  dark fairy tale en-US-ChristopherNeural −4% −4 Hz + low boost + hall; child en-GB-MaisieNeural.
-  Openverse often times out (504s): don't wait on it. Reuse CC0/CC BY files other projects already
-  fetched (copy their CREDITS.md lines) and lean on `LIB` + the synth kit.
-- Cinematic and easy to hear: impacts, braams, taiko drum rolls, risers, sub drops, conch, gong,
-  bells, roars, whooshes, story-specific foley. Exception: calm/awe topics (e.g. the Big Bang) use
-  **soft ambient** sound, no booms. Target ~ −12 to −17 dB mean, −1 dB peak.
-- Built procedurally in `scripts/synth_audio.py` using `scripts/sfxlib.py` (`Bus`, `master`, and the
-  kit: `impact braam taiko conch gong sub_drop rewind drum_roll roar shing bell blip thump sweep riser
-  bubble heartbeat noise_hit reverb seg add`). You cannot listen; verify levels with ffmpeg volumedetect.
+- **Every video is narrated**, and **every character speaks with their own voice that fits them** (age,
+  gender, culture/accent, personality, size). The narrator fits the story's mood and setting. Never reuse a
+  voice for two characters in one video. Casting table: `videos/_engine/VOICES.md`.
+- `scripts/lines.json` = `[[speaker, text], ...]`, `scripts/voices.json` = `{speaker: [voice, rate, pitch]}`,
+  then `SSL_CERT_FILE=/root/.ccr/ca-bundle.crt python3 scripts/make_voices.py .` (edge-tts + word timings).
+- `scripts/synth_audio.py` (template in `videos/_template/scripts/`) lays lines out with `voicelib.py`,
+  writes `captions.js` (`CAPS` word-synced captions with `|` line breaks, `VO` word times, `MOUTH` flaps,
+  `BEATS` shared beat times), ducks SFX under the voices and limits the mix. Scenes key off `A(i)`,
+  `WT(i, word)`, so a re-voice stays in sync. Length follows the narration (stories 30–45 s, quick ones 15–20 s).
+- Add room to the narrator where it fits (hall reverb + low boost for epic/dark, light room for intimate).
+
+## Sound: open-source sound effects (owner's rule)
+
+- Every sound effect comes from **open-source / openly licensed** sources via `scripts/osfx.py`, best first:
+  1. **CC0 recordings**: `osfx.sound(name)` — Kenney.nl + OpenGameArt packs, 1,099 sounds (footsteps,
+     impacts, doors, books, glass, metal, coins, cards, sci-fi, creatures, water, bangs/fireworks, UI,
+     jingles). Catalog: `videos/_engine/SOUNDS.md`; search: `python3 ../_engine/osfx.py find <word>`.
+  2. **Openverse** (Freesound…, CC0 / CC BY only): `osfx.openverse(name, query, fallback=...)` — cached,
+     credited, gives up fast when the API is down (it often is). Check what came back is the right sound.
+  3. **Open-source generators**: `osfx.sfxr(preset, seed)` (jsfxr 8-bit: pickupCoin laserShoot explosion
+     powerUp hitHurt jump blipSelect synth tone click random) and the numpy kits — `sfxlib.py` cinematic
+     hits (`impact braam taiko conch gong sub_drop rewind drum_roll roar shing bell blip thump sweep riser
+     bubble heartbeat noise_hit reverb`) and `foley.py` story foley (sea, splash, sizzle, boil, creak, gull,
+     crickets, wind, ice, fire, fireworks, meow, purr, tick, gears, page flips, whispers, glass, rumble…).
+  4. The bundled HyperFrames library: `osfx.lib(name)` (whoosh, whoosh-cinematic, pop, sparkle, glitch-1/2/3,
+     chime, riser, impact-bass-1/2, ping, notification…).
+- Layer them: a real recording for the "what", a synth hit for the punch, always with a fallback.
+  `osfx.project(ROOT)` freezes every sound used into `assets/sfx/` so the project re-synthesises identically;
+  CC BY credits land in `assets/sfx/CREDITS.md` and go into the post caption.
+- Cinematic and easy to hear: impacts, braams, taiko drum rolls, risers, sub drops, conch, gong, bells,
+  roars, whooshes, story-specific foley. Calm/awe topics (e.g. the Big Bang) use **soft ambient** sound.
+  No sounds on captions. Target ~ −12 to −17 dB mean, −1 dB peak; verify with ffmpeg volumedetect
+  (you cannot listen).
 
 ## Build recipe
 
 ```bash
-npx hyperframes init "videos/<slug>" --non-interactive --example=blank --skill=faceless-explainer
+videos/_engine/new_video.sh <slug>          # template + fresh engine/kits; prints the next steps
 cd videos/<slug>
-cp ../cracking-knuckles/.gitignore . && mkdir -p scripts assets/audio
-cp ../_engine/pixel-engine.js . && cp ../_engine/sfxlib.py scripts/
-# write index.html (copy the structure of a finished video, e.g. ../narasimha-loophole/index.html):
-#   palette C → scene functions → PX.setup(C, {scenes, sceneAt, cuts, post, captions, ui?}) → GSAP proxy
-# write scripts/synth_audio.py, then:
-python3 scripts/synth_audio.py
+# 1. scripts/lines.json + scripts/voices.json (cast with ../_engine/VOICES.md), then:
+SSL_CERT_FILE=/root/.ccr/ca-bundle.crt python3 scripts/make_voices.py .
+# 2. scripts/synth_audio.py: CAPS, GAPS, TAIL, sound cues (osfx), then:
+python3 scripts/synth_audio.py              # prints DUR; set data-duration in index.html to it
+# 3. index.html: palette C → characters (drawn inside character(...)) → scene functions →
+#    PX.setup(C, {scenes, sceneAt, cuts, post, captions, ui?}) → GSAP proxy (see the template + ../style-sample)
 npx hyperframes snapshot --at <12 key moments> --no-end --describe false   # look at the contact sheet, fix, repeat
 npx hyperframes check
 npx hyperframes render --skill=faceless-explainer --quality high --output renders/video.mp4
-ffprobe … ; ffmpeg -i renders/video.mp4 -af volumedetect -f null -   # verify 30.0s + levels
+ffprobe … ; ffmpeg -i renders/video.mp4 -af volumedetect -f null -   # verify duration + levels
 ```
 
-Engine notes (`videos/_engine/pixel-engine.js`): everything is a pure function of `t` (no Math.random,
-use `rng(seed)` / `hash1`). Helpers: `camAt shake setCam screen disc ell line rect rrect poly vgrad
+Engine notes (`videos/_engine/pixel-engine.js` v2): everything is a pure function of `t` (no Math.random,
+use `rng(seed)` / `hash1`). Helpers: `character camAt shake setCam screen disc ell line rect rrect poly vgrad
 vignette worldText glow lighter normalBlend glitchRows tintImg mix`. `glow()` and `hex()` need **hex**
 colours — passing an `rgb()` string from `mix()` throws and freezes frames. Always reset
-`normalBlend()` after `lighter()`. Write a short `BRIEF.md` (message, story, sources) per project.
+`normalBlend()` after `lighter()`. Old projects keep their own engine copy (the chunky v1); new projects get
+v2 from `new_video.sh`. Write a short `BRIEF.md` (message, story, voices, sound, sources) per project.
 
 ## Instagram caption format
 
@@ -105,8 +116,10 @@ colours — passing an `rgb()` string from `mix()` throws and freezes frames. Al
 
 Sources: <Source 1>; <Source 2>; <Source 3>
 
-#<topic> #<topic> #<science|mythology> #pixelart
+#<topic> #<topic> #<science|mythology|fable> #pixelart
 ```
+
+Add any CC BY sound credits from `assets/sfx/CREDITS.md` before the hashtags; label fiction as fiction.
 
 ## Topic taste
 

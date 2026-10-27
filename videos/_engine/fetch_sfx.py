@@ -19,10 +19,11 @@ API = "https://api.openverse.org/v1/audio/"
 
 def search(q):
     url = API + "?" + urllib.parse.urlencode({"q": q, "license": "cc0,by", "page_size": 20})
-    for attempt in range(6):
+    tries, timeout = int(os.environ.get("OPENVERSE_TRIES", 6)), int(os.environ.get("OPENVERSE_TIMEOUT", 90))
+    for attempt in range(tries):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "pixel-shorts/1.0"})
-            return json.load(urllib.request.urlopen(req, timeout=90))["results"]
+            return json.load(urllib.request.urlopen(req, timeout=timeout))["results"]
         except Exception as e:  # slow API / rate limit: back off and retry
             print(f"  search retry {attempt + 1}: {e}")
             time.sleep(2 ** (attempt + 1))
