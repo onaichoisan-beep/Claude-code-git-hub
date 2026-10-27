@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Fisherman Who Caught the Sun</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #0a0a2a;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #0a0a2a;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="40.3"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="40.3" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: storyteller narration + ducked cinematic SFX -->
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="40.3" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = window.DUR || 40.3;
+      var C = {
+        // skies
+        night: "#0a0a2a", nightMid: "#1a1a5a", nightLow: "#2c2878", star: "#ffffff",
+        duskTop: "#3a2a9a", duskMid: "#c84aa8", dusk: "#ff6a7a", duskLow: "#ffa04a", duskGold: "#ffd060",
+        dawnTop: "#4a8aff", dawnMid: "#9ac8ff", dawnLow: "#ffd8a0",
+        // sea
+        sea: "#1a6ac8", seaDeep: "#0e3a8a", seaLight: "#4aa8f0", foam: "#c8f0ff",
+        seaNight: "#0a1a4a", seaNightL: "#1e3c80", seaGold: "#ffb84a",
+        // the Sun
+        sun: "#ff5a2a", sunMid: "#ff9a2a", sunGlow: "#ffc83a", sunCore: "#fff4a0", sunFace: "#a8281a", cheek: "#ff7aa0",
+        // people
+        skin: "#a8643a", skinD: "#6e3c1e", skinL: "#c8844a", beard: "#eef0f8", beardD: "#a8acc4",
+        turban: "#ff3a4a", turbanD: "#b81a2a", lungi: "#2ad0a0", lungiD: "#138a66",
+        saree: "#ff3aa0", sareeD: "#b0186a", hair: "#1a0e0a", shawl: "#8a5ad8", shawlD: "#5a32a0",
+        // village
+        wood: "#9a5a2a", woodD: "#5a3018", woodL: "#d08a48", net: "#e8d890", netD: "#8a7a50",
+        thatch: "#e0a840", thatchD: "#a06a20", wall: "#d0784a", wallD: "#8a4a2a", palm: "#2ab05a", palmD: "#146a36",
+        ice: "#d4f6ff", iceD: "#7ac8f0", iceB: "#4a88c8", frost: "#f4fcff",
+        clay: "#d8602a", clayD: "#8a3218", flame: "#ffe03a", flameO: "#ff8a1a", oil: "#3a1a0a",
+        stone: "#7a6a9a", stoneD: "#4a3e6a", stoneL: "#a898c8",
+        red: "#ff3a3a", green: "#3ae070", blue: "#3a8aff", purple: "#b46aff",
+        gold: "#ffc83a", goldD: "#c88a10", white: "#ffffff", ink: "#06050a", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12; // captions follow the voice: short dissolve
+
+      // ============================================================ narration timing (captions.js)
+      var VO = window.VO || [], MOUTH = window.MOUTH || {};
+      function A(i) { return VO[i] ? VO[i].a : 0; }
+      function B(i) { return VO[i] ? VO[i].b : 0; }
+      function wkey(w) { return w.toLowerCase().replace(/[^a-z0-9']/g, ""); }
+      function WT(i, word, n) {
+        n = n || 0;
+        var ws = VO[i] ? VO[i].w : [], k = wkey(word), c = 0;
+        for (var j = 0; j < ws.length; j++) if (wkey(ws[j][0]).indexOf(k) === 0) { if (c === n) return ws[j][1]; c++; }
+        return A(i);
+      }
+      function talk(who, t) { var s = MOUTH[who] || "", f = Math.floor(t * 30); return f >= 0 && f < s.length ? +s[f] / 9 : 0; }
+
+      // scene boundaries
+      var T_SUNSET = A(1) - 0.3, T_NET = A(2), T_HUT = A(3), T_NOMORN = WT(3, "and") - 0.1, T_COLD = A(4);
+      var T_WIFE = A(5), T_ROW = A(6), T_FREE = WT(6, "free"), T_CRUMB = A(7), T_DIYA = A(8), LOOP = DUR - 0.12;
+
+      // ============================================================ helpers
+      function bump(t, times, amt) { var z = 1; times.forEach(function (ti) { if (t >= ti) z += amt * Math.exp(-(t - ti) * 8); }); return z; }
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function sky(stops) { screen(); g.fillStyle = vgrad(0, H, stops); g.fillRect(0, 0, W, H); }
+      var STARS = (function () { var r = rng(3), a = []; for (var i = 0; i < 110; i++) a.push({ x: r() * 260 - 40, y: r() * 230 - 30, k: r() }); return a; })();
+      function stars(t, alpha) {
+        if (alpha <= 0) return;
+        g.globalAlpha = alpha;
+        STARS.forEach(function (s, i) { if (Math.sin(t * 2.3 + i * 1.7) > -0.5) rect(s.x, s.y, s.k > 0.88 ? 2 : 1, s.k > 0.88 ? 2 : 1, s.k > 0.95 ? C.sunGlow : C.star); });
+        g.globalAlpha = 1;
+      }
+      function uText(str, x, y, s, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) {
+          var gl = FONT[str[i]] || FONT[" "];
+          for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * s + (p % 5) * s, y + Math.floor(p / 5) * s, s, s);
+        }
+      }
+
+      // the Sun, with a face. mood: sleep | wow | worried | happy | wink | calm
+      function sunFace(x, y, r, t, mood, glowA) {
+        glowA = glowA === undefined ? 1 : glowA;
+        if (glowA > 0) { lighter(); glow(x, y, r * 3.2, C.sunGlow, 0.45 * glowA); glow(x, y, r * 1.8, C.sunCore, 0.3 * glowA); normalBlend(); }
+        for (var i = 0; i < 12; i++) {
+          var a = i * 0.5236 + t * 0.4, rl = r * (1.32 + 0.08 * Math.sin(t * 6 + i));
+          poly([[x + Math.cos(a - 0.13) * r, y + Math.sin(a - 0.13) * r], [x + Math.cos(a) * rl, y + Math.sin(a) * rl], [x + Math.cos(a + 0.13) * r, y + Math.sin(a + 0.13) * r]], C.sunGlow);
+        }
+        disc(x, y, r * 1.06, C.sunGlow); disc(x, y, r, C.sun); disc(x, y, r * 0.8, C.sunMid);
+        disc(x - r * 0.32, y - r * 0.34, r * 0.22, C.sunCore);
+        if (r < 4) return;
+        var ex = r * 0.34, ey = -r * 0.08, lw = Math.max(1, r * 0.09);
+        disc(x - ex - r * 0.12, y + r * 0.22, r * 0.14, C.cheek); disc(x + ex + r * 0.12, y + r * 0.22, r * 0.14, C.cheek);
+        function arcEye(cx, up) { g.strokeStyle = C.sunFace; g.lineWidth = lw; g.beginPath(); if (up) g.arc(cx, y + ey + r * 0.06, r * 0.13, Math.PI + 0.3, -0.3); else g.arc(cx, y + ey - r * 0.06, r * 0.13, 0.3, Math.PI - 0.3); g.stroke(); }
+        if (mood === "sleep") { arcEye(x - ex, false); arcEye(x + ex, false); ell(x, y + r * 0.3, r * 0.08, r * 0.06, 0, C.sunFace); }
+        else if (mood === "wow" || mood === "worried") {
+          disc(x - ex, y + ey, r * 0.15, C.white); disc(x + ex, y + ey, r * 0.15, C.white);
+          disc(x - ex, y + ey + r * 0.02, r * 0.08, C.sunFace); disc(x + ex, y + ey + r * 0.02, r * 0.08, C.sunFace);
+          if (mood === "wow") ell(x, y + r * 0.35, r * 0.13, r * 0.17, 0, C.sunFace);
+          else { line(x - r * 0.15, y + r * 0.38, x + r * 0.15, y + r * 0.34, lw, C.sunFace); line(x - ex - r * 0.15, y + ey - r * 0.2, x - ex + r * 0.1, y + ey - r * 0.28, lw, C.sunFace); line(x + ex + r * 0.15, y + ey - r * 0.2, x + ex - r * 0.1, y + ey - r * 0.28, lw, C.sunFace); }
+        } else if (mood === "happy" || mood === "wink") {
+          arcEye(x - ex, true);
+          if (mood === "wink") line(x + ex - r * 0.13, y + ey, x + ex + r * 0.13, y + ey, lw, C.sunFace); else arcEye(x + ex, true);
+          g.strokeStyle = C.sunFace; g.lineWidth = lw; g.beginPath(); g.arc(x, y + r * 0.2, r * 0.2, 0.25, Math.PI - 0.25); g.stroke();
+        } else { disc(x - ex, y + ey, r * 0.08, C.sunFace); disc(x + ex, y + ey, r * 0.08, C.sunFace); line(x - r * 0.12, y + r * 0.32, x + r * 0.12, y + r * 0.32, lw, C.sunFace); }
+      }
+      // a fishing net bag wrapped round a ball (cx, cy, r) with its rope to (hx, hy)
+      function netBag(cx, cy, r, hx, hy, t) {
+        g.save(); g.beginPath(); g.arc(cx, cy, r * 1.12, 0, 6.2832); g.clip();
+        for (var k = -6; k <= 6; k++) {
+          var o = k * r * 0.24 + Math.sin(t * 2) * 0.6;
+          line(cx + o - r * 1.2, cy - r * 1.2, cx + o + r * 1.2, cy + r * 1.2, 0.7, C.netD);
+          line(cx + o + r * 1.2, cy - r * 1.2, cx + o - r * 1.2, cy + r * 1.2, 0.7, C.netD);
+        }
+        g.restore();
+        g.strokeStyle = C.net; g.lineWidth = 1; g.beginPath(); g.arc(cx, cy, r * 1.12, 0, 6.2832); g.stroke();
+        // gathered mouth + rope
+        disc(cx - r * 0.7, cy - r * 0.85, 1.6, C.net);
+        g.strokeStyle = C.net; g.lineWidth = 1; g.beginPath(); g.moveTo(cx - r * 0.7, cy - r * 0.85);
+        g.quadraticCurveTo((cx + hx) / 2, Math.max(cy, hy) + 6, hx, hy); g.stroke();
+      }
+
+      // ============================================================ people
+      function limb(sx, sy, a1, a2, len, col) {
+        var ex = sx + Math.cos(a1) * len, ey = sy + Math.sin(a1) * len, hx = ex + Math.cos(a2) * len, hy = ey + Math.sin(a2) * len;
+        line(sx, sy, ex, ey, 3.2, C.ink); line(ex, ey, hx, hy, 3.2, C.ink);
+        line(sx, sy, ex, ey, 2.2, col); line(ex, ey, hx, hy, 2.2, col); disc(hx, hy, 1.5, col);
+      }
+      // o: { kind: raghu|wife|villager, aB:[a1,a2] back arm, aF:[a1,a2] front arm, lean, face, look(+1 right/-1 left), shiver, t, talk, seed, legs:false }
+      function person(x, y, s, o) {
+        var t = o.t || 0, look = o.look || 1, kind = o.kind || "raghu";
+        g.save(); g.translate(x, y); g.scale(s * look, s); g.rotate(o.lean || 0);
+        if (o.shiver) g.translate((hash1(Math.floor(t * 30) + (o.seed || 0)) - 0.5) * o.shiver, 0);
+        var aB = o.aB || [1.9, 1.7], aF = o.aF || [1.25, 1.45];
+        limb(-4.2, -25, aB[0], aB[1], 6.5, kind === "raghu" ? C.skinD : C.skinD);
+        if (kind === "wife") {
+          poly([[-6.5, -27.5], [6.5, -27.5], [8, -0.5], [-8, -0.5]], C.ink);
+          poly([[-6, -27], [6, -27], [7.5, -1], [-7.5, -1]], C.saree);
+          poly([[-7.5, -3.5], [7.5, -3.5], [7.6, -1], [-7.6, -1]], C.gold);
+          poly([[-6, -27], [-1, -27], [7, -12], [5, -10]], C.sareeD);
+          rect(-4, -1.5, 3, 1.5, C.skinD); rect(1.5, -1.5, 3, 1.5, C.skinD);
+        } else if (kind === "villager") {
+          poly([[-7, -28], [7, -28], [8, -0.5], [-8, -0.5]], C.ink);
+          poly([[-6.5, -27.5], [6.5, -27.5], [7.5, -1], [-7.5, -1]], o.col || C.shawl);
+          for (var st = 0; st < 3; st++) rect(-7, -20 + st * 6, 14.5, 1, o.colD || C.shawlD);
+        } else {
+          if (o.legs !== false) {
+            poly([[-6, -15.5], [6, -15.5], [7, -0.5], [-7, -0.5]], C.ink);
+            poly([[-5.5, -15], [5.5, -15], [6.5, -1], [-6.5, -1]], C.lungi);
+            for (var k = 0; k < 3; k++) rect(-6, -12 + k * 4, 12.5, 1, C.lungiD);
+            rect(-5, -1.5, 3.5, 1.5, C.skinD); rect(1.5, -1.5, 3.5, 1.5, C.skinD);
+          }
+          poly([[-6.6, -28.2], [6.6, -28.2], [5.6, -14], [-5.6, -14]], C.ink);
+          poly([[-6, -27.6], [6, -27.6], [5, -14.5], [-5, -14.5]], C.skin);
+          poly([[-6, -27.6], [-2.4, -27.6], [5, -16.5], [3.2, -14.5]], C.white);
+        }
+        // head
+        var hy = -33;
+        disc(0, hy, 5.6, C.ink); disc(0, hy, 5, C.skin); disc(-1.5, hy - 1.5, 1.4, C.skinL);
+        var face = o.face || "calm", k2 = o.talk || 0;
+        if (kind === "raghu") {
+          ell(1.2, hy + 3.6, 4, 3.6, 0, C.beard); ell(1.6, hy + 2, 3.2, 1.1, 0, C.beard);
+          ell(0, hy - 4.2, 6.2, 3.4, 0, C.turbanD); ell(0, hy - 4.8, 5.8, 3, 0, C.turban);
+          rect(-5.5, hy - 3.6, 11, 1, C.turbanD); disc(-5.5, hy - 4, 1.8, C.turban);
+        } else if (kind === "wife") {
+          disc(-3.2, hy - 1, 4.4, C.hair); disc(-6.6, hy, 2.4, C.hair);
+          poly([[-6.5, hy - 5.5], [2, hy - 6.2], [-8.5, hy + 8], [-9.5, hy + 2]], C.sareeD);
+          disc(2.6, hy - 2.6, 0.7, C.red);
+        } else {
+          ell(0, hy - 3.5, 6, 3.6, 0, o.colD || C.shawlD);
+        }
+        // eyes + mouth
+        var ex = 2.6, ey = hy - 1;
+        if (face === "wow" || face === "scared") {
+          disc(ex, ey, 1.4, C.white); disc(ex + 0.3, ey, 0.7, C.ink);
+          if (kind !== "raghu") ell(3, hy + 2.6, 1, 1.3, 0, C.ink); else ell(2.6, hy + 2.4, 0.9, 1.2, 0, C.ink);
+          if (face === "scared") line(ex - 1.6, ey - 2.6, ex + 1.4, ey - 1.8, 0.8, C.ink);
+        } else if (face === "angry") {
+          rect(ex - 0.5, ey - 0.5, 1.4, 1.4, C.ink); line(ex - 1.8, ey - 2.6, ex + 1.6, ey - 1.4, 1, C.ink);
+          ell(3.2, hy + 2.6, 1.3, 0.4 + 1.4 * k2, 0, C.ink);
+        } else if (face === "strain") {
+          line(ex - 1.3, ey, ex + 1.3, ey - 0.6, 0.9, C.ink); line(ex - 1.3, ey + 0.2, ex + 1.3, ey + 0.8, 0.6, C.ink);
+          rect(1.6, hy + 2.4, 2.4, 0.8, C.ink);
+        } else if (face === "happy") {
+          g.strokeStyle = C.ink; g.lineWidth = 0.8; g.beginPath(); g.arc(ex, ey + 0.6, 1.1, Math.PI + 0.4, -0.4); g.stroke();
+          if (kind !== "raghu") { g.beginPath(); g.arc(3, hy + 1.6, 1.4, 0.3, Math.PI - 0.3); g.stroke(); }
+        } else if (face === "shut") {
+          line(ex - 1.2, ey + 0.3, ex + 1.2, ey + 0.3, 0.8, C.ink);
+        } else { rect(ex - 0.4, ey - 0.6, 1.2, 1.5, C.ink); }
+        limb(4.2, -25, aF[0], aF[1], 6.5, C.skin);
+        g.restore();
+      }
+      function breath(x, y, t, t0) {
+        var u = ((t - t0) % 1.4) / 1.4;
+        if (u < 0) return;
+        g.globalAlpha = 0.6 * (1 - u); disc(x + u * 6, y - u * 4, 1.5 + u * 3, C.frost); g.globalAlpha = 1;
+      }
+
+      // ============================================================ boats, sea, village
+      function boat(x, y, w, t, col) {
+        var bob = Math.sin(t * 2.2) * 0.8;
+        y += bob;
+        poly([[x - w / 2 - 7, y - 9], [x - w / 2 - 2, y - 5], [x + w / 2 + 2, y - 5], [x + w / 2 + 7, y - 9], [x + w / 2 - 1, y + 5], [x - w / 2 + 1, y + 5]], C.ink);
+        poly([[x - w / 2 - 6, y - 8], [x - w / 2 - 1.5, y - 4.5], [x + w / 2 + 1.5, y - 4.5], [x + w / 2 + 6, y - 8], [x + w / 2 - 1.5, y + 4], [x - w / 2 + 1.5, y + 4]], col || C.wood);
+        rect(x - w / 2 - 1, y - 4.5, w + 2, 1.2, C.woodL);
+        rect(x - w / 2 + 2, y - 0.5, w - 4, 1, C.woodD);
+        // painted eye on the prow (Indian fishing boats)
+        disc(x + w / 2 - 1, y - 2.5, 1.6, C.white); disc(x + w / 2 - 0.6, y - 2.5, 0.8, C.ink);
+        return bob;
+      }
+      function waterLine(x0, x1, y, t, col, colL) {
+        rect(x0, y, x1 - x0, 3, col);
+        for (var x = x0; x < x1; x += 7) rect(x + ((t * 9 + y) % 7), y + (Math.floor(x / 7) % 2), 4, 1, colL);
+      }
+      // sea surface from y0 down: base colour, bands, shimmer dashes
+      function seaBody(y0, t, cBase, cDeep, cLight, x0, x1, gold) {
+        x0 = x0 === undefined ? -60 : x0; x1 = x1 === undefined ? 240 : x1;
+        g.fillStyle = vgrad(y0, y0 + 160, [[0, cBase], [1, cDeep]]); g.fillRect(x0, y0, x1 - x0, 260);
+        var r = rng(77);
+        for (var i = 0; i < 90; i++) {
+          var yy = y0 + 2 + Math.pow(r(), 1.6) * 150, sp = 4 + (yy - y0) * 0.1;
+          var xx = x0 + ((r() * (x1 - x0) + t * sp * (r() > 0.5 ? 1 : -1)) % (x1 - x0) + (x1 - x0)) % (x1 - x0);
+          var len = 2 + (yy - y0) * 0.06;
+          if (Math.sin(t * 3 + i) > -0.3) rect(xx, yy, len, 1, gold && Math.abs(xx - gold.x) < gold.w * (1 + (yy - y0) * 0.02) ? C.seaGold : cLight);
+        }
+      }
+      function palm(x, y, s, t, col, colD) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        g.strokeStyle = colD || C.woodD; g.lineWidth = 3; g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(6, -20, 2, -40); g.stroke();
+        for (var i = 0; i < 6; i++) {
+          var a = -Math.PI / 2 + (i - 2.5) * 0.55 + Math.sin(t * 1.5 + i) * 0.05;
+          g.strokeStyle = col || C.palmD; g.lineWidth = 2.6; g.beginPath(); g.moveTo(2, -40);
+          g.quadraticCurveTo(2 + Math.cos(a) * 12, -40 + Math.sin(a) * 12 - 4, 2 + Math.cos(a) * 20, -40 + Math.sin(a) * 20 + 6); g.stroke();
+        }
+        g.restore();
+      }
+      function hut(x, y, s, t, glowK, doorOpen) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        rect(-22, -22, 44, 22, C.ink); rect(-21, -21, 42, 21, C.wall);
+        for (var k = 0; k < 4; k++) rect(-21, -18 + k * 5, 42, 1, C.wallD);
+        // door
+        rect(-6, -16, 12, 16, C.ink);
+        if (glowK > 0) { rect(-5, -15, 10, 15, C.sunCore); rect(-4, -14, 8, 14, C.sunGlow); }
+        if (!doorOpen) { rect(-5, -15, 10, 15, C.woodD); rect(-5, -15, 1, 15, C.wood); rect(-1, -15, 1, 15, C.wood); rect(3, -15, 1, 15, C.wood);
+          if (glowK > 0) { rect(-5, -15, 10, 1, C.sunGlow); rect(-1.5, -15, 1, 15, C.sunGlow); } }
+        // window
+        rect(10, -15, 7, 6, C.ink); rect(11, -14, 5, 4, glowK > 0 ? C.sunGlow : C.nightMid);
+        // thatch roof
+        poly([[-28, -20], [0, -42], [28, -20]], C.ink);
+        poly([[-26, -21], [0, -40.5], [26, -21]], C.thatch);
+        for (var j = 0; j < 9; j++) line(-22 + j * 5.5, -21, -22 + j * 5.5 + (j - 4) * 1.5, -28 - (4 - Math.abs(j - 4)) * 2.5, 0.8, C.thatchD);
+        g.restore();
+        if (glowK > 0) {
+          lighter(); glow(x, y - 8 * s, 30 * s, C.sunGlow, 0.5 * glowK);
+          // light leaking through the thatch
+          for (var b = 0; b < 5; b++) { var a = -Math.PI / 2 + (b - 2) * 0.4; g.globalAlpha = 0.25 * glowK * (0.7 + 0.3 * Math.sin(t * 5 + b)); poly([[x, y - 26 * s], [x + Math.cos(a - 0.06) * 120, y - 26 * s + Math.sin(a - 0.06) * 120], [x + Math.cos(a + 0.06) * 120, y - 26 * s + Math.sin(a + 0.06) * 120]], C.sunGlow); }
+          g.globalAlpha = 1; normalBlend();
+        }
+      }
+      function rooster(x, y, s, t, crow) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        line(-1, 0, -2, 6, 1, C.gold); line(2, 0, 2, 6, 1, C.gold);
+        poly([[-9, -4], [-14, -14], [-11, -3]], C.ink); poly([[-9, -4], [-12, -16], [-7, -5]], C.green); poly([[-8, -4], [-8, -15], [-5, -5]], C.blue);
+        ell(0, -2, 7, 5, 0, C.ink); ell(0, -2.5, 6.4, 4.4, 0, C.white); ell(-2, -1.5, 3.5, 2.4, 0.3, C.beardD);
+        var hx = 6, hy = crow ? -12 : -8;
+        line(3, -4, hx, hy, 3, C.white);
+        disc(hx, hy, 2.6, C.white); poly([[hx - 2, hy - 2], [hx - 1, hy - 5], [hx + 1, hy - 3.4], [hx + 2, hy - 5.5], [hx + 2.4, hy - 1.8]], C.red);
+        disc(hx + 0.6, hy - 0.5, 0.6, C.ink);
+        if (crow) { poly([[hx + 2, hy - 0.5], [hx + 6, hy - 2.5], [hx + 2.2, hy + 0.2]], C.gold); poly([[hx + 2, hy + 0.6], [hx + 5.5, hy + 2.4], [hx + 2.2, hy + 1.2]], C.gold); }
+        else poly([[hx + 2, hy - 0.4], [hx + 5, hy + 0.5], [hx + 2, hy + 1]], C.gold);
+        disc(hx + 1, hy + 2.6, 1, C.red);
+        g.restore();
+      }
+      function diya(x, y, s, t, lit, seed, face) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        poly([[-7, -1], [7, -1], [4.5, 3.5], [-4.5, 3.5]], C.ink);
+        poly([[-6.5, -1], [6.5, -1], [4, 3], [-4, 3]], C.clay);
+        ell(0, -1, 7, 1.8, 0, C.clayD); ell(0, -1.2, 5.6, 1.1, 0, C.oil);
+        poly([[5, -2.2], [10, -2.8], [6.4, 0]], C.clay); rect(-3, 1, 6, 0.8, C.clayD);
+        g.restore();
+        if (lit > 0) {
+          var fx = x + 8.6 * s, fy = y - 2.6 * s, f = 0.85 + 0.15 * Math.sin(t * 17 + seed * 3) + 0.08 * Math.sin(t * 29 + seed), h = 7 * s * lit * f;
+          lighter(); glow(fx, fy - h * 0.4, 14 * s * lit, C.flameO, 0.5); glow(fx, fy - h * 0.4, 6 * s * lit, C.flame, 0.6); normalBlend();
+          var sw = Math.sin(t * 9 + seed) * 0.6 * s;
+          poly([[fx + sw, fy - h], [fx + 1.8 * s * lit, fy - h * 0.3], [fx, fy], [fx - 1.8 * s * lit, fy - h * 0.3]], C.flameO);
+          poly([[fx + sw * 0.6, fy - h * 0.8], [fx + 1 * s * lit, fy - h * 0.28], [fx, fy - 0.2], [fx - 1 * s * lit, fy - h * 0.28]], C.flame);
+          disc(fx, fy - h * 0.25, 0.7 * s * lit, C.white);
+          if (face) sunFace(fx, fy - h * 0.38, 2.6 * s * lit, t, "wink", 0);
+        }
+      }
+      function burst(x, y, t0, t, col, seed) {
+        var u = t - t0;
+        if (u < -0.6 || u > 1.8) return;
+        if (u < 0) { var k = 1 + u / 0.6; rect(x, y + 120 * (1 - k), 1, 3, C.flame); return; }
+        var r = rng(seed), n = 26;
+        for (var i = 0; i < n; i++) {
+          var a = i / n * 6.2832 + r() * 0.2, sp = 26 + r() * 10, d = sp * easeOut(u / 0.9);
+          var px = x + Math.cos(a) * d, py = y + Math.sin(a) * d + 9 * u * u;
+          if (u < 1.2 || Math.sin(u * 40 + i) > 0) rect(px, py, u < 0.3 ? 2 : 1, u < 0.3 ? 2 : 1, i % 3 === 0 ? C.white : col);
+        }
+        if (u < 0.15) { lighter(); glow(x, y, 30, col, 0.6 * (1 - u / 0.15)); normalBlend(); }
+      }
+      function steam(x, y, t, n, spread, col) {
+        for (var i = 0; i < n; i++) {
+          var u = ((t * 0.8 + hash1(i) * 3) % 1.6) / 1.6, px = x + (hash1(i + 4) - 0.5) * spread + Math.sin(t * 2 + i) * 3, py = y - u * 50;
+          g.globalAlpha = 0.5 * (1 - u); disc(px, py, 2 + u * 6, col || C.white); g.globalAlpha = 1;
+        }
+      }
+      function spray(x, y, t, t0, n, col) {
+        var u = t - t0; if (u < 0 || u > 1.4) return;
+        for (var i = 0; i < n; i++) {
+          var a = -Math.PI / 2 + (hash1(i * 3.1) - 0.5) * 2.4, sp = 40 + hash1(i * 1.7) * 60;
+          var px = x + Math.cos(a) * sp * u, py = y + Math.sin(a) * sp * u + 120 * u * u;
+          rect(px, py, 2, 2, i % 4 === 0 ? C.white : col || C.foam);
+        }
+      }
+
+      // ============================================================ SCENES
+      // HOOK: night sea; the net bursts out of the water with the blazing Sun inside
+      function sceneHook(t) {
+        var tl = t > LOOP - 0.5 ? 0 : t; // loop: the end flash lands back on the opening frame
+        var cam = camAt([[0, 112, 150, 1.6], [1.6, 100, 141, 1.4], [3.6, 96, 136, 1.3]], tl);
+        shake(cam, tl, 0, 7, 0.7); shake(cam, tl, WT(0, "sun"), 4, 0.4);
+        sky([[0, C.night], [0.55, C.nightMid], [1, C.duskTop]]);
+        setCam(cam, 0.3); stars(tl, 1);
+        setCam(cam, 1);
+        var sy = 198 - 22 * easeOut(clamp01(tl / 1.2)), sx = 116;
+        seaBody(222, tl, C.seaNightL, C.seaNight, C.seaLight, -60, 240, { x: sx, w: 14 });
+        sunFace(sx, sy, 22, tl, "wow", 1.2);
+        netBag(sx, sy, 22, 58, 214, tl);
+        steam(sx, sy + 18, tl, 16, 50, C.white);
+        spray(sx, 224, tl, 0, 40, C.foam);
+        person(52, 232, 1.15, { kind: "raghu", t: tl, look: 1, lean: -0.3, aB: [0.1, -0.1], aF: [0.25, 0.05], face: "strain" });
+        boat(60, 236, 38, tl, C.wood);
+        waterLine(-60, 240, 238, tl, C.seaNightL, C.seaLight);
+        lighter(); glow(sx, 226, 60, C.sunGlow, 0.4); normalBlend();
+        vignette(0.35, "rgba(10,5,40,");
+      }
+
+      // EVERY NIGHT, THE SUN SINKS INTO THE SEA TO SLEEP
+      var GULLS = [[20, 70, 0.0], [60, 52, 1.3], [130, 84, 2.1], [150, 46, 0.7]];
+      function gullSprite(x, y, t, ph) { var f = Math.sin(t * 9 + ph); line(x - 5, y + f * 2, x, y, 1.2, C.ink); line(x + 5, y + f * 2, x, y, 1.2, C.ink); }
+      function sceneSunset(t) {
+        var t0 = T_SUNSET, t1 = T_NET, u = clamp01((t - t0) / (t1 - t0));
+        var cam = camAt([[t0, 90, 150, 1.0], [t1, 90, 168, 1.15]], t);
+        sky([[0, C.duskTop], [0.35, C.duskMid], [0.6, C.dusk], [0.78, C.duskLow], [1, C.duskGold]]);
+        setCam(cam, 0.4);
+        // clouds
+        [[30, 70, 34], [140, 96, 40], [90, 40, 30]].forEach(function (c, i) {
+          var x = c[0] + t * 2 * (i % 2 ? -1 : 1);
+          ell(x, c[1] + 2, c[2] * 0.6, 4, 0, C.duskMid); ell(x, c[1], c[2] * 0.55, 3.6, 0, C.cheek); disc(x - 6, c[1] - 3, 6, C.cheek); disc(x + 5, c[1] - 4, 7, C.cheek);
+        });
+        setCam(cam, 1);
+        var sy = lerp(196, 234, ease(clamp01((t - WT(1, "sinks") + 0.3) / 2.6)));
+        sunFace(90, sy, 24, t, t > WT(1, "sleep") - 0.4 ? "sleep" : "calm", 0.9);
+        // horizon + sea hide the lower half
+        seaBody(222, t, C.dusk, C.seaDeep, C.duskGold, -60, 240, { x: 90, w: 18 });
+        rect(-60, 222, 300, 1, C.duskGold);
+        // the glow under the water once it has sunk
+        if (sy > 224) { lighter(); glow(90, 232, 36, C.sunGlow, 0.35 * clamp01((sy - 224) / 10)); normalBlend(); }
+        GULLS.forEach(function (gp, i) { gullSprite(((gp[0] + t * 14 + i * 40) % 220) - 20, gp[1] + Math.sin(t + i) * 3, t, gp[2]); });
+        // Zzz
+        if (t > WT(1, "sleep") - 0.2) "ZZZ".split("").forEach(function (ch, i) {
+          var k = pop(t, WT(1, "sleep") - 0.1 + 0.25 * i);
+          if (k > 0) worldText(ch, 116 + i * 9 + Math.sin(t * 3 + i) * 1.5, 206 - i * 7, 1 + (i > 1 ? 1 : 0), C.white);
+        });
+        vignette(0.25, "rgba(60,10,60,");
+      }
+
+      // BUT THAT NIGHT, OLD RAGHU'S NET CAME UP... BURNING
+      function sceneNet(t) {
+        var tb = WT(2, "burning");
+        var cam = camAt([[T_NET, 90, 170, 1.0], [WT(2, "net"), 96, 168, 1.15], [tb - 0.05, 104, 164, 1.3], [tb + 0.15, 100, 150, 1.25], [T_HUT, 100, 148, 1.3]], t);
+        shake(cam, t, tb, 8, 0.6);
+        var lit = clamp01((t - tb) / 0.2), pre = clamp01((t - WT(2, "net")) / (tb - WT(2, "net")));
+        sky([[0, C.night], [0.5, C.nightMid], [1, C.nightLow]]);
+        setCam(cam, 0.3); stars(t, 1 - lit * 0.6);
+        setCam(cam, 1);
+        seaBody(222, t, C.seaNightL, C.seaNight, C.seaLight, -60, 240, lit > 0 ? { x: 128, w: 16 } : null);
+        // glow building under the water
+        if (pre > 0 && lit < 1) { lighter(); glow(128, 248, 18 + 26 * pre, C.sunGlow, 0.25 + 0.45 * pre * (0.8 + 0.2 * Math.sin(t * 20))); normalBlend();
+          for (var b = 0; b < 14; b++) { var bu = ((t * 1.5 + hash1(b) * 2) % 1); disc(116 + hash1(b + 3) * 24, 250 - bu * 28, 1 + hash1(b) * 1.2, C.foam); } }
+        // casting: the net flies out in an arc and lands
+        var castT = T_NET + 0.15, cu = clamp01((t - castT) / 0.5);
+        if (cu > 0 && cu < 1) { var nx = lerp(66, 128, cu), ny = 206 - Math.sin(cu * Math.PI) * 34; g.globalAlpha = 0.9; netBag(nx, ny, 6 + 6 * cu, 64, 212, t); g.globalAlpha = 1; }
+        if (cu >= 1 && lit <= 0) { g.strokeStyle = C.net; g.lineWidth = 1; g.beginPath(); g.moveTo(64, 212); g.quadraticCurveTo(100, 226 + 4 * pre, 128, 228); g.stroke(); }
+        // up it comes, burning
+        if (lit > 0) {
+          var rise = easeOut(clamp01((t - tb) / 0.5)), sy = lerp(236, 192, rise);
+          sunFace(128, sy, 18, t, "wow", 1);
+          netBag(128, sy, 18, 64, 212, t);
+          steam(128, sy + 16, t, 14, 40);
+          spray(128, 226, t, tb, 36, C.foam);
+        }
+        var face = lit > 0 ? "wow" : pre > 0.3 ? "strain" : "calm";
+        var pose = cu < 1 ? { aB: [-0.6 + cu * 1.2, -0.2 + cu], aF: [-1.2 + cu * 1.8, -0.8 + cu * 1.6] } : { aB: [0.25, 0.1], aF: [0.4, 0.15] };
+        person(58, 230, 1.1, { kind: "raghu", t: t, look: 1, lean: pre > 0 ? -0.18 * pre - 0.12 * lit : 0, aB: pose.aB, aF: pose.aF, face: face });
+        boat(64, 234, 34, t, C.wood);
+        waterLine(-60, 240, 236, t, C.seaNightL, C.seaLight);
+        if (lit > 0) { lighter(); glow(128, 200, 80, C.sunGlow, 0.35 * lit); normalBlend(); }
+        vignette(0.35, "rgba(10,5,40,");
+      }
+
+      // HE HID THE SUN IN HIS HUT
+      function sceneHut(t) {
+        var tHid = WT(3, "hid"), tShut = WT(3, "hut");
+        var cam = camAt([[T_HUT, 96, 172, 1.15], [T_NOMORN, 92, 176, 1.28]], t);
+        shake(cam, t, tShut, 3, 0.3);
+        sky([[0, C.night], [0.6, C.nightMid], [1, C.nightLow]]);
+        setCam(cam, 0.3); stars(t, 1);
+        setCam(cam, 0.6);
+        rect(-80, 222, 340, 40, C.stoneD); palm(30, 230, 1.0, t, C.ink, C.ink); palm(160, 232, 1.2, t, C.ink, C.ink);
+        setCam(cam, 1);
+        rect(-60, 226, 300, 100, C.stoneD); rect(-60, 226, 300, 2, C.stone);
+        var shut = t > tShut;
+        hut(90, 240, 1.25, t, 1, !shut);
+        // Raghu drags the netted Sun into the hut
+        var u = clamp01((t - tHid + 0.4) / (tShut - tHid + 0.2));
+        if (!shut) {
+          var sx = lerp(150, 92, ease(u)), sy = 226 - Math.abs(Math.sin(u * 9)) * 2;
+          person(lerp(130, 80, ease(u)), 246, 1.1, { kind: "raghu", t: t, look: -1, lean: 0.15, aB: [0.6, 0.2], aF: [0.3, 0.1], face: "strain" });
+          if (u < 0.92) { sunFace(sx, sy, 9, t, "worried", 0.9); netBag(sx, sy, 9, lerp(140, 70, ease(u)), 230, t); }
+        }
+        if (shut) { // he peeks out of the window
+          var pk = clamp01((t - tShut - 0.3) / 0.3);
+          if (pk > 0) { g.save(); g.beginPath(); g.rect(103, 220, 9, 8); g.clip(); person(107, 262 - pk * 4, 0.9, { kind: "raghu", t: t, look: -1, face: "scared" }); g.restore(); }
+        }
+        vignette(0.4, "rgba(10,5,40,");
+      }
+
+      // AND MORNING... NEVER CAME: the clock runs on, the sky stays black
+      function sceneNoMorning(t) {
+        var tn = WT(3, "never");
+        var cam = camAt([[T_NOMORN, 90, 170, 1.0], [T_COLD, 92, 176, 1.12]], t);
+        sky([[0, C.night], [0.6, C.nightMid], [1, C.nightLow]]);
+        setCam(cam, 0.3); stars(t, 1);
+        setCam(cam, 1);
+        seaBody(224, t, C.seaNightL, C.seaNight, C.seaLight, -60, 240);
+        rect(-60, 224, 300, 1, C.nightLow);
+        // the east where the Sun should rise: an empty dark gap
+        lighter(); glow(120, 224, 30, C.duskTop, 0.25 * (1 - clamp01((t - tn) / 0.6))); normalBlend();
+        // the shore + rooster on a post, crowing at nothing
+        poly([[-60, 260], [70, 248], [110, 330], [-60, 330]], C.stoneD);
+        rect(38, 236, 5, 40, C.woodD); rect(35, 235, 11, 2, C.wood);
+        var crowing = (t > T_NOMORN + 0.3 && t < T_NOMORN + 1.0) || (t > tn + 0.5 && t < tn + 0.9);
+        rooster(40, 228, 1.6, t, crowing);
+        if (t > tn + 0.2) { worldText("?", 66, 196 + Math.sin(t * 4), 2, C.white); }
+        vignette(0.4, "rgba(10,5,40,");
+      }
+      var CLOCK = [["5:30", 0], ["6:00", 0.18], ["7:00", 0.32], ["9:00", 0.46], ["11:00", 0.6], ["12:00", 0.72]];
+      function clockUI(t) {
+        if (t < T_NOMORN || t > T_COLD + 1.0) return;
+        var p = clamp01((t - T_NOMORN - 0.1) / (T_COLD - T_NOMORN)), s = CLOCK[0][0];
+        CLOCK.forEach(function (c) { if (p >= c[1] * 1.3) s = c[0]; });
+        var pm = s === "12:00" ? "PM" : "AM";
+        var x = 14, y = 64, w = 116;
+        u.fillStyle = "rgba(6,5,10,0.85)"; u.fillRect(x, y, w, 40);
+        u.fillStyle = C.gold; u.fillRect(x, y, 2, 40);
+        uText("SUNRISE?", x + 6, y + 5, 1, C.paper);
+        uText(s + " " + pm, x + 6, y + 16, 2, s === "12:00" ? C.red : C.gold);
+        u.fillStyle = "#3a3450"; u.fillRect(x + 6, y + 33, w - 12, 2);
+        u.fillStyle = C.red; u.fillRect(x + 6, y + 33, Math.round((w - 12) * clamp01(p * 1.3)), 2);
+      }
+
+      // THE SEA FROZE. THE BIRDS WENT SILENT. THE WHOLE VILLAGE SHIVERED IN THE DARK.
+      var FLAKES = (function () { var r = rng(21), a = []; for (var i = 0; i < 90; i++) a.push([r() * 400 - 120, r() * 340, 0.5 + r()]); return a; })();
+      function sceneCold(t) {
+        var tf = WT(4, "froze"), tb = WT(4, "birds"), tv = WT(4, "whole");
+        var cam = camAt([[T_COLD, 150, 186, 1.2], [tb - 0.2, 150, 186, 1.25], [tb + 0.5, 62, 186, 1.5], [tv - 0.1, 62, 186, 1.5], [tv + 0.6, -46, 188, 1.6], [T_WIFE, -46, 190, 1.7]], t);
+        shake(cam, t, tf, 4, 0.4);
+        sky([[0, C.night], [0.6, C.nightMid], [1, C.iceB]]);
+        setCam(cam, 0.3); stars(t, 0.8);
+        setCam(cam, 1);
+        // the sea (right): ice spreads out from the shore with cracks
+        var fz = clamp01((t - tf + 0.15) / 0.5);
+        seaBody(222, t, C.seaNightL, C.seaNight, C.seaLight, 80, 320);
+        g.fillStyle = vgrad(222, 330, [[0, C.ice], [1, C.iceB]]);
+        g.fillRect(80, 222, 240 * fz, 110);
+        if (fz > 0) {
+          var cr = rng(5);
+          for (var c = 0; c < 9; c++) { var x0 = 90 + cr() * 220 * fz, y0 = 228 + cr() * 80; line(x0, y0, x0 + (cr() - 0.5) * 30, y0 + (cr() - 0.5) * 16, 0.8, C.iceD); }
+          boat(170, 232, 30, 0, C.woodD); rect(150, 234, 44, 4, C.ice);
+          for (var ic = 0; ic < 6; ic++) poly([[155 + ic * 7, 226], [157 + ic * 7, 234], [153 + ic * 7, 234]], C.frost);
+        }
+        // the shore + a frosted tree with silent birds (middle)
+        poly([[-200, 238], [80, 226], [100, 330], [-200, 330]], C.stoneD);
+        g.fillStyle = vgrad(226, 250, [[0, C.frost], [1, C.stone]]); poly([[-200, 238], [86, 226], [92, 236], [-200, 248]], C.frost);
+        line(60, 238, 58, 204, 4, C.woodD); line(58, 216, 44, 205, 2.4, C.woodD); line(58, 212, 74, 203, 2.4, C.woodD); line(59, 224, 82, 218, 2, C.woodD);
+        rect(43, 203, 34, 2, C.frost); rect(68, 216, 15, 1.5, C.frost);
+        [[48, 202], [56, 203], [70, 202], [77, 216]].forEach(function (b, i) {
+          var x = b[0], y = b[1];
+          ell(x, y - 3, 3.4, 3, 0, C.ink); ell(x, y - 3.4, 3, 2.6, 0, C.blue); disc(x + 2, y - 6, 2, C.blue); rect(x + 3.5, y - 6.5, 2, 1, C.gold);
+          rect(x - 3, y - 6.8, 6, 1.2, C.frost); disc(x + 2.4, y - 6.4, 0.5, C.ink);
+          if (t < tb + 0.2 && Math.sin(t * 12 + i) > 0.6) worldText("~", x + 6, y - 14, 1, C.white);
+        });
+        // villagers (left), huddled round a dead fire, shivering, breath puffs
+        rect(-56, 232, 18, 3, C.woodD); line(-52, 234, -42, 229, 2, C.woodD); line(-50, 229, -42, 234, 2, C.woodD);
+        for (var s = 0; s < 3; s++) { var su = ((t * 0.5 + s * 0.3) % 1); g.globalAlpha = 0.4 * (1 - su); disc(-47 + Math.sin(t + s) * 3, 226 - su * 30, 2 + su * 4, C.stoneL); g.globalAlpha = 1; }
+        var vills = [[-80, 1, C.shawl, C.shawlD], [-66, 1, C.lungi, C.lungiD], [-28, -1, C.saree, C.sareeD], [-14, -1, C.turban, C.turbanD]];
+        vills.forEach(function (v, i) {
+          person(v[0], 240, 1.0, { kind: "villager", col: v[2], colD: v[3], t: t, look: v[1], shiver: 1.4, seed: i * 7, face: i % 2 ? "shut" : "scared", aB: [1.0, 2.6], aF: [0.9, 2.6] });
+          breath(v[0] + v[1] * 4, 206, t, i * 0.35);
+        });
+        // snow
+        FLAKES.forEach(function (f, i) { var y = (f[1] + t * 14 * f[2]) % 340 - 10, x = f[0] + Math.sin(t * 1.3 + i) * 4; rect(x, y + 120, f[2] > 1 ? 2 : 1, f[2] > 1 ? 2 : 1, C.white); });
+        vignette(0.4, "rgba(10,20,60,");
+      }
+
+      // "RAGHU! GIVE IT BACK!"
+      function sceneWife(t) {
+        var tg = WT(5, "give");
+        var cam = { x: 92, y: 193, z: 2.0 * bump(t, [A(5), tg], 0.06) };
+        shake(cam, t, tg, 3, 0.3);
+        sky([[0, C.night], [1, C.nightMid]]);
+        setCam(cam, 1);
+        // inside the hut: walls lit gold by the hidden Sun behind Raghu
+        rect(20, 90, 160, 220, C.wallD); for (var wl = 0; wl < 12; wl++) rect(20, 96 + wl * 17, 160, 1, C.woodD);
+        // pots on a shelf, a spare net on the wall
+        rect(96, 200, 50, 2, C.woodD); [104, 116, 128].forEach(function (px, i) { ell(px, 196, 4.5, 4, 0, C.clayD); ell(px, 195.5, 4, 3.5, 0, C.clay); rect(px - 2, 191, 4, 1.5, C.clayD); });
+        for (var nl = 0; nl < 6; nl++) { line(150 + nl * 3, 176, 146 + nl * 4, 198, 0.6, C.netD); }
+        lighter(); glow(130, 214, 50, C.sunGlow, 0.55 + 0.1 * Math.sin(t * 7)); normalBlend();
+        sunFace(138, 216, 8, t, "worried", 0.4); netBag(138, 216, 8, 120, 222, t);
+        person(118, 240, 1.0, { kind: "raghu", t: t, look: -1, face: "scared", lean: 0.12, aB: [-2.2, -2.6], aF: [-2.0, -2.5] });
+        // the door: the wife, frost on her saree, pointing
+        rect(46, 180, 34, 70, C.ink); rect(48, 182, 30, 66, C.iceB);
+        for (var k = 0; k < 10; k++) rect(48 + hash1(k) * 30, 182 + ((t * 20 + k * 13) % 66), 1, 1, C.white);
+        person(68, 244, 1.05, { kind: "wife", t: t, look: 1, face: "angry", talk: talk("wife", t), aB: [1.9, 1.7], aF: t > tg - 0.1 ? [-0.25, -0.15] : [0.9, -1.4] });
+        rect(46, 180, 2, 70, C.woodD); rect(78, 180, 2, 70, C.woodD);
+        vignette(0.35, "rgba(30,10,40,");
+      }
+
+      // SO HE ROWED INTO THE BLACK SEA, AND SET THE SUN FREE
+      function sceneRow(t) {
+        var tf = T_FREE, up = clamp01((t - tf) / 1.1), dawn = clamp01((t - tf - 0.05) / 0.6);
+        var cam = camAt([[T_ROW, 80, 182, 1.5], [tf - 0.4, 92, 182, 1.45], [tf + 0.3, 92, 150, 1.05], [T_CRUMB, 90, 140, 1.0]], t);
+        shake(cam, t, tf, 5, 0.5);
+        var nightTop = C.night;
+        sky([[0, nightTop], [0.6, C.nightMid], [1, C.nightLow]]);
+        if (dawn > 0) { g.globalAlpha = dawn; sky([[0, C.dawnTop], [0.55, C.dawnMid], [0.8, C.dawnLow], [1, C.duskGold]]); g.globalAlpha = 1; }
+        setCam(cam, 0.3); stars(t, 1 - dawn);
+        setCam(cam, 1);
+        seaBody(226, t, dawn > 0.5 ? C.sea : C.seaNightL, dawn > 0.5 ? C.seaDeep : C.seaNight, dawn > 0.5 ? C.foam : C.seaLight, -60, 240, { x: 104, w: 10 });
+        var bx = 70 + (t - T_ROW) * 6, row = Math.sin((t - T_ROW) * 6.6);
+        // the Sun in the bow, then hurled up into the sky
+        var sx = bx + 22, sy = 218;
+        if (up > 0) { sx = lerp(bx + 10, 96, easeOut(up)); sy = lerp(196, 70, easeOut(up)); }
+        var lift = clamp01((t - tf + 0.5) / 0.5);
+        if (up <= 0 && lift > 0) { sx = lerp(bx + 22, bx + 6, lift); sy = lerp(218, 192, lift); }
+        sunFace(sx, sy, up > 0 ? 9 + 12 * easeOut(up) : 9, t, up > 0.2 ? "happy" : "worried", 1);
+        if (up <= 0) netBag(sx, sy, 9, bx + 4, 210, t);
+        var arms = lift > 0 ? { aB: [-1.9, -1.7], aF: [-1.4, -1.5] } : { aB: [0.4 + row * 0.6, 1.2], aF: [0.6 + row * 0.6, 1.0] };
+        person(bx - 4, 238, 1.05, { kind: "raghu", t: t, look: 1, legs: false, lean: lift > 0 ? -0.1 : row * 0.08, face: up > 0 ? "happy" : "calm", aB: arms.aB, aF: arms.aF });
+        if (lift <= 0) { line(bx - 2 + row * 4, 222, bx - 20 - row * 8, 240, 1.6, C.woodL); ell(bx - 21 - row * 8, 241, 3, 1.2, -0.6, C.woodL); }
+        boat(bx, 232, 30, t, C.wood);
+        waterLine(-60, 240, 234, t, dawn > 0.5 ? C.sea : C.seaNightL, dawn > 0.5 ? C.foam : C.seaLight);
+        if (t > tf && t < tf + 0.5) { lighter(); glow(sx, sy, 90, C.white, 0.6 * (1 - (t - tf) / 0.5)); normalBlend(); }
+        if (dawn > 0) for (var b = 0; b < 5; b++) gullSprite(20 + b * 30 + Math.sin(t + b) * 6 + (t - tf) * 10, 120 - b * 6 + Math.sin(t * 2 + b) * 3, t, b);
+        vignette(0.3 * (1 - dawn) + 0.15, "rgba(10,5,40,");
+      }
+
+      // BUT FIRST... HE BROKE OFF ONE TINY CRUMB
+      function hand(x, y, s, rot, pinch) {
+        // right hand coming in from the lower right: forearm, palm, index finger + thumb meeting at (x, y)
+        g.save(); g.translate(x, y); g.rotate(rot); g.scale(s, s);
+        poly([[6, 2], [40, 18], [40, 34], [3, 9]], C.ink); poly([[6.5, 3], [40, 19], [40, 32.5], [4, 8]], C.skin);
+        line(10, 7, 38, 22, 1, C.skinL);
+        ell(8, 5, 6.5, 5.2, 0.35, C.ink); ell(8, 5, 5.8, 4.6, 0.35, C.skin); ell(6.5, 3.5, 2.6, 1.6, 0.35, C.skinL);
+        var o = pinch ? 0 : 1.4;
+        line(4, 1, 0, -o, 3.2, C.ink); line(4, 1, 0, -o, 2.3, C.skin);       // index finger
+        line(5, 8, 0.4, o, 3.2, C.ink); line(5, 8, 0.4, o, 2.3, C.skinL);   // thumb
+        line(9, 0, 6, -2.5, 3, C.ink); line(9, 0, 6, -2.5, 2.1, C.skinD);   // curled fingers behind
+        g.restore();
+      }
+      function sceneCrumb(t) {
+        var tb = WT(7, "broke"), tc = WT(7, "crumb");
+        var sx = 62, sy = 236, sr = 28, ca = -0.55;
+        var c0x = sx + Math.cos(ca) * sr, c0y = sy + Math.sin(ca) * sr;
+        var pull = easeOut(clamp01((t - tb) / 0.5)), reach = ease(clamp01((t - T_CRUMB) / 0.9));
+        var cx = lerp(c0x, 112, pull), cy = lerp(c0y, 210, pull);
+        var cam = camAt([[T_CRUMB, 88, 196, 1.0], [tb, 88, 194, 1.12], [tc, 108, 190, 1.9], [T_DIYA, 110, 189, 2.3]], t);
+        shake(cam, t, tb, 3, 0.3);
+        sky([[0, C.night], [1, C.nightMid]]);
+        setCam(cam, 0.3); stars(t, 1);
+        setCam(cam, 1);
+        seaBody(250, t, C.seaNightL, C.seaNight, C.seaLight);
+        sunFace(sx, sy, sr, t, t > tc - 0.2 ? "wink" : t > tb ? "wow" : "calm", 0.9);
+        // the bite taken out of the Sun's edge
+        if (t > tb) disc(c0x, c0y, 2.2 * (1 - clamp01((t - tb - 0.6) / 0.6)), C.sunGlow);
+        // his left hand cups the Sun from below
+        ell(sx - 6, sy + sr + 2, 16, 5, 0.1, C.ink); ell(sx - 6, sy + sr + 1.5, 15, 4.2, 0.1, C.skin); ell(sx + 7, sy + sr - 2, 3, 5, -0.5, C.skin);
+        // the crumb, glowing between his fingertips
+        if (t > tb) {
+          lighter(); glow(cx, cy, 16, C.sunGlow, 0.8); glow(cx, cy, 6, C.white, 0.9); normalBlend();
+          disc(cx, cy, 1.9, C.sunCore); disc(cx, cy, 1, C.white);
+          if (t < tb + 0.45) for (var k = 0; k < 12; k++) { var a = k * 0.52, d = (t - tb) * 70; rect(cx + Math.cos(a) * d, cy + Math.sin(a) * d, 1, 1, C.sunGlow); }
+          if (t > tc) for (var sp = 0; sp < 6; sp++) { var su = ((t * 1.3 + sp / 6) % 1); rect(cx + Math.cos(sp) * su * 10, cy - su * 9, 1, 1, C.sunCore); }
+        }
+        var hx = t > tb ? cx : lerp(150, c0x, reach), hy = t > tb ? cy : lerp(260, c0y, reach);
+        hand(hx + 1, hy, 1.0, 0, t > tb - 0.15);
+        vignette(0.35, "rgba(10,5,40,");
+      }
+
+      // THAT'S WHY WE LIGHT DIYAS. EVERY LITTLE FLAME... IS A CRUMB OF THE SUN.
+      var DIYAS = (function () { var a = []; for (var row = 0; row < 3; row++) for (var i = 0; i < 7 - row; i++) { var x = 14 + i * 26 + row * 13; if (row === 0 && Math.abs(x - 90) < 16) continue; a.push([x, 266 - row * 18, 1.15 - row * 0.2]); } return a; })();
+      function sceneDiya(t) {
+        var tf = WT(8, "every"), tc = WT(8, "crumb"), zEnd = DUR;
+        var cam = camAt([[T_DIYA, 90, 196, 1.0], [tf, 92, 220, 1.4], [tc - 0.2, 96, 246, 2.6], [B(8) + 0.2, 97, 252, 3.4], [zEnd, 97.5, 268, 12]], t);
+        sky([[0, C.night], [0.55, C.nightMid], [1, C.purple]]);
+        setCam(cam, 0.25); stars(t, 0.8);
+        // fireworks over the sea
+        [[40, 70, 0.3, C.saree], [130, 56, 1.15, C.green], [90, 90, 2.0, C.gold], [30, 50, 2.85, C.blue], [150, 80, 3.7, C.red], [70, 44, 4.55, C.flame], [120, 100, 5.4, C.purple]].forEach(function (f, i) { burst(f[0], f[1], T_DIYA + f[2], t, f[3], 10 + i); });
+        setCam(cam, 0.6);
+        seaBody(206, t, C.nightLow, C.seaNight, C.seaGold);
+        setCam(cam, 1);
+        // ghat steps
+        for (var s = 0; s < 4; s++) { rect(-40, 230 + s * 18, 260, 18, s % 2 ? C.stoneD : C.stone); rect(-40, 230 + s * 18, 260, 1.5, C.stoneL); }
+        DIYAS.forEach(function (d, i) {
+          var lt = T_DIYA + 0.25 + 0.22 * (i % 6) + 0.05 * i;
+          diya(d[0], d[1] - 2, d[2], t, clamp01((t - lt) / 0.2), i, false);
+        });
+        // the hero diya, centre front: its flame has a tiny Sun face
+        diya(82, 280, 1.8, t, 1, 99, t > tc - 0.1);
+        vignette(0.25, "rgba(30,5,60,");
+      }
+
+      // ============================================================ the film
+      PX.setup(C, {
+        scenes: { hook: sceneHook, sunset: sceneSunset, net: sceneNet, hut: sceneHut, nomorning: sceneNoMorning, cold: sceneCold, wife: sceneWife, row: sceneRow, crumb: sceneCrumb, diya: sceneDiya },
+        sceneAt: function (t) {
+          return t < T_SUNSET ? "hook" : t < T_NET ? "sunset" : t < T_HUT ? "net" : t < T_NOMORN ? "hut" : t < T_COLD ? "nomorning"
+            : t < T_WIFE ? "cold" : t < T_ROW ? "wife" : t < T_CRUMB ? "row" : t < T_DIYA ? "crumb" : t < LOOP ? "diya" : "hook";
+        },
+        cuts: [[T_NET, "sunset", "net"], [T_HUT, "net", "hut"], [T_NOMORN, "hut", "nomorning"], [T_COLD, "nomorning", "cold"], [T_WIFE, "cold", "wife"], [T_ROW, "wife", "row"], [T_DIYA, "crumb", "diya"]],
+        post: function (t, img) {
+          if (t < 0.14) tintImg(img, C.white, 1 - t / 0.14);
+          var gl = T_SUNSET - 0.3;
+          if (t > gl && t < gl + 0.5) glitchRows(img, 24 * Math.sin((t - gl) / 0.5 * Math.PI), Math.floor(t * 30));
+          var tb = WT(2, "burning");
+          if (t > tb && t < tb + 0.18) tintImg(img, C.white, 0.9 * (1 - (t - tb) / 0.18));
+          if (t > T_FREE && t < T_FREE + 0.25) tintImg(img, C.sunCore, 0.8 * (1 - (t - T_FREE) / 0.25));
+          var rw = T_CRUMB - 0.42;
+          if (t > rw && t < T_CRUMB + 0.05) glitchRows(img, 18 * Math.sin((t - rw) / 0.47 * Math.PI), Math.floor(t * 30) + 5);
+          var tc = WT(7, "broke");
+          if (t > tc && t < tc + 0.12) tintImg(img, C.sunCore, 0.6 * (1 - (t - tc) / 0.12));
+          if (t > LOOP - 0.9 && t < LOOP) tintImg(img, C.sunCore, 0.95 * ramp(t, LOOP - 0.9, LOOP));
+          if (t >= LOOP) tintImg(img, C.white, 1);
+        },
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: c.segs.map(function (ln) { return ln.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; }); }) };
+        }),
+        ui: clockUI,
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

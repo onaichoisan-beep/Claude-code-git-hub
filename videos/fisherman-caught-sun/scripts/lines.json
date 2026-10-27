@@ -1,0 +1,17 @@
+{
+  "voices": {
+    "n": ["en-IN-PrabhatNeural", "-3%", "-3Hz"],
+    "wife": ["en-IN-NeerjaExpressiveNeural", "+6%", "+0Hz"]
+  },
+  "lines": [
+    ["n", "One evening... a fisherman caught the Sun."],
+    ["n", "Every night, the Sun sinks into the sea to sleep."],
+    ["n", "But that night, old Raghu's net came up... burning."],
+    ["n", "He hid the Sun in his hut. And morning... never came."],
+    ["n", "The sea froze. The birds went silent. The whole village shivered in the dark."],
+    ["wife", "Raghu! Give it back!"],
+    ["n", "So he rowed into the black sea, and set the Sun free."],
+    ["n", "But first... he broke off one tiny crumb."],
+    ["n", "That's why we light diyas. Every little flame... is a crumb of the Sun."]
+  ]
+}
