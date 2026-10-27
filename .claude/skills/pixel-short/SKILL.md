@@ -55,6 +55,15 @@ learned over many videos (see `videos/` for 15+ finished examples). Follow it wi
   run `python3 ../_engine/prune_credits.py .`. Load with `load()` and always give a procedural fallback.
   The bundled HyperFrames library (`LIB`: whoosh, whoosh-short, whoosh-cinematic, pop, sparkle, glitch-1/2/3,
   notification, error, chime, riser, impact-bass-1/2, ping, click, typing) is available offline.
+- **Narrated fables (35–45s, when the owner asks for story + narration):** `_engine/voicelib.py` (lay out
+  lines, word-synced captions with `|` line breaks, ducking, final limiter) + `_engine/foley.py` (synth
+  foley: sea, splash, sizzle, boil, creak, gull, crickets, wind, ice, fire, fireworks, meow, purr, tick,
+  gears, page flips, whispers, glass, rumble…). Copy `../clockmaker-one-second/scripts/` as the template.
+  Voices that worked: Indian storyteller en-IN-PrabhatNeural −3% −3 Hz; Indian woman
+  en-IN-NeerjaExpressiveNeural; smug cat en-GB-RyanNeural +12%; hushed librarian en-GB-SoniaNeural −6%;
+  dark fairy tale en-US-ChristopherNeural −4% −4 Hz + low boost + hall; child en-GB-MaisieNeural.
+  Openverse often times out (504s): don't wait on it. Reuse CC0/CC BY files other projects already
+  fetched (copy their CREDITS.md lines) and lean on `LIB` + the synth kit.
 - Cinematic and easy to hear: impacts, braams, taiko drum rolls, risers, sub drops, conch, gong,
   bells, roars, whooshes, story-specific foley. Exception: calm/awe topics (e.g. the Big Bang) use
   **soft ambient** sound, no booms. Target ~ −12 to −17 dB mean, −1 dB peak.

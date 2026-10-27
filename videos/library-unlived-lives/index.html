@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Library of Unlived Lives</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #140a3a;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #140a3a;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="40.3"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="40.3" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: the librarian's narration + ducked SFX -->
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="40.3" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = window.DUR || 40.3;
+      var C = {
+        deep: "#140a3a", indigo: "#2a1a6a", indigoL: "#4a32a0", fogC: "#5a3aa8",
+        wood: "#9a5a2a", woodD: "#5a2a14", woodL: "#d08a48", floorA: "#3a2468", floorB: "#2e1c58",
+        // book spines
+        bRed: "#ff3a5a", bTeal: "#2ad0c0", bGold: "#ffc83a", bPurple: "#a05aff", bGreen: "#4ae06a", bBlue: "#3a8aff", bOrange: "#ff8a2a", bPink: "#ff7ac8",
+        page: "#fff4d8", pageD: "#e0c890", cover: "#8a1a3a", coverD: "#5a0a24",
+        glowG: "#ffd060", gold: "#ffc83a", goldD: "#c88a10",
+        // vignettes
+        sun1: "#ff8a5a", sun2: "#ffd070", skyV: "#5ab8ff", skyV2: "#ffd8b0", hill: "#3ab06a", hillD: "#1e7a46", road: "#c8a878", roadD: "#8a6a48",
+        nightV: "#1a2a6a", rain: "#8ad8ff", umbR: "#ff3a5a", umbT: "#2ad0c0", lamp: "#ffe08a",
+        // people
+        skin: "#e8b090", skinD: "#b07a58", hairG: "#d0d0e0", hairGD: "#9a9ab0", shawl: "#8a3ac8", shawlD: "#5a1a98", hood: "#2ab0a0", hoodD: "#167a70", sil: "#1a1030",
+        phone: "#141420", white: "#ffffff", ink: "#06050a", paper: "#f1eef4", red: "#ff3a3a",
+      };
+      var BOOKC = [C.bRed, C.bTeal, C.bGold, C.bPurple, C.bGreen, C.bBlue, C.bOrange, C.bPink];
+      DISSOLVE = 0.12;
+
+      // ============================================================ narration timing (captions.js)
+      var VO = window.VO || [], MOUTH = window.MOUTH || {};
+      function A(i) { return VO[i] ? VO[i].a : 0; }
+      function B(i) { return VO[i] ? VO[i].b : 0; }
+      function wkey(w) { return w.toLowerCase().replace(/[^a-z0-9']/g, ""); }
+      function WT(i, word, n) {
+        n = n || 0;
+        var ws = VO[i] ? VO[i].w : [], k = wkey(word), c = 0;
+        for (var j = 0; j < ws.length; j++) if (wkey(ws[j][0]).indexOf(k) === 0) { if (c === n) return ws[j][1]; c++; }
+        return A(i);
+      }
+      function talk(t) { var s = MOUTH.n || "", f = Math.floor(t * 30); return f >= 0 && f < s.length ? +s[f] / 9 : 0; }
+
+      var T1 = A(1) - 0.3, T_BOOK = A(2) - 0.15, T_VIS = A(5) - 0.15, T_SECRET = WT(5, "but") - 0.1, T_MIRROR = A(6) - 0.1;
+      var T_NEW = A(7) - 0.1, T_OPEN = A(8) - 0.1, T_SWIPE = WT(8, "scrolled"), T_DUST = WT(9, "didn't"), T_GOOD = WT(9, "good") - 0.15;
+      var LOOP = DUR - 0.1, T_FLY = DUR - 1.3;
+
+      // ============================================================ helpers
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function bump(t, times, amt) { var z = 1; times.forEach(function (ti) { if (t >= ti) z += amt * Math.exp(-(t - ti) * 8); }); return z; }
+      function bg(top, bot) { screen(); g.fillStyle = vgrad(0, H, [[0, top], [1, bot]]); g.fillRect(0, 0, W, H); }
+      function motes(t, n, alpha) {
+        for (var i = 0; i < n; i++) {
+          var x = (hash1(i) * 220 - 20 + Math.sin(t * 0.7 + i) * 8), y = ((hash1(i + 40) * 340 - t * (4 + hash1(i + 9) * 6)) % 340 + 340) % 340 - 10;
+          g.globalAlpha = alpha * (0.4 + 0.6 * hash1(i + 3)); rect(x, y, 1, 1, i % 3 ? C.glowG : C.white); g.globalAlpha = 1;
+        }
+      }
+      function sil(x, y, s, o) {
+        // a small person silhouette (feet at y). o: { col, walk, t, umb, look, alpha, arm }
+        o = o || {}; var col = o.col || C.sil, t = o.t || 0, sw = o.walk ? Math.sin(t * 9) * 2.4 : 0;
+        g.save(); g.translate(x, y); g.scale(s * (o.look || 1), s); if (o.alpha !== undefined) g.globalAlpha = o.alpha;
+        line(-1.2, -8, -1.2 - sw * 0.5, 0, 2, col); line(1.2, -8, 1.2 + sw * 0.5, 0, 2, col);
+        rrect(-3, -17, 6, 10, 2, col); disc(0, -20, 3, col);
+        if (o.arm === "up") line(2, -15, 6, -21, 1.6, col); else if (o.arm === "reach") line(2, -15, 8, -15, 1.6, col); else line(2.4, -15, 3 + sw * 0.4, -9, 1.6, col);
+        if (o.umb) { line(3, -15, 3, -25, 0.8, C.ink); g.fillStyle = o.umb; g.beginPath(); g.arc(3, -25, 8, Math.PI, 0); g.fill(); }
+        g.restore();
+      }
+
+      // ============================================================ the endless aisle (one-point perspective)
+      function corridor(t, scroll, cx, cy, f) {
+        bg(C.deep, C.indigo);
+        lighter(); glow(cx, cy, 80, C.glowG, 0.45); glow(cx, cy, 22, C.white, 0.6); normalBlend();
+        var frac = scroll - Math.floor(scroll), base = Math.floor(scroll);
+        var YT = -2.6, YB = 1.5, X = 1;
+        function P(x, y, z) { return [cx + x * f / z, cy + y * f / z]; }
+        for (var i = 22; i >= 0; i--) {
+          var z0r = i - frac + 0.3, z1 = z0r + 1, bay = base + i;
+          if (z1 <= 0.3) continue;
+          var z0 = Math.max(z0r, 0.3);
+          var fog = clamp01((z0 - 2) / 16);
+          var col = function (c) { return mix(c, C.fogC, fog * 0.85); };
+          poly([P(-X, YB, z0), P(X, YB, z0), P(X, YB, z1), P(-X, YB, z1)], col(bay % 2 ? C.floorA : C.floorB));
+          poly([P(-0.25, YB, z0), P(0.25, YB, z0), P(0.25, YB, z1), P(-0.25, YB, z1)], col(C.cover));
+          [-1, 1].forEach(function (side) {
+            var x = side * X;
+            poly([P(x, YT, z0), P(x, YT, z1), P(x, YB, z1), P(x, YB, z0)], col(C.woodD));
+            var rows = 6, rh = (YB - YT) / rows;
+            for (var r = 0; r < rows; r++) {
+              var yb = YT + (r + 1) * rh;
+              for (var b = 0; b < 7; b++) {
+                var za = z0r + b / 7, zb = za + 0.86 / 7; if (za < 0.3) continue; var hh = (0.62 + 0.3 * hash1(bay * 31 + r * 7 + b + side * 100)) * (rh - 0.08);
+                var c = BOOKC[Math.floor(hash1(bay * 13 + r * 3 + b * 5 + side * 57) * 8)];
+                poly([P(x, yb - 0.05 - hh, za), P(x, yb - 0.05 - hh, zb), P(x, yb - 0.05, zb), P(x, yb - 0.05, za)], col(c));
+              }
+              poly([P(x, yb - 0.05, z0), P(x, yb - 0.05, z1), P(x, yb + 0.02, z1), P(x, yb + 0.02, z0)], col(C.woodL));
+            }
+            if (z0r >= 0.3) poly([P(x, YT, z0), P(x, YT, z0 + 0.08), P(x, YB, z0 + 0.08), P(x, YB, z0)], col(C.wood));
+          });
+          // hanging lamp
+          if (z0r + 0.5 < 0.45) continue;
+          var lp = P(0, YT + 0.5, z0r + 0.5), lr = Math.max(0.6, 0.22 * f / (z0r + 0.5));
+          line(lp[0], P(0, YT - 1, z0r + 0.5)[1], lp[0], lp[1], Math.max(0.5, lr * 0.15), col(C.woodD));
+          disc(lp[0], lp[1], lr, mix(C.glowG, C.fogC, fog * 0.5));
+          if (z0r < 8) { lighter(); glow(lp[0], lp[1], Math.min(lr * 5, 60), C.glowG, 0.25 * (1 - fog)); normalBlend(); }
+        }
+        motes(t, 40, 0.8);
+      }
+
+      // ============================================================ books
+      function openBook(cx, cy, w, h, coverCol) {
+        rrect(cx - w / 2 - 5, cy - h / 2 - 4, w + 10, h + 10, 4, C.ink);
+        rrect(cx - w / 2 - 4, cy - h / 2 - 3, w + 8, h + 8, 3, coverCol || C.cover);
+        rect(cx - w / 2 - 1, cy - h / 2 + 1, w + 2, h + 1, C.pageD);
+        rect(cx - w / 2, cy - h / 2, w / 2 - 1, h, C.page); rect(cx + 1, cy - h / 2, w / 2 - 1, h, C.page);
+        return { x: cx - w / 2 + 5, y: cy - h / 2 + 5, w: w - 10, h: h - 10 };
+      }
+      function bookSpineShade(cx, cy, h) { g.globalAlpha = 0.35; rect(cx - 3, cy - h / 2, 6, h, C.pageD); g.globalAlpha = 0.6; rect(cx - 0.5, cy - h / 2, 1, h, C.roadD); g.globalAlpha = 1; }
+      function clipTo(r) { g.save(); g.beginPath(); g.rect(r.x, r.y, r.w, r.h); g.clip(); }
+      function pageFlip(cx, cy, w, h, p) {
+        if (p <= 0 || p >= 1) return;
+        var sx = Math.cos(p * Math.PI), xr = cx + (w / 2) * sx;
+        poly([[cx, cy - h / 2], [xr, cy - h / 2 - Math.sin(p * Math.PI) * 6], [xr, cy + h / 2 - Math.sin(p * Math.PI) * 2], [cx, cy + h / 2]], sx > 0 ? C.page : C.pageD);
+        line(xr, cy - h / 2 - Math.sin(p * Math.PI) * 6, xr, cy + h / 2 - Math.sin(p * Math.PI) * 2, 0.8, C.roadD);
+      }
+
+      // ============================================================ SCENES
+      // HOOK: flying down the endless aisle
+      function sceneHook(t) {
+        var tl = t > LOOP - 0.4 ? 0 : t;
+        var sc = 14 * easeOut(clamp01(tl / 3.2)) + tl * 0.3;
+        corridor(tl, sc, 90, 168, 46);
+        vignette(0.4, "rgba(10,0,30,");
+      }
+
+      // EVERY TIME YOU CHOOSE, THE WORLD SPLITS IN TWO. AND A NEW BOOK APPEARS.
+      function sceneSplit(t) {
+        var tc = WT(1, "choose"), ts = WT(1, "splits"), tn = WT(1, "new");
+        var cam = camAt([[T1, 90, 166, 1.0], [ts, 90, 170, 1.08], [T_BOOK, 90, 166, 1.02]], t);
+        shake(cam, t, ts, 5, 0.4);
+        var sp = easeOut(clamp01((t - ts) / 0.6));
+        // the world itself: warm on one side, cool on the other, splitting apart
+        bg(C.deep, C.indigo);
+        setCam(cam, 1);
+        g.save(); g.translate(-sp * 8, 0); g.globalAlpha = 0.75; corridorMini(t, -1); g.restore();
+        g.save(); g.translate(sp * 8, 0); g.globalAlpha = 0.75; corridorMini(t, 1); g.restore();
+        if (sp > 0) { g.globalAlpha = 1; rect(90 - sp * 8, -40, sp * 16, 400, C.deep); lighter(); line(90, -40, 90, 400, 1, C.white); normalBlend(); }
+        g.globalAlpha = 1;
+        if (sp > 0 && sp < 1) { lighter(); glow(90, 200, 60, C.white, 0.7 * (1 - sp)); normalBlend(); }
+        // the golden thread of a life, walking up from the bottom
+        var walk = clamp01((t - T1) / (tc - T1 + 0.2));
+        var fy = 250, tipY = lerp(330, fy, ease(walk));
+        lighter(); line(90, 330, 90, tipY, 3, C.goldD); line(90, 330, 90, tipY, 1.4, C.glowG); normalBlend();
+        // the fork
+        var brL = [[90, fy], [70, 236], [46, 206]], brR = [[90, fy], [110, 236], [134, 206]];
+        function branch(pts, k, colA, colB) {
+          if (k <= 0) return;
+          var n = 16; g.strokeStyle = colA; g.lineWidth = 3; g.lineCap = "round"; g.beginPath(); g.moveTo(pts[0][0], pts[0][1]);
+          for (var i = 1; i <= n * k; i++) { var u = i / n, a = (1 - u) * (1 - u), b = 2 * u * (1 - u), c = u * u; g.lineTo(a * pts[0][0] + b * pts[1][0] + c * pts[2][0], a * pts[0][1] + b * pts[1][1] + c * pts[2][1]); }
+          g.stroke(); g.strokeStyle = colB; g.lineWidth = 1.4; g.stroke();
+        }
+        var bk = easeOut(clamp01((t - ts) / 0.7));
+        lighter(); branch(brL, bk, C.goldD, C.glowG); branch(brR, bk, C.indigoL, C.bTeal); normalBlend();
+        // the walker takes the left road
+        var wl = clamp01((t - ts - 0.3) / 2.2), wx = 90, wy = tipY;
+        if (t > ts + 0.3) { var u = ease(wl), a = (1 - u) * (1 - u), b = 2 * u * (1 - u), c = u * u; wx = a * brL[0][0] + b * brL[1][0] + c * brL[2][0]; wy = a * brL[0][1] + b * brL[1][1] + c * brL[2][1]; }
+        sil(wx, wy, 1.0, { col: C.paper, walk: t < tc || (t > ts + 0.3 && wl < 1), t: t });
+        // ...and at the end of the road not taken, a new book appears and flies up to the shelves
+        var nb = pop(t, tn - 0.1), fly = clamp01((t - WT(1, "appears") - 0.3) / 0.8);
+        if (nb > 0) {
+          var bx = lerp(134, 150, fly), by = lerp(198, -20, ease(fly));
+          lighter(); glow(bx, by, 22, C.glowG, 0.7); normalBlend();
+          g.save(); g.translate(bx, by); g.scale(nb, nb); g.rotate(Math.sin(t * 3) * 0.2 + fly * 2);
+          rrect(-7, -9, 14, 18, 2, C.ink); rrect(-6, -8, 12, 16, 2, C.bPurple); rect(-6, -8, 2, 16, C.coverD); rect(-2, -4, 6, 1, C.gold); rect(-2, -1, 6, 1, C.gold);
+          g.restore();
+          if (fly < 0.2) for (var s = 0; s < 8; s++) { var aa = s * 0.785 + t, rr = 8 + (t - tn) * 20; rect(134 + Math.cos(aa) * rr, 198 + Math.sin(aa) * rr, 1, 1, C.white); }
+        }
+        vignette(0.4, "rgba(10,0,30,");
+      }
+      function corridorMini(t, side) {
+        // a faint static aisle behind the thread (one half, warm or cool)
+        var cx = 90, cy = 168, f = 46;
+        for (var i = 10; i >= 0; i--) {
+          var z0 = i + 0.6, z1 = z0 + 1, x = side;
+          var p = function (y, z) { return [cx + x * f / z, cy + y * f / z]; };
+          poly([p(-2.6, z0), p(-2.6, z1), p(1.5, z1), p(1.5, z0)], side < 0 ? (i % 2 ? C.cover : C.coverD) : (i % 2 ? C.indigoL : C.indigo));
+        }
+      }
+
+      // THE LIFE WHERE YOU SAID YES / TOOK THE OTHER ROAD / NEVER MET THEM: an open book of unlived lives
+      var BK = { cx: 90, cy: 242, w: 156, h: 92 };
+      function vYes(t, r) {
+        var ty = WT(2, "yes");
+        g.fillStyle = vgrad(r.y, r.y + r.h, [[0, C.sun1], [1, C.sun2]]); g.fillRect(r.x, r.y, r.w, r.h);
+        var gy = r.y + r.h - 12;
+        rect(r.x, gy, r.w, 12, C.hillD);
+        var dx = 96, dw = 18, dh = 34, op = ease(clamp01((t - ty + 0.5) / 0.5));
+        rect(dx - dw / 2 - 2, gy - dh - 2, dw + 4, dh + 2, C.ink);
+        rect(dx - dw / 2, gy - dh, dw, dh, op > 0 ? C.white : C.woodD);
+        if (op > 0) { lighter(); glow(dx, gy - dh / 2, 40 * op, C.glowG, 0.7); g.globalAlpha = 0.5 * op; poly([[dx - dw / 2, gy], [dx + dw / 2, gy], [dx + dw / 2 + 40, r.y + r.h], [dx - dw / 2 - 40, r.y + r.h]], C.glowG); g.globalAlpha = 1; normalBlend(); }
+        var pw = dw * (1 - 0.85 * op);
+        rect(dx - dw / 2, gy - dh, pw, dh, C.wood); rect(dx - dw / 2, gy - dh, pw, 1, C.woodL); disc(dx - dw / 2 + pw - 2, gy - dh / 2, 0.8, C.gold);
+        var wx = lerp(40, dx - 2, ease(clamp01((t - A(2) + 0.1) / 1.1)));
+        sil(wx, gy, 1.1, { col: C.sil, walk: wx < dx - 4, t: t, arm: op > 0.8 ? "up" : null });
+        if (op > 0.5) for (var s = 0; s < 10; s++) { var aa = s * 0.63 + t, rr = 14 + Math.sin(t * 3 + s) * 4; rect(dx + Math.cos(aa) * rr, gy - dh / 2 + Math.sin(aa) * rr, 1, 1, C.white); }
+      }
+      function vRoad(t, r) {
+        g.fillStyle = vgrad(r.y, r.y + r.h, [[0, C.skyV], [0.6, C.skyV2], [1, C.sun2]]); g.fillRect(r.x, r.y, r.w, r.h);
+        var hy = r.y + 34;
+        ell(r.x + 30, hy + 8, 50, 16, 0, C.hillD); ell(r.x + 120, hy + 10, 60, 18, 0, C.hill);
+        rect(r.x, hy + 10, r.w, r.h, C.hill);
+        // the road from the bottom, forking into two
+        poly([[82, r.y + r.h], [110, r.y + r.h], [99, hy + 30], [93, hy + 30]], C.road);
+        poly([[93, hy + 31], [99, hy + 31], [64, hy + 6], [60, hy + 6]], C.road);
+        poly([[93, hy + 31], [99, hy + 31], [138, hy + 6], [134, hy + 6]], C.road);
+        for (var d = 0; d < 4; d++) rect(95, r.y + r.h - 6 - d * 7, 2, 3, C.white);
+        var u = clamp01((t - A(3) + 0.1) / 2.0);
+        sil(lerp(92, 66, u), lerp(hy + 30, hy + 10, u), lerp(1.0, 0.6, u), { col: C.sil, walk: true, t: t });
+        var gk = t > WT(3, "other") ? 0.6 + 0.2 * Math.sin(t * 6) : 0.35;
+        sil(lerp(100, 130, u), lerp(hy + 30, hy + 10, u), lerp(1.0, 0.6, u), { col: C.white, walk: true, t: t + 0.4, alpha: gk });
+        if (t > WT(3, "other")) { lighter(); glow(lerp(100, 130, u), lerp(hy + 22, hy + 4, u), 10, C.white, 0.4); normalBlend(); }
+      }
+      function vMet(t, r) {
+        g.fillStyle = vgrad(r.y, r.y + r.h, [[0, C.nightV], [1, C.indigo]]); g.fillRect(r.x, r.y, r.w, r.h);
+        var gy = r.y + r.h - 10;
+        rect(r.x, gy, r.w, 10, C.indigoL); rect(r.x, gy, r.w, 1, C.rain);
+        // street lamp
+        rect(150, gy - 46, 2, 46, C.ink); rect(146, gy - 48, 9, 3, C.ink); lighter(); glow(150, gy - 44, 24, C.lamp, 0.5); normalBlend(); disc(150, gy - 45, 1.6, C.lamp);
+        for (var bld = 0; bld < 5; bld++) { rect(r.x + bld * 30, gy - 30 - (bld % 3) * 8, 26, 30 + (bld % 3) * 8, C.sil); for (var wn = 0; wn < 3; wn++) if (hash1(bld * 3 + wn) > 0.4) rect(r.x + bld * 30 + 4 + wn * 7, gy - 24 - (bld % 3) * 4, 3, 3, C.lamp); }
+        var u = clamp01((t - A(4) + 0.2) / 2.2);
+        sil(lerp(r.x + 10, r.x + r.w - 20, u), gy, 1.0, { col: C.ink, walk: true, t: t, umb: C.umbR });
+        sil(lerp(r.x + r.w - 10, r.x + 20, u), gy, 1.0, { col: C.ink, walk: true, t: t + 0.3, umb: C.umbT, look: -1 });
+        // the heart that never happened
+        var hk = t > WT(4, "never") ? 1 - clamp01((t - WT(4, "never") - 0.6) / 0.6) : 0.6;
+        if (hk > 0 && u > 0.35 && u < 0.75) { g.globalAlpha = hk * 0.8; var hx = 90, hy2 = gy - 34; disc(hx - 2.5, hy2, 3, C.bRed); disc(hx + 2.5, hy2, 3, C.bRed); poly([[hx - 5.4, hy2 + 1], [hx + 5.4, hy2 + 1], [hx, hy2 + 7]], C.bRed); if (t > WT(4, "met")) line(hx - 1, hy2 - 3, hx + 1, hy2 + 6, 0.8, C.ink); g.globalAlpha = 1; }
+        for (var rd = 0; rd < 40; rd++) { var rx = r.x + hash1(rd) * r.w, ry = r.y + ((hash1(rd + 9) * r.h + t * 120) % r.h); line(rx, ry, rx - 1, ry + 4, 0.6, C.rain); }
+      }
+      function sceneBook(t) {
+        var cam = camAt([[T_BOOK, 90, 172, 1.06], [A(3), 90, 173, 1.1], [A(4), 90, 174, 1.12], [T_VIS, 90, 176, 1.16]], t);
+        bg(C.deep, C.indigo);
+        setCam(cam, 0.5); motes(t, 30, 0.6);
+        setCam(cam, 1);
+        lighter(); glow(BK.cx, BK.cy, 110, C.glowG, 0.3); normalBlend();
+        var r = openBook(BK.cx, BK.cy, BK.w, BK.h, C.cover);
+        clipTo(r);
+        if (t < A(3) - 0.2) vYes(t, r); else if (t < A(4) - 0.2) vRoad(t, r); else vMet(t, r);
+        g.restore();
+        bookSpineShade(BK.cx, BK.cy, BK.h);
+        pageFlip(BK.cx, BK.cy, BK.w, BK.h, (t - A(3) + 0.42) / 0.42);
+        pageFlip(BK.cx, BK.cy, BK.w, BK.h, (t - A(4) + 0.42) / 0.42);
+        vignette(0.45, "rgba(10,0,30,");
+      }
+
+      // PEOPLE COME HERE LOOKING FOR A HAPPIER ENDING.
+      function shelfWall(t, y0, rows, rowH) {
+        rect(-60, y0, 300, rows * rowH + 6, C.woodD);
+        for (var r = 0; r < rows; r++) {
+          var yb = y0 + (r + 1) * rowH, x = -58;
+          var i = 0;
+          while (x < 238) { var w = 4 + Math.floor(hash1(r * 97 + i) * 4), hh = rowH - 4 - Math.floor(hash1(r * 31 + i * 7) * 7); rect(x, yb - hh, w - 1, hh, BOOKC[Math.floor(hash1(r * 13 + i * 5) * 8)]); rect(x, yb - hh + 2, w - 1, 1, C.gold); x += w; i++; }
+          rect(-60, yb, 300, 3, C.woodL); rect(-60, yb + 2, 300, 1, C.woodD);
+        }
+      }
+      function sceneVisitors(t) {
+        var cam = camAt([[T_VIS, 90, 178, 1.0], [T_SECRET, 92, 182, 1.08]], t);
+        bg(C.deep, C.indigo);
+        setCam(cam, 1);
+        shelfWall(t, 40, 9, 26);
+        rect(-60, 274, 300, 60, C.floorB); rect(-60, 274, 300, 2, C.woodL);
+        [[34, 0, "reach"], [92, 1.3, null], [146, 2.1, "up"]].forEach(function (v, i) {
+          var x = v[0] + Math.sin(t * 0.6 + v[1]) * 6;
+          lighter(); glow(x + 5, 250, 26, C.glowG, 0.55 + 0.1 * Math.sin(t * 9 + i)); normalBlend();
+          sil(x, 276, 1.6, { col: C.sil, t: t, walk: i === 1, arm: v[2], look: i === 2 ? -1 : 1 });
+          disc(x + (i === 2 ? -6 : 6), 252, 1.4, C.lamp);
+        });
+        // one of them pulls a book; its pages glow
+        var pk = clamp01((t - WT(5, "happier") + 0.2) / 0.4);
+        if (pk > 0) { g.save(); g.translate(48, 240 - pk * 8); g.scale(1 + pk, 1 + pk); rrect(-5, -6, 10, 12, 1, C.bTeal); g.restore(); lighter(); glow(48, 232, 18 * pk, C.white, 0.5); normalBlend(); }
+        vignette(0.5, "rgba(10,0,30,");
+      }
+
+      // BUT HERE'S THE SECRET. (the librarian herself)
+      function librarian(cx, cy, s, t, o) {
+        g.save(); g.translate(cx, cy); g.scale(s, s);
+        // shawl + shoulders
+        poly([[-44, 60], [-30, 22], [30, 22], [44, 60]], C.ink); poly([[-42, 60], [-29, 23], [29, 23], [42, 60]], C.shawl);
+        for (var k = 0; k < 5; k++) line(-26 + k * 13, 26, -32 + k * 16, 60, 1, C.shawlD);
+        rect(-6, 16, 12, 9, C.skinD);
+        // head
+        ell(0, 0, 21, 24, 0, C.ink); ell(0, 0, 20, 23, 0, C.skin);
+        ell(0, -18, 22, 10, 0, C.hairGD); ell(0, -19, 21, 9, 0, C.hairG); disc(0, -32, 9, C.hairGD); disc(0, -33, 8, C.hairG); line(-4, -38, 6, -28, 1, C.bGold);
+        ell(-20, 2, 3, 5, 0, C.skin); ell(20, 2, 3, 5, 0, C.skin);
+        // eyes (one winks at the end), half-moon gold glasses low on the nose
+        var wink = o.wink;
+        if (o.closed) { line(-11, 0, -5, 0, 1, C.ink); line(5, 0, 11, 0, 1, C.ink); }
+        else { disc(-8, 0, 2.6, C.white); disc(-7.6, 0.3, 1.5, C.ink); if (wink) { g.strokeStyle = C.ink; g.lineWidth = 1; g.beginPath(); g.arc(8, 1.5, 3, Math.PI + 0.3, -0.3); g.stroke(); } else { disc(8, 0, 2.6, C.white); disc(8.4, 0.3, 1.5, C.ink); } }
+        line(-12, -4.5, -4, -5.5, 1, C.hairGD); line(4, -5.5, 12, -4.5, 1, C.hairGD);
+        g.strokeStyle = C.gold; g.lineWidth = 1; g.beginPath(); g.arc(-8, 3, 5, 0, Math.PI); g.arc(8, 3, 5, 0, Math.PI); g.stroke(); line(-3, 3, 3, 3, 1, C.gold);
+        poly([[0, 1], [-2.4, 8], [2.4, 8]], C.skinD);
+        disc(-12, 9, 2.4, C.bPink); disc(12, 9, 2.4, C.bPink);
+        var m = o.talk || 0;
+        if (o.smile) { g.strokeStyle = C.ink; g.lineWidth = 1.2; g.beginPath(); g.arc(0, 11, 5, 0.3, Math.PI - 0.3); g.stroke(); }
+        else ell(0, 13, 3.4, 0.8 + 2.6 * m, 0, C.ink);
+        if (o.shh) { rrect(-6, 22, 12, 13, 4, C.ink); rrect(-5, 23, 10, 11, 4, C.skin); line(-1, 23, -1, 13, 3.6, C.ink); line(-1, 23, -1, 13, 2.6, C.skin); line(-4, 26, 4, 26, 0.6, C.skinD); line(-4, 29, 4, 29, 0.6, C.skinD); }
+        g.restore();
+      }
+      function sceneSecret(t) {
+        var cam = { x: 90, y: 170, z: 1.0 * bump(t, [WT(5, "secret")], 0.04) };
+        bg(C.deep, C.indigo);
+        setCam(cam, 1);
+        g.globalAlpha = 0.35; shelfWall(t, 30, 10, 26); g.globalAlpha = 1;
+        lighter(); glow(132, 196, 40, C.glowG, 0.5); normalBlend();
+        librarian(90, 252, 1.3, t, { talk: talk(t), shh: t > WT(5, "secret") - 0.1 });
+        vignette(0.55, "rgba(10,0,30,");
+      }
+
+      // IN EVERY SINGLE BOOK... THE OTHER YOU IS READING ABOUT YOU. WISHING THEY WERE YOU.
+      function hand(x, y, s, col, a) {
+        g.save(); g.translate(x, y); g.scale(s, s); g.globalAlpha = a;
+        rrect(-7, -6, 14, 14, 5, col);
+        [[-6, -4, -8.5, -14], [-2.5, -6, -3, -19], [1.5, -6, 2, -20], [5, -5, 7, -17]].forEach(function (f) { line(f[0], f[1], f[2], f[3], 3.6, col); });
+        line(-7, 2, -13, -2, 3.6, col);
+        g.restore();
+      }
+      function sceneMirror(t) {
+        var tr = WT(6, "reading"), tw = WT(6, "wishing");
+        var cam = camAt([[T_MIRROR, 90, 178, 1.0], [tr - 0.2, 108, 196, 1.35], [tw - 0.2, 116, 204, 1.6], [T_NEW, 118, 206, 1.7]], t);
+        bg(C.deep, C.indigo);
+        setCam(cam, 0.5); motes(t, 25, 0.5);
+        setCam(cam, 1);
+        var r = openBook(90, 238, 160, 100, C.coverD);
+        clipTo(r);
+        // the illustration: the other you, in their own little room, reading a book called YOU
+        g.fillStyle = vgrad(r.y, r.y + r.h, [[0, C.indigoL], [1, C.indigo]]); g.fillRect(r.x, r.y, r.w, r.h);
+        rect(r.x + 10, r.y + 8, 30, 26, C.ink); rect(r.x + 12, r.y + 10, 26, 22, C.nightV); disc(r.x + 30, r.y + 18, 4, C.lamp);
+        rect(r.x, r.y + r.h - 16, r.w, 16, C.woodD); for (var fl = 0; fl < 6; fl++) rect(r.x + fl * 26, r.y + r.h - 16, 1, 16, C.wood);
+        // lamp (left page)
+        rect(r.x + 52, r.y + 30, 2, 50, C.ink); poly([[r.x + 45, r.y + 30], [r.x + 61, r.y + 30], [r.x + 57, r.y + 20], [r.x + 49, r.y + 20]], C.bGold);
+        lighter(); glow(r.x + 53, r.y + 34, 30, C.glowG, 0.5); normalBlend();
+        // armchair + the reader in a hoodie (right page)
+        var rx = 124, ry = r.y + 46;
+        rrect(rx - 24, ry + 4, 48, 30, 7, C.ink); rrect(rx - 23, ry + 5, 46, 28, 7, C.bRed); rrect(rx - 28, ry + 14, 11, 22, 4, C.cover); rrect(rx + 17, ry + 14, 11, 22, 4, C.cover);
+        var look = t > tw - 0.1;
+        rrect(rx - 11, ry - 2, 22, 28, 7, C.ink); rrect(rx - 10, ry - 1, 20, 26, 7, C.hood);
+        disc(rx, ry - 8, 8, C.ink); disc(rx, ry - 8, 7.2, C.skin); ell(rx, ry - 13, 8, 4, 0, C.sil);
+        if (look) { disc(rx - 2.8, ry - 7.6, 1.2, C.ink); disc(rx + 2.8, ry - 7.6, 1.2, C.ink); disc(rx + 2.8, ry - 4.4, 0.8, C.rain); } else { line(rx - 4, ry - 6.4, rx - 1.4, ry - 6.4, 0.9, C.ink); line(rx + 1.4, ry - 6.4, rx + 4, ry - 6.4, 0.9, C.ink); }
+        // the book in their hands, cover facing us: YOU
+        rrect(rx - 12, ry + 4, 24, 17, 1, C.ink); rrect(rx - 11, ry + 5, 22, 15, 1, C.bPurple); rect(rx - 11, ry + 5, 2, 15, C.shawlD);
+        lighter(); glow(rx, ry + 12, 16, C.glowG, 0.5 + 0.2 * Math.sin(t * 4)); normalBlend();
+        worldText("YOU", rx + 1, ry + 9, 1, C.gold);
+        g.restore();
+        bookSpineShade(90, 238, 100);
+        // wishing they were you: a hand pressed to the page from the inside, like glass
+        var hk = clamp01((t - tw - 0.2) / 0.5);
+        if (hk > 0) { lighter(); glow(140, 236, 26, C.white, 0.35 * hk); normalBlend(); hand(142, 240, 1.3, C.paper, 0.55 * hk); }
+        vignette(0.5, "rgba(10,0,30,");
+      }
+
+      // OH. LOOK. A NEW BOOK. JUST NOW.
+      var NEWBOOK = { x: 90, y: 232 };
+      function newBookCover(x, y, s, t, title, open) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        rrect(-17, -22, 34, 44, 3, C.ink); rrect(-16, -21, 32, 42, 3, C.bPurple); rect(-16, -21, 4, 42, C.shawlD);
+        g.strokeStyle = C.gold; g.lineWidth = 1; g.strokeRect(-11.5, -17.5, 25, 35);
+        if (title > 0) { var words = ["THE", "LIFE", "WHERE", "YOU", "SCROLLED", "PAST"], shown = Math.floor(title * 24), c = 0;
+          g.save(); g.scale(0.5, 0.5);
+          words.forEach(function (w, i) { var n = Math.max(0, Math.min(w.length, shown - c)); if (n > 0) worldText(w.slice(0, n), 2, -28 + i * 9, 1, i >= 4 ? C.gold : C.paper); c += w.length; });
+          g.restore(); }
+        g.restore();
+      }
+      function sceneNew(t) {
+        var to = A(7), tn = WT(7, "new"), tj = WT(7, "just");
+        var cam = camAt([[T_NEW, 90, 178, 1.0], [tn, 90, 182, 1.15], [T_OPEN, 90, 184, 1.3]], t);
+        bg(C.deep, C.indigo);
+        setCam(cam, 1);
+        shelfWall(t, 120, 7, 28);
+        // the gap where it appears
+        var gx = NEWBOOK.x, gy = 232;
+        rect(gx - 9, 205, 18, 27, C.woodD);
+        var glowK = clamp01((t - to) / 0.5);
+        lighter(); glow(gx, gy - 12, 30, C.glowG, 0.6 * glowK); normalBlend();
+        var mat = clamp01((t - tn + 0.1) / 0.5), out = ease(clamp01((t - WT(7, "book") - 0.1) / 0.6));
+        if (mat > 0) {
+          if (out <= 0) { g.globalAlpha = mat; rrect(gx - 6, gy - 25, 12, 25, 1, C.bPurple); rect(gx - 6, gy - 20, 12, 1.5, C.gold); rect(gx - 6, gy - 8, 12, 1.5, C.gold); g.globalAlpha = 1; }
+          else { lighter(); glow(gx, gy - 16 - out * 10, 40, C.glowG, 0.5); normalBlend(); newBookCover(gx, gy - 14 - out * 8, 0.4 + out * 1.0, t, t > tj ? clamp01((t - tj) / 1.6) : 0); }
+          if (mat < 1 || t < tn + 0.8) for (var s = 0; s < 12; s++) { var aa = s * 0.52 + t * 2, rr = 10 + 8 * Math.sin(t * 5 + s); rect(gx + Math.cos(aa) * rr, gy - 14 + Math.sin(aa) * rr, 1, 1, C.white); }
+        }
+        // a quill writes the title
+        if (t > tj) { var qx = gx - 6 + ((t * 30) % 12), qy = gy - 26 + Math.sin(t * 20) * 2; line(qx, qy, qx + 14, qy - 18, 1.6, C.white); poly([[qx + 14, qy - 18], [qx + 20, qy - 26], [qx + 12, qy - 20]], C.white); }
+        vignette(0.5, "rgba(10,0,30,");
+      }
+
+      // THE LIFE WHERE YOU SCROLLED PAST THIS VIDEO.  ...YOU DIDN'T.
+      function phone(cx, cy, t, swipe) {
+        rrect(cx - 15, cy - 28, 30, 56, 4, C.ink); rrect(cx - 14, cy - 27, 28, 54, 3, C.phone);
+        g.save(); g.beginPath(); g.rect(cx - 12, cy - 24, 24, 48); g.clip();
+        var off = -60 * ease(swipe);
+        // this very video, in miniature
+        g.fillStyle = vgrad(cy - 24 + off, cy + 24 + off, [[0, C.deep], [1, C.indigo]]); g.fillRect(cx - 12, cy - 24 + off, 24, 48);
+        for (var k = 0; k < 6; k++) { rect(cx - 12 + k, cy - 22 + off + k * 2, 2, 44 - k * 4, BOOKC[k]); rect(cx + 10 - k, cy - 22 + off + k * 2, 2, 44 - k * 4, BOOKC[7 - k]); }
+        disc(cx, cy + off, 3, C.glowG); rect(cx - 8, cy + off - 2, 16, 4, C.ink);
+        // the next video in the feed
+        rect(cx - 12, cy + 24 + off, 24, 48, C.bOrange); disc(cx, cy + 40 + off, 6, C.bGold); rect(cx - 8, cy + 54 + off, 16, 3, C.white);
+        g.restore();
+        rect(cx - 4, cy + 25, 8, 1, C.white);
+      }
+      function sceneScroll(t) {
+        var cam = camAt([[T_OPEN, 90, 180, 1.15], [T_SWIPE, 90, 182, 1.22], [A(9), 90, 184, 1.28]], t);
+        shake(cam, t, T_DUST, 3, 0.3);
+        bg(C.deep, C.indigo);
+        setCam(cam, 0.5); motes(t, 25, 0.5);
+        setCam(cam, 1);
+        var dust = clamp01((t - T_DUST) / 0.9);
+        g.globalAlpha = 1 - dust;
+        var r = openBook(90, 248, 140, 92, C.bPurple);
+        clipTo(r);
+        g.fillStyle = vgrad(r.y, r.y + r.h, [[0, C.page], [1, C.pageD]]); g.fillRect(r.x, r.y, r.w, r.h);
+        var sw = clamp01((t - T_SWIPE) / 0.45);
+        phone(90, 248, t, sw);
+        // the thumb that swipes up
+        var th = clamp01((t - T_SWIPE + 0.3) / 0.9), ty = 282 - 40 * ease(clamp01((t - T_SWIPE) / 0.45));
+        if (th > 0 && th < 1) { g.globalAlpha = (1 - dust) * Math.min(1, th * 4) * (1 - clamp01((th - 0.8) / 0.2)); ell(102, ty, 6, 9, -0.3, C.ink); ell(102, ty, 5.2, 8.2, -0.3, C.skin); ell(100, ty - 5, 3, 2, -0.3, C.white); g.globalAlpha = 1 - dust; }
+        g.restore();
+        bookSpineShade(90, 248, 92);
+        g.globalAlpha = 1;
+        // ...you didn't: that life unwrites itself into dust
+        if (dust > 0) for (var p = 0; p < 90; p++) {
+          var px = 20 + hash1(p) * 140, py = 202 + hash1(p + 50) * 92, dx = (hash1(p + 7) - 0.3) * 120, dy = -40 - hash1(p + 9) * 120;
+          var u = clamp01(dust * 1.3 - hash1(p + 3) * 0.3);
+          if (u > 0 && u < 1) { g.globalAlpha = 1 - u; rect(px + dx * u, py + dy * u, 1.5, 1.5, BOOKC[p % 8]); }
+        }
+        g.globalAlpha = 1;
+        vignette(0.5, "rgba(10,0,30,");
+      }
+
+      // GOOD CHOICE.  (a wink, then back down the aisle)
+      function sceneGood(t) {
+        if (t > T_FLY) { var sc = 30 * Math.pow(clamp01((t - T_FLY) / 1.2), 2); corridor(t, sc, 90, 168, 46); vignette(0.4, "rgba(10,0,30,"); return; }
+        var cam = { x: 90, y: 170, z: 1.0 + 0.04 * (t - T_GOOD) };
+        bg(C.deep, C.indigo);
+        setCam(cam, 1);
+        g.globalAlpha = 0.35; shelfWall(t, 30, 10, 26); g.globalAlpha = 1;
+        lighter(); glow(132, 196, 40, C.glowG, 0.5); normalBlend();
+        librarian(90, 252, 1.3, t, { talk: talk(t), smile: t > WT(9, "choice") + 0.25, wink: t > WT(9, "choice") + 0.3 });
+        vignette(0.55, "rgba(10,0,30,");
+      }
+
+      // ============================================================ the film
+      PX.setup(C, {
+        scenes: { hook: sceneHook, split: sceneSplit, book: sceneBook, visitors: sceneVisitors, secret: sceneSecret, mirror: sceneMirror, newbook: sceneNew, scroll: sceneScroll, good: sceneGood },
+        sceneAt: function (t) {
+          return t < T1 ? "hook" : t < T_BOOK ? "split" : t < T_VIS ? "book" : t < T_SECRET ? "visitors" : t < T_MIRROR ? "secret"
+            : t < T_NEW ? "mirror" : t < T_OPEN ? "newbook" : t < T_GOOD ? "scroll" : t < LOOP ? "good" : "hook";
+        },
+        cuts: [[T_BOOK, "split", "book"], [T_VIS, "book", "visitors"], [T_SECRET, "visitors", "secret"], [T_MIRROR, "secret", "mirror"], [T_NEW, "mirror", "newbook"], [T_OPEN, "newbook", "scroll"], [T_GOOD, "scroll", "good"]],
+        post: function (t, img) {
+          if (t < 0.14) tintImg(img, C.white, 1 - t / 0.14);
+          var gl = T1 - 0.3;
+          if (t > gl && t < gl + 0.5) glitchRows(img, 22 * Math.sin((t - gl) / 0.5 * Math.PI), Math.floor(t * 30));
+          var ts = WT(1, "splits");
+          if (t > ts && t < ts + 0.15) tintImg(img, C.white, 0.7 * (1 - (t - ts) / 0.15));
+          if (t > T_SWIPE + 0.35 && t < T_SWIPE + 0.6) glitchRows(img, 6, Math.floor(t * 30) + 3);
+          if (t > T_DUST - 0.05 && t < T_DUST + 0.3) glitchRows(img, 14 * Math.sin((t - T_DUST + 0.05) / 0.35 * Math.PI), Math.floor(t * 30) + 9);
+          if (t > LOOP - 0.35 && t < LOOP) tintImg(img, C.white, ramp(t, LOOP - 0.35, LOOP));
+          if (t >= LOOP) tintImg(img, C.white, 1);
+        },
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: c.segs.map(function (ln) { return ln.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; }); }) };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

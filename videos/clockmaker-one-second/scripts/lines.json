@@ -1,0 +1,16 @@
+{
+  "voices": {
+    "n": ["en-US-ChristopherNeural", "-4%", "-4Hz"],
+    "girl": ["en-GB-MaisieNeural", "-4%", "+0Hz"]
+  },
+  "lines": [
+    ["n", "Every person alive is missing one second of their life. He took it."],
+    ["n", "In a city of clocks, a clockmaker's daughter was dying."],
+    ["girl", "Papa... will I see the spring?"],
+    ["n", "So he built a clock that could steal time. Just one second... from every person on Earth."],
+    ["n", "Eight billion seconds. That's two hundred and fifty years of life."],
+    ["n", "She saw every spring after that."],
+    ["n", "But a thief always pays. Since 1972, the world's clocks have added twenty-seven extra seconds."],
+    ["n", "Scientists call them leap seconds. Some say... he's paying it back."]
+  ]
+}

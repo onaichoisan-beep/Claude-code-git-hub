@@ -34,7 +34,9 @@ narrator **en-IN-PrabhatNeural** (−3%, −3 Hz: an older Indian storyteller), 
 writes `captions.js` (captions + word timings the scenes key off), and builds the SFX with
 `sfxlib.py` + `foley.py`, all synthesised (sea, splashes, sizzle, rolling boil, rope creaks, gulls,
 crickets, wind, ice cracks, teeth chatter, oars, dawn birds, a tanpura-like drone, Diwali
-fireworks and bells), ducked under the voice.
+fireworks and bells), plus real CC0 recordings (`assets/sfx/`: seagull, big splash; see
+`assets/sfx/CREDITS.md`) and the bundled HyperFrames library (bass impacts, whooshes, sparkle),
+all ducked under the voice.
 
 ## Facts
 

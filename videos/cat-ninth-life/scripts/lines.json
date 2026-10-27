@@ -1,0 +1,64 @@
+{
+  "voices": {
+    "cat": [
+      "en-GB-RyanNeural",
+      "+12%",
+      "-2Hz"
+    ],
+    "human": [
+      "en-US-EmmaNeural",
+      "+8%",
+      "+0Hz"
+    ]
+  },
+  "lines": [
+    [
+      "cat",
+      "I'm on my ninth life. Want to know what happened to the other eight?"
+    ],
+    [
+      "cat",
+      "One. Egypt. They worshipped me. The crocodile didn't."
+    ],
+    [
+      "cat",
+      "Two. A Viking ship. I chased a fish. Overboard."
+    ],
+    [
+      "cat",
+      "Three. China. I napped in a fireworks shop."
+    ],
+    [
+      "cat",
+      "Four. Pirates. I ate the captain's parrot."
+    ],
+    [
+      "cat",
+      "Five. Paris. I climbed the Eiffel Tower. Forgot about down."
+    ],
+    [
+      "cat",
+      "Six. I snuck onto a rocket. Space has no fish."
+    ],
+    [
+      "cat",
+      "Seven. A scientist put me in a box. Long story."
+    ],
+    [
+      "cat",
+      "Eight. Last Tuesday. A cucumber."
+    ],
+    [
+      "cat",
+      "So now... I'm being very, very careful."
+    ],
+    [
+      "human",
+      "Mittens! Get off the counter!"
+    ],
+    [
+      "cat",
+      "Very careful."
+    ]
+  ]
+}

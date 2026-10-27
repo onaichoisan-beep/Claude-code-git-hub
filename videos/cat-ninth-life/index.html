@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Cat on Its 9th Life</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #2a1a6a;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #2a1a6a;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="45.3"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="45.3" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: the cat's narration, the owner's shout, ducked SFX -->
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="45.3" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = window.DUR || 45.3;
+      var C = {
+        // Mittens
+        fur: "#ff8a2a", furD: "#c8541a", furL: "#ffb868", pink: "#ff8ab0", eye: "#5ae86a", ghost: "#e8f4ff", ghostS: "#9ac0f0", halo: "#ffe04a",
+        // living room
+        wall: "#6a3ac8", wallD: "#4a2498", wallL: "#8a5ae8", sofa: "#ff3a5a", sofaD: "#b81a3a", sofaL: "#ff7a8a", floor: "#a8642a", floorD: "#6e3a14", moon: "#fff4c0", night: "#140c44",
+        // egypt
+        skyE: "#3ac0ff", skyE2: "#ffe0a0", sand: "#ffc85a", sandD: "#e0962a", pyr: "#f6b84a", pyrD: "#c8822a", nile: "#2a8af0", nileD: "#1a5ac0", croc: "#3aa84a", crocD: "#1e6a2a", crocL: "#8ae05a", eskin: "#b0703a", hair: "#140a10",
+        // sea + storm
+        storm: "#141a44", storm2: "#33407e", sea: "#1a5ab0", seaD: "#0e2e6a", foam: "#c8f0ff", sail: "#e83a3a", wood: "#a8642a", woodD: "#5a3018", woodL: "#d89a58", fish: "#c8d8f0", fishD: "#7a8ab0",
+        // china
+        chinaSky: "#2a0a3a", lantern: "#ff3a2a", lanternL: "#ffd04a", shop: "#6a1a2a", shopD: "#40101e", red: "#e8202a",
+        // pirates
+        skyP: "#4ac0ff", skyP2: "#b8ecff", cloud: "#ffffff", coat: "#d82a3a", coatD: "#901428", hat: "#1a1a2a", beard: "#2a1a10", pskin: "#e8a878", parrotG: "#3ae070", parrotR: "#ff3a3a", parrotB: "#3a8aff",
+        // paris
+        parTop: "#24125e", parMid: "#a83aa8", parLow: "#ff7a6a", iron: "#7a4a3a", ironL: "#b88a5a", city: "#ffe08a",
+        // space
+        space: "#06061e", earth: "#2a7af0", earthG: "#3ad06a", rocket: "#f0f4ff", rocketS: "#a8b4d0", flame: "#ffe03a", flameO: "#ff8a1a", glass: "#bfefff",
+        // lab
+        lab: "#9ae6e0", labD: "#5ab8b0", board: "#1e4a34", chalk: "#e8f0e8", box: "#d8a860", boxD: "#9a6a30", coatLab: "#f4f8ff",
+        // kitchen
+        tile: "#f0f0ff", tileB: "#4ac0ff", cab: "#3ab0a0", cabD: "#1a7a70", top: "#f4f0ff", topD: "#c8c0e0", cuc: "#3ab04a", cucD: "#1a6a2a", bowl: "#ff3a6a", water: "#8ad8ff", hat2: "#ffd23a", hat2D: "#c8961a", wrap: "#e0f4ff",
+        gold: "#ffc83a", goldD: "#c88a10", white: "#ffffff", ink: "#06050a", paper: "#f1eef4", grey: "#5a5470",
+      };
+      DISSOLVE = 0.1;
+
+      // ============================================================ narration timing (captions.js)
+      var VO = window.VO || [], MOUTH = window.MOUTH || {}, DEATHS = window.DEATHS || [7, 11, 15, 19, 24, 28, 32, 36];
+      var T_PUSH = window.T_PUSH || DUR - 2, T_SMASH = window.T_SMASH || DUR - 1.2, T_BOOM = window.T_BOOM || 15, T_KICK = window.T_KICK || 19;
+      function A(i) { return VO[i] ? VO[i].a : 0; }
+      function B(i) { return VO[i] ? VO[i].b : 0; }
+      function wkey(w) { return w.toLowerCase().replace(/[^a-z0-9']/g, ""); }
+      function wfind(i, word, n) {
+        n = n || 0;
+        var ws = VO[i] ? VO[i].w : [], k = wkey(word), c = 0;
+        for (var j = 0; j < ws.length; j++) if (wkey(ws[j][0]).indexOf(k) === 0) { if (c === n) return ws[j]; c++; }
+        return [word, A(i), A(i)];
+      }
+      function WT(i, word, n) { return wfind(i, word, n)[1]; }
+      function WE(i, word, n) { return wfind(i, word, n)[2]; }
+      function talk(who, t) { var s = MOUTH[who] || "", f = Math.floor(t * 30); return f >= 0 && f < s.length ? +s[f] / 9 : 0; }
+      var T1 = A(1) - 0.3, LOOP = DUR - 0.1;
+
+      // ============================================================ helpers
+      function bump(t, times, amt) { var z = 1; times.forEach(function (ti) { if (t >= ti) z += amt * Math.exp(-(t - ti) * 8); }); return z; }
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function sky(stops) { screen(); g.fillStyle = vgrad(0, H, stops); g.fillRect(0, 0, W, H); }
+      var STARS = (function () { var r = rng(9), a = []; for (var i = 0; i < 90; i++) a.push({ x: r() * 300 - 60, y: r() * 400 - 60, k: r() }); return a; })();
+      function stars(t, alpha) {
+        if (alpha <= 0) return;
+        g.globalAlpha = alpha;
+        STARS.forEach(function (s, i) { if (Math.sin(t * 2.3 + i * 1.7) > -0.5) rect(s.x, s.y, s.k > 0.9 ? 2 : 1, s.k > 0.9 ? 2 : 1, C.white); });
+        g.globalAlpha = 1;
+      }
+      function uText(str, x, y, s, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) {
+          var gl = FONT[str[i]] || FONT[" "];
+          for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * s + (p % 5) * s, y + Math.floor(p / 5) * s, s, s);
+        }
+      }
+      function bang(x, y, k, col) { if (k <= 0) return; g.save(); g.translate(x, y); g.scale(k, k); rrect(-7, -10, 14, 20, 4, C.ink); rrect(-6, -9, 12, 18, 3, C.white); worldText("!", 0, -7, 2, col || C.red); g.restore(); }
+
+      // ============================================================ MITTENS
+      // o: { pose: sit|splay|sleep, eyes: open|smug|wide|shock|shut|happy|sad|down, look (+1/-1), ghost, alpha, talk, hat, bowl, collar, feather, puff, rot, t }
+      function catEye(ex, ey, kind, F_, INK, gaze) {
+        if (kind === "shut" || kind === "happy") {
+          g.strokeStyle = INK; g.lineWidth = 0.9; g.beginPath();
+          if (kind === "happy") g.arc(ex, ey + 0.8, 1.6, Math.PI + 0.4, -0.4); else g.arc(ex, ey - 0.6, 1.6, 0.4, Math.PI - 0.4);
+          g.stroke(); return;
+        }
+        ell(ex, ey, 2.2, 2.6, 0, INK); ell(ex, ey, 1.75, 2.15, 0, kind === "ghost" ? C.ghostS : C.eye);
+        var px = ex + (gaze || 0) * 0.5, py = ey + (kind === "down" ? 1 : 0);
+        if (kind === "wide") disc(px, py, 1.25, INK);
+        else if (kind === "shock") { ell(ex, ey, 1.75, 2.15, 0, C.white); disc(px, py, 0.55, INK); }
+        else ell(px, py, 0.55, 1.75, 0, INK);
+        rect(ex - 1.1, ey - 1.5, 0.8, 0.8, C.white);
+        if (kind === "smug") { rect(ex - 2.3, ey - 2.8, 4.6, 2.4, F_); line(ex - 2, ey - 0.4, ex + 2, ey - 0.4, 0.7, INK); }
+        if (kind === "sad") { line(ex - 1.8, ey - 3.6, ex + 1.8, ey - 2.6 - (ex < 0 ? -1.2 : 0) * 0, 0.7, INK); }
+      }
+      function cat(x, y, s, o) {
+        var t = o.t || 0, pose = o.pose || "sit", eyes = o.eyes || "open", gh = !!o.ghost;
+        var F_ = gh ? C.ghost : C.fur, FD = gh ? C.ghostS : C.furD, FL = gh ? C.white : C.furL, INK = gh ? C.ghostS : C.ink;
+        g.save(); g.translate(x, y); if (o.rot) g.rotate(o.rot); g.scale(s * (o.look || 1), s);
+        if (gh) g.globalAlpha = o.alpha === undefined ? 0.6 : o.alpha;
+        if (pose === "sleep") {
+          g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.arc(0, -5, 10, 0.2, 2.6); g.stroke();
+          g.strokeStyle = F_; g.lineWidth = 2.6; g.stroke();
+          ell(0, -6, 11.5, 7, 0, INK); ell(0, -6, 10.8, 6.3, 0, F_); ell(-2, -8, 5, 2.4, 0, FL);
+          for (var sk = 0; sk < 3; sk++) line(3 + sk * 3, -12, 2 + sk * 3, -9, 1, FD);
+          disc(-8, -8, 6.4, INK); disc(-8, -8, 5.8, F_);
+          poly([[-13, -10], [-13.5, -16], [-9.5, -13]], INK); poly([[-12.6, -10.6], [-13, -15], [-10.2, -13]], F_);
+          poly([[-6, -13], [-3.5, -17.5], [-2.5, -12]], INK); poly([[-5.6, -13], [-3.7, -16.4], [-3, -12.4]], F_);
+          ell(-8, -5.6, 3.4, 2, 0, C.white);
+          catEye(-10.2, -8.5, "shut", F_, INK); catEye(-5.6, -8.5, "shut", F_, INK);
+          disc(-8, -6.6, 0.7, C.pink);
+          g.restore(); return;
+        }
+        var splay = pose === "splay";
+        // tail
+        var tw = Math.sin(t * 3) * 2;
+        g.lineCap = "round";
+        g.strokeStyle = INK; g.lineWidth = o.puff ? 6.4 : 4.2; g.beginPath();
+        if (splay) { g.moveTo(3, -4); g.quadraticCurveTo(12 + tw, -12, 9, -24); } else { g.moveTo(5, -3); g.quadraticCurveTo(16, -4, 13 + tw, -16); }
+        g.stroke(); g.strokeStyle = F_; g.lineWidth = o.puff ? 5 : 2.8; g.stroke();
+        if (o.puff) for (var p = 0; p < 18; p++) { var a = p / 18 * 6.2832; poly([[Math.cos(a) * 8, -10 + Math.sin(a) * 9.5], [Math.cos(a + 0.17) * 13, -10 + Math.sin(a + 0.17) * 14], [Math.cos(a + 0.34) * 8, -10 + Math.sin(a + 0.34) * 9.5]], F_); }
+        if (splay) {
+          [[-1, -14, -13, -24], [1, -14, 13, -24], [-1, -4, -12, 4], [1, -4, 12, 4]].forEach(function (l) {
+            line(l[0] * 5, l[1], l[2], l[3], 4.4, INK); line(l[0] * 5, l[1], l[2], l[3], 3, F_); disc(l[2], l[3], 2.2, gh ? C.white : C.white);
+          });
+          ell(0, -9, 7.6, 9, 0, INK); ell(0, -9, 7, 8.4, 0, F_); ell(0, -7.5, 4.4, 5.6, 0, C.white);
+        } else {
+          ell(-6, -3.5, 4.6, 4, 0, INK); ell(6, -3.5, 4.6, 4, 0, INK); ell(-6, -3.5, 4, 3.4, 0, F_); ell(6, -3.5, 4, 3.4, 0, F_);
+          ell(0, -9, 8.6, 9.6, 0, INK); ell(0, -9, 8, 9, 0, F_);
+          line(-6, -13, -4, -10, 1, FD); line(6, -13, 4, -10, 1, FD);
+          ell(0, -8, 4.6, 6.4, 0, C.white);
+          ell(-3.2, -0.8, 2.8, 1.8, 0, INK); ell(3.2, -0.8, 2.8, 1.8, 0, INK); ell(-3.2, -0.9, 2.3, 1.4, 0, C.white); ell(3.2, -0.9, 2.3, 1.4, 0, C.white);
+          if (o.wrap) { g.globalAlpha = 0.75; rrect(-10, -18, 20, 18, 5, C.wrap); g.globalAlpha = 1; for (var b = 0; b < 12; b++) disc(-7 + (b % 4) * 4.6, -15 + Math.floor(b / 4) * 5, 1, C.white); }
+        }
+        if (o.collar) { rect(-6, -15.5, 12, 2.2, C.gold); disc(0, -12.8, 1.6, C.nile); }
+        // head
+        var hy = -21;
+        poly([[-8, hy - 4], [-6.5, hy - 13], [-1.8, hy - 7]], INK); poly([[8, hy - 4], [6.5, hy - 13], [1.8, hy - 7]], INK);
+        poly([[-7.3, hy - 4.5], [-6.3, hy - 11.6], [-2.6, hy - 7]], F_); poly([[7.3, hy - 4.5], [6.3, hy - 11.6], [2.6, hy - 7]], F_);
+        poly([[-6.3, hy - 5.5], [-5.9, hy - 9.4], [-3.8, hy - 6.8]], C.pink); poly([[6.3, hy - 5.5], [5.9, hy - 9.4], [3.8, hy - 6.8]], C.pink);
+        disc(0, hy, 8.6, INK); ell(0, hy, 8.2, 7.8, 0, F_);
+        rect(-0.6, hy - 7.6, 1.2, 3.2, FD); line(-3.2, hy - 7, -2.6, hy - 4.6, 1, FD); line(3.2, hy - 7, 2.6, hy - 4.6, 1, FD);
+        line(-8, hy - 1, -5.6, hy - 0.4, 0.9, FD); line(8, hy - 1, 5.6, hy - 0.4, 0.9, FD);
+        ell(-2.4, hy + 3.6, 3.2, 2.4, 0, C.white); ell(2.4, hy + 3.6, 3.2, 2.4, 0, C.white);
+        catEye(-3.5, hy - 0.6, gh ? "shut" : eyes, F_, INK, o.gaze); catEye(3.5, hy - 0.6, gh ? "shut" : eyes, F_, INK, o.gaze);
+        poly([[-1.2, hy + 1.8], [1.2, hy + 1.8], [0, hy + 3]], C.pink);
+        var k = o.talk || 0;
+        if (eyes === "shock" || o.yowl) ell(0, hy + 5.3, 1.6, 1.9, 0, INK);
+        else if (k > 0.12) ell(0, hy + 4.9, 1.4, 0.4 + 1.3 * k, 0, INK);
+        else { g.strokeStyle = INK; g.lineWidth = 0.6; g.beginPath(); g.arc(-1, hy + 3.6, 1, 0.2, Math.PI - 0.2); g.arc(1, hy + 3.6, 1, 0.2, Math.PI - 0.2); g.stroke(); }
+        g.strokeStyle = gh ? C.white : C.paper; g.lineWidth = 0.5;
+        [[-4, -11, 0.5], [-4, -11.5, -0.6], [4, 11, 0.5], [4, 11.5, -0.6]].forEach(function (w) { g.beginPath(); g.moveTo(w[0], hy + 3.6); g.lineTo(w[1], hy + 3.6 + w[2] * 2); g.stroke(); });
+        if (o.feather) { poly([[1, hy + 5], [8, hy + 9], [3, hy + 6.4]], C.parrotG); poly([[1, hy + 5.5], [6, hy + 2], [2.6, hy + 5]], C.parrotR); }
+        if (o.hat) { ell(0, hy - 6.8, 9.4, 2.2, 0, C.ink); ell(0, hy - 7, 8.8, 1.7, 0, C.hat2D); g.fillStyle = C.ink; g.beginPath(); g.arc(0, hy - 7, 7, Math.PI, 0); g.fill(); g.fillStyle = C.hat2; g.beginPath(); g.arc(0, hy - 7.4, 6.3, Math.PI, 0); g.fill(); rect(-0.7, hy - 13.4, 1.4, 6, C.hat2D); rect(-4, hy - 12, 2, 2, C.white); }
+        if (o.bowl) { g.strokeStyle = C.glass; g.lineWidth = 1.2; g.beginPath(); g.arc(0, hy - 1, 13, 0, 6.2832); g.stroke(); g.globalAlpha = 0.25; disc(0, hy - 1, 13, C.glass); g.globalAlpha = 1; line(-8, hy - 8, -5, hy - 10.5, 1.4, C.white); }
+        if (gh) { g.globalAlpha = 1; g.strokeStyle = C.halo; g.lineWidth = 1.3; g.beginPath(); g.ellipse(0, hy - 13, 6, 1.6, 0, 0, 6.2832); g.stroke(); }
+        g.restore();
+      }
+      function ghostUp(x, y, s, t, t0) {
+        var u = t - t0;
+        if (u < 0 || u > 1.8) return;
+        cat(x + Math.sin(u * 5) * 3, y - u * 45, s, { ghost: true, alpha: 0.75 * (1 - clamp01((u - 0.9) / 0.9)), t: t });
+      }
+      function deathFlash(t, img) {
+        DEATHS.forEach(function (d) { if (t > d && t < d + 0.12) tintImg(img, C.white, 0.85 * (1 - (t - d) / 0.12)); });
+      }
+
+      // ============================================================ the lives counter (upper left)
+      function livesAt(t) {
+        if (t < T1 || t >= A(9) - 0.2) return 1;
+        var n = 9; DEATHS.forEach(function (d) { if (t > d + 0.3) n--; }); return n;
+      }
+      function paw(x, y, col) {
+        u.fillStyle = col;
+        u.fillRect(x + 2, y + 5, 6, 4); u.fillRect(x + 3, y + 4, 4, 6);
+        u.fillRect(x, y + 2, 2, 2); u.fillRect(x + 3, y, 2, 2); u.fillRect(x + 6, y + 0, 2, 2); u.fillRect(x + 8, y + 2, 2, 2);
+      }
+      function livesUI(t) {
+        if (t >= LOOP) return;
+        var n = livesAt(t), x = 14, y = 64, w = 128, h = 36;
+        u.fillStyle = "rgba(6,5,10,0.85)"; u.fillRect(x, y, w, h);
+        u.fillStyle = n === 1 ? C.red : C.gold; u.fillRect(x, y, 2, h);
+        uText("LIVES", x + 6, y + 5, 1, C.paper);
+        uText(n + "/9", x + 40, y + 5, 1, n === 1 ? C.red : C.gold);
+        for (var i = 0; i < 9; i++) {
+          var lit = i < n, col = lit ? (n === 1 ? (Math.sin(t * 12) > -0.2 ? C.red : C.sofaD) : C.gold) : C.grey;
+          paw(x + 6 + i * 13, y + 18, col);
+        }
+        // "-1" pops next to the box as each life goes
+        DEATHS.forEach(function (d) {
+          var p = (t - d - 0.3) / 0.8;
+          if (p > 0 && p < 1 && t > T1) { var yy = y + 10 - p * 14; u.globalAlpha = 1 - p; uText("-1", x + w + 6, yy, 2, C.red); u.globalAlpha = 1; }
+        });
+      }
+
+      // ============================================================ SCENES
+      // the living room (hook + "careful")
+      function room(t, cam) {
+        sky([[0, C.wallD], [1, C.wall]]);
+        setCam(cam, 1);
+        rect(-60, 140, 300, 2, C.wallL);
+        // window with the moon
+        rect(112, 40, 50, 64, C.ink); rect(115, 43, 44, 58, C.night); disc(146, 60, 8, C.moon); disc(150, 57, 7, C.night);
+        for (var s = 0; s < 6; s++) rect(118 + hash1(s) * 38, 46 + hash1(s + 9) * 50, 1, 1, C.white);
+        rect(136, 43, 2, 58, C.ink); rect(115, 70, 44, 2, C.ink);
+        rect(-60, 280, 300, 80, C.floor); for (var f = 0; f < 8; f++) rect(-60, 284 + f * 8, 300, 1, C.floorD);
+      }
+      function sofa(x, y, w) {
+        rrect(x - w / 2, y - 40, w, 30, 6, C.ink); rrect(x - w / 2 + 1, y - 39, w - 2, 28, 6, C.sofaD);
+        rrect(x - w / 2 + 4, y - 37, w / 2 - 6, 22, 5, C.sofa); rrect(x + 2, y - 37, w / 2 - 6, 22, 5, C.sofa);
+        rrect(x - w / 2 - 8, y - 22, w + 16, 22, 5, C.ink); rrect(x - w / 2 - 7, y - 21, w + 14, 20, 5, C.sofa);
+        rect(x - w / 2 - 4, y - 21, w + 8, 2, C.sofaL);
+        rrect(x - w / 2 - 12, y - 30, 12, 30, 5, C.ink); rrect(x + w / 2, y - 30, 12, 30, 5, C.ink);
+        rrect(x - w / 2 - 11, y - 29, 10, 28, 5, C.sofaD); rrect(x + w / 2 + 1, y - 29, 10, 28, 5, C.sofaD);
+        rect(x - w / 2 - 6, y, 4, 6, C.woodD); rect(x + w / 2 + 2, y, 4, 6, C.woodD);
+      }
+      var GHOSTS = [[16, 134], [34, 108], [58, 90], [86, 80], [114, 90], [140, 108], [164, 134], [86, 122]];
+      function sceneHook(t) {
+        var tl = t > LOOP - 0.5 ? 0 : t;
+        var cam = camAt([[0, 90, 170, 1.1], [T1, 90, 164, 1.0]], tl);
+        shake(cam, tl, 0, 6, 0.5);
+        room(tl, cam);
+        sofa(90, 272, 96);
+        GHOSTS.forEach(function (gp, i) {
+          var k = pop(tl, 0.15 + 0.1 * i), glowK = tl > WT(0, "eight") ? 1 : 0;
+          if (k <= 0) return;
+          g.save(); g.translate(gp[0], gp[1] + Math.sin(tl * 2 + i) * 3); g.scale(k, k);
+          if (glowK) { lighter(); glow(0, -12, 16, C.halo, 0.4); normalBlend(); }
+          cat(0, 0, 0.72, { ghost: true, alpha: 0.7, t: tl + i });
+          g.restore();
+        });
+        cat(90, 258, 1.7, { t: tl, eyes: tl > WT(0, "want") ? "smug" : "open", talk: talk("cat", tl) });
+        vignette(0.3, "rgba(20,5,40,");
+      }
+
+      // 1. EGYPT: worshipped... the crocodile didn't
+      function eskinFigure(x, y, s, bow, look) {
+        g.save(); g.translate(x, y); g.scale(s * look, s);
+        // kneeling legs + white kilt
+        ell(-2, -2, 7, 2.6, 0, C.ink); ell(-2, -2.2, 6.4, 2, 0, C.eskin);
+        poly([[-6, -1], [4, -1], [3, -7], [-4, -7]], C.ink); poly([[-5.4, -1.5], [3.4, -1.5], [2.6, -6.5], [-3.6, -6.5]], C.white);
+        g.save(); g.translate(0, -7); g.rotate(bow * 1.1);
+        poly([[-3.4, 0], [3.4, 0], [3, -11], [-3, -11]], C.ink); poly([[-2.8, 0], [2.8, 0], [2.4, -10.4], [-2.4, -10.4]], C.eskin);
+        rect(-2.8, -9.6, 5.6, 1.6, C.gold); rect(-2.8, -8, 5.6, 0.8, C.nile);
+        // arms raised in praise (they swing down as he bows)
+        var aa = -2.2 + bow * 1.6;
+        line(2, -9, 2 + Math.cos(aa) * 7, -9 + Math.sin(aa) * 7, 2.2, C.ink); line(2, -9, 2 + Math.cos(aa) * 7, -9 + Math.sin(aa) * 7, 1.4, C.eskin);
+        line(-1, -9, -1 + Math.cos(aa - 0.3) * 7, -9 + Math.sin(aa - 0.3) * 7, 2.2, C.ink); line(-1, -9, -1 + Math.cos(aa - 0.3) * 7, -9 + Math.sin(aa - 0.3) * 7, 1.4, C.eskin);
+        // head + striped nemes headdress
+        disc(0.6, -14.5, 3.8, C.ink); disc(0.6, -14.5, 3.3, C.eskin);
+        poly([[-3.8, -16], [4.4, -17.4], [4.8, -14.4], [-0.6, -13.6], [-5, -9], [-5.4, -14]], C.ink);
+        poly([[-3.4, -16.2], [4, -17], [4.2, -15], [-0.6, -14], [-4.6, -9.6], [-4.8, -14]], C.gold);
+        for (var st = 0; st < 3; st++) line(-4.4 + st * 0.6, -15.6 + st * 2, -1 + st * 0.8, -16.2 + st * 0.4, 0.7, C.nile);
+        rect(2.2, -15, 1, 1, C.ink);
+        g.restore(); g.restore();
+      }
+      function crocHead(x, y, s, open, look) {
+        g.save(); g.translate(x, y); g.scale(s * look, s);
+        // lower jaw
+        poly([[0, 0], [-26, 2], [-28, 6], [0, 8]], C.ink); poly([[0, 1], [-25, 2.6], [-27, 5.6], [0, 7]], C.crocD);
+        for (var i = 0; i < 6; i++) poly([[-4 - i * 4, 1.6], [-5.5 - i * 4, -1.2], [-7 - i * 4, 1.6]], C.white);
+        // upper jaw (hinged at the back)
+        g.save(); g.rotate(open * 0.6);
+        poly([[2, 0], [-28, -1], [-29, -5], [-6, -9], [4, -10]], C.ink); poly([[2, -0.5], [-27, -1.5], [-28, -4.6], [-6, -8.4], [3, -9]], C.croc);
+        for (var j = 0; j < 6; j++) poly([[-4 - j * 4, -1], [-5.5 - j * 4, 1.8], [-7 - j * 4, -1]], C.white);
+        for (var b = 0; b < 4; b++) rect(-22 + b * 6, -6, 2, 1, C.crocL);
+        disc(-26, -4.5, 1, C.crocD);
+        disc(-2, -10, 3.6, C.ink); disc(-2, -10, 3, C.croc); disc(-2.4, -10.4, 1.6, C.gold); rect(-2.6, -11.2, 0.8, 1.8, C.ink);
+        g.restore();
+        g.restore();
+      }
+      function sceneEgypt(t) {
+        var tc = WT(1, "crocodile"), d = DEATHS[0], tw = WT(1, "worshipped");
+        var cam = camAt([[T1, 90, 176, 1.08], [tc - 0.2, 92, 180, 1.12], [d, 100, 184, 1.22], [A(2), 100, 186, 1.25]], t);
+        shake(cam, t, d, 6, 0.4);
+        sky([[0, C.skyE], [0.62, C.skyE2], [1, C.sand]]);
+        setCam(cam, 0.5);
+        disc(150, 70, 12, C.white); lighter(); glow(150, 70, 30, C.halo, 0.4); normalBlend();
+        poly([[60, 214], [120, 150], [180, 214]], C.pyrD); poly([[60, 214], [120, 150], [126, 214]], C.pyr);
+        poly([[-10, 214], [30, 176], [70, 214]], C.pyrD); poly([[-10, 214], [30, 176], [34, 214]], C.pyr);
+        setCam(cam, 1);
+        rect(-60, 212, 300, 50, C.sand); rect(-60, 212, 300, 2, C.sandD);
+        for (var dn = 0; dn < 10; dn++) rect(-50 + dn * 28, 224 + (dn % 3) * 8, 10, 1, C.sandD);
+        // the Nile
+        g.fillStyle = vgrad(258, 320, [[0, C.nile], [1, C.nileD]]); g.fillRect(-60, 258, 300, 80);
+        for (var w = 0; w < 30; w++) rect(-50 + ((w * 23 + t * 8) % 260), 262 + (w % 7) * 7, 5, 1, C.foam);
+        // pedestal + the worshipped cat
+        rect(56, 232, 28, 16, C.ink); rect(57, 233, 26, 14, C.gold); rect(57, 233, 26, 2, C.halo);
+        for (var hg = 0; hg < 4; hg++) { rect(60 + hg * 6, 238, 2, 4, C.goldD); disc(61 + hg * 6, 237, 1, C.goldD); }
+        var bow = t > tw ? Math.max(0, Math.sin((t - tw) * 6)) : 0;
+        eskinFigure(30, 252, 1.5, bow, 1); eskinFigure(114, 252, 1.5, bow, -1);
+        if (t < d) cat(70, 232, 1.25, { t: t, eyes: t > tc ? "shock" : t > tw ? "smug" : "open", talk: talk("cat", t), collar: true });
+        // the crocodile rises out of the Nile, then lunges
+        var rise = ease(clamp01((t - tc + 0.35) / 0.4)), lunge = easeOut(clamp01((t - d + 0.18) / 0.18));
+        if (rise > 0) {
+          var cx = lerp(150, 98, lunge), cy = lerp(282 - 18 * rise, 236, lunge);
+          crocHead(cx, cy, 1.0, t < d - 0.02 ? 0.4 + 0.4 * rise : 0, 1);
+          if (rise < 1) for (var sp = 0; sp < 8; sp++) rect(cx - 20 + sp * 5, cy + 6 - Math.abs(Math.sin(t * 10 + sp)) * 6, 2, 2, C.foam);
+        }
+        ghostUp(70, 232, 1.25, t, d);
+        vignette(0.2, "rgba(80,40,0,");
+      }
+
+      // 2. VIKING SHIP: storm, a fish, overboard
+      var RAIN = (function () { var r = rng(5), a = []; for (var i = 0; i < 70; i++) a.push([r() * 260 - 40, r() * 340, 0.7 + r() * 0.6]); return a; })();
+      function waves(y, t, col, colL, amp, ph) {
+        g.fillStyle = col; g.beginPath(); g.moveTo(-60, 400);
+        for (var x = -60; x <= 240; x += 6) g.lineTo(x, y + Math.sin(x * 0.06 + t * 2 + ph) * amp + Math.sin(x * 0.13 - t * 1.3) * amp * 0.4);
+        g.lineTo(240, 400); g.closePath(); g.fill();
+        for (var x2 = -60; x2 <= 240; x2 += 12) { var yy = y + Math.sin(x2 * 0.06 + t * 2 + ph) * amp + Math.sin(x2 * 0.13 - t * 1.3) * amp * 0.4; rect(x2, yy, 5, 1.5, colL); }
+      }
+      function longship(x, y, t, rot) {
+        g.save(); g.translate(x, y); g.rotate(rot);
+        // mast + striped sail
+        rect(-2, -44, 3, 40, C.woodD);
+        poly([[-20, -42], [20, -42], [24, -14], [-24, -14]], C.ink);
+        for (var s = 0; s < 6; s++) poly([[-20 + s * 6.7, -41], [-20 + (s + 1) * 6.7, -41], [-24 + (s + 1) * 8, -15], [-24 + s * 8, -15]], s % 2 ? C.white : C.sail);
+        rect(-24, -44, 48, 2, C.woodD);
+        // hull
+        poly([[-50, -12], [50, -12], [40, 6], [-40, 6]], C.ink); poly([[-48, -11], [48, -11], [39, 5], [-39, 5]], C.wood);
+        rect(-46, -11, 92, 2, C.woodL); rect(-40, -3, 80, 1, C.woodD);
+        for (var sh = 0; sh < 7; sh++) { disc(-33 + sh * 11, -9, 4, C.ink); disc(-33 + sh * 11, -9, 3.4, [C.sail, C.gold, C.parrotB][sh % 3]); disc(-33 + sh * 11, -9, 1, C.woodL); }
+        // dragon prow + curled stern
+        g.strokeStyle = C.ink; g.lineWidth = 4; g.beginPath(); g.moveTo(46, -10); g.quadraticCurveTo(60, -16, 56, -30); g.stroke();
+        g.strokeStyle = C.wood; g.lineWidth = 2.6; g.stroke();
+        poly([[54, -32], [64, -30], [58, -26], [53, -27]], C.wood); disc(58, -30, 0.8, C.gold); poly([[54, -32], [52, -38], [57, -33]], C.wood);
+        g.strokeStyle = C.ink; g.lineWidth = 4; g.beginPath(); g.moveTo(-46, -10); g.quadraticCurveTo(-60, -16, -54, -28); g.stroke();
+        g.strokeStyle = C.wood; g.lineWidth = 2.6; g.stroke();
+        g.restore();
+      }
+      function fishSprite(x, y, s, rot) {
+        g.save(); g.translate(x, y); g.rotate(rot); g.scale(s, s);
+        ell(0, 0, 6, 3, 0, C.ink); ell(0, 0, 5.4, 2.4, 0, C.fish); poly([[-5, 0], [-9, -3], [-9, 3]], C.fishD); disc(3, -0.6, 0.7, C.ink); rect(-2, -1.6, 4, 0.8, C.white);
+        g.restore();
+      }
+      function sceneViking(t) {
+        var tf = WT(2, "fish"), to = WT(2, "overboard"), d = DEATHS[1];
+        var cam = camAt([[A(2) - 0.1, 90, 180, 1.1], [to - 0.3, 96, 182, 1.12], [d, 112, 188, 1.2], [A(3), 116, 190, 1.24]], t);
+        shake(cam, t, A(2) + 0.15, 5, 0.4); shake(cam, t, d - 0.1, 4, 0.4);
+        sky([[0, C.storm], [1, C.storm2]]);
+        // lightning
+        var lt = t - A(2) - 0.15;
+        if (lt > 0 && lt < 0.25) { setCam(cam, 0.5); g.strokeStyle = C.white; g.lineWidth = 2; g.beginPath(); g.moveTo(130, 0); g.lineTo(120, 40); g.lineTo(134, 60); g.lineTo(118, 110); g.stroke(); }
+        setCam(cam, 0.6);
+        waves(214, t, C.seaD, C.storm2, 6, 0);
+        setCam(cam, 1);
+        var rock = Math.sin(t * 1.6) * 0.07;
+        longship(74, 240, t, rock);
+        // Mittens on the stern rail, then the leap after the fish
+        var lp = clamp01((t - to + 0.45) / 0.6);
+        if (lp <= 0) cat(46, 230 - rock * 30, 1.0, { t: t, eyes: t > tf ? "wide" : "open", gaze: t > tf ? 1 : 0, talk: talk("cat", t) });
+        else if (t < d - 0.1) cat(lerp(46, 150, lp), 236 - Math.sin(lp * Math.PI) * 20 + lp * 24, 1.0, { t: t, pose: "splay", eyes: "wide", rot: lp * 0.8 });
+        // the fish jumps
+        var fu = (t - tf + 0.2) / 0.9;
+        if (fu > 0 && fu < 1) fishSprite(lerp(150, 120, fu), 252 - Math.sin(fu * Math.PI) * 50, 1.2, -1 + fu * 2);
+        waves(250, t, C.sea, C.foam, 5, 2);
+        if (t > d - 0.1 && t < d + 1.0) { var su = t - d + 0.1; for (var sp = 0; sp < 20; sp++) { var a = -Math.PI / 2 + (hash1(sp) - 0.5) * 2.2, v = 40 + hash1(sp + 3) * 40; rect(150 + Math.cos(a) * v * su, 254 + Math.sin(a) * v * su + 90 * su * su, 2, 2, C.foam); } }
+        ghostUp(150, 250, 1.0, t, d);
+        RAIN.forEach(function (r) { var y = (r[1] + t * 260 * r[2]) % 340 - 10, x = r[0] - y * 0.25; line(x, y + cam.y - 160, x - 2, y + cam.y - 154, 0.7, C.foam); });
+        vignette(0.35, "rgba(5,10,40,");
+      }
+
+      // 3. CHINA: asleep on the fireworks
+      function lanternSprite(x, y, t, i) {
+        var sw = Math.sin(t * 2 + i) * 2;
+        line(x, y - 8, x + sw, y - 3, 0.6, C.ink);
+        lighter(); glow(x + sw, y + 4, 14, C.lantern, 0.5); normalBlend();
+        ell(x + sw, y + 4, 6, 7, 0, C.ink); ell(x + sw, y + 4, 5.4, 6.4, 0, C.lantern); rect(x + sw - 0.5, y - 2, 1, 12, C.lanternL);
+        rect(x + sw - 3, y - 3, 6, 1.4, C.gold); rect(x + sw - 3, y + 10, 6, 1.4, C.gold); line(x + sw, y + 11, x + sw, y + 15, 0.8, C.gold);
+      }
+      function crate(x, y, w, h) {
+        rect(x, y, w, h, C.ink); rect(x + 1, y + 1, w - 2, h - 2, C.wood); rect(x + 1, y + 1, w - 2, 1.5, C.woodL);
+        line(x + 2, y + 2, x + w - 2, y + h - 2, 1, C.woodD); line(x + w - 2, y + 2, x + 2, y + h - 2, 1, C.woodD);
+      }
+      function sceneChina(t) {
+        var tfw = WT(3, "fireworks"), tb = T_BOOM, d = DEATHS[2];
+        var cam = camAt([[A(3) - 0.1, 90, 176, 1.12], [tfw, 90, 180, 1.22], [tb, 90, 182, 1.3], [A(4), 90, 176, 1.1]], t);
+        shake(cam, t, tb, 10, 0.8);
+        sky([[0, C.chinaSky], [1, C.shopD]]);
+        setCam(cam, 0.4); stars(t, 0.6);
+        setCam(cam, 1);
+        // shopfront with its sign
+        rect(10, 60, 160, 230, C.shop); rect(10, 60, 160, 4, C.red);
+        rect(-60, 60, 70, 230, C.shopD); rect(170, 60, 70, 230, C.shopD);
+        rect(46, 112, 88, 22, C.ink); rect(48, 114, 84, 18, C.red); rect(48, 114, 84, 2, C.gold); rect(48, 130, 84, 2, C.gold);
+        worldText("FIREWORKS", 90, 120, 1, C.lanternL);
+        for (var i = 0; i < 6; i++) lanternSprite(-10 + i * 40, 76, t, i);
+        line(-40, 66, 220, 70, 0.8, C.ink);
+        rect(-60, 278, 300, 60, C.shopD); rect(-60, 278, 300, 2, C.red);
+        var boomed = t > tb;
+        if (!boomed) {
+          crate(54, 252, 36, 26); crate(92, 252, 36, 26); crate(70, 230, 40, 22);
+          for (var r = 0; r < 5; r++) { rect(60 + r * 13, 244 - (r % 2) * 4, 4, 10, C.red); poly([[60 + r * 13, 244 - (r % 2) * 4], [64 + r * 13, 244 - (r % 2) * 4], [62 + r * 13, 240 - (r % 2) * 4]], C.gold); }
+          cat(90, 230, 1.15, { t: t, pose: "sleep" });
+          if (t > A(3) + 0.3) "ZZ".split("").forEach(function (ch, i) { var p = ((t - A(3)) * 0.6 + i * 0.5) % 1; g.globalAlpha = 1 - p; worldText(ch, 104 + i * 6 + p * 6, 206 - p * 14, 1, C.white); g.globalAlpha = 1; });
+          // the fuse catches
+          if (t > tfw) { var fp = clamp01((t - tfw) / (tb - tfw)), fx = lerp(40, 60, fp), fy = lerp(262, 248, fp); line(40, 262, 60, 248, 0.8, C.ink); lighter(); glow(fx, fy, 6, C.flame, 0.9); normalBlend(); for (var s = 0; s < 5; s++) rect(fx + (hash1(s + Math.floor(t * 30)) - 0.5) * 6, fy - hash1(s + 7 + Math.floor(t * 30)) * 6, 1, 1, C.flame); }
+        } else {
+          var u = t - tb;
+          [[90, 200, C.red], [50, 170, C.parrotG], [130, 180, C.parrotB], [70, 120, C.flame], [120, 110, C.pink]].forEach(function (b, i) {
+            var bu = u - i * 0.08; if (bu < 0) return;
+            for (var p = 0; p < 22; p++) { var a = p / 22 * 6.2832, dd = 34 * easeOut(bu / 0.6); if (bu < 1.4) rect(b[0] + Math.cos(a) * dd, b[1] + Math.sin(a) * dd + 10 * bu * bu, 2, 2, p % 4 ? b[2] : C.white); }
+          });
+          for (var sm = 0; sm < 8; sm++) { g.globalAlpha = 0.6 * clamp01(1 - u / 1.4); disc(70 + sm * 8, 250 - u * 20 - sm % 3 * 6, 8 + u * 10, C.grey); g.globalAlpha = 1; }
+          if (t < d) cat(90, 230 - u * 120, 1.15, { t: t, pose: "splay", eyes: "shock", puff: true, rot: u * 6 });
+          lighter(); glow(90, 240, 120, C.flame, 0.7 * clamp01(1 - u / 0.5)); normalBlend();
+        }
+        ghostUp(90, 210, 1.1, t, d);
+        vignette(0.3, "rgba(30,0,20,");
+      }
+
+      // 4. PIRATES: the captain's parrot
+      function captain(x, y, s, t, o) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        var kick = o.kick || 0;
+        // legs: one peg, one boot that kicks
+        rect(-6, -14, 4, 14, C.ink); rect(-5.4, -13, 2.8, 13, C.woodL);
+        g.save(); g.translate(4, -14); g.rotate(-kick * 1.2); rect(-2.5, 0, 5, 12, C.ink); rect(-2, 0, 4, 11, C.hat); rect(-2.5, 9, 8, 4, C.ink); g.restore();
+        // coat
+        poly([[-12, -40], [12, -40], [14, -12], [-14, -12]], C.ink); poly([[-11, -39], [11, -39], [13, -13], [-13, -13]], C.coat);
+        rect(-1, -39, 2, 26, C.coatD); for (var b = 0; b < 4; b++) disc(3, -34 + b * 6, 1, C.gold);
+        rect(-13, -22, 26, 3, C.hat); rect(-2, -22.5, 4, 4, C.gold);
+        // arms: hook + pointing
+        line(-11, -36, -18, -24, 4, C.ink); line(-11, -36, -18, -24, 3, C.coat); g.strokeStyle = C.white; g.lineWidth = 1.2; g.beginPath(); g.arc(-18, -21, 2.4, -1.4, 2.6); g.stroke();
+        if (o.point) { line(11, -36, 22, -38, 4, C.ink); line(11, -36, 22, -38, 3, C.coat); disc(23, -38, 2, C.pskin); }
+        else { line(11, -36, 17, -24, 4, C.ink); line(11, -36, 17, -24, 3, C.coat); disc(17, -23, 2, C.pskin); }
+        // head
+        disc(0, -48, 8, C.ink); disc(0, -48, 7.4, C.pskin);
+        poly([[-7, -48], [7, -48], [6, -38], [0, -35], [-6, -38]], C.beard);
+        rect(-7, -51, 14, 1.2, C.ink); ell(-3, -49.5, 2.2, 1.8, 0, C.ink);
+        if (o.angry) { disc(3, -49.6, 1.4, C.white); disc(3.3, -49.6, 0.7, C.ink); line(0.5, -53, 5.5, -51.5, 1.2, C.ink); ell(0, -42.5, 2, 1.4, 0, C.ink); }
+        else { rect(2.4, -50.6, 1.4, 1.6, C.ink); }
+        // tricorn hat with skull
+        poly([[-14, -54], [14, -54], [9, -64], [0, -61], [-9, -64]], C.ink); poly([[-12.6, -55], [12.6, -55], [8.4, -63], [0, -60], [-8.4, -63]], C.hat);
+        rect(-12.6, -56, 25.2, 1.5, C.gold); disc(0, -59, 2.2, C.white); rect(-1.5, -57.5, 3, 1.4, C.white); rect(-1.2, -59.6, 0.8, 0.8, C.ink); rect(0.4, -59.6, 0.8, 0.8, C.ink);
+        // parrot on the shoulder
+        if (o.parrot) {
+          var px = 10, py = -44;
+          ell(px, py, 3.4, 5, 0, C.ink); ell(px, py, 2.8, 4.4, 0, C.parrotG); poly([[px - 1, py + 3], [px + 1, py + 3], [px, py + 10]], C.parrotB);
+          disc(px + 0.6, py - 5, 2.8, C.ink); disc(px + 0.6, py - 5, 2.3, C.parrotR); poly([[px + 2.4, py - 5.8], [px + 5, py - 4.2], [px + 2.4, py - 3.4]], C.gold); disc(px + 1.2, py - 5.6, 0.6, C.ink);
+        }
+        g.restore();
+      }
+      function scenePirates(t) {
+        var ta = WT(4, "ate"), tp = WT(4, "parrot"), d = DEATHS[3];
+        var cam = camAt([[A(4) - 0.1, 90, 166, 1.1], [tp, 88, 168, 1.15], [T_KICK, 100, 170, 1.12], [d, 128, 172, 1.18], [A(5), 130, 172, 1.2]], t);
+        shake(cam, t, T_KICK, 4, 0.3);
+        sky([[0, C.skyP], [0.65, C.skyP2], [1, C.white]]);
+        setCam(cam, 0.4);
+        [[30, 60, 30], [140, 40, 36], [90, 100, 26]].forEach(function (c) { ell(c[0], c[1], c[2] * 0.6, 5, 0, C.cloud); disc(c[0] - 6, c[1] - 4, 7, C.cloud); disc(c[0] + 6, c[1] - 5, 8, C.cloud); });
+        setCam(cam, 0.7);
+        rect(-80, 196, 380, 40, C.sea); for (var w = 0; w < 30; w++) rect(-70 + ((w * 31 + t * 6) % 360), 200 + (w % 6) * 5, 6, 1, C.foam);
+        setCam(cam, 1);
+        // sea beyond the rail (where Mittens lands)
+        rect(150, 236, 120, 90, C.sea); for (var w2 = 0; w2 < 10; w2++) rect(152 + w2 * 11, 246 + (w2 % 3) * 9, 6, 1, C.foam);
+        // deck, rail, mast, the plank
+        rect(-60, 240, 214, 90, C.wood); for (var p = 0; p < 7; p++) rect(-60, 246 + p * 9, 214, 1, C.woodD);
+        rect(-60, 226, 214, 3, C.woodD); for (var r = 0; r < 10; r++) rect(-56 + r * 21, 226, 3, 14, C.woodD);
+        rect(-30, 60, 6, 180, C.woodD); rect(-50, 90, 46, 2, C.woodD);
+        rect(140, 233, 46, 4, C.ink); rect(140, 233.5, 46, 3, C.woodL);
+        var angry = t > tp + 0.2;
+        captain(48, 268, 1.35, t, { parrot: t < ta - 0.05, angry: angry, point: angry && t < T_KICK, kick: easeOut(clamp01((t - T_KICK) / 0.12)) * (1 - clamp01((t - T_KICK - 0.4) / 0.3)) });
+        bang(76, 200, pop(t, tp + 0.2), C.red);
+        // Mittens: chewing, feathers; then kicked off the plank
+        var fl = clamp01((t - T_KICK) / (d - 0.1 - T_KICK));
+        if (fl <= 0) cat(100, 258, 1.15, { t: t, eyes: t > tp + 0.2 ? "wide" : t > ta ? "happy" : "open", feather: t > ta, talk: talk("cat", t), gaze: -1 });
+        else if (t < d - 0.1) cat(lerp(100, 172, fl), 258 - Math.sin(fl * Math.PI) * 50 + fl * 10, 1.1, { t: t, pose: "splay", eyes: "shock", rot: fl * 5 });
+        if (t > ta - 0.05 && t < ta + 1.6) for (var f = 0; f < 6; f++) { var fu = t - ta + 0.05; g.save(); g.translate(100 + Math.sin(fu * 4 + f) * 10 + (f - 2.5) * 5, 230 - fu * 18 + f * 3); g.rotate(Math.sin(fu * 3 + f)); poly([[0, 0], [5, 1], [0, 2]], [C.parrotG, C.parrotR, C.parrotB][f % 3]); g.restore(); }
+        if (t > d - 0.1 && t < d + 1.0) { var su = t - d + 0.1; for (var sp = 0; sp < 18; sp++) { var a = -Math.PI / 2 + (hash1(sp + 5) - 0.5) * 2, v = 30 + hash1(sp) * 40; rect(172 + Math.cos(a) * v * su, 252 + Math.sin(a) * v * su + 90 * su * su, 2, 2, C.foam); } }
+        ghostUp(172, 248, 1.0, t, d);
+        vignette(0.2, "rgba(0,20,60,");
+      }
+
+      // 5. PARIS: the top of the Eiffel Tower... and down
+      function eiffel(x, top, t) {
+        // tapering lattice from the tip down to y = top + 170
+        function wAt(y) { var u = (y - top) / 120; return 3 + 34 * Math.pow(u, 1.8); }
+        var bot = top + 120;
+        for (var side = -1; side <= 1; side += 2) {
+          g.strokeStyle = C.ink; g.lineWidth = 3; g.beginPath();
+          for (var y = top + 8; y <= bot; y += 4) { var xx = x + side * wAt(y); if (y === top + 8) g.moveTo(xx, y); else g.lineTo(xx, y); }
+          g.stroke(); g.strokeStyle = C.iron; g.lineWidth = 2; g.stroke();
+        }
+        for (var yy = top + 12; yy < bot; yy += 8) { var w1 = wAt(yy), w2 = wAt(yy + 8); line(x - w1, yy, x + w2, yy + 8, 0.8, C.ironL); line(x + w1, yy, x - w2, yy + 8, 0.8, C.ironL); }
+        // platforms
+        [[top + 18, 1], [top + 58, 1.4], [top + 100, 1.8]].forEach(function (p) { var w = wAt(p[0]) + 5; rect(x - w, p[0], 2 * w, 3, C.ink); rect(x - w, p[0], 2 * w, 2, C.ironL); for (var l = 0; l < w * 2; l += 6) rect(x - w + l, p[0] - 2, 1, 2, C.city); });
+        rect(x - 1, top - 8, 2, 16, C.iron); disc(x, top - 9, 1.2, C.red);
+        lighter(); glow(x, top - 9, 4, C.red, 0.6 * (0.5 + 0.5 * Math.sin(t * 4))); normalBlend();
+      }
+      function sceneParis(t) {
+        var te = WT(5, "eiffel"), tf = WT(5, "forgot"), td = WT(5, "down"), d = DEATHS[4];
+        var top = 218, fall = clamp01((t - td - 0.05) / (d - td - 0.05)), cy = top + 2 + 116 * fall * fall;
+        var z = t < te ? 1.5 : lerp(1.5, 0.75, ease(clamp01((t - te) / 0.8)));
+        if (t > td) z = lerp(z, 1.0, clamp01((t - td) / 0.3));
+        var cam = { x: 90, y: (t > td ? cy : top + 2) - 62 / z + 40 * clamp01((1.5 - z) / 0.75), z: z };
+        shake(cam, t, d - 0.05, 6, 0.4);
+        sky([[0, C.parTop], [0.6, C.parMid], [1, C.parLow]]);
+        setCam(cam, 0.3); stars(t, 0.7); disc(140, 60, 9, C.moon);
+        setCam(cam, 1);
+        // city lights far below
+        rect(-200, top + 118, 560, 160, C.night);
+        for (var i = 0; i < 200; i++) { var x = -190 + hash1(i) * 540, y = top + 121 + hash1(i + 50) * 120; if (Math.sin(t * 3 + i) > -0.6) rect(x, y, 1.5, 1.5, i % 7 ? C.city : C.white); }
+        eiffel(90, top, t);
+        if (t < d - 0.05) {
+          if (t < td) cat(90, top + 2, 0.9, { t: t, eyes: t > tf ? "down" : t > te ? "smug" : "open", talk: talk("cat", t), rot: t > tf ? Math.sin(t * 10) * 0.12 : 0 });
+          else cat(90, cy, 0.95, { t: t, pose: "splay", eyes: "shock", rot: Math.sin(t * 6) * 0.3 });
+          if (t > tf && t < td) { disc(100, top - 22, 1.6, C.water); poly([[98.6, top - 22], [100, top - 26], [101.4, top - 22]], C.water); }
+        }
+        if (t > d - 0.05 && t < d + 0.6) { for (var sp = 0; sp < 10; sp++) rect(90 + (hash1(sp) - 0.5) * 40 * (t - d + 0.1) * 3, top + 118 - hash1(sp + 2) * 12, 2, 2, C.city); }
+        ghostUp(90, top + 116, 0.95, t, d);
+        vignette(0.3, "rgba(30,0,60,");
+      }
+
+      // 6. ROCKET, then space
+      function rocketSprite(x, y, s, t, fire) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        if (fire > 0) {
+          lighter(); glow(0, 40, 26 * fire, C.flameO, 0.8); normalBlend();
+          var fl = 18 + Math.sin(t * 40) * 4;
+          poly([[-7, 32], [7, 32], [0, 32 + fl * fire * 1.6]], C.flameO); poly([[-4, 32], [4, 32], [0, 32 + fl * fire]], C.flame);
+        }
+        poly([[-12, 18], [-20, 34], [-8, 30]], C.ink); poly([[12, 18], [20, 34], [8, 30]], C.ink);
+        poly([[-11.5, 19], [-18.5, 33], [-8, 29.4]], C.red); poly([[11.5, 19], [18.5, 33], [8, 29.4]], C.red);
+        rrect(-10, -16, 20, 48, 6, C.ink); rrect(-9, -15, 18, 46, 5, C.rocket); rect(3, -12, 4, 42, C.rocketS);
+        poly([[-9.5, -12], [0, -36], [9.5, -12]], C.ink); poly([[-8.6, -12.4], [0, -34], [8.6, -12.4]], C.red);
+        rect(-9, 22, 18, 3, C.red);
+        disc(0, 2, 6.4, C.ink); disc(0, 2, 5.6, C.glass); rect(-3, -1, 2, 2, C.white);
+        g.restore();
+      }
+      function sceneRocket(t) {
+        var ts = WT(6, "snuck"), tr = WT(6, "rocket"), tsp = WT(6, "space"), d = DEATHS[5];
+        if (t < tsp - 0.1) {
+          var lift = clamp01((t - tr) / 0.9), ry = 230 - 200 * lift * lift;
+          var cam = camAt([[A(6) - 0.1, 90, 178, 1.15], [tr, 90, 184, 1.2], [tsp, 90, 160, 1.0]], t);
+          shake(cam, t, tr, 7, 1.0);
+          sky([[0, C.night], [0.7, C.storm2], [1, C.parLow]]);
+          setCam(cam, 0.4); stars(t, 0.8);
+          setCam(cam, 1);
+          rect(-60, 280, 300, 60, C.grey); rect(-60, 280, 300, 2, C.white);
+          // gantry
+          for (var gy = 140; gy < 280; gy += 10) { line(40, gy, 52, gy + 10, 1, C.redD || C.red); line(52, gy, 40, gy + 10, 1, C.red); }
+          rect(38, 140, 2, 140, C.red); rect(52, 140, 2, 140, C.red);
+          var fire = t > ts ? clamp01((t - ts) / 0.3) : 0;
+          rocketSprite(90, ry, 1.15, t, fire);
+          // Mittens peeking through the porthole
+          g.save(); g.beginPath(); g.arc(90, ry + 2.3, 6.4, 0, 6.2832); g.clip(); cat(90, ry + 16, 0.5, { t: t, eyes: t > tr ? "shock" : "smug" }); g.restore();
+          if (fire > 0) for (var s = 0; s < 14; s++) { var su = ((t * 1.2 + hash1(s) * 2) % 1.4); g.globalAlpha = 0.7 * (1 - su / 1.4); disc(90 + (hash1(s + 4) - 0.5) * 30 * (1 + su * 3), 276 - su * 10, 6 + su * 16, C.white); g.globalAlpha = 1; }
+          vignette(0.25, "rgba(0,0,30,");
+        } else {
+          var cam2 = camAt([[tsp - 0.1, 90, 180, 1.1], [d, 90, 184, 1.2], [A(7), 90, 186, 1.25]], t);
+          sky([[0, C.space], [1, C.night]]);
+          setCam(cam2, 0.3); stars(t, 1);
+          setCam(cam2, 1);
+          disc(90, 520, 250, C.earth); g.save(); g.beginPath(); g.arc(90, 520, 250, 0, 6.2832); g.clip(); ell(20, 290, 50, 20, 0.2, C.earthG); ell(150, 300, 40, 16, -0.3, C.earthG); g.restore();
+          lighter(); glow(90, 280, 120, C.water, 0.25); normalBlend();
+          // thought bubble: a fish, crossed out
+          var bk = pop(t, WT(6, "no") - 0.1);
+          if (bk > 0) { g.save(); g.translate(128, 196); g.scale(bk, bk); disc(-14, 18, 2, C.white); disc(-9, 12, 3, C.white); ell(0, 0, 14, 10, 0, C.white); fishSprite(0, 0, 1.0, 0); line(-8, -6, 8, 6, 2, C.red); line(8, -6, -8, 6, 2, C.red); g.restore(); }
+          if (t < d) cat(78, 252 + Math.sin(t * 2) * 3, 1.2, { t: t, eyes: t > WT(6, "fish") ? "sad" : "wide", talk: talk("cat", t), bowl: true, rot: Math.sin(t * 1.5) * 0.15 });
+          if (t > WE(6, "fish") - 0.2 && t < d) { disc(72, 236 + (t - WE(6, "fish")) * 20, 1.2, C.water); }
+          ghostUp(78, 252, 1.2, t, d);
+          vignette(0.2, "rgba(0,0,20,");
+        }
+      }
+
+      // 7. THE BOX (a scientist, a cat, a lid)
+      function scientist(x, y, s, t, lid) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        rect(-5, -12, 3, 12, C.ink); rect(2, -12, 3, 12, C.ink);
+        poly([[-10, -38], [10, -38], [12, -10], [-12, -10]], C.ink); poly([[-9, -37], [9, -37], [11, -11], [-11, -11]], C.coatLab);
+        rect(-1, -37, 2, 26, C.labD); rect(4, -32, 4, 3, C.parrotB);
+        line(9, -34, 18, -30 + lid * 6, 3.4, C.ink); line(9, -34, 18, -30 + lid * 6, 2.4, C.coatLab);
+        disc(0, -45, 7, C.ink); disc(0, -45, 6.4, C.pskin);
+        for (var h = 0; h < 9; h++) { var a = Math.PI + h * 0.4; line(Math.cos(a) * 5, -46 + Math.sin(a) * 5, Math.cos(a) * 10, -47 + Math.sin(a) * 9, 2.4, C.white); }
+        g.strokeStyle = C.ink; g.lineWidth = 0.8; g.beginPath(); g.arc(-2.6, -45.5, 2, 0, 6.2832); g.arc(2.6, -45.5, 2, 0, 6.2832); g.stroke();
+        disc(-2.6, -45.5, 0.7, C.ink); disc(2.6, -45.5, 0.7, C.ink);
+        ell(0, -40.5, 1.6, 0.8, 0, C.ink);
+        g.restore();
+      }
+      function sceneBox(t) {
+        var tb = WT(7, "box"), tl = WT(7, "long"), d = DEATHS[6];
+        var cam = camAt([[A(7) - 0.1, 90, 178, 1.12], [tb, 96, 182, 1.25], [d, 100, 186, 1.35], [A(8), 100, 186, 1.38]], t);
+        sky([[0, C.lab], [1, C.labD]]);
+        setCam(cam, 1);
+        rect(78, 52, 96, 70, C.ink); rect(80, 54, 92, 66, C.board);
+        worldText("ALIVE+DEAD", 126, 70, 1, C.chalk); worldText("= ?", 126, 86, 2, C.halo); line(88, 110, 164, 110, 0.6, C.chalk);
+        rect(-60, 252, 300, 80, C.labD); rect(-60, 248, 300, 6, C.ink); rect(-60, 248, 300, 4, C.white);
+        // flask + beaker
+        poly([[150, 248], [160, 248], [164, 234], [156, 226], [154, 226], [146, 234]], C.ink); poly([[150.6, 247], [159.4, 247], [162.6, 234.6], [155, 228], [147.4, 234.6]], C.parrotG);
+        rect(152, 216, 6, 12, C.ink); rect(153, 217, 4, 10, C.glass);
+        for (var bb = 0; bb < 3; bb++) disc(155 + Math.sin(t * 3 + bb) * 2, 236 - ((t * 10 + bb * 5) % 10), 0.8, C.white);
+        // the box
+        var shut = t > tb + 0.15, rat = t > tl - 0.2 && t < d ? Math.sin(t * 40) * 1.5 : 0;
+        var bx = 104 + rat, by = 248;
+        rect(bx - 20, by - 28, 40, 28, C.ink); rect(bx - 19, by - 27, 38, 26, C.box); rect(bx - 19, by - 27, 38, 2, C.boxD);
+        worldText("?", bx, by - 18, 2, C.boxD);
+        if (!shut) cat(bx, by - 18, 1.0, { t: t, eyes: "smug", talk: talk("cat", t) });
+        if (!shut) { rect(bx - 19, by - 22, 38, 21, C.box); worldText("?", bx, by - 16, 2, C.boxD); }
+        var lid = shut ? 0 : 1;
+        if (shut) { rect(bx - 21, by - 31, 42, 5, C.ink); rect(bx - 20, by - 30, 40, 3, C.boxD); }
+        scientist(42, 262, 1.3, t, lid);
+        if (!shut) { rect(56, 210, 30, 4, C.ink); rect(57, 210.5, 28, 3, C.boxD); }
+        if (t > tl - 0.2 && t < d) for (var q = 0; q < 3; q++) { var k = pop(t, tl - 0.1 + q * 0.15); if (k > 0) { g.save(); g.translate(bx - 16 + q * 16, by - 40 - q % 2 * 6); g.scale(k, k); worldText("?", 0, -4, 1, C.ink); g.restore(); } }
+        if (t > d && t < d + 0.6) { for (var s = 0; s < 8; s++) { g.globalAlpha = 0.7 * (1 - (t - d) / 0.6); disc(bx + (hash1(s) - 0.5) * 30, by - 30 - (t - d) * 30 * hash1(s + 1), 4 + (t - d) * 12, C.white); g.globalAlpha = 1; } }
+        ghostUp(bx, by - 26, 1.0, t, d);
+        vignette(0.2, "rgba(0,40,40,");
+      }
+
+      // 8. CUCUMBER (last Tuesday)
+      function kitchen(t, cam) {
+        sky([[0, C.cab], [1, C.cabD]]);
+        setCam(cam, 1);
+        rect(-60, 60, 300, 140, C.tile); for (var ty = 0; ty < 7; ty++) for (var tx = 0; tx < 16; tx++) if ((tx + ty) % 2) rect(-60 + tx * 20, 60 + ty * 20, 20, 20, C.skyP2);
+        rect(120, 76, 44, 50, C.ink); rect(123, 79, 38, 44, C.skyP); rect(141, 79, 2, 44, C.ink); disc(150, 92, 5, C.white);
+        rect(-60, 196, 300, 6, C.ink); rect(-60, 196, 300, 4, C.top);
+        rect(-60, 202, 300, 52, C.cab); for (var cd = 0; cd < 8; cd++) { rect(-56 + cd * 36, 206, 32, 44, C.cabD); rect(-54 + cd * 36, 208, 28, 40, C.cab); rect(-30 + cd * 36, 224, 2, 6, C.gold); }
+        for (var fy = 0; fy < 5; fy++) for (var fx = 0; fx < 16; fx++) rect(-60 + fx * 20, 254 + fy * 20, 20, 20, (fx + fy) % 2 ? C.tileB : C.tile);
+      }
+      function cucumber(x, y, s) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        ell(0, 0, 16, 4.4, 0, C.ink); ell(0, 0, 15.2, 3.7, 0, C.cuc); ell(-2, -1.6, 11, 1, 0, C.parrotG);
+        for (var b = 0; b < 7; b++) rect(-11 + b * 4, -1 + (b % 2) * 2, 1, 1, C.cucD);
+        g.restore();
+      }
+      function sceneCucumber(t) {
+        var tl = WT(8, "last"), tc = WT(8, "cucumber"), d = DEATHS[7];
+        var cam = camAt([[A(8) - 0.1, 90, 186, 1.2], [tc, 84, 190, 1.32], [d, 90, 180, 1.2], [A(9), 90, 178, 1.15]], t);
+        shake(cam, t, tc + 0.15, 5, 0.4);
+        kitchen(t, cam);
+        ell(118, 280, 10, 3, 0, C.ink); rect(108, 272, 20, 8, C.ink); rect(109, 273, 18, 6, C.bowl); ell(118, 273, 9, 2, 0, C.furD);
+        var jump = clamp01((t - tc - 0.15) / 0.35), jy = 280 - 70 * Math.sin(jump * Math.PI * 0.5);
+        if (t < d) {
+          if (jump <= 0) cat(94, 280, 1.15, { t: t, eyes: t > tc ? "shock" : "happy", talk: talk("cat", t), look: t > tc - 0.05 ? -1 : 1, gaze: t > tc ? 1 : 0 });
+          else cat(94, jy, 1.15, { t: t, pose: "splay", eyes: "shock", puff: true, yowl: true });
+          if (t < tc && t > A(8) + 0.2) worldText("NOM", 120, 248 - Math.abs(Math.sin(t * 6)) * 2, 1, C.ink);
+        }
+        var slide = ease(clamp01((t - tl) / 0.8));
+        if (slide > 0) cucumber(lerp(-30, 46, slide), 284, 1.0);
+        bang(124, 222, pop(t, tc + 0.15), C.red);
+        ghostUp(94, 216, 1.15, t, d);
+        vignette(0.2, "rgba(0,30,40,");
+      }
+
+      // NOW: very, very careful (hard hat + bubble wrap)
+      function sceneCareful(t) {
+        var tc = WT(9, "careful");
+        var cam = camAt([[A(9) - 0.1, 90, 178, 1.1], [A(10), 90, 182, 1.25]], t);
+        room(t, cam);
+        for (var p = 0; p < 5; p++) { rrect(30 + p * 24, 262 - (p % 2) * 6, 30, 22, 8, C.ink); rrect(31 + p * 24, 263 - (p % 2) * 6, 28, 20, 8, [C.sofa, C.parrotB, C.gold, C.parrotG, C.pink][p]); }
+        cat(90, 262, 1.6, { t: t, eyes: t > tc ? "smug" : "open", talk: talk("cat", t), hat: true, wrap: true });
+        var k = pop(t, tc);
+        if (k > 0) for (var s = 0; s < 6; s++) { var a = s * 1.05, r = 10 + (t - tc) * 30; if (t - tc < 0.5) rect(90 + Math.cos(a) * r, 216 + Math.sin(a) * r, 2, 2, C.halo); }
+        vignette(0.25, "rgba(20,5,40,");
+      }
+
+      // "MITTENS! GET OFF THE COUNTER!" ... "Very careful." *nudge* *smash*
+      function sceneCounter(t) {
+        var tm = A(10), tv = A(11), fall = clamp01((t - T_PUSH) / (T_SMASH - T_PUSH));
+        var cam = camAt([[tm - 0.1, 96, 178, 1.3], [tv, 100, 180, 1.35], [T_PUSH, 104, 182, 1.35], [T_SMASH, 106, 196, 1.2], [DUR, 104, 200, 1.25]], t);
+        shake(cam, t, T_SMASH, 6, 0.5);
+        kitchen(t, cam);
+        // the counter top Mittens sits on, its edge at x = 132
+        rect(-60, 226, 192, 6, C.ink); rect(-60, 226, 192, 4, C.top); rect(-60, 232, 190, 30, C.cabD); rect(-56, 234, 182, 26, C.cab);
+        var shout = t > tm && t < tv;
+        cat(104, 226, 1.2, { t: t, hat: true, eyes: shout ? "wide" : t > tv ? "smug" : "open", gaze: shout ? -1 : 0, talk: talk("cat", t) });
+        // the paw reaches for the glass: nudge, nudge, push
+        var nud = 0; [T_PUSH - 0.6, T_PUSH - 0.3, T_PUSH].forEach(function (n) { if (t > n) nud += 1; });
+        if (t > T_PUSH - 0.8 && t < T_PUSH + 0.4) { var r = 0.5 + 0.5 * Math.sin((t - T_PUSH) * 21); line(110, 214, 116 + r * 4, 216, 3.4, C.ink); line(110, 214, 116 + r * 4, 216, 2.4, C.fur); disc(117 + r * 4, 216, 1.8, C.white); }
+        var gx = 124 + nud * 1.5, gy = 226, grot = 0;
+        if (fall > 0) { gx = 129 + fall * 8; gy = 226 + 74 * fall * fall; grot = fall * 4; }
+        if (t < T_SMASH) {
+          g.save(); g.translate(gx, gy); g.rotate(grot);
+          rect(-4.5, -14, 9, 14, C.ink); rect(-3.6, -13.2, 7.2, 12.6, C.glass); rect(-3.6, -9, 7.2, 8.4, C.water); rect(-2.6, -12, 1.2, 9, C.white);
+          g.restore();
+        } else {
+          var su = t - T_SMASH;
+          for (var sh = 0; sh < 16; sh++) { var a = -Math.PI / 2 + (hash1(sh) - 0.5) * 2.6, v = 30 + hash1(sh + 3) * 50; var px = 137 + Math.cos(a) * v * su, py = 300 + Math.sin(a) * v * su + 120 * su * su; if (py < 302) rect(px, py, 2, 2, sh % 3 ? C.glass : C.white); }
+          ell(137, 302, 10 + su * 20, 2.4, 0, C.water);
+          if (su < 0.3) { var bk = 1 - su / 0.3; g.save(); g.translate(137, 296); g.scale(bk * 1.4, bk * 1.4); var pts = []; for (var q = 0; q < 16; q++) { var aa = q / 16 * 6.2832, rr = q % 2 ? 7 : 16; pts.push([Math.cos(aa) * rr, Math.sin(aa) * rr * 0.7]); } poly(pts, C.white); g.restore(); }
+        }
+        // the off-screen owner: a shout bubble from the left edge
+        var sk = shout ? pop(t, tm) : 0;
+        if (sk > 0) { g.save(); g.translate(46, 200); g.scale(sk, sk); poly([[-40, -14], [20, -18], [26, 0], [18, 14], [-40, 16]], C.ink); poly([[-38, -12], [18, -16], [23, 0], [16, 12], [-38, 14]], C.white); worldText("!!", 0, -7, 2, C.red); g.restore(); }
+        vignette(0.2, "rgba(0,30,40,");
+      }
+
+      // ============================================================ the film
+      PX.setup(C, {
+        scenes: { hook: sceneHook, egypt: sceneEgypt, viking: sceneViking, china: sceneChina, pirates: scenePirates, paris: sceneParis, rocket: sceneRocket, box: sceneBox, cucumber: sceneCucumber, careful: sceneCareful, counter: sceneCounter },
+        sceneAt: function (t) {
+          return t < T1 ? "hook" : t < A(2) ? "egypt" : t < A(3) ? "viking" : t < A(4) ? "china" : t < A(5) ? "pirates" : t < A(6) ? "paris"
+            : t < A(7) ? "rocket" : t < A(8) ? "box" : t < A(9) ? "cucumber" : t < A(10) ? "careful" : t < LOOP ? "counter" : "hook";
+        },
+        cuts: [[A(2), "egypt", "viking"], [A(3), "viking", "china"], [A(4), "china", "pirates"], [A(5), "pirates", "paris"], [A(6), "paris", "rocket"], [A(7), "rocket", "box"], [A(8), "box", "cucumber"], [A(9), "cucumber", "careful"], [A(10), "careful", "counter"]],
+        post: function (t, img) {
+          if (t < 0.14) tintImg(img, C.white, 1 - t / 0.14);
+          var gl = T1 - 0.3;
+          if (t > gl && t < gl + 0.5) glitchRows(img, 22 * Math.sin((t - gl) / 0.5 * Math.PI), Math.floor(t * 30));
+          deathFlash(t, img);
+          if (t > T_BOOM && t < T_BOOM + 0.15) tintImg(img, C.flame, 0.8 * (1 - (t - T_BOOM) / 0.15));
+          if (t > T_SMASH && t < T_SMASH + 0.1) tintImg(img, C.white, 0.7 * (1 - (t - T_SMASH) / 0.1));
+          if (t > LOOP - 0.4 && t < LOOP) tintImg(img, C.white, ramp(t, LOOP - 0.4, LOOP));
+          if (t >= LOOP) tintImg(img, C.white, 1);
+        },
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: c.segs.map(function (ln) { return ln.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; }); }) };
+        }),
+        ui: livesUI,
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

@@ -51,6 +51,18 @@ captions = V.make_captions(clips, CAPS, DUR)
 amb, fx = Bus(), Bus()
 
 
+def R(name, fallback, dur=None):
+    """a real recording from assets/sfx (CC0, see CREDITS.md) if we have it, else the synthesised one"""
+    x = load(os.path.join(ROOT, "assets", "sfx", name + ".wav"), 0, dur)
+    return fade_out(x, 0.08) if x is not None else fallback
+
+
+def L(name):
+    """the bundled HyperFrames sound library"""
+    x = load(os.path.join(LIB, name + ".mp3")) if LIB else None
+    return x if x is not None else np.zeros(10)
+
+
 def bed(sig, a, b, gain, fade=0.6, pan=0.0):
     """loop/trim a bed signal into [a, b] with fades"""
     n = int((b - a) * SR)
@@ -65,6 +77,7 @@ def bed(sig, a, b, gain, fade=0.6, pan=0.0):
 
 # scene boundaries (match index.html)
 T_SUNSET, T_NET, T_HUT, T_COLD, T_WIFE, T_ROW, T_CRUMB, T_DIYA = A(1) - 0.3, A(2), A(3), A(4), A(5), A(6), A(7), A(8)
+T_NOMORN = W(3, "and") - 0.1
 T_DAWN = W(6, "free")
 
 # ---------------------------------------------------------------- ambience beds
@@ -88,7 +101,8 @@ for k, f in enumerate([1318.5, 1567.98, 1318.5]):
 fx.put(impact(1.2), 0.0, 1.0)
 fx.put(braam(2.6, 49), 0.0, 0.6)
 fx.put(sub_drop(1.4), 0.02, 0.55)
-fx.put(F.splash(1.6), 0.0, 0.7)
+fx.put(R("splash_big", F.splash(1.6)), 0.0, 0.75)
+fx.put(L("impact-bass-1"), 0.0, 0.5)
 fx.put(F.sizzle(2.4), 0.05, 0.4)
 fx.put(F.fire(2.6), 0.1, 0.35)
 fx.put(F.creak(0.9, 90), 0.5, 0.35, -0.4)
@@ -97,20 +111,21 @@ fx.put(rewind(0.5), A(1) - 0.62, 0.55)
 
 # ---------------------------------------------------------------- the sun sinks to sleep (gulls, sizzle)
 for k, tt_ in enumerate([T_SUNSET + 0.3, T_SUNSET + 1.1, T_SUNSET + 2.3]):
-    fx.put(F.gull(30 + k), tt_, 0.22, 0.6 - 0.5 * k)
+    fx.put(R("seagull", F.gull(30 + k)), tt_, 0.3, 0.6 - 0.5 * k)
 fx.put(sweep(1.4, 1200, 200), W(1, "sinks") - 0.1, 0.3)
 fx.put(F.sizzle(1.6, seed=8), W(1, "sea") - 0.1, 0.35)
 fx.put(F.harp_up(392, 6, 0.09), W(1, "sleep") - 0.15, 0.12)
 
 # ---------------------------------------------------------------- the net: cast, sink, heavy, BURNING
 fx.put(sweep(0.5, 400, 2500), T_NET + 0.15, 0.35, -0.3)
-fx.put(F.splash(0.8, seed=21), T_NET + 0.6, 0.45, 0.2)
+fx.put(0.6 * R("splash_big", F.splash(0.8, seed=21)), T_NET + 0.6, 0.45, 0.2)
 fx.put(F.creak(1.2, 70, seed=22), W(2, "net") - 0.2, 0.45, -0.3)
 fx.put(F.boil(W(2, "burning") - W(2, "net") + 0.2, rate=30), W(2, "net"), 0.4)
 fx.put(riser(W(2, "burning") - W(2, "night") + 0.1, 70, 420), W(2, "night"), 0.18)
 fx.put(impact(1.0), W(2, "burning") - 0.04, 0.8)
 fx.put(F.fire(2.2, seed=24), W(2, "burning"), 0.45)
-fx.put(F.splash(1.3, seed=25), W(2, "burning") - 0.02, 0.5)
+fx.put(R("splash_big", F.splash(1.3, seed=25)), W(2, "burning") - 0.02, 0.6)
+fx.put(L("impact-bass-2"), W(2, "burning") - 0.6, 0.4)
 fx.put(F.sizzle(1.8, seed=26), W(2, "burning"), 0.4)
 
 # ---------------------------------------------------------------- the hut; morning never comes
@@ -144,21 +159,29 @@ fx.put(F.pad(4.0, [261.6, 329.6, 392, 523.3], a=0.5, r_=2.5), T_DAWN, 0.35)
 fx.put(gong(130.8, 4.5), T_DAWN + 0.05, 0.3)
 for k in range(6):
     fx.put(F.chirp(80 + k), T_DAWN + 0.8 + 0.35 * k, 0.12, (k % 3 - 1) * 0.7)
+for k in range(2):
+    fx.put(R("seagull", F.gull(88 + k)), T_DAWN + 0.6 + 0.7 * k, 0.25, 0.5 - k)
+fx.put(L("whoosh-cinematic"), T_DAWN - 4.0, 0.3)
 
 # ---------------------------------------------------------------- "but first...": rewind to the crumb
 fx.put(rewind(0.4), T_CRUMB - 0.42, 0.45)
 fx.put(F.fire(2.5, seed=90), T_CRUMB, 0.18)
 fx.put(add(noise_hit(0.05, 1500, 9000), 0.6 * thump(300, 0.08, 1.0)), W(7, "broke") + 0.05, 0.6)
-fx.put(add(shing(0.7), 0.6 * F.sparkle(1.0, seed=91)), W(7, "crumb") - 0.02, 0.5)
+fx.put(add(shing(0.7), 0.6 * F.sparkle(1.0, seed=91)), W(7, "crumb") - 0.02, 0.45)
+fx.put(L("sparkle"), W(7, "crumb") - 0.05, 0.4)
 
 # ---------------------------------------------------------------- diyas: each lights; the flame becomes the Sun
 for k in range(6):
     fx.put(add(noise_hit(0.08, 800, 5000), 0.4 * F.sizzle(0.25, seed=95 + k)), T_DIYA + 0.25 + 0.22 * k, 0.25, (k - 2.5) / 3)
-fx.put(F.sparkle(1.4, seed=97, lo=3000, hi=7000), W(8, "crumb") - 0.1, 0.35)
+fx.put(F.sparkle(1.4, seed=97, lo=3000, hi=7000), W(8, "crumb") - 0.1, 0.3)
+fx.put(L("sparkle"), W(8, "crumb") - 0.05, 0.35)
 fx.put(add(bell(1046.5, 3.0), 0.6 * bell(1568, 3.0)), W(8, "sun") - 0.05, 0.3)
 fx.put(sweep(1.4, 200, 5000), DUR - 1.45, 0.45)
 fx.put(riser(1.3, 80, 600), DUR - 1.35, 0.25)
 fx.put(F.fire(1.4, seed=99), DUR - 1.3, 0.3)
+
+for tc in (T_NET, T_HUT, T_NOMORN, T_COLD, T_WIFE, T_ROW, T_DIYA):
+    fx.put(L("whoosh-short"), tc - 0.25, 0.25)
 
 master(amb, fx, os.path.join(ROOT, "assets", "audio", "sfx.wav"), amb_gain=0.55, makeup_db=4.0)
 import wave  # noqa: E402

@@ -1,0 +1,17 @@
+{
+  "voices": {
+    "n": ["en-GB-SoniaNeural", "-6%", "-2Hz"]
+  },
+  "lines": [
+    ["n", "Somewhere, there's a library... with a book for every life you didn't live."],
+    ["n", "Every time you choose, the world splits in two. And a new book appears."],
+    ["n", "The life where you said yes."],
+    ["n", "The one where you took the other road."],
+    ["n", "The one where you never met them."],
+    ["n", "People come here looking for a happier ending. But here's the secret."],
+    ["n", "In every single book... the other you is reading about you. Wishing they were you."],
+    ["n", "Oh. Look. A new book. Just now."],
+    ["n", "The life where you scrolled past this video."],
+    ["n", "You didn't. Good choice."]
+  ]
+}
