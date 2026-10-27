@@ -1,6 +1,6 @@
-# Pixel shorts
+# Pixel HD
 
-Vertical pixel-art Reels/Shorts (science, Indian mythology, fiction fables), built with HyperFrames.
+Sharp HD pixel-art Reels/Shorts (science, Indian mythology, fiction fables), built with HyperFrames.
 
 **House style → [STYLE_GUIDE.md](STYLE_GUIDE.md):** sharp HD pixel art (360×640, light dither), a dark outline on every
 living character, narration on every video with a voice that fits each character, open-source sound effects.

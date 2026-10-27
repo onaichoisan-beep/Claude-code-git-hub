@@ -3,7 +3,7 @@ name: pixel-short
 description: Make a viral vertical pixel-art science, mythology or fiction short in the owner's house style (SHARP HD pixel art, dark outlines on every living character, narration with character-matched voices, open-source sound effects, cold-open hook, small centred captions, loop ending), built with the shared engine in videos/_engine. Use for any "make a video about X" request in this repo, and for writing the matching Instagram caption.
 ---
 
-# Pixel short — the owner's house style
+# Pixel HD — the owner's house style
 
 The owner makes Instagram Reels / Shorts. Everything below is their confirmed preference,
 learned over many videos (see `videos/` for 25+ finished examples; `videos/style-sample/` shows the

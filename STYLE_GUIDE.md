@@ -1,4 +1,4 @@
-# House style: sharp HD pixel-art shorts
+# Pixel HD house style: sharp HD pixel-art shorts
 
 The owner's confirmed rules for every video in this repo (October 2026). They override older notes
 and older projects; finished videos made before this date keep their original look.

@@ -1,6 +1,6 @@
-# Pixel explainer shorts
+# Pixel HD
 
-This repo makes vertical pixel-art Reels/Shorts (science, Indian mythology, fiction fables) with HyperFrames.
+This repo (Pixel HD) makes vertical, sharp HD pixel-art Reels/Shorts (science, Indian mythology, fiction fables) with HyperFrames.
 
 **House style (STYLE_GUIDE.md): SHARP HD pixel art (360×640 render, light dither), a dark outline on every
 living character, narration on every video with a voice that fits each character, and open-source sound
