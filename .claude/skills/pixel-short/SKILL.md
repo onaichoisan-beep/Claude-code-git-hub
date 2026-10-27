@@ -1,6 +1,6 @@
 ---
 name: pixel-short
-description: Make a viral 30-second vertical pixel-art science or mythology short in the owner's established style (bright pixel art, cold-open hook, small centred key-fact captions, cinematic sound effects only, loop ending), built with the shared engine in videos/_engine. Use for any "make a video about X" request in this repo, and for writing the matching Instagram caption.
+description: Make a viral 15–30-second vertical pixel-art science, mythology or fiction short in the owner's established style (bright pixel art, cold-open hook, small centred key-fact captions, cinematic sound effects only, loop ending), built with the shared engine in videos/_engine. Use for any "make a video about X" request in this repo, and for writing the matching Instagram caption.
 ---
 
 # Pixel short — the owner's house style
@@ -21,7 +21,8 @@ learned over many videos (see `videos/` for 15+ finished examples). Follow it wi
 
 ## The look
 
-- 9:16, **1080×1920 @ 30fps, 30.0s exactly**. World canvas **180×320** upscaled 6×, captions on a
+- 9:16, **1080×1920 @ 30fps, 30.0s exactly** for explainers; **15–20s** when the owner asks for short
+  viral ones (hook 0–1.5s, rewind, 3–5 beats of ~3s, twist, loop). World canvas **180×320** upscaled 6×, captions on a
   **360×640** layer upscaled 3×. Palette-locked + 4×4 Bayer dither (the engine does this).
 - **Brightest colours possible** that still read clearly; one accent colour per video for the key thing.
 - **Text: only important facts, small, centred in the middle of the frame** (engine default, scale 2,
@@ -39,7 +40,21 @@ learned over many videos (see `videos/` for 15+ finished examples). Follow it wi
 
 ## Sound
 
-- **Sound effects only.** No narration/voiceover, no sounds on captions/text (they explicitly asked).
+- **Sound effects only by default.** No narration unless the owner asks for it in that request (they did
+  for e.g. "2 of the 5 narrated"). Never put sounds on captions/text.
+- **Narration, when asked:** `cp ../_engine/make_voices.py scripts/`, write `scripts/lines.json`
+  ([speaker, text]) + `scripts/voices.json` ({speaker: [voice, rate, pitch]}), run
+  `python3 scripts/make_voices.py .` (edge-tts, word timings), then a synth_audio that places lines at
+  fixed SLOTS, ducks SFX under the voice and writes word-synced `captions.js` (copy
+  `../dream-film-crew/scripts/synth_audio.py`). Voices that worked: playful/insider →
+  en-US-AndrewMultilingualNeural +10%; epic trailer → en-US-ChristopherNeural −4%, −12 Hz + low boost and
+  hall reverb; casual human → en-US-EmmaMultilingualNeural; shouty director → en-US-GuyNeural.
+- **Real foley** to sit on top of the procedural kit: `python3 ../_engine/fetch_sfx.py . name="query" ...`
+  (Openverse CC0/CC BY, slow and flaky; run it in the background) → `assets/sfx/<name>.wav` + CREDITS.md.
+  **Check every pick's title** (searches return wrong sounds, e.g. "sizzle" → cabinets): delete bad ones and
+  run `python3 ../_engine/prune_credits.py .`. Load with `load()` and always give a procedural fallback.
+  The bundled HyperFrames library (`LIB`: whoosh, whoosh-short, whoosh-cinematic, pop, sparkle, glitch-1/2/3,
+  notification, error, chime, riser, impact-bass-1/2, ping, click, typing) is available offline.
 - Cinematic and easy to hear: impacts, braams, taiko drum rolls, risers, sub drops, conch, gong,
   bells, roars, whooshes, story-specific foley. Exception: calm/awe topics (e.g. the Big Bang) use
   **soft ambient** sound, no booms. Target ~ −12 to −17 dB mean, −1 dB peak.
@@ -85,6 +100,10 @@ Sources: <Source 1>; <Source 2>; <Source 3>
 ```
 
 ## Topic taste
+
+Fiction works too: the owner asked for surreal "what if" concepts with loops (Who's Fishing Who, Raindrop
+Race, Your Dream's Film Crew, The Last Pixel, Ant Everest). For fiction, keep captions to the hook and
+the twist (or word-synced narration) and make the loop literal (the end flows back into the hook).
 
 Viral "what happens if / to your body" science, space news, myth-busters, and Indian mythology
 (Narasimha, Hanuman, Neelkanth, Ravana…), timed to festivals (Diwali, Dussehra) when possible.

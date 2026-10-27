@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Your Dream's Film Crew</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #000000;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000000;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="20"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="20" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: narration + sound effects (ducked under the voice) -->
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="20" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var C = {
+        wall: "#1c2468", wall2: "#28308a", wallPat: "#3a44b0", floor: "#5a3060", floor2: "#7a4078",
+        win: "#0c1448", moon: "#fff2b0", star: "#ffffff", frame: "#b0683a", frameDark: "#7a3a2a",
+        pillow: "#eef0ff", blanket: "#3a6aff", blanket2: "#2a4ad0", bStar: "#ffe27a", pj: "#ff8ab8",
+        skin: "#f0aa78", skinShade: "#c07a50", hair: "#3a2418", door: "#8a4a2a", doorLight: "#ffd27a",
+        crew: "#14121e", crew2: "#34304a", headset: "#9a9ac0", mic: "#ff3a3a", sneaker: "#ffffff",
+        lamp: "#ffb84a", lampGlow: "#ffd27a", beam: "#fff6c8", fog: "#c8d0ff", fog2: "#9aa4f0",
+        dragon: "#3ae070", dragon2: "#1a9a4a", card: "#d8a25a", tape: "#f0e0a8",
+        sunTop: "#ff5ab8", sunMid: "#ff9a4a", sunLow: "#ffe06a", castle: "#8a3ad8", castle2: "#b05aff",
+        city: "#5a2aa0", city2: "#7a3ac0", cloud: "#ffffff", cloudShade: "#ffd0ea",
+        alarm: "#ff3a3a", alarmDark: "#a81a2a", bell: "#ffd02a", face: "#fff8e8",
+        beret: "#e03a4a", shades: "#06050a", chair: "#c8823a", canvas_: "#2a2a3a",
+        white: "#ffffff", ink: "#06050a", gold: "#ffe27a", red: "#ff2a3a", amber: "#ffb020", steel: "#9aa4c8",
+      };
+
+      function path(keys, t) {
+        if (t <= keys[0][0]) return { x: keys[0][1], y: keys[0][2] };
+        for (var i = 0; i < keys.length - 1; i++) {
+          var a = keys[i], b = keys[i + 1];
+          if (t < b[0]) { var e = ease((t - a[0]) / (b[0] - a[0])); return { x: lerp(a[1], b[1], e), y: lerp(a[2], b[2], e) }; }
+        }
+        var L = keys[keys.length - 1];
+        return { x: L[1], y: L[2] };
+      }
+
+      // ============================================================ characters
+      // crew member: origin at the feet. pose: walk|tiptoe|carry|shh|panic|hold|run|peek|wave
+      function crew(x, y, s, pose, t, ph, flip) {
+        g.save(); g.translate(x, y); g.scale(flip ? -s : s, s);
+        ph = ph || 0;
+        var w = Math.sin(t * (pose === "run" ? 22 : 9) + ph);
+        var lift = pose === "tiptoe" ? Math.abs(Math.sin(t * 5 + ph)) * 2 : 0;
+        g.translate(0, -lift);
+        // legs
+        var sw = pose === "walk" || pose === "run" || pose === "tiptoe" || pose === "carry" ? w * (pose === "run" ? 4 : 2.5) : 0;
+        line(-1.5, -8, -1.5 + sw, -1, 2.4, C.crew); line(1.5, -8, 1.5 - sw, -1, 2.4, C.crew);
+        rect(-3 + sw, -1.4, 3, 1.4, C.sneaker); rect(0 - sw, -1.4, 3, 1.4, C.sneaker);
+        // body
+        rrect(-3.5, -16, 7, 9, 2, C.crew); rect(-3.5, -12, 7, 1, C.crew2);
+        // arms
+        if (pose === "carry" || pose === "panic") { line(-3, -14, -4, -22, 2, C.crew); line(3, -14, 4, -22, 2, C.crew); disc(-4, -22.5, 1.2, C.skin); disc(4, -22.5, 1.2, C.skin); }
+        else if (pose === "shh") { line(-3, -14, -4, -9, 2, C.crew); line(3, -14, 2, -18, 2, C.crew); rect(0.6, -21.5, 1.2, 4, C.skin); }
+        else if (pose === "hold") { line(-3, -14, 2, -19, 2, C.crew); line(3, -14, 4, -20, 2, C.crew); }
+        else if (pose === "wave") { line(-3, -14, -4, -9, 2, C.crew); var wv = Math.sin(t * 14) * 2; line(3, -14, 5 + wv, -21, 2, C.crew); disc(5 + wv, -21.5, 1.2, C.skin); }
+        else { line(-3, -14, -3 - sw, -9, 2, C.crew); line(3, -14, 3 + sw, -9, 2, C.crew); }
+        // head + cap + headset
+        disc(0, -19.5, 3.4, C.skin);
+        ell(0, -22, 3.8, 1.8, 0, C.crew); rect(0, -22, 5, 1.2, C.crew);
+        g.strokeStyle = C.headset; g.lineWidth = 0.8; g.beginPath(); g.arc(0, -19.5, 3.8, Math.PI * 1.05, Math.PI * 1.95); g.stroke();
+        rect(-4.2, -20.5, 1.4, 2.4, C.headset); line(-3.6, -18.5, -1, -17.2, 0.6, C.headset); rect(-1.2, -17.6, 1, 1, C.mic);
+        // face
+        if (pose === "panic") { disc(-1, -20, 0.9, C.white); disc(1.6, -20, 0.9, C.white); ell(0.4, -17.8, 0.9, 1.1, 0, C.ink); }
+        else { rect(-1.4, -20.4, 0.9, 0.9, C.ink); rect(1.2, -20.4, 0.9, 0.9, C.ink); }
+        g.restore();
+      }
+      // the sleeper. pose: sleep (lying in bed, head at x,y) | awake (sitting up) | fly (horizontal) | fall
+      function sleeper(x, y, s, pose, t, eyes) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        if (pose === "fly" || pose === "fall") {
+          var rot = pose === "fall" ? Math.sin(t * 9) * 0.5 : -0.08;
+          g.rotate(rot);
+          // blanket cape
+          var fl = Math.sin(t * 10);
+          poly([[-2, -3], [-24, -6 + fl * 3], [-22, 4 + fl * 2], [-2, 3]], C.blanket);
+          rect(-16, -3 + fl, 1.5, 1.5, C.bStar); rect(-10, 0, 1.5, 1.5, C.bStar);
+          // body (pyjamas), arms forward
+          rrect(-12, -3, 16, 6, 2, C.pj); rect(-10, -3, 1, 6, C.white); rect(-6, -3, 1, 6, C.white); rect(-2, -3, 1, 6, C.white);
+          line(-12, 0, -20, pose === "fall" ? -6 : 1, 2.4, C.pj);
+          line(2, -2, 12, pose === "fall" ? -8 : -3, 2.2, C.pj); disc(12.5, pose === "fall" ? -8.5 : -3.2, 1.3, C.skin);
+          disc(7, -1, 4, C.skin); ell(8, -4, 4.2, 2, 0, C.hair);
+          if (eyes === "open" || pose === "fall") { disc(9, -1.5, 1.1, C.white); rect(9.2, -1.8, 0.7, 0.7, C.ink); ell(9.5, 1.4, 0.8, pose === "fall" ? 1.2 : 0.4, 0, C.ink); }
+          else { rect(8, -1.5, 2, 0.6, C.ink); rect(8.5, 1.2, 1.6, 0.6, C.ink); }
+        } else if (pose === "awake") {
+          // sitting bolt upright
+          rrect(-5, -6, 10, 12, 2, C.pj); rect(-3, -6, 1, 12, C.white); rect(1, -6, 1, 12, C.white);
+          line(-4, -3, -9, -10, 2.2, C.pj); line(4, -3, 9, -10, 2.2, C.pj);
+          disc(0, -11, 4.6, C.skin); ell(0, -14.5, 4.8, 2.4, 0, C.hair); rect(-4, -16, 1.2, 2, C.hair); rect(2, -17, 1.2, 2.5, C.hair);
+          disc(-1.8, -11.5, 1.6, C.white); disc(1.8, -11.5, 1.6, C.white); rect(-1.9, -11.8, 0.9, 0.9, C.ink); rect(1.7, -11.8, 0.9, 0.9, C.ink);
+          ell(0, -8.4, 1.2, 1.4, 0, C.ink);
+        } else {
+          // lying: head on the pillow
+          disc(0, 0, 4.4, C.skin); ell(-1.4, -2.6, 4.6, 2.4, -0.3, C.hair);
+          if (eyes === "open") { disc(1.2, -0.2, 1.1, C.white); rect(1.5, -0.5, 0.7, 0.7, C.ink); }
+          else rect(0.2, -0.4, 2.4, 0.6, C.ink);
+          rect(1.2, 2, 1.6, 0.6, C.skinShade);
+        }
+        g.restore();
+      }
+
+      // ============================================================ props
+      function spotlight(x, y, s, on, aim, t) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        line(0, 0, -5, 10, 1.2, C.steel); line(0, 0, 5, 10, 1.2, C.steel); line(0, 0, 0, -12, 1.4, C.steel);
+        g.translate(0, -14); g.rotate(aim);
+        rrect(-4, -3.5, 9, 7, 1.5, C.crew2); rect(4, -3, 2, 6, on ? C.beam : C.steel);
+        g.restore();
+        if (on > 0) {
+          lighter(); g.globalAlpha = 0.28 * on;
+          var ax = x + Math.cos(aim) * 6 * s, ay = y - 14 * s + Math.sin(aim) * 6 * s;
+          poly([[ax, ay - 3], [ax + Math.cos(aim - 0.25) * 180, ay + Math.sin(aim - 0.25) * 180], [ax + Math.cos(aim + 0.25) * 180, ay + Math.sin(aim + 0.25) * 180], [ax, ay + 3]], C.beam);
+          g.globalAlpha = 1; glow(ax, ay, 10, C.beam, 0.8 * on); normalBlend();
+        }
+      }
+      function dragonProp(x, y, s, t, fallen) {
+        g.save(); g.translate(x, y); g.scale(s, s); g.rotate(fallen || Math.sin(t * 2) * 0.08);
+        // cardboard dragon: flat, with visible tape and a stick
+        poly([[-30, 0], [-10, -10], [10, -8], [24, -16], [32, -12], [28, -4], [18, -4], [10, 6], [-14, 8]], C.dragon2);
+        poly([[-28, -1], [-10, -8], [10, -6], [24, -14], [30, -11], [26, -6], [17, -6], [9, 4], [-14, 6]], C.dragon);
+        poly([[-6, -8], [-2, -24], [8, -8]], C.dragon2); poly([[-4, -8], [-1, -20], [6, -8]], C.dragon);
+        disc(26, -11, 1.4, C.white); rect(26.4, -11.4, 0.8, 0.8, C.ink);
+        for (var k = 0; k < 4; k++) poly([[-20 + k * 8, -5], [-17 + k * 8, -11], [-14 + k * 8, -5]], C.dragon2);
+        rect(-12, -2, 6, 2, C.tape); rect(12, -9, 2, 6, C.tape);
+        // fire made of orange paper
+        if (!fallen) { var f = Math.sin(t * 12); poly([[32, -12], [44, -16 + f], [40, -12], [46, -8 - f], [32, -9]], C.amber); }
+        g.restore();
+      }
+      function backdrop(x0, y0, w, h, roll, t) {
+        // painted sunset + castle, rolling down from the top
+        if (roll <= 0) return;
+        var hh = h * roll;
+        g.save(); g.beginPath(); g.rect(x0, y0, w, hh); g.clip();
+        g.fillStyle = vgrad(y0, y0 + h, [[0, C.sunTop], [0.55, C.sunMid], [1, C.sunLow]]); g.fillRect(x0, y0, w, h);
+        disc(x0 + w * 0.7, y0 + h * 0.62, 18, C.sunLow);
+        var bx = x0 + w * 0.32, by = y0 + h;
+        rect(bx - 22, by - 46, 44, 46, C.castle); rect(bx - 30, by - 66, 14, 66, C.castle2); rect(bx + 16, by - 66, 14, 66, C.castle2);
+        poly([[bx - 32, by - 66], [bx - 23, by - 82], [bx - 14, by - 66]], C.castle); poly([[bx + 14, by - 66], [bx + 23, by - 82], [bx + 32, by - 66]], C.castle);
+        rect(bx - 5, by - 18, 10, 18, C.ink);
+        g.restore();
+        rect(x0 - 2, y0 + hh - 3, w + 4, 4, C.card);
+      }
+      function fogBank(y, k, t) {
+        if (k <= 0) return;
+        for (var i = 0; i < 12; i++) {
+          var fx = ((i * 23 + t * 14) % 240) - 30, r = 14 + hash1(i) * 10;
+          g.globalAlpha = 0.6 * k; disc(fx, y - 4 + Math.sin(t + i) * 2, r * k, i % 2 ? C.fog : C.fog2);
+        }
+        g.globalAlpha = 1;
+      }
+      function alarmClock(x, y, s, t, ring) {
+        var jx = ring ? Math.sin(t * 60) * 1.5 : 0;
+        g.save(); g.translate(x + jx, y); g.scale(s, s); g.rotate(ring ? Math.sin(t * 45) * 0.06 : 0);
+        disc(-8, -10, 5, C.bell); disc(8, -10, 5, C.bell); rect(-1, -16, 2, 4, C.alarmDark);
+        disc(0, 0, 12, C.alarm); disc(0, 0, 9.5, C.face);
+        line(0, 0, 0, -6.5, 1.4, C.ink); line(0, 0, 5, 0, 1.4, C.ink);
+        for (var k = 0; k < 12; k++) { var a = k / 12 * 6.283; rect(Math.cos(a) * 7.5 - 0.5, Math.sin(a) * 7.5 - 0.5, 1, 1, C.ink); }
+        line(-7, 9, -10, 14, 2, C.alarmDark); line(7, 9, 10, 14, 2, C.alarmDark);
+        g.restore();
+        if (ring) { for (var i = 0; i < 3; i++) { var r = 18 + i * 6 + (t * 30) % 6; g.strokeStyle = C.gold; g.lineWidth = 1; g.beginPath(); g.arc(x, y - 6, r * s / 1.2, -2.6, -0.5); g.stroke(); } }
+      }
+      function clapper(x, y, s, open) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        rect(-10, -2, 20, 12, C.ink); rect(-8, 1, 16, 1, C.white); rect(-8, 5, 16, 1, C.white);
+        g.save(); g.translate(-10, -2); g.rotate(-open);
+        rect(0, -4, 20, 4, C.ink);
+        for (var k = 0; k < 5; k++) poly([[k * 4, -4], [k * 4 + 2, -4], [k * 4 + 4, 0], [k * 4 + 2, 0]], C.white);
+        g.restore(); g.restore();
+      }
+
+      // ============================================================ the bedroom (hook, eyes closing, the drop, the jolt)
+      function room(t, lit) {
+        rect(-100, -200, 400, 450, C.wall);
+        for (var y = -40; y < 230; y += 16) for (var x = -40; x < 220; x += 16) rect(x + ((y / 16) % 2) * 8, y, 2, 2, C.wall2);
+        rect(-100, 228, 400, 200, C.floor);
+        for (var fx = -40; fx < 220; fx += 22) rect(fx, 228, 1, 200, C.floor2);
+        rect(-100, 226, 400, 3, C.floor2);
+        // window with the moon
+        rect(16, 44, 46, 56, C.frameDark); rect(19, 47, 40, 50, C.win);
+        disc(46, 62, 8, C.moon); disc(42, 59, 7, C.win);
+        for (var s = 0; s < 6; s++) rect(22 + hash1(s) * 34, 50 + hash1(s * 3) * 40, 1, 1, C.star);
+        rect(38, 47, 2, 50, C.frameDark); rect(19, 70, 40, 2, C.frameDark);
+        // door (right)
+        var open = lit.door || 0;
+        rect(140, 118, 34, 110, C.frameDark);
+        if (open > 0) { lighter(); g.globalAlpha = 0.6 * open; poly([[142, 228], [172, 228], [200, 320], [110, 320]], C.doorLight); g.globalAlpha = 1; normalBlend(); rect(143, 121, 28, 107, C.doorLight); }
+        g.save(); g.translate(143, 121); g.scale(1 - 0.8 * open, 1); rect(0, 0, 28, 107, C.door); disc(23, 56, 1.6, C.gold); g.restore();
+        // nightstand + lamp + clock
+        rect(4, 200, 26, 28, C.frameDark); rect(4, 200, 26, 3, C.frame);
+        rect(13, 186, 3, 14, C.steel); poly([[6, 186], [22, 186], [18, 176], [10, 176]], C.lamp);
+        if (lit.lamp > 0) { lighter(); glow(14, 186, 60, C.lampGlow, 0.5 * lit.lamp); normalBlend(); }
+        alarmClock(26, 195, 0.32, t, lit.ring);
+      }
+      function bed(t, blanketUp) {
+        rect(36, 180, 8, 50, C.frameDark); rect(36, 178, 8, 4, C.frame);
+        rect(40, 214, 110, 16, C.frameDark); rect(146, 200, 6, 30, C.frameDark);
+        rect(40, 210, 110, 6, C.white);
+        ell(58, 208, 12, 6, 0, C.pillow);
+        // blanket with stars
+        var hump = Math.sin(t * 1.6) * 0.8;
+        poly([[64, 208 - hump], [80, 200 - hump], [120, 202], [148, 206], [150, 222], [62, 222]], C.blanket);
+        for (var k = 0; k < 6; k++) rect(76 + k * 12, 208 + (k % 2) * 6, 2, 2, C.bStar);
+        rect(62, 220, 88, 3, C.blanket2);
+      }
+      function zzz(x, y, t) { for (var z = 0; z < 3; z++) { var ph = (t * 0.6 + z / 3) % 1; worldText("Z", x + ph * 12, y - ph * 18, 0.5 + ph * 0.5, C.white); } }
+
+      // HOOK (0 - 3.15): the crew caught sneaking props past the bed
+      function sceneHook(t) {
+        var cam = { x: 92, y: 172, z: 1.25 };
+        setCam(cam, 1);
+        room(t, { lamp: 0, door: 1 });
+        bed(t);
+        sleeper(58, 204, 1, "sleep", t);
+        zzz(64, 196, t);
+        // the crew sneaking in single file, left to right along the floor
+        var stop = 1.1;
+        var lx = t < stop ? lerp(60, 92, t / stop) : 92;
+        crew(lx + 30, 262, 1.15, t < stop ? "tiptoe" : t < 1.3 ? "tiptoe" : "shh", t, 0, t > 1.3);
+        if (t > 1.3) { worldText("SHH!", lx + 30, 226, 0.7, C.gold); }
+        var bump = t > 1.15 && t < 1.5 ? Math.sin((t - 1.15) * 18) * 2 : 0;
+        // crew 2 carries the dragon head, crew 3 a spotlight
+        var x2 = (t < stop ? lerp(30, 62, t / stop) : 62) + bump;
+        crew(x2, 264, 1.15, "carry", t < 1.15 ? t : 1.15, 1.2);
+        g.save(); g.translate(x2, 236); g.rotate(-0.2); dragonProp(0, 0, 0.45, t); g.restore();
+        var x3 = (t < stop ? lerp(0, 32, t / stop) : 32) + bump * 0.5;
+        crew(x3, 266, 1.15, "carry", t < 1.15 ? t : 1.15, 2.4);
+        g.save(); g.translate(x3, 240); g.rotate(-0.4); rrect(-6, -4, 12, 8, 2, C.crew2); rect(6, -3, 2, 6, C.beam); g.restore();
+        vignette(0.45, "rgba(6,5,30,");
+      }
+      // EYES CLOSE (3.15 - 6.45): lamp off, the door creaks, the crew tiptoes in
+      function sceneClose(t) {
+        var lt = t - 3.15;
+        var cam = { x: lerp(70, 96, ramp(lt, 1.2, 3.0)), y: lerp(196, 174, ramp(lt, 0, 1.0)), z: lerp(2.2, 1.25, ramp(lt, 0.6, 1.6)) };
+        setCam(cam, 1);
+        var lamp = 1 - ramp(lt, 0.95, 1.05);
+        room(t, { lamp: lamp, door: ramp(lt, 1.4, 2.0) });
+        bed(t);
+        sleeper(58, 204, 1, "sleep", t, lt < 0.8 ? "open" : "closed");
+        if (lt > 1.2) zzz(64, 196, t);
+        for (var i = 0; i < 4; i++) {
+          var k = lt - 1.55 - i * 0.28;
+          if (k < 0) continue;
+          var x = 150 - k * 44;
+          crew(x, 262 + (i % 2) * 3, 1.15, i === 1 ? "carry" : "tiptoe", t, i * 1.3, true);
+          if (i === 1) { g.save(); g.translate(x, 240); rect(-8, -6, 16, 10, C.crew2); rect(-6, -10, 3, 4, C.steel); g.restore(); }
+        }
+        if (lamp < 1) { screen(); g.globalAlpha = 0.35 * (1 - lamp); g.fillStyle = C.ink; g.fillRect(0, 0, W, H); g.globalAlpha = 1; }
+        vignette(0.45, "rgba(6,5,30,");
+      }
+      // THE SET GOES UP (6.45 - 9.45)
+      function sceneSet(t) {
+        var lt = t - 6.45;
+        var cam = { x: 90, y: lerp(170, 160, ramp(lt, 0, 3)), z: lerp(1.3, 1.05, ramp(lt, 0, 3)) };
+        shake(cam, t, 6.55, 3, 0.3);
+        setCam(cam, 1);
+        room(t, { lamp: 0, door: 1 });
+        backdrop(-10, 20, 200, 206, ramp(lt, 0.0, 0.6), t);
+        bed(t);
+        sleeper(58, 204, 1, "sleep", t);
+        zzz(64, 196, t);
+        // spotlights snap on ("Lights")
+        var on = lt > 0.08 ? 1 : 0;
+        spotlight(16, 262, 1.1, on, -0.9, t);
+        spotlight(166, 262, 1.1, on, -2.3, t);
+        // fog rolls along the floor ("Fog")
+        fogBank(244, ramp(lt, 0.95, 1.6), t);
+        rrect(126, 250, 18, 12, 2, C.crew2); rect(144, 254, 4, 3, C.steel);
+        // the dragon hoisted on strings ("a dragon on strings")
+        var dy = lerp(-60, 118, easeOut(ramp(lt, 1.7, 2.6))) + Math.sin(t * 2.2) * 2;
+        line(80, -100, 84, dy - 8, 0.6, C.white); line(124, -100, 118, dy - 12, 0.6, C.white);
+        dragonProp(100, dy, 1.0, t);
+        // crew hauling the ropes + one with a clipboard
+        crew(40, 270, 1.2, "hold", t, 0);
+        line(43, 250, 82, -40, 0.6, C.white);
+        crew(150, 272, 1.2, lt > 1.6 ? "hold" : "walk", t, 1.4, true);
+        vignette(0.35, "rgba(6,5,30,");
+      }
+      // ACTION! (9.45 - 10.3): the director + the clapper
+      function sceneAction(t) {
+        var lt = t - 9.45;
+        var cam = { x: 96, y: 180, z: lerp(1.9, 2.1, lt) };
+        shake(cam, t, 9.55, 4, 0.3);
+        setCam(cam, 1);
+        rect(-100, -100, 400, 500, C.wall);
+        backdrop(-20, 60, 240, 200, 1, t);
+        lighter(); glow(60, 150, 80, C.beam, 0.25); normalBlend();
+        // director's chair
+        rect(100, 214, 34, 4, C.chair); line(102, 218, 98, 240, 2, C.chair); line(132, 218, 136, 240, 2, C.chair); line(102, 200, 102, 216, 2, C.chair); line(132, 200, 132, 216, 2, C.chair);
+        rect(100, 200, 34, 8, C.canvas_); worldText("DIR", 117, 202, 0.55, C.gold);
+        // the director: beret, shades, megaphone up
+        rrect(108, 196, 16, 18, 3, C.crew);
+        disc(116, 188, 6, C.skin); ell(116, 182.5, 7, 2.6, 0.1, C.beret); rect(115, 179, 2, 2, C.beret);
+        rect(110, 186.5, 12, 2.6, C.shades);
+        line(122, 200, 128, 192, 2, C.crew);
+        poly([[127, 191], [140, 182], [143, 194], [130, 196]], C.amber); rect(126, 191, 4, 5, C.crew2);
+        // shout lines
+        if (lt > 0.08) for (var k = 0; k < 4; k++) { var a = -0.9 + k * 0.28; line(146 + Math.cos(a) * 4, 188 + Math.sin(a) * 4, 146 + Math.cos(a) * 14, 188 + Math.sin(a) * 14, 1.2, C.white); }
+        // the clapper slams
+        clapper(70, 222, 1.4, lt < 0.1 ? 0.55 : 0);
+        crew(70, 262, 1.3, "hold", t, 0);
+        vignette(0.35, "rgba(6,5,30,");
+      }
+      // YOU CAN FLY (10.3 - 12.2): then the pull-back shows the rig
+      function sceneFly(t) {
+        var lt = t - 10.3;
+        var rev = ramp(lt, 0.95, 1.6);
+        var cam = { x: 90, y: lerp(162, 156, rev), z: lerp(2.0, 0.95, rev) };
+        setCam(cam, 1);
+        rect(-200, -200, 600, 700, C.wall);
+        // the painted dream sky (a flat backdrop)
+        g.fillStyle = vgrad(40, 260, [[0, C.sunTop], [0.6, C.sunMid], [1, C.sunLow]]); g.fillRect(-14, 40, 208, 220);
+        // cardboard city scrolling under the flyer
+        var off = (lt * 40) % 40;
+        for (var b = -60; b < 240; b += 20) { var hh = 20 + hash1(Math.floor((b + 80) / 20)) * 30; rect(b - off, 260 - hh, 18, hh, (b / 20) % 2 ? C.city : C.city2); for (var wy = 260 - hh + 4; wy < 256; wy += 6) rect(b - off + 4, wy, 2, 2, C.gold); }
+        // clouds on sticks
+        [[40, 110, 0], [140, 90, 1], [110, 150, 2]].forEach(function (c) {
+          var cx = c[0] - ((lt * 20 + c[2] * 30) % 220) + 60;
+          disc(cx, c[1], 8, C.cloud); disc(cx + 8, c[1] + 2, 6, C.cloud); disc(cx - 8, c[1] + 2, 6, C.cloudShade);
+          line(cx, c[1] + 6, cx, 300, 0.8, C.steel);
+        });
+        // the flyer
+        var fy = 186 + Math.sin(t * 3) * 3;
+        sleeper(92, fy, 1.15, "fly", t, "closed");
+        // wind lines
+        for (var i = 0; i < 8; i++) rect(((i * 37 - lt * 160) % 200 + 200) % 200 - 10, 150 + i * 9, 10, 1, C.white);
+        // the rig, revealed: pole, crew, fan, the edge of the backdrop
+        if (rev > 0) {
+          line(90, fy + 4, 88, 300, 2.2, C.steel);
+          crew(84, 290, 1.4, "hold", t, 0);
+          // big fan
+          var fx = 150, fyy = 250;
+          line(fx, fyy, fx, 300, 2, C.steel); disc(fx, fyy, 12, C.crew2);
+          for (var k = 0; k < 3; k++) { var a = t * 30 + k * 2.09; poly([[fx, fyy], [fx + Math.cos(a) * 10, fyy + Math.sin(a) * 10], [fx + Math.cos(a + 0.6) * 10, fyy + Math.sin(a + 0.6) * 10]], C.steel); }
+          crew(166, 296, 1.3, "hold", t, 2, true);
+          spotlight(18, 300, 1.2, 1, -1.0, t);
+          worldText("DREAM 4721  TAKE 1", 90, 30, 0.55, C.white);
+        }
+        vignette(0.3, "rgba(6,5,30,");
+      }
+      // ALARM (12.2 - 13.95): a giant clock rips through the painted sky
+      function sceneAlarm(t) {
+        var lt = t - 12.2;
+        var ring = lt > 0.7;
+        var cam = { x: 90, y: 160, z: 1.05 };
+        if (ring) shake(cam, t, 12.9, 6, 1.2);
+        setCam(cam, 1);
+        rect(-100, -100, 400, 500, C.wall);
+        backdrop(-10, 20, 200, 206, 1, t);
+        // the rip
+        if (ring) {
+          var r = easeOut(ramp(lt, 0.7, 1.0));
+          var pts = []; for (var k = 0; k < 14; k++) { var a = k / 14 * 6.283, rr = (34 + hash1(k) * 12) * r; pts.push([92 + Math.cos(a) * rr, 104 + Math.sin(a) * rr]); }
+          poly(pts, C.ink);
+          alarmClock(92, 108, 2.2 * r + 0.01, t, true);
+        }
+        // red warning beacons
+        var bl = ring && Math.floor(t * 8) % 2 === 0;
+        if (bl) { screen(); g.globalAlpha = 0.18; g.fillStyle = C.red; g.fillRect(0, 0, W, H); g.globalAlpha = 1; setCam(cam, 1); }
+        dragonProp(130, 128, 0.8, t);
+        bed(t); sleeper(58, 204, 1, "sleep", t);
+        fogBank(244, 1, t);
+        // the crew freezes, then panics
+        [[30, 268, 0], [70, 272, 1], [120, 268, 2], [156, 274, 3]].forEach(function (c, i) {
+          crew(c[0], c[1], 1.2, ring ? "panic" : "hold", t, c[2], i % 2);
+          if (ring && lt > 0.8 + i * 0.06) worldText("!", c[0], c[1] - 40, 0.9, C.gold);
+        });
+        vignette(0.4, "rgba(40,0,20,");
+      }
+      // TEARDOWN (13.95 - 15.45)
+      function sceneTear(t) {
+        var lt = t - 13.95;
+        var cam = { x: 90, y: 160, z: 1.05 };
+        shake(cam, t, 13.95, 5, 1.5);
+        setCam(cam, 1);
+        room(t, { lamp: 0, door: 1, ring: true });
+        // the backdrop drops
+        var drop = easeOut(ramp(lt, 0.0, 0.5));
+        if (drop < 1) { g.save(); g.translate(0, drop * 200); backdrop(-10, 20, 200, 206, 1, t); g.restore(); }
+        else { rect(-10, 222, 200, 6, C.sunMid); rect(-10, 224, 200, 2, C.card); }
+        bed(t); sleeper(58, 204, 1, "sleep", t);
+        // the dragon crashes down
+        var dy = lt < 0.4 ? 110 : lerp(110, 238, ramp(lt, 0.4, 0.75));
+        dragonProp(120, dy, 0.9, t, lt > 0.4 ? lerp(0, 0.5, ramp(lt, 0.4, 0.75)) : 0);
+        // crew sprinting off with everything
+        for (var i = 0; i < 6; i++) {
+          var k = (lt * 1.3 + i * 0.17) % 1.2;
+          var x = i % 2 ? -20 + k * 230 : 200 - k * 230;
+          crew(x, 262 + (i % 3) * 4, 1.15, i % 3 === 0 ? "carry" : "run", t, i, !(i % 2));
+          if (i % 3 === 0) { rrect(x - 6, 228 + (i % 3) * 4, 12, 7, 2, C.crew2); }
+        }
+        spotlight(30, 264, 1.0, 0, -0.9 + lt * 2, t);
+        // speed streaks
+        screen(); g.globalAlpha = 0.5; for (var j = 0; j < 14; j++) rect(((j * 41 + t * 600) % 220) - 20, 230 + j * 6, 26, 1, C.white); g.globalAlpha = 1;
+        vignette(0.4, "rgba(6,5,30,");
+      }
+      // THE DROP (15.45 - 16.98): held up on the pole... then let go
+      function sceneDrop(t) {
+        var lt = t - 15.45;
+        var let_ = 15.8;
+        var fall = t > let_ ? ramp(t, let_ + 0.1, 16.98) : 0;
+        var cam = { x: 90, y: lerp(150, 188, fall), z: lerp(1.15, 1.35, fall) };
+        setCam(cam, 1);
+        room(t, { lamp: 0, door: 0.3 });
+        bed(t);
+        // the flyer: up on the pole, then dropped
+        var sy = lerp(118, 204, fall * fall), sx = lerp(92, 66, fall);
+        if (t < let_ + 0.08) line(92, 122, 92, 268, 2.2, C.steel);
+        sleeper(sx, sy, 1.15, t < let_ ? "fly" : "fall", t, "closed");
+        // the two pole-holders: look at each other, shrug, let go and scatter
+        var shrug = lt > 0.0 && lt < 0.35;
+        crew(84, 270, 1.2, t < let_ ? "hold" : "panic", t, 0);
+        crew(104, 270, 1.2, t < let_ ? (shrug ? "hold" : "hold") : "run", t, 1, true);
+        if (t > let_ && t < 16.4) worldText("OOPS", 96, 236, 0.7, C.gold);
+        if (fall > 0) for (var i = 0; i < 6; i++) rect(sx - 10 + i * 4, sy - 24 - (t * 300 + i * 13) % 30, 1, 10, C.white);
+        vignette(0.45, "rgba(6,5,30,");
+      }
+      // THE JOLT (16.98 - 20): bolt upright... and a crew member under the bed
+      function sceneWake(t) {
+        var lt = t - 16.98;
+        var cam = { x: 84, y: 186, z: 1.5 };
+        shake(cam, t, 16.98, 9, 0.6);
+        setCam(cam, 1);
+        room(t, { lamp: ramp(lt, 0.25, 0.35), door: 0 });
+        // a crew member peeks out from behind the bed
+        var pk = ramp(lt, 1.7, 2.1);
+        if (pk > 0) crew(138, 214 + 30 * (1 - pk), 1.15, lt > 2.2 ? "shh" : "peek", t, 0);
+        bed(t);
+        sleeper(60, 206, 1.05, "awake", t);
+        vignette(0.45, "rgba(6,5,30,");
+      }
+
+      // ============================================================ assemble
+      PX.setup(C, {
+        scenes: { hook: sceneHook, close: sceneClose, set: sceneSet, action: sceneAction, fly: sceneFly, alarm: sceneAlarm, tear: sceneTear, drop: sceneDrop, wake: sceneWake },
+        sceneAt: function (t) {
+          return t < 3.15 ? "hook" : t < 6.45 ? "close" : t < 9.45 ? "set" : t < 10.3 ? "action" : t < 12.2 ? "fly" : t < 13.95 ? "alarm" : t < 15.45 ? "tear" : t < 16.98 ? "drop" : "wake";
+        },
+        cuts: [[6.45, "close", "set"], [10.3, "action", "fly"], [12.2, "fly", "alarm"], [15.45, "tear", "drop"]],
+        post: function (t, img) {
+          if (t > 3.0 && t < 3.45) glitchRows(img, 34 * (1 - Math.abs(t - 3.22) / 0.23), Math.floor(t * 30));
+          if (t > 9.45 && t < 9.7) tintImg(img, C.white, 0.6 * (1 - ramp(t, 9.45, 9.7)));
+          if (t > 13.95 && t < 14.15) tintImg(img, C.red, 0.4 * (1 - ramp(t, 13.95, 14.15)));
+          if (t > 16.98 && t < 17.3) tintImg(img, C.white, 0.8 * (1 - ramp(t, 16.98, 17.3)));
+          if (t > 19.7) tintImg(img, C.ink, ramp(t, 19.7, 20.0) * 0.7);
+        },
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: [c.segs.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.white]; })] };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 20, duration: 20, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

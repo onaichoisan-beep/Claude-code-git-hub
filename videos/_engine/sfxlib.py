@@ -288,3 +288,56 @@ def shing(d=0.5):
     tt = np.arange(n) / SR
     s = sum(np.sin(2 * np.pi * f * tt) for f in (2637, 3520, 4186)) * np.exp(-tt * 9)
     return norm(s + band(rng.standard_normal(n), 5000, 12000) * np.exp(-tt * 20) * 0.6)
+
+
+# ------------------------------------------------------------------ real recordings
+def _find_lib():
+    d = os.path.dirname(os.path.abspath(__file__))
+    while d != os.path.dirname(d):
+        p = os.path.join(d, ".claude", "skills", "media-use", "audio", "assets", "sfx")
+        if os.path.isdir(p):
+            return p
+        d = os.path.dirname(d)
+    return ""
+
+
+LIB = _find_lib()  # the bundled HyperFrames sound library (whoosh, glitch, sparkle, pop, riser, ...)
+
+
+def load(path, start=0.0, dur=None):
+    """Decode any audio file (wav/mp3/ogg) to mono float at SR; None if it doesn't exist."""
+    import subprocess
+    if not os.path.exists(path):
+        return None
+    cmd = ["ffmpeg", "-v", "error", "-ss", str(start), "-i", path]
+    if dur:
+        cmd += ["-t", str(dur)]
+    cmd += ["-f", "s16le", "-ac", "1", "-ar", str(SR), "-"]
+    raw = subprocess.run(cmd, check=True, capture_output=True).stdout
+    x = np.frombuffer(raw, dtype="<i2").astype(float) / 32768
+    return x / (np.max(np.abs(x)) + 1e-9) if len(x) else None
+
+
+def fade_out(x, d=0.15):
+    n = min(len(x), int(d * SR))
+    x = x.copy()
+    x[-n:] *= np.linspace(1, 0, n) ** 2
+    return x
+
+
+def loop_to(x, n):
+    """Tile a recording to n samples with short crossfades (for ambience beds)."""
+    if x is None:
+        return None
+    out = np.zeros(n)
+    f = int(0.2 * SR)
+    pos = 0
+    while pos < n:
+        seg_ = x[: n - pos].copy()
+        if pos and len(seg_) > f:
+            seg_[:f] *= np.linspace(0, 1, f)
+        if len(seg_) > f:
+            seg_[-f:] *= np.linspace(1, 0, f)
+        out[pos: pos + len(seg_)] += seg_
+        pos += max(1, len(x) - f)
+    return out

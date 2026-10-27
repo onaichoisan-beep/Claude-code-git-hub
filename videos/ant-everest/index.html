@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Ant Everest</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #000000;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000000;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="20"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="20" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: trailer narration + sound effects (ducked under the voice) -->
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="20" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var C = {
+        wall: "#0e3a4e", wall2: "#1a6070", bokeh: "#ffb04a", bokeh2: "#ff7a3a", bokeh3: "#5ae0ff",
+        wood: "#a85a2a", wood2: "#7a3a1a", woodHi: "#d88a4a",
+        sugar: "#f4f8ff", sugar2: "#c8d8f0", sugar3: "#9ab0d8", glint: "#ffffff", sugarWarm: "#ffe8c0",
+        ant: "#2a140c", ant2: "#5a2a18", antHi: "#a85a3a", bandana: "#ff3a3a", eye: "#ffffff",
+        flag: "#ff3a3a", flag2: "#ffe27a", pick: "#e8c07a",
+        tent: "#ff8a2a", tent2: "#c85a10", crumb: "#c8782a", crumb2: "#8a4a1a",
+        shaker: "#c8e8ff", shaker2: "#7aa8d0", cap: "#b8b8c8", cap2: "#7a7a90", salt: "#ffffff",
+        cup: "#f4f0e8", cup2: "#c8c0b0", cupStripe: "#2a6aff", tea: "#a8501a", tea2: "#d07a2a", teaHi: "#ffb060",
+        bowl: "#2a8aff", bowl2: "#1a5ad0",
+        skin: "#f0aa78", skin2: "#c87a50", nail: "#ffd8c8",
+        sun: "#ffd27a", white: "#ffffff", ink: "#06050a", gold: "#ffe27a", night: "#0a1030",
+      };
+
+      function path(keys, t) {
+        if (t <= keys[0][0]) return { x: keys[0][1], y: keys[0][2] };
+        for (var i = 0; i < keys.length - 1; i++) {
+          var a = keys[i], b = keys[i + 1];
+          if (t < b[0]) { var e = ease((t - a[0]) / (b[0] - a[0])); return { x: lerp(a[1], b[1], e), y: lerp(a[2], b[2], e) }; }
+        }
+        var L = keys[keys.length - 1];
+        return { x: L[1], y: L[2] };
+      }
+      // camera keys with hard cuts: [t, x, y, z, cut?] — a "cut" key jumps instead of easing into it
+      function camKeys(keys, t) {
+        var start = 0, seg = [];
+        for (var i = 0; i < keys.length; i++) if (keys[i][4] && keys[i][0] <= t) start = i;
+        for (var j = start; j < keys.length; j++) { if (j > start && keys[j][4]) break; seg.push([keys[j][0], keys[j][1], keys[j][2], keys[j][3]]); }
+        return camAt(seg, t);
+      }
+
+      // ============================================================ the ant (dorsal when climbing, upright as the hero)
+      function ant(x, y, s, o, t) {
+        g.save(); g.translate(x, y); g.scale(s, s); g.rotate(o.rot || 0);
+        var w = o.walk ? Math.sin(t * 16) : 0;
+        if (o.pose === "up") {
+          // standing on hind legs (side view), front legs free
+          ell(0, -0.6, 0.9, 1.2, 0, C.ant); ell(0, -2.3, 0.55, 0.75, 0, C.ant2); disc(0.2, -3.6, 0.65, C.ant);
+          rect(-0.7, -3.75, 1.5, 0.35, C.bandana); poly([[-0.7, -3.75], [-1.4, -3.4], [-1.2, -3.1]], C.bandana);
+          disc(0.5, -3.75, 0.2, C.eye); rect(0.55, -3.8, 0.1, 0.1, C.ink);
+          line(0.3, -4.1, 0.9, -5.0, 0.12, C.ant); line(0.1, -4.1, -0.3, -5.0, 0.12, C.ant);
+          line(-0.3, 0.3, -0.6, 1.0, 0.18, C.ant); line(0.3, 0.3, 0.6, 1.0, 0.18, C.ant);
+          var arm = o.arm === undefined ? -1.2 : o.arm;
+          line(0.2, -2.4, 0.2 + Math.cos(arm) * 1.4, -2.4 + Math.sin(arm) * 1.4, 0.16, C.ant);
+          line(-0.2, -2.4, -1.0, -1.6 + (o.paddle ? Math.sin(t * 9) * 0.6 : 0), 0.16, C.ant);
+          rect(-0.5, -1.0, 0.25, 0.25, C.antHi);
+        } else {
+          // dorsal view, head toward -y in local space (rot rotates it)
+          for (var k = -1; k <= 1; k++) {
+            var a = k * 0.6 + (k === 0 ? w : -w) * 0.35;
+            line(0, k * 0.5, -1.4, k * 0.9 + Math.sin(a) * 0.4 - 0.3, 0.16, C.ant);
+            line(0, k * 0.5, 1.4, k * 0.9 - Math.sin(a) * 0.4 - 0.3, 0.16, C.ant);
+          }
+          ell(0, 1.5, 0.85, 1.15, 0, C.ant); ell(0, 0, 0.5, 0.75, 0, C.ant2); disc(0, -1.3, 0.62, C.ant);
+          rect(-0.65, -1.45, 1.3, 0.35, C.bandana);
+          disc(-0.32, -1.6, 0.18, C.eye); disc(0.32, -1.6, 0.18, C.eye);
+          line(-0.2, -1.8, -0.8, -2.8 + w * 0.1, 0.12, C.ant); line(0.2, -1.8, 0.8, -2.8 - w * 0.1, 0.12, C.ant);
+          rect(-0.3, 1.0, 0.25, 0.25, C.antHi);
+          if (o.sweat) { disc(0.9, -1.8, 0.18, C.bokeh3); }
+        }
+        g.restore();
+      }
+      function flagPole(x, y, h, t, k) {
+        if (k <= 0) return;
+        var top = y - h * k;
+        line(x, y, x, top, 0.25, C.pick);
+        var wv = Math.sin(t * 9) * 0.3;
+        poly([[x, top], [x + 2.6, top + 0.5 + wv], [x + 2.4, top + 1.6 + wv], [x, top + 1.4]], C.flag);
+        rect(x + 0.7, top + 0.6 + wv * 0.5, 0.7, 0.4, C.flag2);
+      }
+
+      // ============================================================ the kitchen-table world (units ~ millimetres)
+      var CUBE = { x: 0, y: 0 }; // bottom-left of the front face (16 x 16)
+      function cube(cx, cy, t, s, dissolve) {
+        s = s || 1;
+        g.save(); g.translate(cx, cy); g.scale(s, s);
+        var d = dissolve || 0, h = 16 * (1 - d);
+        poly([[16, -h], [19, -h - 3], [19, -3], [16, 0]], C.sugar3);
+        poly([[0, -h], [16, -h], [19, -h - 3], [3, -h - 3]], C.sugar);
+        rect(0, -h, 16, h, C.sugar2);
+        // crystal facets
+        var r = rng(9);
+        for (var i = 0; i < 60; i++) {
+          var fx = r() * 15.4, fy = -r() * h;
+          rect(fx, fy, 0.6 + r() * 0.8, 0.6 + r() * 0.8, r() > 0.55 ? C.sugar : r() > 0.4 ? C.sugar3 : C.sugarWarm);
+        }
+        // glints
+        for (var j = 0; j < 8; j++) { var gx = hash1(j * 3.3) * 16, gy = -hash1(j * 7.1) * h, tw = Math.sin(t * 4 + j * 2); if (tw > 0.6) { rect(gx - 0.6, gy, 1.2, 0.2, C.glint); rect(gx, gy - 0.6, 0.2, 1.2, C.glint); } }
+        rect(0, -h, 16, 0.3, C.glint);
+        g.restore();
+      }
+      function kitchen(t, cam) {
+        setCam(cam, 0.12);
+        g.fillStyle = vgrad(-400, 100, [[0, C.wall], [1, C.wall2]]); g.fillRect(-600, -600, 1400, 900);
+        lighter();
+        [[-80, -160, C.bokeh], [40, -200, C.bokeh2], [140, -150, C.bokeh], [260, -210, C.bokeh3], [-200, -220, C.bokeh2]].forEach(function (b, i) { glow(b[0], b[1], 60, b[2], 0.35 + 0.05 * Math.sin(t + i)); });
+        normalBlend();
+        setCam(cam, 1);
+        // table
+        rect(-400, 0, 900, 300, C.wood);
+        for (var i = 0; i < 14; i++) rect(-400, 3 + i * 7 + (i % 3), 900, 0.7, C.wood2);
+        rect(-400, 0, 900, 0.8, C.woodHi);
+      }
+      function cup(t, front) {
+        // a teacup at x 30..86 (rim at y -56)
+        if (!front) {
+          ell(58, -56, 28, 6, 0, C.cup2);
+          ell(58, -55.6, 25.5, 5, 0, C.tea);
+          ell(54, -56.4, 12, 1.6, 0, C.tea2);
+          return;
+        }
+        g.beginPath(); g.moveTo(30, -56); g.lineTo(86, -56); g.quadraticCurveTo(86, 0, 58, 0); g.quadraticCurveTo(30, 0, 30, -56); g.fillStyle = C.cup; g.fill();
+        g.strokeStyle = C.cup; g.lineWidth = 5; g.beginPath(); g.ellipse(90, -34, 9, 12, 0, -1.8, 1.8); g.stroke();
+        rect(31, -46, 54, 3, C.cupStripe);
+        ell(58, -56, 28, 1.2, 0, C.cup);
+        rect(40, -52, 3, 30, "#ffffff");
+        ell(58, 1, 34, 3, 0, C.cup2);
+      }
+      function bowl(t) {
+        // sugar bowl at x -64..-16 with a heap of cubes
+        var stack = [[-58, -30], [-46, -30], [-34, -30], [-52, -46], [-40, -46], [-46, -62]];
+        stack.forEach(function (c) { cube(c[0], c[1], t, 0.75); });
+        g.beginPath(); g.moveTo(-66, -30); g.lineTo(-14, -30); g.quadraticCurveTo(-16, 0, -40, 0); g.quadraticCurveTo(-64, 0, -66, -30); g.fillStyle = C.bowl; g.fill();
+        ell(-40, -30, 26, 3, 0, C.bowl2); rect(-60, -24, 40, 2, C.white);
+      }
+      function shaker(t, k) {
+        if (k <= 0) return;
+        var sx = 2 + Math.sin(t * 30) * 1.5 * k, sy = -44 - 20 * (1 - k);
+        g.save(); g.translate(sx, sy); g.rotate(2.6 + Math.sin(t * 30) * 0.08);
+        rrect(-6, -10, 12, 18, 2, C.shaker); rect(-6, 2, 12, 6, C.shaker2); rrect(-6.5, -14, 13, 5, 1.5, C.cap); rect(-6.5, -10, 13, 1, C.cap2);
+        for (var i = 0; i < 5; i++) disc(-4 + i * 2, -14, 0.4, C.ink);
+        g.restore();
+      }
+      function salt(t, cam, k) {
+        if (k <= 0) return;
+        screen(); g.globalAlpha = 0.8 * k;
+        for (var i = 0; i < 70; i++) {
+          var sp = 260 + hash1(i * 4.4) * 180;
+          var y = ((hash1(i * 2.2) * 360 + t * sp) % 360) - 20, x = (hash1(i * 6.6) * 240 - 30 + y * 0.35) % 200;
+          rect(x, y, 1, 3 + hash1(i) * 4, C.salt);
+        }
+        g.globalAlpha = 1; setCam(cam, 1);
+      }
+      function hand(px, py, open, t) {
+        // a hand reaching down from the top right; thumb and index pinch the cube's sides at (px, py)
+        var o = open * 5;
+        line(px + 30, py - 52, px + 90, py - 160, 30, "#2a6aff");          // sleeve
+        rect(px + 14, py - 64, 34, 8, "#1a4ad0");
+        rrect(px - 6, py - 50, 38, 30, 10, C.skin);                         // back of the hand
+        line(px + 26, py - 34, px + 30, py - 18, 6, C.skin2);                // curled fingers
+        line(px + 20, py - 32, px + 24, py - 17, 6, C.skin);
+        line(px + 13, py - 30, px + 11 + o, py - 1, 6.5, C.skin);            // index finger
+        ell(px + 11 + o, py - 2.5, 1.8, 2.4, 0, C.nail);
+        line(px - 1, py - 30, px - 11 - o, py - 1, 7, C.skin);               // thumb
+        ell(px - 11 - o, py - 2.5, 1.9, 2.4, 0, C.nail);
+        line(px + 2, py - 44, px + 22, py - 44, 1, C.skin2);
+      }
+
+      // ============================================================ story (story time = real time after the hook)
+      var CAM = [
+        [2.3, 8, -6, 14, 1], [3.2, 8, -6, 14], [4.8, 8, -22, 10],
+        [5.0, 8, -10, 9, 1], [6.6, 9, -11, 9.6],
+        [6.6, 8, -14, 8, 1], [7.8, 8, -15, 8.5],
+        [7.8, 8, -17, 10, 1], [10.8, 8, -19, 10],
+        [10.8, 9, -21, 10, 1], [12.0, 9, -22, 10],
+        [12.05, 10, -26, 7, 1], [13.3, 10, -26, 7.6],
+        [13.4, 10, -26, 7.6], [14.4, 40, -60, 1.55], [14.9, 40, -62, 1.55], [15.6, 50, -86, 1.6], [16.0, 55, -78, 1.9],
+        [16.6, 58, -70, 7, 1], [18.0, 58, -70.5, 7.3], [19.2, -40, -58, 5], [20, -40, -58, 5.4],
+      ];
+      var ANT = [[2.3, 8, -1], [4.8, 8, -3], [5.0, 8, -5], [6.6, 8, -6.5], [7.8, 8, -8], [10.8, 8, -14], [11.5, 8, -16], [11.9, 9, -17.5]];
+      var HAND = [[13.8, 140, -110], [14.8, 8, -8], [15.6, 50, -95], [16.0, 58, -98], [16.8, 160, -150]];
+      function cubePos(t) {
+        if (t < 14.8) return { x: 0, y: 0 };
+        if (t < 15.65) { var h = path(HAND, t); return { x: h.x - 8, y: h.y + 8 }; }
+        // released at 15.65: falls into the cup
+        var k = clamp01((t - 15.65) / 0.3);
+        return { x: 50 - 8 + 8 * k, y: lerp(-87, -40, k * k) };
+      }
+      function scene(t, rt) {
+        var cam = camKeys(CAM, t);
+        if (rt !== undefined && (rt < 2.3)) cam = { x: 8, y: -13 + Math.sin(rt * 2) * 0.3, z: 12 + rt * 0.4 };
+        shake(cam, t, 5.25, 7, 0.8);
+        shake(cam, t, 12.55, 5, 0.6);
+        shake(cam, t, 15.95, 8, 0.6);
+        if ((t > 6.6 && t < 7.8) || (rt !== undefined && rt < 2.3)) { var f = Math.floor((rt || t) * 30); cam.x += (hash1(f) - 0.5) * 0.4; cam.y += (hash1(f + 5) - 0.5) * 0.4; }
+        kitchen(t, cam);
+        var blizz = (t > 6.6 && t < 7.8) || (rt !== undefined && rt < 2.3);
+        // things behind the cube
+        bowl(t);
+        cup(t, false);
+        // base camp (tent + supporters) at the foot of the cube
+        if (t < 13.4) {
+          poly([[-9, 0], [-6, -3.5], [-3, 0]], C.tent); poly([[-6, 0], [-6, -3.5], [-3, 0]], C.tent2);
+          ant(-11, -0.3, 0.8, { pose: "up", arm: -1.6 + Math.sin(t * 6) * 0.4 }, t);
+          ant(-1.8, -0.3, 0.8, { pose: "up", arm: -1.4 + Math.sin(t * 6 + 1) * 0.4 }, t);
+        }
+        // the cube (it moves once the hand takes it)
+        var cp = cubePos(t);
+        var inTea = t > 15.95;
+        var dissolve = inTea ? clamp01((t - 16.0) / 2.2) * 0.75 : 0;
+        if (!inTea) cube(cp.x, cp.y, t);
+        // avalanche: grains tumbling down the face
+        if (t > 5.0 && t < 6.6) for (var i = 0; i < 16; i++) {
+          var ph = (t - 5.0) * 1.4 - hash1(i) * 0.6; if (ph < 0 || ph > 1) continue;
+          var gx = 2 + hash1(i * 3.7) * 12 + Math.sin(ph * 20 + i) * 1.2, gy = -16 + ph * 17;
+          g.save(); g.translate(gx, gy); g.rotate(ph * 12 + i); rect(-0.5, -0.5, 1 + hash1(i) * 0.6, 1 + hash1(i) * 0.6, i % 3 ? C.sugar : C.sugar3); g.restore();
+        }
+        // the climber
+        var ap = path(ANT, t);
+        var climbing = t < 11.5;
+        var onTop = t >= 11.5 && t < 16.0;
+        var antOnCube = { x: cp.x + 9, y: cp.y - 17.5 };
+        if (rt !== undefined && rt < 2.3) {
+          // cold open: dangling by one leg in the blizzard
+          ant(8 + Math.sin(rt * 3) * 0.8, -8, 1, { rot: Math.sin(rt * 3) * 0.5 + 0.2, walk: true }, rt);
+        } else if (climbing) {
+          ant(ap.x, ap.y, 1, { rot: 0, walk: (t > 2.3 && t < 4.8) ? false : (t > 7.8 && t < 10.8) ? Math.sin(t * 2) > 0 : true, sweat: t > 7.8 && t < 10.8 }, t * (t > 7.8 && t < 10.8 ? 0.4 : 1));
+          if (t > 9.6 && t < 10.6) { disc(ap.x + 1.2, ap.y - 2.4, 0.9 * (1 - ramp(t, 9.9, 10.6)), C.crumb); }
+        } else if (onTop) {
+          var a2 = t < 12.25 ? -1.2 : -1.9;
+          ant(antOnCube.x, antOnCube.y, 1, { pose: "up", arm: a2 }, t);
+          flagPole(antOnCube.x + 1.4, antOnCube.y - 1.8, 6, t, t < 12.25 ? 0 : ramp(t, 12.25, 12.55));
+        }
+        // the cup front (hides the falling cube) + the floating remnant
+        if (inTea) {
+          var fy = -58.6 + Math.sin(t * 2) * 0.3;
+          g.save(); g.beginPath(); g.ellipse(58, -55.6, 25.5, 5, 0, 0, 6.283); g.clip();
+          // ripples
+          for (var rr = 0; rr < 3; rr++) { var r0 = ((t - 16.0) * 10 + rr * 6) % 24; g.strokeStyle = C.teaHi; g.lineWidth = 0.4; g.globalAlpha = 1 - r0 / 24; g.beginPath(); g.ellipse(58, -55.6, r0 * 1.2, r0 * 0.24, 0, 0, 6.283); g.stroke(); g.globalAlpha = 1; }
+          g.restore();
+          // the raft: what's left of the summit
+          var rx = 58 + Math.sin(t * 0.8) * 2;
+          poly([[rx - 6, fy], [rx + 6, fy], [rx + 5, fy - 2.4 * (1 - dissolve * 0.6)], [rx - 5, fy - 2.4 * (1 - dissolve * 0.6)]], C.sugar);
+          var antY = fy - 2.4 * (1 - dissolve * 0.6);
+          var popUp = ramp(t, 16.5, 16.9);
+          if (popUp > 0) {
+            ant(rx, antY + 4 * (1 - popUp), 1, { pose: "up", arm: t > 18.0 ? -2.6 : -1.9, paddle: t < 18.0 }, t);
+            flagPole(rx + 1.4, antY - 1.8 + 4 * (1 - popUp), 4, t, 1);
+          }
+        }
+        cup(t, true);
+        // the hand
+        if (t > 13.8 && t < 16.8) { var hp = path(HAND, t); hand(hp.x, hp.y, t > 15.6 ? ramp(t, 15.6, 15.75) : t < 14.6 ? 1 - ramp(t, 14.3, 14.8) : 0, t); }
+        // splash
+        if (t > 15.95 && t < 16.8) {
+          var d = t - 15.95;
+          for (var q = 0; q < 24; q++) { var an = -Math.PI * (0.15 + 0.7 * hash1(q)), v = 30 + 40 * hash1(q * 3); var sx = 58 + Math.cos(an) * v * d, sy = -56 + Math.sin(an) * v * d + 90 * d * d; if (sy < -50) disc(sx, sy, 0.9 + hash1(q) * 0.8, q % 3 ? C.tea2 : C.teaHi); }
+          for (var j2 = -3; j2 <= 3; j2++) { var hh = (14 - Math.abs(j2) * 3) * Math.sin(Math.PI * Math.min(1, d / 0.5)); poly([[58 + j2 * 4 - 1.5, -56], [58 + j2 * 4 + 1.5, -56], [58 + j2 * 5, -56 - hh]], C.tea2); }
+        }
+        // the shaker + blizzard
+        shaker(t, blizz ? 1 : 0);
+        salt(t, cam, blizz ? 1 : 0);
+        // summit light
+        if (t > 11.6 && t < 13.4) { var sk = ramp(t, 11.6, 12.3); lighter(); glow(antOnCube.x - 7, antOnCube.y - 9, 6, C.gold, 0.35 * sk); normalBlend(); disc(antOnCube.x - 7, antOnCube.y - 9, 1.6 * sk, C.white); }
+        vignette(0.5, "rgba(4,10,20,");
+      }
+
+      function storyT(t) { return t < 2.3 ? 6.9 + t * 0.2 : t; }
+      PX.setup(C, {
+        scenes: { main: function (t) { scene(storyT(t), t); } },
+        sceneAt: function () { return "main"; },
+        cuts: [],
+        post: function (t, img) {
+          if (t > 2.15 && t < 2.6) glitchRows(img, 30 * (1 - Math.abs(t - 2.37) / 0.23), Math.floor(t * 30));
+          // three days: day/night flickers
+          if (t > 8.1 && t < 10.6) { var ph = (t - 8.1) / 0.8 % 1; tintImg(img, C.night, 0.55 * Math.max(0, Math.sin(ph * Math.PI * 2))); }
+          if (t > 12.5 && t < 12.75) tintImg(img, C.gold, 0.45 * (1 - ramp(t, 12.5, 12.75)));
+          if (t > 15.95 && t < 16.2) tintImg(img, C.white, 0.5 * (1 - ramp(t, 15.95, 16.2)));
+          if (t > 19.55) tintImg(img, C.white, ramp(t, 19.55, 20) * 0.85);
+          if (t < 0.15) tintImg(img, C.white, 0.85 * (1 - t / 0.15));
+        },
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: [c.segs.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.white]; })] };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 20, duration: 20, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

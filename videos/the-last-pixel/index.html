@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Last Pixel</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #000000;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000000;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="18"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="18" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: sound effects only, no narration -->
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="18" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script>
+      var C = {
+        // the game
+        gSky: "#5ab8ff", gSky2: "#a8e4ff", hill: "#3ad070", hill2: "#2a9a5a", grass: "#5aff7a", dirt: "#c8702a", dirt2: "#8a4a1a",
+        block: "#ffb020", block2: "#c86a10", coin: "#ffe24a", coinDark: "#d0a010", gCloud: "#ffffff",
+        voidA: "#c8c8d0", voidB: "#9a9aa8",
+        // the hero
+        bot: "#ffffff", botShade: "#b8c0e0", visor: "#2ae8ff", visorDark: "#1a7ad0", antenna: "#ff3a6a",
+        // the phone
+        wall: "#3a1a8a", wall2: "#a03ad0", wall3: "#ff6ab8", bar: "#06050a", barText: "#ffffff",
+        icon1: "#ff4a4a", icon2: "#3ad070", icon3: "#2a8aff", icon4: "#ffb020", icon5: "#a05aff", icon6: "#ff5ad8", icon7: "#20d0c0",
+        dock: "#5a3ab0", notif: "#f4f4ff", notifText: "#24203a", batt: "#3aff7a", battLow: "#ff3a3a", battFrame: "#ffffff",
+        dialog: "#f4f4ff", dialogBtn: "#2a8aff", crack: "#ffffff", crackShade: "#a8b8d8",
+        ink: "#06050a", white: "#ffffff", gold: "#ffe27a", dim: "#1a1430",
+      };
+
+      function path(keys, t) {
+        if (t <= keys[0][0]) return { x: keys[0][1], y: keys[0][2] };
+        for (var i = 0; i < keys.length - 1; i++) {
+          var a = keys[i], b = keys[i + 1];
+          if (t < b[0]) { var e = ease((t - a[0]) / (b[0] - a[0])); return { x: lerp(a[1], b[1], e), y: lerp(a[2], b[2], e) }; }
+        }
+        var L = keys[keys.length - 1];
+        return { x: L[1], y: L[2] };
+      }
+      function hop(t, a, b, h) { return t > a && t < b ? -h * Math.sin(Math.PI * (t - a) / (b - a)) : 0; }
+
+      // ============================================================ PIX, the hero (origin at the feet)
+      // o: face (1/-1), pose: idle|run|punch|climb|hug|fall|wave|sad, glow (0..1)
+      function pix(x, y, s, o, t) {
+        g.save(); g.translate(x, y); g.scale((o.face || 1) * s, s);
+        if (o.rot) g.rotate(o.rot);
+        var run = o.pose === "run" ? Math.sin(t * 22) : 0;
+        // legs
+        rect(-3 + run * 1.5, -3, 2, 3, C.botShade); rect(1 - run * 1.5, -3, 2, 3, C.botShade);
+        // body
+        rect(-4, -10, 8, 7, C.bot); rect(-4, -4, 8, 1, C.botShade);
+        // head + visor
+        rect(-4, -16, 8, 6, C.bot); rect(-1, -15, 5, 3, o.glow ? C.gold : C.visor); rect(3, -15, 1, 3, C.visorDark);
+        if (o.pose === "sad") rect(-1, -13, 5, 1, C.visorDark);
+        // antenna
+        rect(-1, -19, 1, 3, C.botShade); rect(-2, -21, 3, 2, o.glow ? C.gold : C.antenna);
+        // arms
+        if (o.pose === "punch") { var p = Math.max(0, Math.sin(t * 18)); rect(3, -9, 3 + p * 4, 2, C.bot); rect(6 + p * 4, -10, 2, 3, C.botShade); rect(-6, -9, 2, 4, C.bot); }
+        else if (o.pose === "climb" || o.pose === "fall") { rect(-6, -14 + Math.sin(t * 14) * 2, 2, 5, C.bot); rect(4, -14 - Math.sin(t * 14) * 2, 2, 5, C.bot); }
+        else if (o.pose === "hug") { rect(-6, -9, 2, 3, C.bot); rect(4, -9, 3, 3, C.bot); }
+        else if (o.pose === "wave") { rect(-6, -9, 2, 4, C.bot); rect(4, -14 + Math.sin(t * 16) * 1.5, 2, 5, C.bot); }
+        else { rect(-6, -9 + run, 2, 4, C.bot); rect(4, -9 - run, 2, 4, C.bot); }
+        g.restore();
+        if (o.glow) { lighter(); glow(x, y - 10 * s, 18 * s, C.gold, 0.5 * o.glow); normalBlend(); }
+      }
+
+      // ============================================================ the game (drawn in game space, 180 x 320)
+      var GROUND = 250;
+      function coinAt(x, y, t, taken) { if (taken) return; var w = Math.abs(Math.cos(t * 5 + x)) * 3 + 1; rect(x - w / 2, y - 4, w, 8, C.coin); rect(x - w / 2, y + 2, w, 2, C.coinDark); }
+      function drawGame(t, camX, hero) {
+        // sky (or the unrendered void left of the level start)
+        g.fillStyle = vgrad(0, 320, [[0, C.gSky], [1, C.gSky2]]); g.fillRect(0, 0, 180, 320);
+        g.save(); g.translate(-camX, 0);
+        // void: grey checkerboard where nothing was ever drawn
+        if (camX < 0) for (var vx = Math.floor(camX / 8) * 8; vx < 0; vx += 8) for (var vy = 0; vy < 320; vy += 8) rect(vx, vy, 8, 8, ((vx + vy) / 8) % 2 ? C.voidA : C.voidB);
+        // clouds + hills (parallax-lite)
+        [[40, 80], [150, 60], [260, 96], [380, 70]].forEach(function (c) { disc(c[0], c[1], 9, C.gCloud); disc(c[0] + 10, c[1] + 2, 7, C.gCloud); disc(c[0] - 9, c[1] + 3, 6, C.gCloud); });
+        [[60, 34], [210, 46], [350, 30]].forEach(function (h) { disc(h[0], GROUND, h[1], C.hill2); disc(h[0], GROUND + 4, h[1] - 4, C.hill); });
+        // ground tiles
+        for (var gx = 0; gx < 520; gx += 12) { rect(gx, GROUND, 12, 70, C.dirt); rect(gx, GROUND, 12, 3, C.grass); rect(gx + 2, GROUND + 8, 3, 3, C.dirt2); rect(gx + 7, GROUND + 18, 3, 3, C.dirt2); rect(gx, GROUND, 1, 70, C.dirt2); }
+        // ! blocks and coins
+        [[96, 196], [108, 196], [240, 186]].forEach(function (b, i) { rect(b[0], b[1], 12, 12, C.block); rect(b[0], b[1] + 10, 12, 2, C.block2); worldText("!", b[0] + 6, b[1] + 3, 0.8, C.white); });
+        coinAt(102, 178, t, t > 2.5); coinAt(160, 232, t, t > 3.0); coinAt(200, 232, t, t > 3.2);
+        // level start flag pole
+        rect(6, 200, 2, 50, C.white); poly([[8, 200], [20, 205], [8, 210]], C.antenna);
+        if (hero) pix(hero.x, hero.y, 1.3, hero.o, t);
+        g.restore();
+      }
+
+      // ============================================================ the phone (home screen, 180 x 320)
+      var ICONS = [
+        { x: 10, y: 228, c: C.icon1, g: "cam" }, { x: 10, y: 188, c: C.icon2, g: "msg" }, { x: 10, y: 148, c: C.icon3, g: "map" }, { x: 10, y: 108, c: C.icon4, g: "sun" },
+        { x: 144, y: 228, c: C.icon5, g: "mus" }, { x: 144, y: 188, c: C.icon6, g: "pic" }, { x: 144, y: 148, c: C.icon7, g: "set" }, { x: 144, y: 108, c: C.icon2, g: "cal" },
+        { x: 18, y: 284, c: C.icon3, g: "tel" }, { x: 58, y: 284, c: C.icon4, g: "web" }, { x: 98, y: 284, c: C.icon1, g: "mail" }, { x: 138, y: 284, c: C.icon7, g: "chat" },
+      ];
+      function icon(ic, t) {
+        rrect(ic.x, ic.y, 26, 26, 6, ic.c);
+        rect(ic.x + 2, ic.y + 2, 22, 2, "rgba(255,255,255,0.25)");
+        var cx = ic.x + 13, cy = ic.y + 13;
+        if (ic.g === "cam") { rrect(cx - 7, cy - 4, 14, 9, 2, C.white); disc(cx, cy, 3, ic.c); }
+        else if (ic.g === "msg" || ic.g === "chat") { rrect(cx - 7, cy - 6, 14, 10, 3, C.white); poly([[cx - 4, cy + 3], [cx - 6, cy + 7], [cx, cy + 3]], C.white); }
+        else if (ic.g === "map") { poly([[cx, cy + 7], [cx - 5, cy - 1], [cx + 5, cy - 1]], C.white); disc(cx, cy - 2, 5, C.white); disc(cx, cy - 2, 2, ic.c); }
+        else if (ic.g === "sun") { disc(cx, cy, 5, C.white); for (var k = 0; k < 8; k++) { var a = k * 0.785; rect(cx + Math.cos(a) * 8 - 1, cy + Math.sin(a) * 8 - 1, 2, 2, C.white); } }
+        else if (ic.g === "mus") { rect(cx + 1, cy - 7, 2, 11, C.white); disc(cx - 1, cy + 4, 3, C.white); rect(cx + 1, cy - 7, 5, 2, C.white); }
+        else if (ic.g === "pic") { rect(cx - 7, cy - 5, 14, 10, C.white); poly([[cx - 6, cy + 4], [cx - 1, cy - 2], [cx + 3, cy + 4]], ic.c); disc(cx + 3, cy - 2, 1.5, ic.c); }
+        else if (ic.g === "set") { disc(cx, cy, 6, C.white); disc(cx, cy, 2.5, ic.c); }
+        else if (ic.g === "cal") { rect(cx - 7, cy - 6, 14, 13, C.white); rect(cx - 7, cy - 6, 14, 4, C.icon1); worldText("27", cx, cy - 1, 0.6, C.ink); }
+        else if (ic.g === "tel") { line(cx - 4, cy - 5, cx + 4, cy + 5, 4, C.white); }
+        else if (ic.g === "web") { disc(cx, cy, 6, C.white); rect(cx - 6, cy, 12, 1, ic.c); rect(cx, cy - 6, 1, 12, ic.c); }
+        else if (ic.g === "mail") { rect(cx - 7, cy - 5, 14, 10, C.white); poly([[cx - 7, cy - 5], [cx, cy + 1], [cx + 7, cy - 5]], ic.c); }
+      }
+      // status bar: battery level (0..1), batteryOut (the icon pulled out: 0 in place .. 1 gone)
+      function statusBar(t, batt, out, hold) {
+        rect(0, 0, 180, 13, C.bar);
+        worldText("9:41", 20, 3, 0.75, C.barText);
+        for (var b = 0; b < 4; b++) rect(118 + b * 4, 9 - b * 2, 3, 2 + b * 2, C.barText);
+        g.strokeStyle = C.barText; g.lineWidth = 1; [3, 5.5].forEach(function (r) { g.beginPath(); g.arc(140, 10, r, -2.4, -0.74); g.stroke(); }); rect(139, 9, 2, 2, C.barText);
+        if (!hold) battIcon(150, 3, batt, t, out);
+      }
+      function battIcon(x, y, batt, t, out) {
+        if (out >= 1) { g.strokeStyle = C.barText; g.setLineDash([1, 1]); g.strokeRect(x + 0.5, y + 0.5, 16, 7); g.setLineDash([]); return; }
+        rect(x, y, 17, 8, C.battFrame); rect(x + 1, y + 1, 15, 6, C.bar); rect(x + 17, y + 2, 2, 4, C.battFrame);
+        rect(x + 2, y + 2, Math.max(0.5, 13 * batt), 4, batt < 0.2 ? C.battLow : C.batt);
+        worldText(Math.round(batt * 100) + "", x - 8, y + 1.4, 0.55, batt < 0.2 ? C.battLow : C.barText);
+      }
+      function home(t, batt, out, holdBatt) {
+        rrect(-14, -40, 208, 400, 22, "#2a2838"); rect(-200, -400, 600, 360, "#2a2838");
+        rrect(66, -30, 48, 12, 6, C.ink); disc(104, -24, 2.5, "#3a3a6a"); rect(78, -25, 20, 2, "#3a3a5a");
+        g.globalAlpha = 0.12; poly([[20, -200], [60, -200], [0, 0], [-40, 0]], C.white); poly([[150, -200], [168, -200], [128, 0], [110, 0]], C.white); g.globalAlpha = 1;
+        g.fillStyle = vgrad(0, 320, [[0, C.wall], [0.6, C.wall2], [1, C.wall3]]); g.fillRect(0, 0, 180, 320);
+        for (var i = 0; i < 18; i++) { var sx = hash1(i * 3.3) * 180, sy = hash1(i * 7.1) * 320; rect(sx, sy, 1, 1, C.white); }
+        rrect(6, 278, 168, 36, 10, C.dock);
+        ICONS.forEach(function (ic) { icon(ic, t); });
+        statusBar(t, batt, out, holdBatt);
+      }
+      function cracks(x0, y0, k, scale) {
+        if (k <= 0) return;
+        var r = rng(31);
+        g.lineCap = "round";
+        for (var i = 0; i < 9; i++) {
+          var a = -1.3 + r() * 2.6, len = (30 + r() * 90) * k * scale, x = x0, y = y0;
+          g.strokeStyle = C.crack; g.lineWidth = 1; g.beginPath(); g.moveTo(x, y);
+          for (var s = 0; s < 6; s++) { a += (r() - 0.5) * 0.8; x += Math.cos(a) * len / 6; y += Math.sin(a) * len / 6; g.lineTo(x, y); }
+          g.stroke();
+        }
+        disc(x0, y0, 4 * k * scale, C.crackShade); disc(x0, y0, 2 * k * scale, C.crack);
+      }
+
+      // ============================================================ story (story time)
+      // 1.6-3.6 the same old level   3.6-4.2 he stops   4.2-5.4 runs left into the void   5.4 BONK
+      // 6.0-7.6 punches the edge (cracks)   7.6 SHATTER   7.6-8.8 the app minimises, he tumbles out
+      // 8.8-11.0 hops the app icons + notification   11.0-12.4 the status bar   12.4-13.0 tug  13.0 POP
+      // 13.0-14.2 drinks the battery   14.2-16.2 low battery dialog, he runs back in   16.2-17.0 the phone dies
+      function heroGame(t) {
+        var x, y = GROUND, face = 1, pose = "run";
+        if (t < 3.6) { x = 30 + (t - 1.6) * 70; y = GROUND + hop(t, 2.25, 2.75, 34); }
+        else if (t < 4.2) { x = 170; pose = "sad"; face = t < 3.95 ? 1 : -1; }
+        else if (t < 5.4) { x = lerp(170, -114, (t - 4.2) / 1.2); face = -1; }
+        else if (t < 6.0) { x = -114; face = -1; pose = "idle"; }
+        else if (t < 7.6) { x = -114; face = -1; pose = "punch"; }
+        else { x = -114; face = -1; pose = "fall"; }
+        return { x: x, y: y, o: { face: face, pose: pose } };
+      }
+      function gameCam(t) {
+        if (t < 3.6) return Math.max(0, (t - 1.6) * 70 - 60);
+        if (t < 4.2) return 80;
+        if (t < 5.4) return lerp(80, -122, ease((t - 4.2) / 1.2));
+        return -122;
+      }
+      var HERO_HOME = [[8.8, 30, 228], [9.2, 23, 228], [9.6, 23, 188], [10.0, 23, 148], [10.4, 23, 108], [10.8, 60, 46], [11.2, 96, 12], [11.8, 126, 12], [12.4, 146, 12], [13.0, 146, 12], [13.6, 120, 12], [14.9, 120, 12], [15.5, 52, 214], [15.9, 46, 216]];
+      function sceneMain(t, rt) {
+        // app window: 1 = full screen, 0 = minimised into the widget
+        var win = 1 - ease(ramp(t, 7.7, 8.7));
+        var wx = lerp(45, 0, win), wy = lerp(96, 0, win), ws = lerp(0.5, 1, win);
+        var batt = t < 13.0 ? 0.87 : Math.max(0.01, 0.87 - (t - 13.0) * 0.75);
+        var out = t < 12.95 ? 0 : 1;
+        var holding = t >= 12.95 && t < 16.4;
+        // camera (phone space)
+        var cam;
+        if (t < 7.7) cam = { x: 90, y: 160, z: 1 };
+        else if (t < 8.8) cam = { x: 90, y: 160, z: 1 };
+        else {
+          var hp = path(HERO_HOME, t);
+          var z = 1.9;
+          cam = { x: Math.max(90 / z * 0 + 47, Math.min(133, hp.x)), y: hp.y - 55 / z, z: z };
+          if (t > 13.9 && t < 16.2) { var k = ease(ramp(t, 13.9, 14.6)); cam.z = lerp(1.9, 1.0, k); cam.x = lerp(cam.x, 90, k); cam.y = lerp(cam.y, 160, k); }
+          if (t >= 16.2) cam = { x: 90, y: 160, z: 1 };
+        }
+        if (rt !== undefined && rt < 1.6) cam = { x: 128, y: 6 - 55 / 2.2, z: 2.2 };
+        shake(cam, t, 5.4, 6, 0.4);
+        shake(cam, t, 7.6, 9, 0.6);
+        shake(cam, t, 13.0, 5, 0.4);
+        screen(); g.fillStyle = C.ink; g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        home(t, batt, out, holding);
+        // the game app window
+        g.save(); g.translate(wx, wy); g.scale(ws, ws);
+        g.beginPath(); g.rect(0, 0, 180, 320); g.clip();
+        var hg = heroGame(t);
+        drawGame(t, gameCam(t), t < 7.7 ? hg : null);
+        // ripple when he pokes the edge
+        if (t > 5.4 && t < 6.0) { g.strokeStyle = C.white; g.lineWidth = 1; var rr = (t - 5.4) * 40; g.beginPath(); g.arc(2, GROUND - 10, rr, -1.4, 1.4); g.stroke(); }
+        // cracks spreading from the punch point
+        var ck = t < 6.0 ? 0 : t < 7.6 ? [0, 0.35, 0.65, 1][Math.min(3, Math.floor((t - 6.0) / 0.45) + 1)] : 1;
+        cracks(3, GROUND - 10, ck, 1);
+        if (t > 7.6) { rect(0, GROUND - 22, 6, 18, C.ink); }
+        g.restore();
+        if (win < 1) { g.strokeStyle = C.white; g.lineWidth = 1; g.strokeRect(wx - 0.5, wy - 0.5, 180 * ws + 1, 320 * ws + 1); }
+        // shattered pixels at the break
+        if (t > 7.6 && t < 8.8) {
+          for (var i = 0; i < 26; i++) { var d = t - 7.6, a = Math.PI + (hash1(i) - 0.5) * 2.4, v = 40 + hash1(i * 3) * 70; rect(wx + 3 * ws + Math.cos(a) * v * d, wy + (GROUND - 10) * ws + Math.sin(a) * v * d + 60 * d * d, 2, 2, i % 3 ? C.crack : C.visor); }
+        }
+        // the hero outside the game
+        if (t >= 7.7) {
+          var p;
+          if (t < 8.8) { var k2 = ease(ramp(t, 7.7, 8.8)); p = { x: lerp(wx - 2, 30, k2), y: lerp(wy + GROUND * ws, 228, k2) + hop(t, 8.0, 8.8, 30) }; }
+          else p = path(HERO_HOME, t);
+          var pose = "run", face = 1;
+          if (t < 8.8) pose = "fall";
+          else if (t > 9.2 && t < 10.5) { pose = "run"; p.y += hop((t - 9.2) % 0.4, 0, 0.4, 14) * 0; }
+          if (t > 11.0 && t < 11.2) pose = "climb";
+          if (t > 12.4 && t < 13.0) { pose = "hug"; p.x += Math.sin(t * 40) * 0.8; }
+          if (t >= 13.0 && t < 14.6) pose = "hug";
+          if (t >= 14.6) { pose = "run"; face = -1; }
+          var gl = t > 13.1 && t < 15.0 ? 0.6 + 0.4 * Math.sin(t * 12) : 0;
+          var hs = t > 11.0 && t < 15.0 ? 0.6 : 1.0;
+          if (t < 15.9) pix(p.x, p.y, hs, { pose: pose, face: face, glow: gl, rot: t < 8.8 ? (t - 7.7) * 6 : 0 }, t);
+          if (holding && t < 15.9) { g.save(); g.translate(p.x + (face > 0 ? 1 : -1) * 9 * hs, p.y - 7 * hs); g.scale(hs, hs); battIcon(-9, -4, batt, t, 0); g.restore(); }
+          if (t > 12.3 && t < 13.0) for (var q = 0; q < 3; q++) rect(p.x - 6 + q * 6, p.y - 22 - ((t * 8 + q) % 1) * 4, 1, 2, C.white);
+          if (t > 13.0 && t < 13.5) { lighter(); glow(158, 7, 30 * (1 - (t - 13.0) * 2), C.white, 0.9); normalBlend(); }
+        }
+        // the notification banner (a springboard)
+        if (t > 9.8 && t < 11.6) {
+          var ny = lerp(-30, 26, easeOut(ramp(t, 9.8, 10.2))) - (t > 11.2 ? lerp(0, 60, ramp(t, 11.2, 11.6)) : 0) + (t > 10.75 && t < 10.95 ? 3 : 0);
+          rrect(10, ny, 160, 22, 6, C.notif); rrect(15, ny + 4, 14, 14, 3, C.icon2);
+          worldText("MESSAGES", 70, ny + 4, 0.6, C.notifText); worldText("1 NEW MESSAGE", 88, ny + 12, 0.55, C.wall);
+        }
+        // low battery dialog (below the caption band), the screen dims
+        if (t > 13.9 && t < 16.2) {
+          var dk = ramp(t, 13.9, 14.3);
+          screen(); g.globalAlpha = 0.45 * dk; g.fillStyle = C.ink; g.fillRect(0, 0, W, H); g.globalAlpha = 1;
+          setCam(cam, 1);
+          var dy = 214 + (1 - dk) * 20;
+          rrect(26, dy, 128, 56, 8, C.dialog);
+          worldText("LOW BATTERY", 90, dy + 8, 0.75, C.battLow);
+          worldText(Math.round(batt * 100) + "% REMAINING", 90, dy + 20, 0.6, C.notifText);
+          rrect(56, dy + 34, 68, 14, 5, C.dialogBtn); worldText("OK", 90, dy + 38, 0.7, C.white);
+        }
+        // the phone dies: everything collapses to a line, then black
+        if (t > 16.2) {
+          var dd = ramp(t, 16.2, 16.55);
+          screen(); g.fillStyle = C.ink;
+          var hh = 160 * dd; g.fillRect(0, 0, W, hh); g.fillRect(0, H - hh, W, hh);
+          if (dd > 0.9 && t < 16.8) { lighter(); glow(90, 160, 40 * (1 - ramp(t, 16.55, 16.8)), C.white, 0.9); normalBlend(); }
+          // reboot: the empty battery slot... and him, sneaking back
+          if (t > 17.2) {
+            var k3 = ramp(t, 17.2, 17.5);
+            setCam({ x: 128, y: 6 - 55 / 2.2, z: 2.2 }, 1);
+            g.globalAlpha = k3; statusBar(t, 0.87, 0, false); g.globalAlpha = 1;
+            pix(lerp(122, 144, ramp(t, 17.4, 17.95)), 12, 0.6, { pose: "run", face: 1 }, t);
+          }
+        }
+        vignette(0.3, "rgba(10,0,30,");
+      }
+
+      function storyT(t) { return t < 1.6 ? 12.6 + t * 0.32 : t; }
+      var WH = C.white, GD = C.gold;
+      PX.setup(C, {
+        scenes: { main: function (t) { sceneMain(storyT(t), t); } },
+        sceneAt: function () { return "main"; },
+        cuts: [],
+        post: function (t, img) {
+          if (t > 1.42 && t < 1.92) glitchRows(img, 34 * (1 - Math.abs(t - 1.67) / 0.25), Math.floor(t * 30));
+          if (t > 1.24 && t < 1.45) tintImg(img, C.white, 0.6 * (1 - ramp(t, 1.24, 1.45)));
+          if (t > 7.6 && t < 7.9) tintImg(img, C.white, 0.75 * (1 - ramp(t, 7.6, 7.9)));
+          if (t > 7.55 && t < 8.1) glitchRows(img, 18 * (1 - ramp(t, 7.55, 8.1)), Math.floor(t * 30) + 7);
+          if (t > 12.98 && t < 13.2) tintImg(img, C.gold, 0.5 * (1 - ramp(t, 12.98, 13.2)));
+          if (t > 15.3 && t < 16.2 && Math.floor(t * 10) % 3 === 0) glitchRows(img, 6, Math.floor(t * 30));
+        },
+        captions: [
+          { a: 0.25, b: 1.5, lines: [[["HE'S INSIDE", WH]], [["YOUR PHONE", GD]]] },
+          { a: 14.4, b: 16.25, lines: [[["THAT'S WHY YOUR", WH]], [["BATTERY DIES", GD]]] },
+        ],
+        ui: function (t) {
+          var st = storyT(t);
+          if (t >= 1.6 && st < 7.6) {
+            var s = "LEVEL 1-1   TRY " + (st < 3.6 ? "9999" : "9999");
+            u.fillStyle = "rgba(6,5,10,0.85)"; u.fillRect(10, 30, s.length * 12 + 10, 22);
+            u.fillStyle = C.white;
+            for (var i = 0; i < s.length; i++) { var gl = FONT[s[i]] || FONT[" "]; for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(15 + i * 12 + (p % 5) * 2, 34 + Math.floor(p / 5) * 2, 2, 2); }
+          }
+        },
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 18, duration: 18, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

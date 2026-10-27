@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Raindrop Race</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #000000;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000000;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="18"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="18" data-track-index="0">
+        <canvas id="world" width="180" height="320" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: sound effects only, no narration -->
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="18" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script>
+      var C = {
+        skyTop: "#2a6aff", skyMid: "#6ab4ff", skyLow: "#bfe6ff", dusk: "#ff8ac8", duskLow: "#ffc06a",
+        cloud: "#ffffff", cloudShade: "#d0e0ff", cloudDark: "#8a9ad8", storm: "#5a5aa8", bolt: "#fff6a0",
+        glass: "#1c2a6a", glass2: "#2a3c90", bokehP: "#ff4ab8", bokehC: "#3ae0ff", bokehO: "#ffb03a", bokehV: "#a05aff", bokehY: "#fff27a",
+        drop: "#a8ecff", dropShade: "#46b4f4", dropRim: "#1a6ad0", trail: "#5ac0ff",
+        red: "#ff3a3a", mag: "#ff4ad8", lime: "#5aff5a", white: "#ffffff", ink: "#06050a", gold: "#ffe27a", goldDark: "#e0a020",
+        wiper: "#14121e", wiperHi: "#4a4a6a", dash: "#24203a", dash2: "#3a3458",
+        car: "#ff3a4a", carDark: "#a81a3a", carHi: "#ff9aa8", city: "#3a3a8a", city2: "#5a5ab0", win: "#ffd25a",
+        sun: "#fff27a", sunHalo: "#ffc040", steam: "#e8f4ff", green: "#3aff7a", greenDim: "#1a6a3a", lampOff: "#3a2a4a",
+        bird: "#2a2a4a", cap1: "#ffd02a", cap2: "#c8d0e8", cap3: "#e0803a",
+      };
+      var TEAM = [
+        { n: "7", col: C.red },   // the hero
+        { n: "3", col: C.mag },   // the rival
+        { n: "11", col: C.lime }, // the underdog
+      ];
+
+      // ============================================================ helpers
+      function path(keys, t) {
+        if (t <= keys[0][0]) return { x: keys[0][1], y: keys[0][2] };
+        for (var i = 0; i < keys.length - 1; i++) {
+          var a = keys[i], b = keys[i + 1];
+          if (t < b[0]) { var e = ease((t - a[0]) / (b[0] - a[0])); return { x: lerp(a[1], b[1], e), y: lerp(a[2], b[2], e) }; }
+        }
+        var L = keys[keys.length - 1];
+        return { x: L[1], y: L[2] };
+      }
+      // racing raindrop. o: team, s, rot, squash (0..1 flatten), mood ("go"|"happy"|"bliss"|"dizzy"), goggles, a (alpha)
+      function drop(x, y, o, t) {
+        var s = o.s || 1, sq = o.squash || 0;
+        g.save(); g.translate(x, y); g.rotate(o.rot || 0); g.scale(s * (1 + 0.6 * sq), s * (1 - 0.55 * sq));
+        if (o.a !== undefined) g.globalAlpha = o.a;
+        // body: round bottom + pointed top
+        poly([[0, -15], [-6.6, -3], [6.6, -3]], C.dropRim);
+        disc(0, 1, 7.6, C.dropRim);
+        poly([[0, -13.5], [-5.6, -3], [5.6, -3]], C.drop);
+        disc(0, 1, 6.6, C.drop);
+        ell(1.5, 3.5, 4.4, 3, 0, C.dropShade);
+        rect(-3.6, -4, 1.6, 3, C.white); rect(-3, -6, 1, 1.4, C.white);
+        // team helmet stripe + number
+        var tm = TEAM[o.team];
+        if (o.goggles !== false) {
+          rect(-6.4, -3.2, 12.8, 2.6, tm.col);
+          rect(-4.4, -3.6, 3.4, 3.2, C.white); rect(1, -3.6, 3.4, 3.2, C.white);
+          rect(-3.6, -2.8, 1.6, 1.6, C.ink); rect(1.8, -2.8, 1.6, 1.6, C.ink);
+        } else if (o.mood === "bliss") {
+          rect(-3.8, -1.8, 2.6, 0.8, C.ink); rect(1.2, -1.8, 2.6, 0.8, C.ink);
+        } else {
+          disc(-2.4, -1.6, 1.6, C.white); disc(2.4, -1.6, 1.6, C.white); rect(-2.6, -2, 1, 1.2, C.ink); rect(2.2, -2, 1, 1.2, C.ink);
+        }
+        if (o.mood === "dizzy") { rect(-3.6, -2.4, 2.2, 0.8, C.ink); rect(1.4, -2.4, 2.2, 0.8, C.ink); }
+        // mouth
+        if (o.mood === "happy" || o.mood === "bliss") { rect(-2.2, 2, 4.4, 1, C.ink); rect(-2.8, 1.2, 1, 1, C.ink); rect(1.8, 1.2, 1, 1, C.ink); }
+        else if (o.mood === "yell") ell(0, 2.6, 1.8, 2, 0, C.ink);
+        else { rect(-2, 2.2, 4, 0.9, C.ink); rect(1.2, 1.4, 1, 0.9, C.ink); }
+        worldText(tm.n, 0, 5, 0.42, tm.col);
+        g.restore();
+        g.globalAlpha = 1;
+      }
+      function speedLines(x, y, t, n, len, dir, col) {
+        for (var i = 0; i < n; i++) {
+          var ph = (t * 3 + hash1(i * 3.3)) % 1;
+          var ox = (hash1(i * 7.7) - 0.5) * 18;
+          rect(x + ox, y - dir * (10 + ph * len), 1, len * 0.5 * (1 - ph), col || C.white);
+        }
+      }
+      function cloudPuff(x, y, s, cols) {
+        ell(x, y + 4 * s, 26 * s, 8 * s, 0, cols[2]);
+        disc(x - 12 * s, y, 10 * s, cols[1]); disc(x + 10 * s, y - 2 * s, 12 * s, cols[1]); disc(x - 1 * s, y - 8 * s, 12 * s, cols[0]); disc(x + 14 * s, y + 2 * s, 8 * s, cols[0]);
+      }
+      // caption-layer pixel text (for the HUD)
+      function uiText(str, x, y, S, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) {
+          var gl = FONT[str[i]] || FONT[" "];
+          for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * S + (p % 5) * S, y + Math.floor(p / 5) * S, S, S);
+        }
+      }
+
+      // ============================================================ 1. CLOUD GRID (1.6-4.0, and the loop 16.2-18)
+      // lights: times the three reds come on, and green
+      function sceneCloud(t, L, divers, arrive) {
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.skyTop], [0.6, C.skyMid], [1, C.duskLow]]); g.fillRect(0, 0, W, H);
+        var cam = { x: 90, y: 150, z: 1.05 };
+        if (t > L[3] && t < L[3] + 0.6) cam.y += 60 * ramp(t, L[3], L[3] + 0.6); // tilt down with the dive
+        shake(cam, t, L[0] - 0.4, 3, 0.4);
+        setCam(cam, 1);
+        // far clouds
+        cloudPuff(20, 90, 0.9, [C.cloud, C.cloudShade, C.cloudDark]); cloudPuff(170, 70, 1.1, [C.cloud, C.cloudShade, C.cloudDark]);
+        // the big storm cloud we stand on (lightning flicker = engines revving)
+        var flick = (t > L[0] - 0.6 && t < L[3]) ? (hash1(Math.floor(t * 12)) > 0.75 ? 1 : 0) : 0;
+        var top = flick ? C.white : C.cloudShade;
+        ell(90, 250, 140, 60, 0, C.storm); ell(90, 228, 120, 40, 0, C.cloudDark);
+        disc(20, 214, 28, top); disc(70, 200, 30, C.cloud); disc(130, 204, 32, C.cloud); disc(175, 214, 26, top);
+        rect(-60, 214, 300, 30, C.cloud);
+        if (flick) { lighter(); glow(90, 250, 90, C.bolt, 0.35); normalBlend(); }
+        // marshal cloud with the start lights board
+        var mx = 140, my = 150 + Math.sin(t * 2) * 1.5;
+        cloudPuff(mx, my, 0.55, [C.cloud, C.cloudShade, C.cloudDark]);
+        disc(mx - 4, my - 3, 1.4, C.ink); disc(mx + 4, my - 3, 1.4, C.ink); rect(mx - 2, my + 1, 4, 1, C.ink);
+        line(mx - 14, my, mx - 22, my - 22, 1.4, C.cloudDark);
+        rrect(mx - 50, my - 44, 44, 16, 3, C.ink);
+        for (var k = 0; k < 4; k++) {
+          var on = t > L[Math.min(k, 3)];
+          var green = t > L[3];
+          var col = green ? C.green : (k < 3 && on ? C.red : C.lampOff);
+          if (k === 3 && !green) col = C.lampOff;
+          disc(mx - 44 + k * 10.5, my - 36, 3.6, col);
+          if (green || (k < 3 && on)) { lighter(); glow(mx - 44 + k * 10.5, my - 36, 8, green ? C.green : C.red, 0.6); normalBlend(); }
+        }
+        // chequered flag
+        var fy = my - 12, fw = Math.sin(t * 8) * 1.5;
+        for (var a = 0; a < 4; a++) for (var b = 0; b < 3; b++) rect(mx + 8 + a * 3, fy - 16 + b * 3 + fw * (a / 4), 3, 3, (a + b) % 2 ? C.ink : C.white);
+        line(mx + 8, fy - 16, mx + 8, fy + 2, 1, C.ink);
+        // the grid: three racers crouched at the edge, then diving off
+        divers.forEach(function (d, i) {
+          var x = 46 + i * 34, y = 204;
+          var crouch = t > L[0] ? 0.25 + 0.1 * Math.sin(t * 20 + i) : 0;
+          var a = 1;
+          if (d.appear !== undefined) { if (t < d.appear) return; a = ramp(t, d.appear, d.appear + 0.25); }
+          if (t > L[3] + 0.05 * i) {
+            var k2 = t - L[3] - 0.05 * i;
+            x += k2 * 20; y += -30 * k2 + 260 * k2 * k2;
+            drop(x, y, { team: d.team, s: 1.2, rot: Math.min(3.14, k2 * 8), mood: "yell" }, t);
+          } else drop(x, y - 4, { team: d.team, s: 1.2, squash: crouch, mood: d.mood || "go", a: a, goggles: true }, t);
+          if (d.bandage && t <= L[3]) { rect(x - 5, y - 20, 10, 2, C.white); rect(x - 1, y - 21, 2, 4, C.red); }
+        });
+        // vapour condensing back into the hero (loop ending)
+        if (arrive) {
+          var k3 = ramp(t, arrive - 0.6, arrive);
+          for (var w = 0; w < 10; w++) {
+            var ang = w * 0.63 + t * 3, r = 30 * (1 - k3) + 2;
+            g.globalAlpha = 0.8 * (1 - k3 * 0.7); disc(46 + Math.cos(ang) * r, 194 + Math.sin(ang) * r * 0.7 - (1 - k3) * 30, 2.5, C.steam); g.globalAlpha = 1;
+          }
+        }
+        vignette(0.3, "rgba(20,20,80,");
+      }
+
+      // ============================================================ 2. THE DIVE (4.0-6.6)
+      function sceneDive(t) {
+        var lt = t - 4.0;
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.skyMid], [0.7, C.skyLow], [1, C.duskLow]]); g.fillRect(0, 0, W, H);
+        // clouds rushing up past us
+        for (var i = 0; i < 6; i++) {
+          var cy = ((hash1(i * 4.1) * 500 - lt * 320) % 500 + 500) % 500 - 90;
+          cloudPuff(hash1(i * 9.3) * 200 - 10, cy, 0.5 + hash1(i) * 0.5, [C.cloud, C.cloudShade, C.cloudShade]);
+        }
+        // the city far below, rising toward us
+        var k = ramp(lt, 0, 2.6), cityY = lerp(380, 250, k), sc = lerp(0.5, 1.6, k * k);
+        g.save(); g.translate(90, cityY); g.scale(sc, sc);
+        var r = rng(5);
+        for (var b = -130; b < 130; b += 0) { var bw = 10 + r() * 14, bh = 20 + r() * 60; rect(b, -bh, bw, bh + 200, r() > 0.5 ? C.city : C.city2); for (var wy = -bh + 4; wy < 0; wy += 6) for (var wx = b + 2; wx < b + bw - 2; wx += 4) if (hash1(wx + wy * 3) > 0.6) rect(wx, wy, 2, 2, C.win); b += bw + 2; }
+        // the car (top view) we'll land on
+        rrect(-14, 10, 28, 46, 6, C.car); rrect(-11, 18, 22, 12, 3, C.glass2); rect(-9, 20, 6, 2, C.bokehC);
+        g.restore();
+        // birds flashing up past
+        [[0.5, 30], [1.3, 150], [1.9, 60]].forEach(function (bd) {
+          var by = 340 - (lt - bd[0]) * 420; if (by < -20 || by > 340) return;
+          var f = Math.sin(t * 20) * 4; line(bd[1] - 8, by + f, bd[1], by, 1.6, C.bird); line(bd[1], by, bd[1] + 8, by + f, 1.6, C.bird);
+        });
+        // racers, head down, jostling
+        var bonk = lt > 1.0 && lt < 1.5;
+        var xs = [90 + Math.sin(t * 3) * 3, 52 + (bonk ? 8 * Math.sin((lt - 1.0) * 6.28) : 0) + Math.sin(t * 2.6) * 4, 128 + (bonk ? -6 * Math.sin((lt - 1.0) * 6.28) : 0) + Math.sin(t * 2.2) * 4];
+        var ys = [210 + Math.sin(t * 4) * 3 - 18 * ramp(lt, 1.4, 2.2), 178 + Math.sin(t * 3.4) * 4, 190 + Math.sin(t * 3.1) * 4 + 10 * ramp(lt, 1.2, 1.8)];
+        [1, 2, 0].forEach(function (i) {
+          speedLines(xs[i], ys[i], t + i, 6, 26, -1, C.white);
+          drop(xs[i], ys[i], { team: i, s: 1.6, rot: 3.14 + Math.sin(t * 5 + i) * 0.1, squash: i === 0 ? -0.2 * ramp(lt, 1.4, 1.8) : 0, mood: bonk && i > 0 ? "yell" : "go" }, t);
+        });
+        if (bonk) { worldText("BONK!", 92, 236, 1.3, C.ink); worldText("BONK!", 91, 235, 1.3, C.gold); }
+        // wind streaks
+        screen(); g.globalAlpha = 0.6;
+        for (var j = 0; j < 20; j++) rect(hash1(j * 2.2) * W, ((hash1(j * 5.1) * H) - t * 600) % H + H, 1, 16, C.white);
+        g.globalAlpha = 1;
+        vignette(0.3, "rgba(20,20,80,");
+      }
+
+      // ============================================================ 3. THE WINDSCREEN GP (6.6-12.8, and the cold open)
+      var P7 = [[6.6, 92, 22], [7.2, 92, 52], [7.8, 96, 70], [8.4, 88, 96], [9.0, 92, 118], [9.6, 86, 140], [10.2, 90, 160], [10.6, 90, 170], [11.4, 92, 174], [11.85, 96, 206], [12.15, 98, 238], [12.45, 100, 282]];
+      var P3 = [[6.6, 56, 24], [7.2, 56, 58], [7.8, 52, 84], [8.25, 56, 118], [8.9, 60, 150], [9.5, 58, 178], [10.2, 62, 196], [10.6, 62, 200], [11.4, 62, 204], [11.9, 66, 232], [12.6, 70, 282]];
+      var P11 = [[6.6, 130, 22], [7.2, 130, 50], [7.8, 134, 66], [8.8, 130, 78], [9.6, 128, 92], [10.4, 134, 122], [10.8, 136, 130]];
+      var BEADS = (function () { var r = rng(77), a = []; for (var i = 0; i < 70; i++) a.push({ x: r() * 180, y: 10 + r() * 270, r: 0.8 + r() * 2.2 }); return a; })();
+      var PIVOT = { x: -6, y: 300 };
+      function wiperAng(t) { // 0 = resting along the bottom; sweeps up and back
+        if (t < 10.6 || t > 11.7) return 0.05;
+        return 0.05 + 1.5 * Math.sin(Math.PI * (t - 10.6) / 1.1);
+      }
+      function wiperMax(t) { return t < 10.6 ? 0 : t < 11.15 ? wiperAng(t) : 1.55; }
+      function polarA(x, y) { return Math.atan2(PIVOT.y - y, x - PIVOT.x); }
+      function sceneGlass(t, rt) {
+        // city at night through rainy glass
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, C.glass], [0.6, C.glass2], [1, C.glass]]); g.fillRect(0, 0, W, H);
+        // camera follows the leaders
+        var lead = Math.max(path(P7, t).y, path(P3, t).y);
+        var cam = { x: 90, y: Math.max(120, Math.min(200, lead + 20)), z: 1.18 };
+        if (t > 12.1) cam.z = lerp(1.18, 1.5, ramp(t, 12.1, 12.5)), cam.y = lerp(cam.y, 250, ramp(t, 12.1, 12.5));
+        if (rt !== undefined && rt < 1.6) { cam.z = 1.9; cam.x = 82; cam.y = 150; }
+        shake(cam, t, 6.62, 6, 0.4);
+        shake(cam, t, 10.6, 3, 1.1);
+        setCam(cam, 0.35);
+        lighter();
+        var cols = [C.bokehP, C.bokehC, C.bokehO, C.bokehV, C.bokehY];
+        for (var i = 0; i < 22; i++) { var bx = hash1(i * 3.1) * 240 - 30, by = hash1(i * 6.7) * 360 - 20 + Math.sin(t * 0.5 + i) * 3; glow(bx, by, 10 + hash1(i) * 16, cols[i % 5], 0.45); }
+        normalBlend();
+        setCam(cam, 1);
+        // static beads on the glass (wiped by the blade)
+        var wm = wiperMax(t);
+        BEADS.forEach(function (b, i) {
+          var pa = polarA(b.x, b.y), back = t > 12.0 ? ramp(t, 12.0 + hash1(i) * 2, 12.3 + hash1(i) * 2) : 0;
+          if (pa < wm && back < 1) { if (back <= 0) return; }
+          disc(b.x, b.y, b.r, C.dropShade); rect(b.x - b.r * 0.5, b.y - b.r * 0.5, 1, 1, C.white);
+        });
+        // wet trails behind each racer
+        function trail(P, t0) {
+          g.strokeStyle = C.trail; g.lineWidth = 2.2; g.lineCap = "round"; g.globalAlpha = 0.6; g.beginPath();
+          var first = true;
+          for (var tt = Math.max(6.62, t0 || 0); tt <= t; tt += 0.05) { var p = path(P, tt); if (first) { g.moveTo(p.x, p.y); first = false; } else g.lineTo(p.x, p.y); }
+          g.stroke(); g.globalAlpha = 1;
+        }
+        var cutT = t > 10.9 ? 11.2 : 0;
+        trail(P7, cutT); trail(P3, cutT); if (t < 10.9) trail(P11);
+        // finish line: the chequered rubber seal + dashboard
+        for (var cx = 0; cx < 180; cx += 4) for (var cy = 0; cy < 2; cy++) rect(cx, 284 + cy * 4, 4, 4, ((cx / 4) + cy) % 2 ? C.ink : C.white);
+        rect(-40, 292, 260, 60, C.dash); rect(-40, 292, 260, 3, C.dash2);
+        worldText("FINISH", 90, 298, 0.8, C.gold);
+        // boost droplet that the rival swallows, and the one the hero takes
+        if (t < 8.2) { disc(56, 112, 3.4, C.dropShade); rect(55, 110, 1, 1, C.white); }
+        if (t < 11.8) { disc(96, 204, 3.4, C.dropShade); rect(95, 202, 1, 1, C.white); }
+        // the racers
+        var p7 = path(P7, t), p3 = path(P3, t), p11 = path(P11, t);
+        var a = wiperAng(t);
+        function duck(p) { var d = Math.abs(polarA(p.x, p.y) - a); return t > 10.6 && t < 11.7 ? clamp01(1 - d / 0.25) : 0; }
+        var boost3 = t > 8.2 && t < 8.9, boost7 = t > 11.8 && t < 12.5;
+        if (boost3) speedLines(p3.x, p3.y, t, 6, 20, 1, C.white);
+        if (boost7) speedLines(p7.x, p7.y, t, 8, 28, 1, C.gold);
+        drop(p3.x, p3.y, { team: 1, s: t > 8.2 ? 1.25 : 1.05, squash: duck(p3), mood: boost3 ? "yell" : "go" }, t);
+        // the underdog gets swept off by the blade
+        if (t < 10.95) drop(p11.x, p11.y, { team: 2, s: 1.0, mood: t > 10.75 ? "yell" : "go" }, t);
+        else if (t < 11.6) {
+          var k = (t - 10.95) / 0.65, ang = wiperAng(t) - 0.02, r = Math.hypot(136 - PIVOT.x, PIVOT.y - 130) + k * 60;
+          drop(PIVOT.x + Math.cos(ang) * r, PIVOT.y - Math.sin(ang) * r - k * 60, { team: 2, s: 1.0, rot: k * 12, mood: "dizzy" }, t);
+        }
+        drop(p7.x, p7.y, { team: 0, s: t > 11.8 ? 1.3 : 1.1, squash: duck(p7), mood: boost7 ? "yell" : t > 12.45 ? "happy" : "go" }, t);
+        // position tags
+        if (t > 7.4 && t < 12.5) {
+          var first7 = p7.y > p3.y;
+          worldText(first7 ? "P1" : "P2", p7.x, p7.y - 26, 0.6, first7 ? C.gold : C.white);
+          worldText(first7 ? "P2" : "P1", p3.x, p3.y - 26, 0.6, first7 ? C.white : C.gold);
+        }
+        // the wiper blade
+        if (t > 10.3 && t < 11.9) {
+          var ca = Math.cos(a), sa = Math.sin(a), L = 330;
+          line(PIVOT.x, PIVOT.y, PIVOT.x + ca * L, PIVOT.y - sa * L, 6, C.wiper);
+          line(PIVOT.x + ca * 30, PIVOT.y - sa * 30, PIVOT.x + ca * L, PIVOT.y - sa * L, 2, C.wiperHi);
+        }
+        // splats as the racers land
+        if (t > 6.6 && t < 7.1) {
+          var sk = (t - 6.6) / 0.5;
+          [[92, 22], [56, 24], [130, 22]].forEach(function (s) {
+            for (var q = 0; q < 8; q++) { var an = q / 8 * 6.28; disc(s[0] + Math.cos(an) * 14 * easeOut(sk), s[1] + Math.sin(an) * 10 * easeOut(sk), 2 * (1 - sk) + 0.5, C.drop); }
+          });
+        }
+        // finish: chequered flash + spray
+        if (t > 12.45 && t < 12.9) {
+          var fk = (t - 12.45) / 0.45;
+          for (var q2 = 0; q2 < 18; q2++) { var an2 = -0.2 - hash1(q2) * 2.7; disc(100 + Math.cos(an2) * 50 * fk, 282 + Math.sin(an2) * 60 * fk + 40 * fk * fk, 1.5, q2 % 2 ? C.gold : C.drop); }
+        }
+        vignette(0.4, "rgba(10,10,50,");
+      }
+
+      // ============================================================ 4. PODIUM + SUN (12.8-16.2)
+      function scenePodium(t) {
+        var lt = t - 12.8;
+        var sunK = ramp(lt, 0.9, 1.8);
+        screen();
+        g.fillStyle = vgrad(0, H, [[0, sunK > 0.5 ? C.skyTop : C.storm], [0.6, sunK > 0.5 ? C.skyMid : C.cloudDark], [1, C.duskLow]]); g.fillRect(0, 0, W, H);
+        var cam = { x: 90, y: 128 - 110 * ramp(lt, 2.6, 3.4), z: 1.1 };
+        setCam(cam, 1);
+        // sun breaking through
+        lighter(); glow(120, 40, 70 * sunK + 1, C.sunHalo, 0.7 * sunK); normalBlend();
+        disc(120, 40, 14 * sunK + 0.1, C.sun);
+        if (sunK > 0) {
+          lighter(); g.globalAlpha = 0.18 * sunK;
+          for (var r = 0; r < 6; r++) { var an = 1.7 + r * 0.16 + Math.sin(t) * 0.02; poly([[120, 40], [120 + Math.cos(an) * 300, 40 + Math.sin(an) * 300], [120 + Math.cos(an + 0.06) * 300, 40 + Math.sin(an + 0.06) * 300]], C.sun); }
+          g.globalAlpha = 1; normalBlend();
+        }
+        // storm clouds sliding apart
+        var part = 60 * sunK;
+        cloudPuff(60 - part, 50, 1.4, [C.cloudShade, C.cloudDark, C.storm]);
+        cloudPuff(160 + part, 60, 1.3, [C.cloudShade, C.cloudDark, C.storm]);
+        // the car's hood + windscreen base
+        poly([[-30, 230], [210, 230], [210, 340], [-30, 340]], C.car);
+        poly([[-30, 222], [210, 222], [210, 232], [-30, 232]], C.carDark);
+        rect(-30, 236, 240, 2, C.carHi);
+        rect(-30, 120, 240, 102, C.glass2);
+        for (var cx = -30; cx < 210; cx += 4) rect(cx, 218, 4, 4, (cx / 4) % 2 ? C.ink : C.white);
+        // bottle-cap podium
+        rrect(76, 196, 28, 26, 2, C.cap1); worldText("1", 90, 205, 1, C.goldDark);
+        rrect(44, 206, 28, 16, 2, C.cap2); worldText("2", 58, 210, 1, C.cloudDark);
+        rrect(108, 212, 28, 10, 2, C.cap3);
+        // runner-up on 2, the underdog (dizzy, bandaged) on 3
+        drop(58, 194, { team: 1, s: 1.1, mood: "go" }, t);
+        drop(122, 200, { team: 2, s: 1.0, mood: "dizzy", goggles: false }, t);
+        rect(117, 186, 10, 2, C.white); rect(121, 185, 2, 4, C.red);
+        // the winner: trophy, spray, then the sun lifts him away as vapour
+        var evap = ramp(lt, 1.9, 3.0);
+        var hx = 90, hy = 184 - 4 * Math.abs(Math.sin(lt * 6)) * (lt < 1.0 ? 1 : 0);
+        if (evap < 1) {
+          drop(hx, hy - 30 * evap, { team: 0, s: 1.35 * (1 - 0.5 * evap), mood: lt > 1.7 ? "bliss" : "happy", goggles: lt < 1.7, a: 1 - evap }, t);
+          if (lt < 1.7) { var tx = hx + 10, ty = hy - 14 - 6 * ramp(lt, 0.1, 0.4); rect(tx - 3, ty - 6, 6, 5, C.gold); rect(tx - 1, ty - 1, 2, 3, C.gold); rect(tx - 3, ty + 2, 6, 1.5, C.goldDark); rect(tx - 5, ty - 5, 2, 3, C.gold); rect(tx + 3, ty - 5, 2, 3, C.gold); }
+        }
+        // celebration spray
+        if (lt > 0.4 && lt < 1.3) for (var q = 0; q < 16; q++) { var k = ((lt - 0.4) * 1.6 + hash1(q)) % 1; disc(hx - 4 - k * 40 * hash1(q * 3), hy - 20 - k * 50 + k * k * 60, 1.4, C.drop); }
+        // heat shimmer + steam rising
+        if (lt > 1.6) {
+          var n = Math.floor(20 * ramp(lt, 1.6, 2.4));
+          for (var w = 0; w < n; w++) {
+            var ph = (lt * 0.6 + hash1(w * 2.1)) % 1;
+            var sx = hx + Math.sin(ph * 9 + w) * 8 * (1 + ph), sy = hy - 10 - ph * 140;
+            g.globalAlpha = 0.85 * (1 - ph); disc(sx, sy, 2 + ph * 4, C.steam); g.globalAlpha = 1;
+          }
+        }
+        vignette(0.3, "rgba(20,20,80,");
+      }
+
+      // ============================================================ assemble
+      function storyT(t) { return t < 1.6 ? 11.2 + t * 0.3 : t; }
+      var WH = C.white, GD = C.gold;
+      var GRID = [{ team: 0 }, { team: 1 }, { team: 2 }];
+      var GRID2 = [{ team: 0, appear: 16.75 }, { team: 1 }, { team: 2, bandage: true }];
+      PX.setup(C, {
+        scenes: {
+          hook: function (t) { sceneGlass(storyT(t), t); },
+          cloud: function (t) { sceneCloud(t, [2.2, 2.6, 3.0, 3.45], GRID); },
+          dive: sceneDive,
+          glass: function (t) { sceneGlass(t); },
+          podium: scenePodium,
+          cloud2: function (t) { sceneCloud(t, [17.0, 17.25, 17.5, 17.78], GRID2, 16.75); },
+        },
+        sceneAt: function (t) {
+          return t < 1.6 ? "hook" : t < 4.0 ? "cloud" : t < 6.6 ? "dive" : t < 12.8 ? "glass" : t < 16.2 ? "podium" : "cloud2";
+        },
+        cuts: [[4.0, "cloud", "dive"], [12.8, "glass", "podium"], [16.2, "podium", "cloud2"]],
+        post: function (t, img) {
+          if (t > 1.42 && t < 1.92) glitchRows(img, 34 * (1 - Math.abs(t - 1.67) / 0.25), Math.floor(t * 30));
+          if (t > 6.45 && t < 6.85) tintImg(img, C.white, t < 6.6 ? ramp(t, 6.45, 6.6) : 1 - ramp(t, 6.6, 6.85));
+          if (t > 12.45 && t < 12.7) tintImg(img, C.gold, 0.45 * (1 - ramp(t, 12.45, 12.7)));
+          if (t > 13.7 && t < 14.3) tintImg(img, C.sun, 0.35 * Math.sin(Math.PI * (t - 13.7) / 0.6));
+          if (t > 17.75) tintImg(img, C.white, ramp(t, 17.75, 18.0) * 0.9);
+          if (t < 0.12) tintImg(img, C.white, 0.9 * (1 - t / 0.12));
+        },
+        captions: [
+          { a: 0.3, b: 1.5, lines: [[["THE RACE", WH]], [["YOU NEVER ", WH], ["NOTICED", GD]]] },
+          { a: 14.4, b: 16.25, lines: [[["WINNER'S PRIZE:", WH]], [["ANOTHER RACE", GD]]] },
+        ],
+        ui: function (t) {
+          // race HUD (top-left)
+          if ((t >= 6.6 && t < 12.8) || t < 1.6) {
+            var st = storyT(t), el = Math.max(0, Math.min(st, 12.45) - 6.6);
+            var s = "RAIN GP  " + el.toFixed(2) + "S";
+            u.fillStyle = "rgba(6,5,10,0.85)"; u.fillRect(10, 12, s.length * 12 + 10, 22);
+            uiText(s, 15, 16, 2, C.white);
+            uiText("RAIN GP", 15, 16, 2, C.gold);
+          }
+        },
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: 18, duration: 18, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
