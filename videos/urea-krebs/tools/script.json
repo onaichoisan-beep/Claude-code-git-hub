@@ -1,0 +1,11 @@
+[
+ ["hook","रुको! तुम्हारे liver में एक bicycle चल रही है!","Ruko! Tumhare liver mein ek bicycle chal rahi hai!"],
+ ["wheels","इसके दो पहिए हैं: Urea cycle और Krebs cycle।","Iske do pahiye hain: Urea cycle aur Krebs cycle."],
+ ["step1","Urea cycle में citrulline और aspartate मिलकर argininosuccinate बनाते हैं।","Urea cycle mein citrulline aur aspartate milkar argininosuccinate banate hain."],
+ ["step2","फिर argininosuccinate lyase इसे तोड़ता है, arginine और fumarate में।","Phir argininosuccinate lyase ise todta hai, arginine aur fumarate mein."],
+ ["chain","यही fumarate है chain! ये Krebs cycle में malate और फिर oxaloacetate बनता है।","Yahi fumarate hai chain! Ye Krebs cycle mein malate aur phir oxaloacetate banta hai."],
+ ["back","Oxaloacetate से transamination होकर बनता है aspartate, जो वापस urea cycle में जाता है।","Oxaloacetate se transamination hokar banta hai aspartate, jo wapas urea cycle mein jaata hai."],
+ ["name","इसीलिए इसे कहते हैं Krebs bicycle। Link याद रखना: fumarate!","Isiliye ise kehte hain Krebs bicycle. Link yaad rakhna: fumarate!"],
+ ["question","NEET question: fumarate कौन सा enzyme release करता है?","NEET question: Fumarate kaun sa enzyme release karta hai?"],
+ ["cta","Comment करो, answer अगली reel में। Follow करो Scroll to Score!","Comment karo, answer agli reel mein. Follow karo Scroll to Score!"]
+]
