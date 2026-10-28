@@ -81,6 +81,8 @@
         white: "#ffffff", ink: "#0a0614", paper: "#f1eef4", gold: "#ffc83a",
       };
       DISSOLVE = 0.12;
+      // NO_TEXT = true renders the clean cut: no captions, no labels, no stamp text (renders/video-no-text.mp4)
+      var NO_TEXT = false;
 
       // ============================================================ narration timing (captions.js)
       var VO = window.VO || [], MOUTH = window.MOUTH || {}, BEATS = window.BEATS || {};
@@ -349,7 +351,7 @@
         setCam(cam, 1);
         var p1 = pop(t, WT(8, "thread"));
         if (p1 > 0) {
-          worldText("REAL EYE WORM", 90, 190, 1, C.paper);
+          if (!NO_TEXT) worldText("REAL EYE WORM", 90, 190, 1, C.paper);
           g.strokeStyle = C.white; g.lineWidth = 1; g.beginPath();
           for (var j = 0; j <= 80; j++) g.lineTo(42 + j, 208 + Math.sin(j * 0.35 + t * 5) * 1.5 * p1);
           g.stroke();
@@ -357,19 +359,19 @@
         // a 2.4 cm ruler (50 px per cm)
         rect(28, 218, 128, 18, C.rulerD); rect(28, 218, 128, 16, C.ruler);
         for (var m = 0; m <= 24; m++) rect(32 + m * 5, 218, 0.8, m % 10 === 0 ? 9 : m % 5 === 0 ? 6 : 3.5, C.ink);
-        worldText("0", 32.5, 228, 1, C.ink); worldText("1", 82.5, 228, 1, C.ink); worldText("2CM", 138, 228, 1, C.ink);
+        if (!NO_TEXT) { worldText("0", 32.5, 228, 1, C.ink); worldText("1", 82.5, 228, 1, C.ink); worldText("2CM", 138, 228, 1, C.ink); }
         // the viral clip's grub slides in
         var gu = ease((t - WT(8, "grub") + 0.3) / 0.6);
         if (gu > 0) {
           var gx = lerp(260, 30, gu);
-          worldText("VIRAL CLIP", gx + 60, 256, 1, C.gold);
+          if (!NO_TEXT) worldText("VIRAL CLIP", gx + 60, 256, 1, C.gold);
           character(function () { grub(spine(gx, 284, gx + 120, 284, 4 * Math.sin(t * 3), 2, t), 10); });
         }
         var ps = pop(t, T_AI);
         if (ps > 0) {
           g.save(); g.translate(96, 288); g.rotate(-0.22); g.scale(ps, ps);
-          rect(-30, -15, 60, 30, C.red); rect(-27, -12, 54, 24, C.paper); rect(-25, -10, 50, 20, C.red);
-          worldText("AI?", 0, -7, 2, C.white);
+          if (NO_TEXT) { line(-22, -16, 22, 16, 6, C.red); line(-22, 16, 22, -16, 6, C.red); }
+          else { rect(-30, -15, 60, 30, C.red); rect(-27, -12, 54, 24, C.paper); rect(-25, -10, 50, 20, C.red); worldText("AI?", 0, -7, 2, C.white); }
           g.restore();
         }
         vignette(0.3, "rgba(0,10,5,");
@@ -394,7 +396,7 @@
           if (t > LOOP - 0.3 && t < LOOP) tintImg(img, C.white, ramp(t, LOOP - 0.3, LOOP));
           if (t >= LOOP) tintImg(img, C.white, 1);
         },
-        captions: (window.CAPS || []).map(function (c) {
+        captions: NO_TEXT ? [] : (window.CAPS || []).map(function (c) {
           return { a: c.a, b: c.b, lines: c.segs.map(function (ln) { return ln.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; }); }) };
         }),
       });
