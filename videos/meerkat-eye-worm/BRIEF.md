@@ -18,5 +18,4 @@ squawk, wood-hit pecks, synth fly buzz, bubble tear, wind + crickets savanna bed
 **Facts:** Thelazia eye worms live on the eye surface of mammals (incl. dogs, foxes, people), are spread by
 fruit flies/face flies feeding on tear secretions, and adults are thin, roughly 0.5–2 cm long.
 The source clip's thick segmented grub is far bigger than that; we say "probably AI", not "fake".
-Sources: CDC DPDx "Thelaziasis"; Otranto & Traversa (2005) Parasitology Research review of Thelazia;
-WHO/ECDC notes on Thelazia callipaeda in Europe.
+Sources: CDC DPDx "Thelaziasis"; Otranto & Traversa (2005) "Thelazia eyeworm: an original endo- and ecto-parasitic nematode", Trends in Parasitology.
