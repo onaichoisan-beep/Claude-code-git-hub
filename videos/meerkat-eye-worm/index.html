@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Meerkat Eye Worm</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #1e3a2a;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #1e3a2a;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      HOUSE-STYLE TEMPLATE (videos/_engine/new_video.sh copies this). Rules: STYLE_GUIDE.md at the repo root.
+      - SHARP HD pixel art: the engine renders the 180x320 world on a 360x640 buffer (3x3 screen px per pixel)
+        with a light dither. Use half-pixel coordinates (0.5) for fine detail: eyes, highlights, whiskers.
+      - EVERY living character is drawn inside character(fn) -> automatic dark outline. Don't hand-draw ink outlines.
+      - Characters are big (about a third of the frame tall) and stand below the caption band (world y 150-172).
+      - Narrated: captions.js (from scripts/synth_audio.py) gives VO word timings, MOUTH flaps and BEATS.
+      Replace the scenes below with the story; keep the structure.
+    -->
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="36.9"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="36.9" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: narration (one voice per character) + ducked open-source SFX -->
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="36.9" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = window.DUR || 36.9;
+      var C = {
+        // savanna
+        sky1: "#5ab8f0", sky2: "#bfe8ff", sand: "#e8c070", sandD: "#c08a48", sandL: "#f8dc98",
+        trunk: "#6a4a2a", leaf: "#5aa040", leafD: "#3a7a2a", bg1: "#a8c878", bg2: "#d8c890", bgD: "#7a9a58",
+        // meerkat
+        fur: "#d8a870", furD: "#a87448", furL: "#f0d0a0", patch: "#3a2416", nose: "#2a1a10", eyeC: "#140a06", eyeH: "#7a4020", pink: "#ff8ab0",
+        // weaver bird
+        yel: "#ffd21a", yelD: "#e09a00", olive: "#a88a10", mask: "#141008", beak: "#22201c", beakL: "#5a5650", birdEye: "#d0401a", legC: "#8a6a50",
+        // grub + fly + tear
+        grub: "#f4c8b0", grubD: "#d08a80", grubL: "#fff0e6", flyB: "#24303c", flyG: "#2ab888", wing: "#d0f0ff", flyEye: "#d02020", tear: "#8ad8ff",
+        // ruler
+        ruler: "#ffe08a", rulerD: "#b08a38", red: "#ff3a3a", bgR: "#1e3a2a", bgR2: "#2e5a3e",
+        white: "#ffffff", ink: "#0a0614", paper: "#f1eef4", gold: "#ffc83a",
+      };
+      DISSOLVE = 0.12;
+
+      // ============================================================ narration timing (captions.js)
+      var VO = window.VO || [], MOUTH = window.MOUTH || {}, BEATS = window.BEATS || {};
+      function A(i) { return VO[i] ? VO[i].a : 0; }
+      function B(i) { return VO[i] ? VO[i].b : 0; }
+      function wkey(w) { return w.toLowerCase().replace(/[^a-z0-9']/g, ""); }
+      function WT(i, word, n) {
+        n = n || 0;
+        var ws = VO[i] ? VO[i].w : [], k = wkey(word), c = 0;
+        for (var j = 0; j < ws.length; j++) if (wkey(ws[j][0]).indexOf(k) === 0) { if (c === n) return ws[j][1]; c++; }
+        return A(i);
+      }
+      function talk(who, t) { var s = MOUTH[who] || "", f = Math.floor(t * 30); return f >= 0 && f < s.length ? +s[f] / 9 : 0; }
+      var LOOP = DUR - 0.1;
+      var T_HPOP = WT(0, "eye"), T_GLITCH = A(1) - 0.35;
+      var T_FLY = WT(2, "bird") - 0.1, T_CLOSE = WT(2, "coming") - 0.1;
+      var T_PULL = BEATS.PULL || A(5), T_OUT = BEATS.OUT || WT(5, "parasite"), T_AI = BEATS.AI || WT(8, "ai");
+      var T_FRONT = A(9) - 0.15;
+      var PECKS = [];
+      for (var k = 0; k < 6; k++) PECKS.push(WT(2, "coming") + 0.38 * k);
+      for (k = 0; k < 3; k++) PECKS.push(A(4) + 0.3 + 0.9 * k);
+
+      // ============================================================ helpers
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function sky(stops) { screen(); g.fillStyle = vgrad(0, H, stops); g.fillRect(0, 0, W, H); }
+      function bump(u, a, b) { return u < -a || u > b ? 0 : u < 0 ? 1 + u / a : 1 - u / b; }
+
+      // the grub: fat, pale, segmented. pts = spine from head to tail
+      function grub(pts, r) {
+        var n = pts.length;
+        for (var i = 0; i < n; i++) { var rr = r * (0.55 + 0.45 * Math.sin(Math.PI * Math.min(1, (i + 2) / (n + 1)))); disc(pts[i][0], pts[i][1], rr, C.grubD); }
+        for (i = 0; i < n; i++) { rr = r * (0.55 + 0.45 * Math.sin(Math.PI * Math.min(1, (i + 2) / (n + 1)))); disc(pts[i][0] - 0.5, pts[i][1] - 0.4, rr - 1, C.grub); }
+        for (i = 2; i < n - 1; i += 3) {
+          var dx = pts[i + 1][0] - pts[i - 1][0], dy = pts[i + 1][1] - pts[i - 1][1], l = Math.hypot(dx, dy) || 1;
+          rr = r * 0.85; line(pts[i][0] - dy / l * rr, pts[i][1] + dx / l * rr, pts[i][0] + dy / l * rr, pts[i][1] - dx / l * rr, 0.6, C.grubD);
+          disc(pts[i][0] - 1.4, pts[i][1] - 1.2, 0.8, C.grubL);
+        }
+      }
+      function spine(x0, y0, x1, y1, sag, wig, t) {
+        var pts = [], L = Math.hypot(x1 - x0, y1 - y0), n = Math.max(3, Math.round(L / 1.6));
+        for (var i = 0; i <= n; i++) {
+          var u = i / n, nx = -(y1 - y0) / (L || 1), ny = (x1 - x0) / (L || 1), off = Math.sin(u * Math.PI) * sag + Math.sin(u * 9 + t * 7) * wig * u;
+          pts.push([lerp(x0, x1, u) + nx * off, lerp(y0, y1, u) + ny * off]);
+        }
+        return pts;
+      }
+
+      // ============================================================ characters (character() adds the dark outline)
+      // a weaver bird, facing left, feet at (x, y). o: { hx, hy (head, local), ang (beak dir), talk, flap, front, t }
+      function bird(x, y, s, o) {
+        var t = o.t || 0, hx = o.hx === undefined ? -6 : o.hx, hy = o.hy === undefined ? -27 : o.hy, ang = o.ang === undefined ? Math.PI : o.ang;
+        var dx = Math.cos(ang), dy = Math.sin(ang), nx = -dy, ny = dx;
+        if (dx > 0) { nx = dy; ny = -dx; }
+        g.save(); g.translate(x, y); g.scale(s, s);
+        poly([[9, -12], [22, -21], [24, -16], [12, -7]], C.olive); line(14, -12, 22, -18, 0.6, C.yelD);
+        line(1, -5, -1, 0, 1.4, C.legC); line(6, -5, 5, 0, 1.4, C.legC); line(-3, 0, 1, 0, 1.2, C.legC); line(3, 0, 7, 0, 1.2, C.legC);
+        ell(3, -11, 10, 7.5, 0, C.yelD); ell(2.4, -11.8, 9.2, 6.6, 0, C.yel);
+        if (o.flap) {
+          var fa = Math.sin(t * 40);
+          poly([[0, -14], [10 + fa * 2, -30 - fa * 8], [16, -12]], C.olive); poly([[3, -14], [11 + fa * 2, -27 - fa * 7], [13, -13]], C.yelD);
+        } else {
+          ell(8, -11.5, 8, 4.6, -0.25, C.olive); line(4, -11, 13, -13, 0.6, C.yelD); line(5, -9, 14, -10.5, 0.6, C.yelD);
+        }
+        if (!o.front) line(-1, -15, hx, hy, 7, C.yel); else ell(hx + 1, hy + 6, 6, 6, 0, C.yel);
+        disc(hx, hy, 6.4, C.yel);
+        if (o.front) {
+          ell(hx, hy + 1.6, 5.2, 4.4, 0, C.mask);
+          [-2.6, 2.6].forEach(function (ex) { disc(hx + ex, hy - 0.4, 1.5, C.birdEye); disc(hx + ex, hy - 0.4, 0.7, C.ink); rect(hx + ex - 0.9, hy - 1.5, 0.6, 0.6, C.white); });
+          var kf = o.talk || 0;
+          poly([[hx - 2.4, hy + 1.6], [hx + 2.4, hy + 1.6], [hx, hy + 7 - kf * 1.5]], C.beak);
+          if (kf > 0.15) poly([[hx - 1.8, hy + 2.6 + kf * 2], [hx + 1.8, hy + 2.6 + kf * 2], [hx, hy + 6 + kf * 2]], C.beakL);
+        } else {
+          disc(hx + dx * 2.2 - nx * 0.4, hy + dy * 2.2 - ny * 0.4, 4.6, C.mask);
+          var ex2 = hx + nx * 1.9 + dx * 0.6, ey2 = hy + ny * 1.9 + dy * 0.6;
+          disc(ex2, ey2, 1.5, C.birdEye); disc(ex2, ey2, 0.7, C.ink); rect(ex2 - 0.8, ey2 - 0.9, 0.6, 0.6, C.white);
+          var k2 = o.talk || 0, bx = hx + dx * 3.5, by = hy + dy * 3.5, tl2 = 9.5, op = k2 * 0.35;
+          var tux = Math.cos(ang - op * (dx > 0 ? -1 : 1)), tuy = Math.sin(ang - op * (dx > 0 ? -1 : 1));
+          var tdx = Math.cos(ang + op * (dx > 0 ? -1 : 1)), tdy = Math.sin(ang + op * (dx > 0 ? -1 : 1));
+          poly([[bx + nx * 2.8, by + ny * 2.8], [bx, by], [bx + tux * tl2, by + tuy * tl2]], C.beak);
+          poly([[bx - nx * 2.4, by - ny * 2.4], [bx, by], [bx + tdx * tl2, by + tdy * tl2]], C.beak);
+          line(bx + nx * 1.5, by + ny * 1.5, bx + tux * 6, by + tuy * 6, 0.5, C.beakL);
+        }
+        g.restore();
+      }
+      function beakTip(x, y, s, hx, hy, ang) { return [x + s * (hx + Math.cos(ang) * 13), y + s * (hy + Math.sin(ang) * 13)]; }
+
+      // the meerkat close-up: a huge face filling the bottom of the frame. o: { eye: open|blink|squint|shock|angry, talk, t }
+      var E = [104, 236];
+      function meerkatFace(o) {
+        var t = o.t || 0, eye = o.eye || "open";
+        ell(112, 340, 80, 40, 0, C.furD);
+        ell(170, 236, 8, 11, 0.3, C.furD); ell(170, 238, 4.5, 7, 0.3, C.patch);
+        ell(100, 268, 72, 62, 0, C.fur);
+        ell(52, 290, 34, 20, -0.3, C.fur); ell(48, 298, 26, 10, -0.2, C.furL);
+        ell(92, 312, 50, 22, 0, C.furL);
+        ell(95, 222, 40, 14, -0.1, C.furL);
+        for (var i = 0; i < 140; i++) {
+          var a = hash1(i) * 6.283, r = Math.sqrt(hash1(i + 300)), fx = 100 + Math.cos(a) * r * 66, fy = 268 + Math.sin(a) * r * 56;
+          if (Math.hypot(fx - E[0], fy - E[1]) < 20) continue;
+          line(fx, fy, fx + Math.cos(a) * 2.5, fy + Math.sin(a) * 2.5, 0.6, i % 3 ? C.furD : C.furL);
+        }
+        // the far eye + nose + mouth
+        ell(52, 258, 10, 8, -0.5, C.patch); disc(53, 258, 4.4, C.eyeC); rect(51.5, 256, 1.2, 1.2, C.white);
+        ell(21, 286, 7, 5.5, -0.4, C.nose); disc(19.5, 284.5, 1.2, C.beakL);
+        var k = o.talk || 0;
+        if (k > 0.12) { ell(36, 303, 8, 1.2 + 4.5 * k, -0.15, C.ink); ell(37, 304 + 2 * k, 4, 1.4 * k, -0.15, C.pink); }
+        else line(26, 300, 46, 304, 1, C.furD);
+        g.lineWidth = 0.4; g.strokeStyle = C.white;
+        [[30, 294, 4, 288], [30, 296, 2, 298], [32, 297, 8, 306]].forEach(function (w) { g.beginPath(); g.moveTo(w[0], w[1]); g.lineTo(w[2], w[3]); g.stroke(); });
+        // the near eye, where the story happens
+        ell(E[0] + 3, E[1] + 1, 19, 14, -0.25, C.patch);
+        if (eye === "blink") { line(E[0] - 8, E[1] + 1, E[0] + 9, E[1] + 1, 1.2, C.eyeC); }
+        else if (eye === "shock") {
+          ell(E[0], E[1], 10.5, 10, 0, C.white); disc(E[0], E[1], 6.5, C.eyeH); disc(E[0], E[1], 3.2, C.eyeC); rect(E[0] - 3.5, E[1] - 4, 2, 2, C.white);
+        } else {
+          ell(E[0], E[1], 9.5, eye === "squint" ? 4 : 8.5, 0, C.eyeC);
+          if (eye !== "squint") { ell(E[0] + 1, E[1] + 1, 6.5, 6, 0, C.eyeH); disc(E[0] + 1, E[1] + 1, 4, C.eyeC); rect(E[0] - 4, E[1] - 4.5, 2.5, 2, C.white); rect(E[0] + 3.5, E[1] + 3, 1, 1, C.white); }
+          if (eye === "angry" || eye === "squint") line(E[0] - 11, E[1] - 9, E[0] + 9, E[1] - 5, 1.6, C.patch);
+        }
+      }
+
+      // a meerkat standing guard: feet at (x, y), about 80*s tall
+      function meerkatStand(x, y, s, o) {
+        var t = o.t || 0, look = Math.sin(t * 0.9) * 1.5;
+        g.save(); g.translate(x, y); g.scale(s, s);
+        g.lineCap = "round"; g.strokeStyle = C.furD; g.lineWidth = 3.5;
+        g.beginPath(); g.moveTo(6, -8); g.quadraticCurveTo(22, -4, 24, 2); g.stroke(); disc(24, 2, 1.8, C.patch);
+        ell(-5, -3, 4.5, 3, 0, C.furD); ell(5, -3, 4.5, 3, 0, C.furD);
+        ell(0, -26, 12, 24, 0, C.fur); ell(0, -24, 7, 18, 0, C.furL);
+        line(-7, -42, -5, -32, 3.4, C.furD); line(7, -42, 5, -32, 3.4, C.furD); disc(-5, -31.5, 1.8, C.patch); disc(5, -31.5, 1.8, C.patch);
+        ell(0, -50, 7, 5, 0, C.fur);
+        var hx = look;
+        ell(hx - 8.5, -62, 2.5, 3, 0, C.patch); ell(hx + 8.5, -62, 2.5, 3, 0, C.patch);
+        ell(hx, -61, 9, 8.5, 0, C.fur); ell(hx, -55.5, 5, 4.5, 0, C.furL);
+        ell(hx - 3.6, -62, 2.8, 2.4, -0.3, C.patch); ell(hx + 3.6, -62, 2.8, 2.4, 0.3, C.patch);
+        disc(hx - 3.6, -62, 1.3, C.eyeC); disc(hx + 3.6, -62, 1.3, C.eyeC); rect(hx - 4.2, -62.8, 0.6, 0.6, C.white); rect(hx + 3, -62.8, 0.6, 0.6, C.white);
+        ell(hx, -55.8, 1.6, 1.2, 0, C.nose); line(hx - 1.2, -53.3, hx + 1.2, -53.3, 0.5, C.furD);
+        g.restore();
+      }
+
+      // a fly: body centre (x, y), facing left. o: { t, flying, sip }
+      function fly(x, y, s, o) {
+        var t = o.t || 0, buzz = o.flying ? Math.sin(t * 90) : Math.sin(t * 3) * 0.2;
+        g.save(); g.translate(x, y); g.scale(s, s);
+        [[-2, 3, -6, 9], [1, 3, 0, 10], [4, 3, 7, 9]].forEach(function (l) { line(l[0], l[1], l[2], l[3], 0.7, C.flyB); });
+        ell(7, 0.5, 8, 5.5, 0.1, C.flyG); line(5, -3, 6, 4.5, 0.6, C.flyB); line(9, -3, 10, 4, 0.6, C.flyB); ell(6, -1.5, 3, 1, 0.1, C.wing);
+        disc(-1, 0, 4.5, C.flyB);
+        disc(-6, 0.5, 4, C.flyB); disc(-7.2, -0.8, 2.8, C.flyEye); disc(-8, -1.6, 0.8, C.white);
+        if (o.sip) line(-8, 3, -11, 7, 0.9, C.flyB);
+        g.globalAlpha = 0.75;
+        ell(4, -6 - buzz * 2, 7, 3, -0.4 - buzz * 0.5, C.wing); ell(5, -5 + buzz * 2, 6, 2.6, -0.1 + buzz * 0.4, C.wing);
+        g.globalAlpha = 1;
+        g.restore();
+      }
+
+      // ============================================================ scene: the close-up (hook, pecks, pull, the end)
+      var FEET = [130, 222], REST = [-6, -27, Math.PI], PECK = [-18, 0, 2.05], TOP = [-10, -32, 1.75];
+      function headLocal(p, q, k) { return [lerp(p[0], q[0], k), lerp(p[1], q[1], k), lerp(p[2], q[2], k)]; }
+      function closeScene(t) {
+        var mode, pr = 0, peck = 0;
+        if (t < T_HPOP) { mode = "pull"; pr = 0.35 + 0.65 * ease((t - 0.05) / (T_HPOP - 0.05)) + 0.03 * Math.sin(t * 20); }
+        else if (t < A(1)) mode = "dangle";
+        else if (t >= T_FRONT) mode = "front";
+        else if (t < T_PULL) { mode = "peck"; PECKS.forEach(function (p) { peck = Math.max(peck, bump(t - p, 0.16, 0.14)); }); }
+        else if (t < T_OUT) {
+          mode = "pull";
+          var p1 = WT(5, "pulls"), p2 = WT(5, "pulls", 1);
+          pr = 0.08 + 0.3 * easeOut((t - p1) / 0.35) + 0.3 * easeOut((t - p2) / 0.35) + 0.3 * ease((t - (T_OUT - 0.7)) / 0.7) + 0.02 * Math.sin(t * 25);
+        } else mode = "dangle";
+        var hl = mode === "peck" ? headLocal(REST, PECK, ease(peck)) : mode === "pull" ? headLocal(PECK, TOP, clamp01(pr)) : mode === "dangle" ? [-8, -36, 1.65] : [-4, -27, 0];
+
+        var cam;
+        if (t < A(1)) cam = camAt([[0, 112, 176, 1.75], [T_HPOP, 112, 178, 1.55], [A(1), 110, 176, 1.5]], t);
+        else if (t >= T_FRONT) cam = camAt([[T_FRONT, 112, 176, 1.4], [A(9) + 0.8, 126, 177, 2.2], [DUR, 127, 178, 2.35]], t);
+        else cam = camAt([[T_CLOSE, 94, 168, 1.0], [A(3), 92, 170, 1.08], [A(4), 112, 176, 1.3], [T_PULL, 112, 177, 1.45], [T_OUT - 0.05, 113, 176, 1.6], [T_OUT + 0.25, 100, 164, 1.12], [A(6), 86, 164, 1.1], [A(7), 86, 166, 1.12]], t);
+        if (t < 0.6) shake(cam, t, 0, 4, 0.6);
+        shake(cam, t, T_HPOP, 5, 0.4); shake(cam, t, T_OUT, 6, 0.5);
+        if (mode === "peck") PECKS.forEach(function (p) { shake(cam, t, p, 1.2, 0.15); });
+
+        sky([[0, C.bg2], [0.5, C.bg1], [1, C.bgD]]);
+        setCam(cam, 0.5);
+        for (var i = 0; i < 9; i++) { g.globalAlpha = 0.35; disc(hash1(i + 40) * 220 - 20, hash1(i + 60) * 220 + 40, 10 + hash1(i + 80) * 16, i % 2 ? C.bg1 : C.bgD); }
+        g.globalAlpha = 1;
+        setCam(cam, 1);
+
+        var eyeState = "open";
+        if (mode === "pull") eyeState = "squint";
+        else if (mode === "dangle") eyeState = t > T_OUT ? "shock" : "squint";
+        else if (mode === "peck") eyeState = t > A(3) - 0.1 && t < B(3) ? "angry" : peck > 0.6 ? "blink" : "open";
+        else if (mode === "front") eyeState = Math.sin(t * 2) > 0.97 ? "blink" : "open";
+        character(function () { meerkatFace({ t: t, eye: eyeState, talk: talk("meerkat", t) }); });
+
+        // the grub: from the eye up to the beak while pulling, dangling after it pops free
+        var tip = beakTip(FEET[0], FEET[1], 1, hl[0], hl[1], hl[2]);
+        if (mode === "pull") character(function () { grub(spine(tip[0], tip[1], E[0] + 1, E[1] + 1, 3, 1.2, t), 4.2); });
+        var bt = { t: t, hx: hl[0], hy: hl[1], ang: hl[2], talk: talk("bird", t), front: mode === "front", flap: mode === "dangle" && t > T_OUT && t < T_OUT + 0.6 };
+        character(function () { bird(FEET[0], FEET[1], 1, bt); });
+        if (mode === "dangle") {
+          var hang = spine(tip[0], tip[1], tip[0] + Math.sin(t * 3) * 6, tip[1] + 44, 6 * Math.sin(t * 4), 2.5, t);
+          character(function () { grub(hang, 4.4); });
+          character(function () { bird(FEET[0], FEET[1], 1, bt); });
+        }
+        if (mode === "peck" && peck > 0.85) { lighter(); glow(E[0], E[1] - 4, 8, C.white, 0.5); normalBlend(); }
+        vignette(0.25, "rgba(30,20,10,");
+      }
+
+      // ============================================================ scene: the wide savanna (all seems normal)
+      function wideScene(t) {
+        var cam = camAt([[A(1), 92, 160, 1.0], [T_FLY, 92, 168, 1.15], [T_CLOSE + 0.2, 100, 175, 1.3]], t);
+        sky([[0, C.sky1], [0.6, C.sky2], [1, C.sandL]]);
+        setCam(cam, 0.3);
+        disc(40, 60, 12, C.white); lighter(); glow(40, 60, 40, C.ruler, 0.5); normalBlend();
+        setCam(cam, 0.6);
+        poly([[-60, 250], [20, 236], [100, 246], [200, 232], [260, 250], [260, 340], [-60, 340]], C.bgD);
+        setCam(cam, 1);
+        g.fillStyle = vgrad(250, 330, [[0, C.sand], [1, C.sandD]]); g.fillRect(-60, 250, 300, 100);
+        for (var i = 0; i < 30; i++) { var gx = -40 + hash1(i) * 260, gy = 256 + hash1(i + 9) * 60; line(gx, gy, gx + Math.sin(t * 2 + i), gy - 4, 0.8, i % 2 ? C.leafD : C.olive); }
+        // acacia
+        line(152, 300, 148, 150, 5, C.trunk); line(148, 170, 128, 128, 3, C.trunk); line(149, 160, 168, 122, 3, C.trunk);
+        ell(146, 118, 40, 9, 0, C.leafD); ell(146, 114, 36, 7, 0, C.leaf);
+        // burrow mound
+        ell(86, 302, 40, 12, 0, C.sandD); ell(86, 298, 34, 9, 0, C.sand); ell(70, 300, 8, 4, 0, C.patch);
+        character(function () { meerkatStand(88, 298, 1.45, { t: t }); });
+        // the bird: waits on the tree, then swoops onto the meerkat's head
+        var u = clamp01((t - T_FLY) / Math.max(0.3, T_CLOSE - 0.1 - T_FLY));
+        var bx = lerp(150, 92, ease(u)), by = lerp(106, 196, ease(u)) - Math.sin(u * Math.PI) * 18;
+        character(function () { bird(bx, by, 0.7, { t: t, flap: u > 0 && u < 1, hx: -6, hy: -27 + (u > 0 ? 0 : Math.max(0, Math.sin(t * 5)) * 2), ang: Math.PI }); });
+        vignette(0.2, "rgba(40,20,10,");
+      }
+
+      // ============================================================ scene: flies sip tears (how eye worms spread)
+      function flyScene(t) {
+        var cam = camAt([[A(7) - 0.2, 88, 196, 1.0], [WT(7, "tears"), 80, 200, 1.25], [A(8), 78, 202, 1.3]], t);
+        sky([[0, C.bg2], [1, C.bgD]]);
+        setCam(cam, 1);
+        character(function () {
+          ell(90, 300, 110, 70, 0, C.fur);
+          for (var i = 0; i < 90; i++) { var fx = hash1(i) * 200 - 10, fy = 240 + hash1(i + 7) * 90; line(fx, fy, fx + 2, fy + 2, 0.6, i % 3 ? C.furD : C.furL); }
+          ell(92, 276, 52, 34, -0.1, C.patch);
+          ell(96, 276, 30, 24, 0, C.eyeC); ell(98, 278, 20, 18, 0, C.eyeH); disc(98, 278, 12, C.eyeC);
+          rect(86, 264, 6, 5, C.white); rect(108, 286, 2, 2, C.white);
+          ell(58, 282, 6, 4, 0.3, C.pink);
+        });
+        // the tear, shrinking as the fly drinks
+        var drink = ramp(t, WT(7, "sipping"), WT(7, "tears") + 0.8), tr = 4.5 * (1 - 0.7 * drink);
+        disc(56, 287, tr, C.tear); disc(55, 285.5, tr * 0.35, C.white);
+        // the fly arrives, lands, sips
+        var u = clamp01((t - (A(7) + 0.6)) / 1.2), fxp = lerp(200, 72, ease(u)), fyp = lerp(220, 274, ease(u)) - Math.sin(u * Math.PI) * 24 + (u < 1 ? Math.sin(t * 13) * 3 : 0);
+        character(function () { fly(fxp, fyp, 1.8, { t: t, flying: u < 1, sip: u >= 1 }); });
+        // tiny thread worms slip from the fly's mouth into the eye
+        var wu = clamp01((t - WT(7, "spread") - 0.2) / 1.6);
+        if (wu > 0) for (var w = 0; w < 3; w++) {
+          var q = clamp01(wu * 1.4 - w * 0.2), sx = lerp(58, 74 + w * 9, q), sy = lerp(287, 282 + w * 3, q);
+          g.strokeStyle = C.white; g.lineWidth = 0.6; g.beginPath();
+          for (var j = 0; j <= 6; j++) g.lineTo(sx + j * 1.4, sy + Math.sin(j * 1.6 + t * 9 + w) * 1);
+          g.stroke();
+        }
+        vignette(0.25, "rgba(30,20,10,");
+      }
+
+      // ============================================================ scene: the ruler (real worms vs the viral grub)
+      function rulerScene(t) {
+        var cam = camAt([[A(8) - 0.2, 90, 160, 1.0], [WT(8, "grub"), 90, 166, 1.05], [B(8), 92, 170, 1.12]], t);
+        shake(cam, t, T_AI, 5, 0.4);
+        sky([[0, C.bgR], [1, C.bgR2]]);
+        setCam(cam, 1);
+        var p1 = pop(t, WT(8, "thread"));
+        if (p1 > 0) {
+          worldText("REAL EYE WORM", 90, 190, 1, C.paper);
+          g.strokeStyle = C.white; g.lineWidth = 1; g.beginPath();
+          for (var j = 0; j <= 80; j++) g.lineTo(42 + j, 208 + Math.sin(j * 0.35 + t * 5) * 1.5 * p1);
+          g.stroke();
+        }
+        // a 2.4 cm ruler (50 px per cm)
+        rect(28, 218, 128, 18, C.rulerD); rect(28, 218, 128, 16, C.ruler);
+        for (var m = 0; m <= 24; m++) rect(32 + m * 5, 218, 0.8, m % 10 === 0 ? 9 : m % 5 === 0 ? 6 : 3.5, C.ink);
+        worldText("0", 32.5, 228, 1, C.ink); worldText("1", 82.5, 228, 1, C.ink); worldText("2CM", 138, 228, 1, C.ink);
+        // the viral clip's grub slides in
+        var gu = ease((t - WT(8, "grub") + 0.3) / 0.6);
+        if (gu > 0) {
+          var gx = lerp(260, 30, gu);
+          worldText("VIRAL CLIP", gx + 60, 256, 1, C.gold);
+          character(function () { grub(spine(gx, 284, gx + 120, 284, 4 * Math.sin(t * 3), 2, t), 10); });
+        }
+        var ps = pop(t, T_AI);
+        if (ps > 0) {
+          g.save(); g.translate(96, 288); g.rotate(-0.22); g.scale(ps, ps);
+          rect(-30, -15, 60, 30, C.red); rect(-27, -12, 54, 24, C.paper); rect(-25, -10, 50, 20, C.red);
+          worldText("AI?", 0, -7, 2, C.white);
+          g.restore();
+        }
+        vignette(0.3, "rgba(0,10,5,");
+      }
+
+      PX.setup(C, {
+        scenes: { close: closeScene, wide: wideScene, fly: flyScene, ruler: rulerScene },
+        sceneAt: function (t) {
+          if (t < A(1) - 0.1) return "close";
+          if (t < T_CLOSE) return "wide";
+          if (t < A(7) - 0.1) return "close";
+          if (t < A(8) - 0.1) return "fly";
+          if (t < T_FRONT) return "ruler";
+          return "close";
+        },
+        cuts: [[T_CLOSE, "wide", "close"], [A(7) - 0.1, "close", "fly"], [A(8) - 0.1, "fly", "ruler"], [T_FRONT, "ruler", "close"]],
+        post: function (t, img) {
+          if (t < 0.14) tintImg(img, C.white, 1 - t / 0.14);
+          if (t > T_GLITCH && t < T_GLITCH + 0.5) glitchRows(img, 22 * Math.sin((t - T_GLITCH) / 0.5 * Math.PI), Math.floor(t * 30));
+          if (t > T_AI && t < T_AI + 0.3) glitchRows(img, 14 * Math.sin((t - T_AI) / 0.3 * Math.PI), Math.floor(t * 30));
+          [T_HPOP, T_OUT].forEach(function (f) { if (t > f && t < f + 0.2) tintImg(img, C.white, 0.6 * (1 - (t - f) / 0.2)); });
+          if (t > LOOP - 0.3 && t < LOOP) tintImg(img, C.white, ramp(t, LOOP - 0.3, LOOP));
+          if (t >= LOOP) tintImg(img, C.white, 1);
+        },
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: c.segs.map(function (ln) { return ln.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; }); }) };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

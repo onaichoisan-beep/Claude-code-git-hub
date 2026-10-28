@@ -1,0 +1,5 @@
+{
+  "narrator": ["en-GB-ThomasNeural", "+2%", "-3Hz"],
+  "meerkat": ["en-AU-WilliamMultilingualNeural", "+14%", "+6Hz"],
+  "bird": ["en-US-AnaNeural", "+8%", "+12Hz"]
+}
