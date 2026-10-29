@@ -1,0 +1,518 @@
+[
+  {
+    "text": "This",
+    "start": 0.05,
+    "end": 0.25,
+    "id": "w0"
+  },
+  {
+    "text": "question",
+    "start": 0.34,
+    "end": 0.99,
+    "id": "w1"
+  },
+  {
+    "text": "came",
+    "start": 0.99,
+    "end": 1.31,
+    "id": "w2"
+  },
+  {
+    "text": "in",
+    "start": 1.32,
+    "end": 1.46,
+    "id": "w3"
+  },
+  {
+    "text": "2013.",
+    "start": 1.6,
+    "end": 2.48,
+    "id": "w4"
+  },
+  {
+    "text": "What",
+    "start": 2.48,
+    "end": 2.89,
+    "id": "w5"
+  },
+  {
+    "text": "is",
+    "start": 2.89,
+    "end": 2.93,
+    "id": "w6"
+  },
+  {
+    "text": "the",
+    "start": 2.93,
+    "end": 3.09,
+    "id": "w7"
+  },
+  {
+    "text": "reason",
+    "start": 3.18,
+    "end": 3.6,
+    "id": "w8"
+  },
+  {
+    "text": "for",
+    "start": 3.6,
+    "end": 3.82,
+    "id": "w9"
+  },
+  {
+    "text": "the",
+    "start": 3.82,
+    "end": 4.04,
+    "id": "w10"
+  },
+  {
+    "text": "Down",
+    "start": 4.04,
+    "end": 4.3,
+    "id": "w11"
+  },
+  {
+    "text": "syndrome?",
+    "start": 4.44,
+    "end": 5.2,
+    "id": "w12"
+  },
+  {
+    "text": "Two",
+    "start": 5.2,
+    "end": 5.53,
+    "id": "w13"
+  },
+  {
+    "text": "Ychromosomes.",
+    "start": 5.53,
+    "end": 6.72,
+    "id": "w14"
+  },
+  {
+    "text": "That's",
+    "start": 7.45,
+    "end": 7.81,
+    "id": "w15"
+  },
+  {
+    "text": "X,",
+    "start": 7.81,
+    "end": 8.35,
+    "id": "w16"
+  },
+  {
+    "text": "Y,",
+    "start": 8.35,
+    "end": 8.88,
+    "id": "w17"
+  },
+  {
+    "text": "Y.",
+    "start": 9.04,
+    "end": 9.12,
+    "id": "w18"
+  },
+  {
+    "text": "Different",
+    "start": 9.25,
+    "end": 9.62,
+    "id": "w19"
+  },
+  {
+    "text": "condition.",
+    "start": 9.62,
+    "end": 10.12,
+    "id": "w20"
+  },
+  {
+    "text": "Out.",
+    "start": 10.37,
+    "end": 10.84,
+    "id": "w21"
+  },
+  {
+    "text": "Three",
+    "start": 11.09,
+    "end": 11.47,
+    "id": "w22"
+  },
+  {
+    "text": "X?",
+    "start": 11.47,
+    "end": 11.6,
+    "id": "w23"
+  },
+  {
+    "text": "X,",
+    "start": 11.84,
+    "end": 12.03,
+    "id": "w24"
+  },
+  {
+    "text": "X,",
+    "start": 12.03,
+    "end": 12.46,
+    "id": "w25"
+  },
+  {
+    "text": "X.",
+    "start": 12.46,
+    "end": 12.72,
+    "id": "w26"
+  },
+  {
+    "text": "Triple",
+    "start": 12.93,
+    "end": 13.13,
+    "id": "w27"
+  },
+  {
+    "text": "Xfemale.",
+    "start": 13.22,
+    "end": 13.88,
+    "id": "w28"
+  },
+  {
+    "text": "This",
+    "start": 13.88,
+    "end": 14.225,
+    "id": "w29"
+  },
+  {
+    "text": "is",
+    "start": 14.225,
+    "end": 14.57,
+    "id": "w30"
+  },
+  {
+    "text": "also",
+    "start": 14.57,
+    "end": 14.77,
+    "id": "w31"
+  },
+  {
+    "text": "out.",
+    "start": 14.86,
+    "end": 15.36,
+    "id": "w32"
+  },
+  {
+    "text": "Monosome",
+    "start": 15.72,
+    "end": 16.3,
+    "id": "w33"
+  },
+  {
+    "text": "means",
+    "start": 16.3,
+    "end": 16.92,
+    "id": "w34"
+  },
+  {
+    "text": "one",
+    "start": 16.92,
+    "end": 17.12,
+    "id": "w35"
+  },
+  {
+    "text": "chromosome",
+    "start": 17.28,
+    "end": 17.84,
+    "id": "w36"
+  },
+  {
+    "text": "less.",
+    "start": 17.9,
+    "end": 18.24,
+    "id": "w37"
+  },
+  {
+    "text": "Like",
+    "start": 18.41,
+    "end": 18.61,
+    "id": "w38"
+  },
+  {
+    "text": "Ternus.",
+    "start": 18.7,
+    "end": 19.48,
+    "id": "w39"
+  },
+  {
+    "text": "45",
+    "start": 19.73,
+    "end": 20.31,
+    "id": "w40"
+  },
+  {
+    "text": "XO.",
+    "start": 20.31,
+    "end": 20.6,
+    "id": "w41"
+  },
+  {
+    "text": "Out.",
+    "start": 20.93,
+    "end": 21.36,
+    "id": "w42"
+  },
+  {
+    "text": "The",
+    "start": 21.36,
+    "end": 21.61,
+    "id": "w43"
+  },
+  {
+    "text": "correct",
+    "start": 21.61,
+    "end": 22.04,
+    "id": "w44"
+  },
+  {
+    "text": "answer",
+    "start": 22.04,
+    "end": 22.45,
+    "id": "w45"
+  },
+  {
+    "text": "is",
+    "start": 22.45,
+    "end": 22.59,
+    "id": "w46"
+  },
+  {
+    "text": "3",
+    "start": 22.59,
+    "end": 22.85,
+    "id": "w47"
+  },
+  {
+    "text": "copies",
+    "start": 22.85,
+    "end": 23.29,
+    "id": "w48"
+  },
+  {
+    "text": "of",
+    "start": 23.29,
+    "end": 23.44,
+    "id": "w49"
+  },
+  {
+    "text": "chromosome",
+    "start": 23.44,
+    "end": 24.21,
+    "id": "w50"
+  },
+  {
+    "text": "21.",
+    "start": 24.21,
+    "end": 24.92,
+    "id": "w51"
+  },
+  {
+    "text": "Trisomy",
+    "start": 25.15,
+    "end": 25.73,
+    "id": "w52"
+  },
+  {
+    "text": "21.",
+    "start": 25.73,
+    "end": 26.44,
+    "id": "w53"
+  },
+  {
+    "text": "Total",
+    "start": 26.69,
+    "end": 26.83,
+    "id": "w54"
+  },
+  {
+    "text": "47",
+    "start": 26.83,
+    "end": 27.3,
+    "id": "w55"
+  },
+  {
+    "text": "chromosomes.",
+    "start": 27.3,
+    "end": 28.4,
+    "id": "w56"
+  },
+  {
+    "text": "Reason?",
+    "start": 28.65,
+    "end": 29.08,
+    "id": "w57"
+  },
+  {
+    "text": "Nondisjunction.",
+    "start": 29.45,
+    "end": 30.56,
+    "id": "w58"
+  },
+  {
+    "text": "Chromosome",
+    "start": 30.78,
+    "end": 31.26,
+    "id": "w59"
+  },
+  {
+    "text": "21",
+    "start": 31.32,
+    "end": 31.74,
+    "id": "w60"
+  },
+  {
+    "text": "is",
+    "start": 31.74,
+    "end": 31.89,
+    "id": "w61"
+  },
+  {
+    "text": "not",
+    "start": 31.89,
+    "end": 32.11,
+    "id": "w62"
+  },
+  {
+    "text": "different",
+    "start": 32.11,
+    "end": 32.78,
+    "id": "w63"
+  },
+  {
+    "text": "in",
+    "start": 32.78,
+    "end": 32.92,
+    "id": "w64"
+  },
+  {
+    "text": "myosis.",
+    "start": 32.99,
+    "end": 33.64,
+    "id": "w65"
+  },
+  {
+    "text": "Now",
+    "start": 33.89,
+    "end": 33.9,
+    "id": "w66"
+  },
+  {
+    "text": "it's",
+    "start": 33.9,
+    "end": 34.24,
+    "id": "w67"
+  },
+  {
+    "text": "your",
+    "start": 34.24,
+    "end": 34.59,
+    "id": "w68"
+  },
+  {
+    "text": "turn.",
+    "start": 34.59,
+    "end": 34.96,
+    "id": "w69"
+  },
+  {
+    "text": "What",
+    "start": 34.96,
+    "end": 35.21,
+    "id": "w70"
+  },
+  {
+    "text": "is",
+    "start": 35.21,
+    "end": 35.3,
+    "id": "w71"
+  },
+  {
+    "text": "the",
+    "start": 35.3,
+    "end": 35.41,
+    "id": "w72"
+  },
+  {
+    "text": "cryotype",
+    "start": 35.49,
+    "end": 35.93,
+    "id": "w73"
+  },
+  {
+    "text": "of",
+    "start": 35.93,
+    "end": 36.04,
+    "id": "w74"
+  },
+  {
+    "text": "Kleinfelter's",
+    "start": 36.04,
+    "end": 36.77,
+    "id": "w75"
+  },
+  {
+    "text": "syndrome?",
+    "start": 36.77,
+    "end": 37.48,
+    "id": "w76"
+  },
+  {
+    "text": "Comment",
+    "start": 37.73,
+    "end": 37.93,
+    "id": "w77"
+  },
+  {
+    "text": "and",
+    "start": 38.02,
+    "end": 38.17,
+    "id": "w78"
+  },
+  {
+    "text": "answer",
+    "start": 38.17,
+    "end": 38.58,
+    "id": "w79"
+  },
+  {
+    "text": "in",
+    "start": 38.58,
+    "end": 38.71,
+    "id": "w80"
+  },
+  {
+    "text": "the",
+    "start": 38.72,
+    "end": 38.93,
+    "id": "w81"
+  },
+  {
+    "text": "next",
+    "start": 38.93,
+    "end": 39.14,
+    "id": "w82"
+  },
+  {
+    "text": "reel.",
+    "start": 39.28,
+    "end": 39.72,
+    "id": "w83"
+  },
+  {
+    "text": "Follow",
+    "start": 39.97,
+    "end": 40.17,
+    "id": "w84"
+  },
+  {
+    "text": "me.",
+    "start": 40.25,
+    "end": 40.64,
+    "id": "w85"
+  }
+]
