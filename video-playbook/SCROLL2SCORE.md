@@ -40,34 +40,41 @@ Correct-answer green (only for the ✓ moment): `#2f9e5b` / fill `#bfe8c8`.
 Copy them from `videos/acetyl-coa/assets/fonts/`.
 
 ## 4. Reel format (the "PYQ" format — default for every reel)
-~30–50 s, vertical 1080×1920.
+~25–35 s, vertical 1080×1920. **Keep it tight — nothing that only adds length.** (Updated by the user, Oct 2026.)
 1. **Hook (0–4 s):** "Ye question **NEET 20XX** mein aaya tha!" + exam stamp + MCQ card with 4 options.
-2. **Lock it (≈3 s):** "Comment mein apna answer lock karo… 3… 2… 1!" with a countdown.
-3. **Explanation by ELIMINATION:** knock out wrong options one by one with animated mini-scenes. Do NOT reveal the answer early.
-4. **Reveal (at the END of the explanation):** "Sahi answer hai — ___!" — tick + green + sparkles + Pixy joy.
-5. **Previous reel's answer** (2–3 s): "Pichli reel ka answer — ___ ✅".
-6. **CTA:** a NEW related question (mini MCQ) + "Answer agli reel mein — follow karo!".
+2. **Explanation by ELIMINATION:** knock out wrong options one by one, fast. Do NOT reveal the answer early.
+3. **Reveal (at the END of the explanation):** "Sahi answer hai — ___!" — tick + green + sparkles + Pixy joy, plus 1 quick key fact.
+4. **CTA:** a NEW related question (mini MCQ) + "Answer agli reel mein — follow karo!".
+
+Dropped (do NOT add): the "lock your answer 3…2…1" countdown, and the "pichli reel ka answer" segment —
+the user posts the previous answer as a **pinned comment** instead (give them the comment text with each script).
 
 Rules:
 - **Brand name "Scroll 2 Score" appears ONLY on the final follow frame.** No logo/name anywhere else in the reel.
 - **Instagram/Shorts safe zone:** keep Pixy and all key content out of the right button column
   (x > ~930, y 1000–1720), the bottom caption zone (y > ~1600) and the top bar (y < ~120).
   Pixy face: ~410 px wide, centred around x 540, top ≈ 1135.
-- **Fully animated** — no stock photos. Molecules are cute "buddy" characters (circle + eyes + smile + label).
+- **Animated + stock images:** suitable stock/reference images are allowed (karyotypes, micrographs, organs, real specimens)
+  — free-licence sources only (Wikimedia Commons / Pexels / Unsplash), framed as cards **inside the safe zone**, never
+  full-bleed under the buttons/caption. Avoid photos of identifiable patients; prefer diagrams/karyotypes. Molecules stay
+  cute "buddy" characters (circle + eyes + smile + label).
+- **SFX on every render:** whoosh on scene changes, pop on option/card entry, buzzer/"thud" on each "Out!", ding + sparkle
+  on the reveal, tick/click on the CTA question. Keep SFX under the voice (≈ −18 to −24 dB vs VO, duck around speech).
 - **One idea per screen**, minimal text; big keywords only.
 - **Pixy behaviour:** pops in, constant gentle sway, lip-sync to the voice loudness (15 fps), expression swap with
   squash-stretch on key words, jolts on big moments, head shake on "Out!", pop-up reactions (❗🔒❓💡✨❤️🚫) beside the head.
-- **Shorter is better** — aim ≤ 40 s when the script allows.
+- **Shorter is better** — aim ≤ 35 s.
 
 ## 5. PYQ honesty rules
-- Source bank: `neet-biology-previous-year-papers-mcq-bank.pdf` (user upload; 1988–2013).
+- Source bank: `neet-biology-previous-year-papers-mcq-bank.pdf` (user upload; 1988–2013). Down's syndrome = Q1926.
 - **Only 2013 questions are "NEET 2013".** 1988–2012 are **AIPMT** — say "AIPMT 20XX", never "NEET 20XX".
 - The bank's answer key has **errors** (e.g. antihistamine → allergy, palindrome GAATTC, DNA separation → electrophoresis).
   **Verify every answer yourself** against NCERT before scripting.
 - Shortlist of the first 10 (verified): Acetyl CoA (NEET 2013, done = reel #2), Down's syndrome, menstruation/progesterone,
   trypsinogen, potato eyes = axillary buds, co-dominance, K⁺ intracellular cation (all NEET 2013), sporopollenin (AIPMT 2011),
   HIV & central dogma (AIPMT 2012), Widal → typhoid (AIPMT 2010).
-- Open loop: reel #2 asked "1 Acetyl CoA → Krebs cycle → kitne CO₂?" → **answer B (2)** goes at the start of the next reel.
+- Open loops (answers go in a pinned comment, not in the reel): reel #2 asked "1 Acetyl CoA → Krebs cycle → kitne CO₂?" → **B (2)**.
+  Reel #3 (Down's syndrome) asks "Klinefelter's syndrome ka karyotype?" → **B (47, XXY)**.
 
 ## 6. Voice
 The user records/generates the narration (ElevenLabs, voice "Chinku – Casual Cool Course Narrator") and sends the mp3.

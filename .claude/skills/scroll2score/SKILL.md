@@ -18,8 +18,9 @@ Load `/hyperframes` (and `/hyperframes-core`) before writing or editing composit
 
 ## Stage A — script (when given a PYQ/topic)
 1. Pick/verify the PYQ: correct exam label (NEET only for 2013; AIPMT before), and **verify the answer yourself** (the PDF key has errors).
-2. Write the script in the 6-part format (hook → lock → elimination → reveal → previous answer → new related question + follow).
-   Hinglish, punchy, ~30–45 s spoken. Answer revealed only AFTER elimination.
+2. Write the script in the 4-part format (hook → elimination → reveal → new related question + follow). No countdown,
+   no previous-answer segment (give a pinned-comment text instead). Hinglish, punchy, ~25–35 s spoken.
+   Mark SFX cues and stock-image cues (source + what to show) in the scene table. Answer revealed only AFTER elimination.
 3. Deliver: a scene table (time · narration · on-screen · Pixy expression), then a **plain copy-paste narration block**
    and an optional ElevenLabs-v3-tagged version. Note the next reel's answer.
 4. Stop and wait for the user's recorded audio. Don't generate a voice.
@@ -36,11 +37,12 @@ Load `/hyperframes` (and `/hyperframes-core`) before writing or editing composit
    everything inside the safe zone. Initial hidden states go in markup/CSS (`opacity="0"`), never `tl.set(..., 0)`.
 5. `node tools/build.cjs && npx hyperframes lint`, then `npx hyperframes snapshot --at <scene midpoints>` and look at
    the contact sheet (check safe zone, overlaps, text fit) before rendering.
-6. `npx hyperframes render -o renders/<slug>.mp4`, check audio with ffmpeg volumedetect, send the file.
+6. Add SFX (`/media-use` resolve --type sfx; see brand bible §4) mixed under the VO, stock images as in-safe-zone cards.
+7. `npx hyperframes render -o renders/<slug>.mp4`, check audio with ffmpeg volumedetect, send the file.
 
 ## Stage C — publish kit
 - Thumbnails: adapt `videos/acetyl-coa/tools/thumbnail.cjs` (vertical with blurred options + clean variant, plus 1280×720).
-- YouTube: title options ≤ 100 chars, description (hook, MCQ, previous answer, next question, chapter/exam, 3 hashtags first),
+- YouTube: title options ≤ 100 chars, description (hook, MCQ, previous answer (+ pinned comment), next question, chapter/exam, 3 hashtags first),
   tags ≤ 500 chars. Instagram caption on request (≤ 5 hashtags).
 
 Commit work to the current branch and push when the user is happy.

@@ -12,9 +12,9 @@ The user runs **Scroll 2 Score**, a NEET/MBBS Biology reels channel with the mas
 - Reference reel to copy for new ones: `videos/acetyl-coa/` (reel #2, NEET 2013 Acetyl CoA)
 - Earlier reels: `videos/urea-krebs-v3/` (reel #1, Krebs bicycle)
 
-Non-negotiables: Pixy design and palette are final; the PYQ format (hook → lock → elimination → late reveal →
-previous answer → new question); **"Scroll 2 Score" only on the last frame**; keep content in the Reels safe zone;
-fully animated (no stock photos); the user supplies the voice; label pre-2013 PYQs as AIPMT and verify every answer.
+Non-negotiables: Pixy design and palette are final; the PYQ format (hook → elimination → late reveal → new question;
+no countdown, no previous-answer segment — that goes in a pinned comment); **"Scroll 2 Score" only on the last frame**; keep content in the Reels safe zone;
+animated + suitable free stock images inside the safe zone; SFX on every render; the user supplies the voice; label pre-2013 PYQs as AIPMT and verify every answer.
 
 ## Other
 - `video-playbook/PLAYBOOK.md` + `/make-video`: a different "Field Notebook" style (not Scroll 2 Score).
