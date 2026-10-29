@@ -19,17 +19,21 @@ const CSS = `@font-face{font-family:"Playfair Display";font-weight:900;src:url("
   .bang{position:absolute;background:#f6d365;border:9px solid #432f2e;border-radius:50%;font-family:"Bagel Fat One";text-align:center}`;
 const face = (w) => `<svg viewBox="110 40 380 390" width="${w}" height="${w * 390 / 380}">${hood('shock')}</svg>`;
 
-const vertical = `<html><head><style>${CSS}</style></head><body style="width:1080px;height:1920px;position:relative">
+const verticalT = (opts) => `<html><head><style>${CSS}</style></head><body style="width:1080px;height:1920px;position:relative">
   <div class="bg"></div>
   <div class="stamp" style="left:250px;top:150px;width:580px;height:150px;font-size:100px;line-height:126px">NEET 2013</div>
   <div class="q" style="left:40px;top:370px;width:1000px;font-size:118px">Fats, Carbs<br>&amp; Proteins ka<br><span>COMMON</span> dost?</div>
-  <div class="opt" style="left:70px;top:890px;width:940px;justify-content:center">
-    ${['A', 'B', 'C', 'D'].map((k) => `<div style="width:210px;height:150px;font-size:96px;line-height:136px">${k}</div>`).join('')}</div>
-  <div class="burst" style="left:190px;top:1080px;width:700px;height:700px"></div>
+__OPTS__  <div class="burst" style="left:190px;top:1080px;width:700px;height:700px"></div>
   <div style="position:absolute;left:215px;top:1100px">${face(650)}</div>
   <div class="bang" style="left:800px;top:1110px;width:190px;height:190px;font-size:150px;line-height:190px;transform:rotate(12deg)">!</div>
   <div class="pill" style="left:160px;top:1760px;width:760px;height:120px;font-size:64px;line-height:120px">99% galat karte hain 😳</div>
-</body></html>`;
+</body></html>`.replace('__OPTS__', opts);
+const vertical = verticalT(`  <div style="position:absolute;left:90px;top:860px;width:900px;display:grid;grid-template-columns:1fr 1fr;gap:18px">
+    ${[['A', 'Acetyl CoA'], ['B', 'Fructose 1,6-BP'], ['C', 'Glucose-6-P'], ['D', 'Pyruvic acid']].map(([k, t]) => `<div style="display:flex;align-items:center;gap:14px;background:#fffcf2;border:7px solid #432f2e;border-radius:60px;height:96px;padding:0 18px">
+      <div style="flex:none;width:62px;height:62px;border-radius:31px;background:#432f2e;color:#feefb8;font:800 36px/62px Inter;text-align:center">${k}</div>
+      <div style="font:800 34px Inter;white-space:nowrap;filter:blur(9px)">${t}</div></div>`).join('')}</div>
+`);
+const verticalClean = verticalT('');
 
 const landscape = `<html><head><style>${CSS}</style></head><body style="width:1280px;height:720px;position:relative">
   <div class="bg"></div>
@@ -43,7 +47,7 @@ const landscape = `<html><head><style>${CSS}</style></head><body style="width:12
 
 (async () => {
   const b = await chromium.launch(); const p = await b.newPage();
-  for (const [name, html, w, h] of [['thumb-shorts-1080x1920.png', vertical, 1080, 1920], ['thumb-youtube-1280x720.png', landscape, 1280, 720]]) {
+  for (const [name, html, w, h] of [['thumb-shorts-1080x1920.png', vertical, 1080, 1920], ['thumb-shorts-clean-1080x1920.png', verticalClean, 1080, 1920], ['thumb-youtube-1280x720.png', landscape, 1280, 720]]) {
     await p.setViewportSize({ width: w, height: h });
     const f = path.join(OUT, name + '.html'); fs.writeFileSync(f, html); await p.goto('file://' + f); await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(400); fs.unlinkSync(f);
     await p.screenshot({ path: path.join(OUT, name) });
