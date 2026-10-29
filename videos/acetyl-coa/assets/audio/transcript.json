@@ -1,0 +1,782 @@
+[
+  {
+    "text": "This",
+    "start": 0.06,
+    "end": 0.35,
+    "id": "w0"
+  },
+  {
+    "text": "question",
+    "start": 0.35,
+    "end": 1.05,
+    "id": "w1"
+  },
+  {
+    "text": "came",
+    "start": 1.05,
+    "end": 1.4,
+    "id": "w2"
+  },
+  {
+    "text": "in",
+    "start": 1.4,
+    "end": 1.52,
+    "id": "w3"
+  },
+  {
+    "text": "2013.",
+    "start": 1.65,
+    "end": 2.64,
+    "id": "w4"
+  },
+  {
+    "text": "Fats,",
+    "start": 2.92,
+    "end": 3.08,
+    "id": "w5"
+  },
+  {
+    "text": "carbohydrates",
+    "start": 3.08,
+    "end": 4.04,
+    "id": "w6"
+  },
+  {
+    "text": "and",
+    "start": 4.06,
+    "end": 4.27,
+    "id": "w7"
+  },
+  {
+    "text": "proteins.",
+    "start": 4.27,
+    "end": 5.12,
+    "id": "w8"
+  },
+  {
+    "text": "What",
+    "start": 5.12,
+    "end": 5.46,
+    "id": "w9"
+  },
+  {
+    "text": "is",
+    "start": 5.46,
+    "end": 5.48,
+    "id": "w10"
+  },
+  {
+    "text": "the",
+    "start": 5.48,
+    "end": 5.65,
+    "id": "w11"
+  },
+  {
+    "text": "common",
+    "start": 5.74,
+    "end": 6.02,
+    "id": "w12"
+  },
+  {
+    "text": "metabolite",
+    "start": 6.02,
+    "end": 6.64,
+    "id": "w13"
+  },
+  {
+    "text": "in",
+    "start": 6.64,
+    "end": 6.75,
+    "id": "w14"
+  },
+  {
+    "text": "the",
+    "start": 6.75,
+    "end": 6.92,
+    "id": "w15"
+  },
+  {
+    "text": "three",
+    "start": 7.05,
+    "end": 7.25,
+    "id": "w16"
+  },
+  {
+    "text": "breakdowns?",
+    "start": 7.25,
+    "end": 7.94,
+    "id": "w17"
+  },
+  {
+    "text": "Lock",
+    "start": 7.94,
+    "end": 8.42,
+    "id": "w18"
+  },
+  {
+    "text": "your",
+    "start": 8.42,
+    "end": 8.72,
+    "id": "w19"
+  },
+  {
+    "text": "answer",
+    "start": 8.72,
+    "end": 9.2,
+    "id": "w20"
+  },
+  {
+    "text": "in",
+    "start": 9.2,
+    "end": 9.36,
+    "id": "w21"
+  },
+  {
+    "text": "the",
+    "start": 9.36,
+    "end": 9.6,
+    "id": "w22"
+  },
+  {
+    "text": "comments.",
+    "start": 9.6,
+    "end": 10.52,
+    "id": "w23"
+  },
+  {
+    "text": "3,",
+    "start": 10.82,
+    "end": 11.32,
+    "id": "w24"
+  },
+  {
+    "text": "2,",
+    "start": 11.34,
+    "end": 12.26,
+    "id": "w25"
+  },
+  {
+    "text": "1.",
+    "start": 12.26,
+    "end": 12.84,
+    "id": "w26"
+  },
+  {
+    "text": "Option",
+    "start": 13.14,
+    "end": 13.84,
+    "id": "w27"
+  },
+  {
+    "text": "Bor",
+    "start": 13.84,
+    "end": 14.33,
+    "id": "w28"
+  },
+  {
+    "text": "C.",
+    "start": 14.33,
+    "end": 14.52,
+    "id": "w29"
+  },
+  {
+    "text": "Glucose",
+    "start": 14.68,
+    "end": 15,
+    "id": "w30"
+  },
+  {
+    "text": "6-phosphate",
+    "start": 15.02,
+    "end": 15.96,
+    "id": "w31"
+  },
+  {
+    "text": "and",
+    "start": 15.96,
+    "end": 16.13,
+    "id": "w32"
+  },
+  {
+    "text": "fructose",
+    "start": 16.13,
+    "end": 16.58,
+    "id": "w33"
+  },
+  {
+    "text": "bisphosphate.",
+    "start": 16.58,
+    "end": 17.48,
+    "id": "w34"
+  },
+  {
+    "text": "These",
+    "start": 17.48,
+    "end": 17.82,
+    "id": "w35"
+  },
+  {
+    "text": "only",
+    "start": 17.82,
+    "end": 18.01,
+    "id": "w36"
+  },
+  {
+    "text": "come",
+    "start": 18.1,
+    "end": 18.25,
+    "id": "w37"
+  },
+  {
+    "text": "in",
+    "start": 18.34,
+    "end": 18.46,
+    "id": "w38"
+  },
+  {
+    "text": "the",
+    "start": 18.46,
+    "end": 18.66,
+    "id": "w39"
+  },
+  {
+    "text": "glycolysis",
+    "start": 18.66,
+    "end": 19.28,
+    "id": "w40"
+  },
+  {
+    "text": "of",
+    "start": 19.41,
+    "end": 19.45,
+    "id": "w41"
+  },
+  {
+    "text": "glucose.",
+    "start": 19.45,
+    "end": 20.16,
+    "id": "w42"
+  },
+  {
+    "text": "Fats",
+    "start": 20.4,
+    "end": 20.45,
+    "id": "w43"
+  },
+  {
+    "text": "don't",
+    "start": 20.46,
+    "end": 20.81,
+    "id": "w44"
+  },
+  {
+    "text": "pass",
+    "start": 20.81,
+    "end": 21.1,
+    "id": "w45"
+  },
+  {
+    "text": "from",
+    "start": 21.1,
+    "end": 21.39,
+    "id": "w46"
+  },
+  {
+    "text": "there.",
+    "start": 21.39,
+    "end": 21.92,
+    "id": "w47"
+  },
+  {
+    "text": "Out!",
+    "start": 22.3,
+    "end": 22.72,
+    "id": "w48"
+  },
+  {
+    "text": "Now,",
+    "start": 23.1,
+    "end": 23.71,
+    "id": "w49"
+  },
+  {
+    "text": "A",
+    "start": 23.73,
+    "end": 23.93,
+    "id": "w50"
+  },
+  {
+    "text": "or",
+    "start": 23.93,
+    "end": 24.33,
+    "id": "w51"
+  },
+  {
+    "text": "D?",
+    "start": 24.33,
+    "end": 24.56,
+    "id": "w52"
+  },
+  {
+    "text": "Pyruvic",
+    "start": 24.88,
+    "end": 25.12,
+    "id": "w53"
+  },
+  {
+    "text": "acid?",
+    "start": 25.12,
+    "end": 25.72,
+    "id": "w54"
+  },
+  {
+    "text": "Fatty",
+    "start": 25.72,
+    "end": 26.18,
+    "id": "w55"
+  },
+  {
+    "text": "acids",
+    "start": 26.18,
+    "end": 26.37,
+    "id": "w56"
+  },
+  {
+    "text": "don't",
+    "start": 26.46,
+    "end": 26.83,
+    "id": "w57"
+  },
+  {
+    "text": "make",
+    "start": 26.83,
+    "end": 27.12,
+    "id": "w58"
+  },
+  {
+    "text": "pyruvate",
+    "start": 27.17,
+    "end": 27.64,
+    "id": "w59"
+  },
+  {
+    "text": "in",
+    "start": 27.77,
+    "end": 27.88,
+    "id": "w60"
+  },
+  {
+    "text": "beta-oxidation.",
+    "start": 27.88,
+    "end": 29.2,
+    "id": "w61"
+  },
+  {
+    "text": "They",
+    "start": 29.46,
+    "end": 29.59,
+    "id": "w62"
+  },
+  {
+    "text": "turn",
+    "start": 29.59,
+    "end": 29.78,
+    "id": "w63"
+  },
+  {
+    "text": "out",
+    "start": 29.78,
+    "end": 29.89,
+    "id": "w64"
+  },
+  {
+    "text": "to",
+    "start": 29.98,
+    "end": 30.01,
+    "id": "w65"
+  },
+  {
+    "text": "be",
+    "start": 30.01,
+    "end": 30.1,
+    "id": "w66"
+  },
+  {
+    "text": "something",
+    "start": 30.1,
+    "end": 30.51,
+    "id": "w67"
+  },
+  {
+    "text": "else.",
+    "start": 30.54,
+    "end": 30.92,
+    "id": "w68"
+  },
+  {
+    "text": "The",
+    "start": 30.92,
+    "end": 31.22,
+    "id": "w69"
+  },
+  {
+    "text": "correct",
+    "start": 31.22,
+    "end": 31.65,
+    "id": "w70"
+  },
+  {
+    "text": "answer",
+    "start": 31.74,
+    "end": 32.11,
+    "id": "w71"
+  },
+  {
+    "text": "is",
+    "start": 32.11,
+    "end": 32.27,
+    "id": "w72"
+  },
+  {
+    "text": "acetyl-CoA.",
+    "start": 32.3,
+    "end": 33.28,
+    "id": "w73"
+  },
+  {
+    "text": "Carbs,",
+    "start": 33.5,
+    "end": 33.88,
+    "id": "w74"
+  },
+  {
+    "text": "fats,",
+    "start": 33.88,
+    "end": 34.4,
+    "id": "w75"
+  },
+  {
+    "text": "proteins.",
+    "start": 34.4,
+    "end": 35.16,
+    "id": "w76"
+  },
+  {
+    "text": "The",
+    "start": 35.16,
+    "end": 35.34,
+    "id": "w77"
+  },
+  {
+    "text": "common",
+    "start": 35.34,
+    "end": 35.67,
+    "id": "w78"
+  },
+  {
+    "text": "friend",
+    "start": 35.67,
+    "end": 36.01,
+    "id": "w79"
+  },
+  {
+    "text": "of",
+    "start": 36.01,
+    "end": 36.12,
+    "id": "w80"
+  },
+  {
+    "text": "the",
+    "start": 36.12,
+    "end": 36.28,
+    "id": "w81"
+  },
+  {
+    "text": "three",
+    "start": 36.33,
+    "end": 36.6,
+    "id": "w82"
+  },
+  {
+    "text": "that",
+    "start": 36.6,
+    "end": 36.8,
+    "id": "w83"
+  },
+  {
+    "text": "goes",
+    "start": 36.93,
+    "end": 37.06,
+    "id": "w84"
+  },
+  {
+    "text": "straight",
+    "start": 37.06,
+    "end": 37.51,
+    "id": "w85"
+  },
+  {
+    "text": "into",
+    "start": 37.58,
+    "end": 37.76,
+    "id": "w86"
+  },
+  {
+    "text": "the",
+    "start": 37.76,
+    "end": 37.82,
+    "id": "w87"
+  },
+  {
+    "text": "Krebs",
+    "start": 37.94,
+    "end": 38.21,
+    "id": "w88"
+  },
+  {
+    "text": "cycle.",
+    "start": 38.29,
+    "end": 38.56,
+    "id": "w89"
+  },
+  {
+    "text": "And",
+    "start": 38.56,
+    "end": 38.86,
+    "id": "w90"
+  },
+  {
+    "text": "the",
+    "start": 38.86,
+    "end": 38.88,
+    "id": "w91"
+  },
+  {
+    "text": "answer",
+    "start": 38.88,
+    "end": 39.21,
+    "id": "w92"
+  },
+  {
+    "text": "for",
+    "start": 39.21,
+    "end": 39.36,
+    "id": "w93"
+  },
+  {
+    "text": "the",
+    "start": 39.38,
+    "end": 39.53,
+    "id": "w94"
+  },
+  {
+    "text": "last",
+    "start": 39.53,
+    "end": 39.75,
+    "id": "w95"
+  },
+  {
+    "text": "reel",
+    "start": 39.75,
+    "end": 39.97,
+    "id": "w96"
+  },
+  {
+    "text": "is",
+    "start": 39.97,
+    "end": 40.12,
+    "id": "w97"
+  },
+  {
+    "text": "B.",
+    "start": 40.12,
+    "end": 40.64,
+    "id": "w98"
+  },
+  {
+    "text": "Arginino",
+    "start": 40.79,
+    "end": 41.23,
+    "id": "w99"
+  },
+  {
+    "text": "succinate",
+    "start": 41.23,
+    "end": 41.91,
+    "id": "w100"
+  },
+  {
+    "text": "lyes.",
+    "start": 41.91,
+    "end": 42.48,
+    "id": "w101"
+  },
+  {
+    "text": "Now",
+    "start": 42.48,
+    "end": 42.78,
+    "id": "w102"
+  },
+  {
+    "text": "tell",
+    "start": 42.78,
+    "end": 43.12,
+    "id": "w103"
+  },
+  {
+    "text": "me,",
+    "start": 43.12,
+    "end": 43.47,
+    "id": "w104"
+  },
+  {
+    "text": "how",
+    "start": 43.47,
+    "end": 43.69,
+    "id": "w105"
+  },
+  {
+    "text": "many",
+    "start": 43.69,
+    "end": 43.99,
+    "id": "w106"
+  },
+  {
+    "text": "CO2s",
+    "start": 43.99,
+    "end": 44.43,
+    "id": "w107"
+  },
+  {
+    "text": "do",
+    "start": 44.43,
+    "end": 44.58,
+    "id": "w108"
+  },
+  {
+    "text": "you",
+    "start": 44.58,
+    "end": 44.8,
+    "id": "w109"
+  },
+  {
+    "text": "get",
+    "start": 44.8,
+    "end": 45.08,
+    "id": "w110"
+  },
+  {
+    "text": "from",
+    "start": 45.08,
+    "end": 45.24,
+    "id": "w111"
+  },
+  {
+    "text": "an",
+    "start": 45.24,
+    "end": 45.44,
+    "id": "w112"
+  },
+  {
+    "text": "acetyl-CoA",
+    "start": 45.44,
+    "end": 46.06,
+    "id": "w113"
+  },
+  {
+    "text": "in",
+    "start": 46.06,
+    "end": 46.13,
+    "id": "w114"
+  },
+  {
+    "text": "the",
+    "start": 46.27,
+    "end": 46.37,
+    "id": "w115"
+  },
+  {
+    "text": "Krebs",
+    "start": 46.37,
+    "end": 46.68,
+    "id": "w116"
+  },
+  {
+    "text": "cycle?",
+    "start": 46.68,
+    "end": 47.19,
+    "id": "w117"
+  },
+  {
+    "text": "The",
+    "start": 47.19,
+    "end": 47.54,
+    "id": "w118"
+  },
+  {
+    "text": "answer",
+    "start": 47.54,
+    "end": 47.73,
+    "id": "w119"
+  },
+  {
+    "text": "is",
+    "start": 47.82,
+    "end": 47.85,
+    "id": "w120"
+  },
+  {
+    "text": "in",
+    "start": 47.85,
+    "end": 47.95,
+    "id": "w121"
+  },
+  {
+    "text": "the",
+    "start": 47.95,
+    "end": 48.11,
+    "id": "w122"
+  },
+  {
+    "text": "next",
+    "start": 48.11,
+    "end": 48.32,
+    "id": "w123"
+  },
+  {
+    "text": "reel.",
+    "start": 48.32,
+    "end": 48.72,
+    "id": "w124"
+  },
+  {
+    "text": "Follow",
+    "start": 48.94,
+    "end": 49.13,
+    "id": "w125"
+  },
+  {
+    "text": "it.",
+    "start": 49.13,
+    "end": 49.48,
+    "id": "w126"
+  },
+  {
+    "text": "Scroll",
+    "start": 49.66,
+    "end": 49.85,
+    "id": "w127"
+  },
+  {
+    "text": "to",
+    "start": 49.92,
+    "end": 50.05,
+    "id": "w128"
+  },
+  {
+    "text": "score.",
+    "start": 50.05,
+    "end": 50.63,
+    "id": "w129"
+  }
+]

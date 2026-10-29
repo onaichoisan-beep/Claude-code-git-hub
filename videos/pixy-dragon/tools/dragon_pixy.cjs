@@ -37,6 +37,7 @@ const MOUTHS = {
   closed: `<path d="M 288 338 L 312 338" ${st(6)}/>`,
   open: `<path d="M 276 326 Q 300 368 324 326 Z" fill="${MOUTH}" ${st(5)}/><path d="M 287 346 Q 300 337 313 346 Q 300 356 287 346 Z" fill="${TONGUE}"/>`,
   mid: `<path d="M 283 330 Q 300 354 317 330 Z" fill="${MOUTH}" ${st(5)}/>`,
+  none: '',
 };
 const EXPR = {
   friendly: { L: {}, R: {}, m: 'smile' },
@@ -168,4 +169,4 @@ function frontArm(pose) { const p = POSES[pose]; return p.front ? arm(p.front, p
 function pixy({ expr = 'friendly', pose = 'stand', back = false, mouth } = {}) {
   return `<ellipse cx="300" cy="910" rx="160" ry="16" fill="${K}" opacity="0.12"/>${body(pose, back)}${back ? hoodBackView() : hood(expr, mouth)}${back ? '' : frontArm(pose)}`;
 }
-module.exports = { pixy, hood, face, EXPR, POSES, MOUTHS: Object.keys(MOUTHS), palette: { K, HOOD, BUTTER, ORANGE, COAT } };
+module.exports = { pixy, hood, face, EXPR, POSES, MOUTHS: Object.keys(MOUTHS), MOUTH_SVG: MOUTHS, palette: { K, HOOD, BUTTER, ORANGE, COAT } };
