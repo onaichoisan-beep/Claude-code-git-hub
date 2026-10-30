@@ -135,10 +135,10 @@ html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; backgro
   border-radius: 64px; background: #0d0d0f; border: 10px solid #2a2a2e; box-shadow: 0 0 0 3px #555, 0 50px 120px rgba(0,0,0,.8), 0 0 90px rgba(255,42,42,.25); }
 .phone .scr { position: absolute; inset: 26px; border-radius: 42px; background: #000; padding: 70px 34px; }
 .phone .lbl { font-weight: 800; font-size: 34px; color: #9a9aa2; }
-.phone .val { font-weight: 900; font-size: 96px; margin-top: 10px; letter-spacing: -2px; }
-.phone .bars { display: flex; align-items: flex-end; gap: 16px; height: 300px; margin-top: 50px; }
+.phone .val { font-weight: 900; font-size: 84px; margin-top: 10px; letter-spacing: -2px; white-space: nowrap; }
+.phone .bars { display: flex; align-items: flex-end; gap: 16px; height: 260px; margin-top: 40px; }
 .phone .bars i { flex: 1; background: var(--red); border-radius: 8px 8px 0 0; transform-origin: 50% 100%; }
-.phone .apps { margin-top: 40px; font-weight: 800; font-size: 32px; color: #cfcfd6; line-height: 1.8; }
+.phone .apps { margin-top: 30px; font-weight: 800; font-size: 30px; color: #cfcfd6; line-height: 1.6; white-space: nowrap; }
 
 /* transitions */
 .flash { background: #fff; opacity: 0; }

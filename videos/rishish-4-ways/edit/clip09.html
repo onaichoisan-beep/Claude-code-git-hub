@@ -151,10 +151,10 @@ html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; backgro
   border-radius: 64px; background: #0d0d0f; border: 10px solid #2a2a2e; box-shadow: 0 0 0 3px #555, 0 50px 120px rgba(0,0,0,.8), 0 0 90px rgba(255,42,42,.25); }
 .phone .scr { position: absolute; inset: 26px; border-radius: 42px; background: #000; padding: 70px 34px; }
 .phone .lbl { font-weight: 800; font-size: 34px; color: #9a9aa2; }
-.phone .val { font-weight: 900; font-size: 96px; margin-top: 10px; letter-spacing: -2px; }
-.phone .bars { display: flex; align-items: flex-end; gap: 16px; height: 300px; margin-top: 50px; }
+.phone .val { font-weight: 900; font-size: 84px; margin-top: 10px; letter-spacing: -2px; white-space: nowrap; }
+.phone .bars { display: flex; align-items: flex-end; gap: 16px; height: 260px; margin-top: 40px; }
 .phone .bars i { flex: 1; background: var(--red); border-radius: 8px 8px 0 0; transform-origin: 50% 100%; }
-.phone .apps { margin-top: 40px; font-weight: 800; font-size: 32px; color: #cfcfd6; line-height: 1.8; }
+.phone .apps { margin-top: 30px; font-weight: 800; font-size: 30px; color: #cfcfd6; line-height: 1.6; white-space: nowrap; }
 
 /* transitions */
 .flash { background: #fff; opacity: 0; }
@@ -170,8 +170,16 @@ html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; backgro
 .nle-track { position: relative; flex: 1; height: 64px; background: rgba(255,255,255,.05); border-radius: 8px; }
 .nle-track i { position: absolute; top: 4px; bottom: 4px; border-radius: 8px; transform-origin: 0 50%;
   box-shadow: inset 0 0 0 2px rgba(255,255,255,.25); }
-.nle-head { position: absolute; top: 10px; bottom: 10px; width: 4px; background: #fff; box-shadow: 0 0 20px #fff; }
+.nle-head { position: absolute; left: 9%; top: 10px; bottom: 10px; width: 4px; background: #fff; box-shadow: 0 0 20px #fff; }
 .nle-head::before { content: ""; position: absolute; top: -14px; left: -12px; border: 14px solid transparent; border-top-color: #fff; }
+
+/* intro title card */
+.titlecard { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.titlecard .tc1 { font-family: "Anton", sans-serif; font-size: 300px; line-height: .9; color: var(--red);
+  text-shadow: 0 0 60px rgba(255,42,42,.6); }
+.titlecard .tc2 { font-family: "Anton", sans-serif; font-size: 130px; line-height: 1; text-transform: uppercase; margin-top: 10px; }
+.titlecard .tc3 { margin-top: 34px; font-family: "Permanent Marker", cursive; font-size: 58px; color: var(--money); }
+.titlecard .kicker { margin-bottom: 20px; }
 
 </style>
 </head>
@@ -195,17 +203,14 @@ html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; backgro
     <div id="cap12" class="cap"><span>phone right</span></div>
     <div id="cap13" class="cap"><span>now aur</span></div>
     <div id="cap14" class="cap"><span>tumhara screen</span></div>
-    <div id="cap15" class="cap"><span>time kitna</span></div>
-    <div id="cap16" class="cap"><span>h</span></div>
-    <div id="cap17" class="cap"><span>That 7</span></div>
-    <div id="cap18" class="cap"><span>plus hours</span></div>
-    <div id="cap19" class="cap"><span>of</span></div>
-    <div id="cap20" class="cap key red"><span>doomscrolling</span></div>
-    <div id="cap21" class="cap"><span>can easily</span></div>
-    <div id="cap22" class="cap"><span>make you</span></div>
-    <div id="cap23" class="cap"><span>a lot</span></div>
-    <div id="cap24" class="cap"><span>of</span></div>
-    <div id="cap25" class="cap key money"><span>money</span></div>
+    <div id="cap15" class="cap"><span>plus hours</span></div>
+    <div id="cap16" class="cap"><span>of</span></div>
+    <div id="cap17" class="cap key red"><span>doomscrolling</span></div>
+    <div id="cap18" class="cap"><span>can easily</span></div>
+    <div id="cap19" class="cap"><span>make you</span></div>
+    <div id="cap20" class="cap"><span>a lot</span></div>
+    <div id="cap21" class="cap"><span>of</span></div>
+    <div id="cap22" class="cap key money"><span>money</span></div>
   </div>
 
   <audio id="sfx2" class="clip" src="assets/sfx/whoosh.mp3" data-start="1.850" data-duration="0.700" data-track-index="10" data-volume="0.45"></audio>
@@ -242,28 +247,22 @@ tl.fromTo("#cap13",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0
 tl.set("#cap13",{opacity:0},1.700);
 tl.fromTo("#cap14",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},1.700);
 tl.set("#cap14",{opacity:0},2.320);
-tl.fromTo("#cap15",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},2.320);
-tl.set("#cap15",{opacity:0},2.840);
-tl.fromTo("#cap16",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},2.840);
-tl.set("#cap16",{opacity:0},3.210);
-tl.fromTo("#cap17",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},3.280);
-tl.set("#cap17",{opacity:0},3.940);
-tl.fromTo("#cap18",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},3.940);
-tl.set("#cap18",{opacity:0},4.540);
-tl.fromTo("#cap19",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},4.540);
-tl.set("#cap19",{opacity:0},4.740);
-tl.fromTo("#cap20",{opacity:0,scale:0.7,y:20},{opacity:1,scale:1,y:0,duration:0.16,ease:"back.out(2.5)"},4.740);
-tl.set("#cap20",{opacity:0},5.320);
-tl.fromTo("#cap21",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},5.320);
-tl.set("#cap21",{opacity:0},6.040);
-tl.fromTo("#cap22",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},6.040);
-tl.set("#cap22",{opacity:0},6.480);
-tl.fromTo("#cap23",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},6.480);
-tl.set("#cap23",{opacity:0},6.700);
-tl.fromTo("#cap24",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},6.700);
-tl.set("#cap24",{opacity:0},6.900);
-tl.fromTo("#cap25",{opacity:0,scale:0.7,y:20},{opacity:1,scale:1,y:0,duration:0.16,ease:"back.out(2.5)"},6.900);
-tl.set("#cap25",{opacity:0},7.490);
+tl.fromTo("#cap15",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},3.940);
+tl.set("#cap15",{opacity:0},4.540);
+tl.fromTo("#cap16",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},4.540);
+tl.set("#cap16",{opacity:0},4.740);
+tl.fromTo("#cap17",{opacity:0,scale:0.7,y:20},{opacity:1,scale:1,y:0,duration:0.16,ease:"back.out(2.5)"},4.740);
+tl.set("#cap17",{opacity:0},5.320);
+tl.fromTo("#cap18",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},5.320);
+tl.set("#cap18",{opacity:0},6.040);
+tl.fromTo("#cap19",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},6.040);
+tl.set("#cap19",{opacity:0},6.480);
+tl.fromTo("#cap20",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},6.480);
+tl.set("#cap20",{opacity:0},6.700);
+tl.fromTo("#cap21",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},6.700);
+tl.set("#cap21",{opacity:0},6.900);
+tl.fromTo("#cap22",{opacity:0,scale:0.7,y:20},{opacity:1,scale:1,y:0,duration:0.16,ease:"back.out(2.5)"},6.900);
+tl.set("#cap22",{opacity:0},7.490);
 window.__timelines["clip09"] = tl;
 </script>
 </body>

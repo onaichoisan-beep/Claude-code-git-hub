@@ -211,6 +211,7 @@ class Comp:
         self.sfx(t - .05, "whoosh", .45)
         self.sfx(t + .4, "typing", .22, 1.2)
         self.sfx(t + 1.6, "notification", .3)
+        self.nocaps.append((t, t + d))
 
     def c_flash(self, c):
         i = self.uid("fl"); t = c["t"]
