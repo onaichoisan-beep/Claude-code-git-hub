@@ -1,0 +1,4 @@
+.hyperframes/
+renders/work-*/
+renders/.video.hf-transaction-*/
+__pycache__/

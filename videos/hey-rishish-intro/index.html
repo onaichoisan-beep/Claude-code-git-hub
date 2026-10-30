@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>hey.rishish intro</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #ffffff;
+        overflow: hidden;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #ffffff;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      YouTube channel intro for @hey.rishish (16:9, 1920x1080). House style, landscape: a 320x180 world rendered
+      sharp on a 640x360 buffer (3x3 screen px per pixel), light dither, the dragon drawn inside character(fn).
+      Story (owner's sketch): a green dragon with a yellow belly flies in from the left over a white background ->
+      turns and comes at the camera -> breathes fire in every direction -> the fire fades out ->
+      "WELCOME BACK TO @hey.rishish" pops up.
+    -->
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="5"
+      data-width="1920"
+      data-height="1080"
+    >
+      <section id="stage" class="clip" data-start="0" data-duration="5" data-track-index="0">
+        <canvas id="world" width="320" height="180" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="640" height="360"></canvas>
+      </section>
+      <!-- built by scripts/synth_audio.py: the host's line + ducked open-source SFX -->
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="5" data-track-index="1"></audio>
+    </div>
+    <script>
+      window.PX_W = 320;
+      window.PX_H = 180;
+      window.PX_RES = 1;      // the old chunky look (owner asked for it for this intro)
+      window.PX_DITHER = 22;
+    </script>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = window.DUR || 5;
+      var C = {
+        white: "#ffffff", cloud: "#e2f4e4", cloudD: "#b6dcbe", mist: "#dfe4d8", ash: "#b4b8b0", smoke: "#80847c", ink: "#0a0614",
+        // the dragon
+        green: "#2cae46", greenL: "#7ee05a", greenD: "#16743a", greenDD: "#08401e",
+        wing: "#a8e050", wingD: "#6cb83a",
+        belly: "#ffd83a", bellyD: "#e0a018", bellyL: "#fff08a",
+        horn: "#fff2c0", hornD: "#d8c088", eye: "#ffe040", mouth: "#8a1430", tongue: "#ff6a7a",
+        // fire
+        hot: "#fff6a8", fire1: "#ffe85a", fire2: "#ffa21e", fire3: "#ff5a1a", fire4: "#d0281a", fire5: "#8a1a14",
+        gold: "#ffc83a", goldD: "#e08a10",
+      };
+      DISSOLVE = 0.12;
+
+      // ============================================================ timing (captions.js: voice + beats from synth_audio.py)
+      var VO = window.VO || [], BEATS = window.BEATS || {};
+      var T_TURN = BEATS.TURN || 2.45, T_INHALE = BEATS.INHALE || 3.75, T_FIRE = BEATS.FIRE || 4.3, T_FADE = BEATS.FADE || 5.7;
+      var T_TITLE = BEATS.TITLE || 6.55, T_HANDLE = BEATS.HANDLE || 7.55, T_NAME = BEATS.NAME || 8.07;
+      var FIRE_END = T_FADE - 0.05;
+
+      // ============================================================ helpers
+      function easeBack(p) { p = clamp01(p); var c = 2.2; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); }
+      function star(x, y, r, col) { rect(x - 0.5, y - r, 1, r * 2, col); rect(x - r, y - 0.5, r * 2, 1, col); rect(x - 1, y - 1, 2, 2, col); }
+
+      // ============================================================ the dragon: a long Chinese lóng (no wings, serpent body)
+      // The head flies a 3D path; the body is the head's own trail (where the head was k*DT seconds ago), so it
+      // swims through the air in S-curves. D = distance from the camera (1 = far, smaller = closer, bigger on screen).
+      var SEG = 76, DT = 0.0105;
+      function headPath(t) {
+        var t1 = T_TURN;
+        if (t <= t1) {
+          var x = -30 + 180 * t, y = 76 + 10 * ease(t / t1) + 15 * Math.sin(t * 7);
+          return [x, y, 1];
+        }
+        var e = headPath(t1), p = clamp01((t - t1) / (T_INHALE - t1)), q = ease(p);
+        if (t <= T_INHALE) {
+          // curls up and around, then comes straight at the camera
+          var sp = 1 - q, lx = lerp(e[0], 160, q) + 26 * sp * Math.sin(p * 9), ly = lerp(e[1], 96, q) - 18 * sp * Math.cos(p * 9) + 18 * sp;
+          return [lx, ly, lerp(1, 0.4, Math.pow(q, 1.2))];
+        }
+        var rear = 6 * ramp(t, T_INHALE, T_FIRE) - 6 * ramp(t, T_FIRE + 0.3, T_FIRE + 0.7);
+        return [160 + Math.sin(t * 2.2) * 2, 96 - rear + Math.sin(t * 3) * 1.5, 0.4];
+      }
+      function proj(P) { return [160 + (P[0] - 160) / P[2], 90 + (P[1] - 90) / P[2], 1 / P[2]]; }
+      function thick(k) { var u = k / SEG; return u < 0.1 ? 4.2 + u * 12 : 5.4 * (1 - Math.pow((u - 0.1) / 0.9, 1.4) * 0.7); }
+
+      function dragonBody(t, pts) {
+        if (!pts) { pts = []; for (var k = 0; k <= SEG; k++) pts.push(proj(headPath(t - k * DT))); }
+        // local normals, kept on one side (the belly) along the body
+        var nrm = [], prev = null;
+        for (var i = 0; i <= SEG; i++) {
+          var a = pts[Math.max(0, i - 1)], b = pts[Math.min(SEG, i + 1)], tx = a[0] - b[0], ty = a[1] - b[1], L = Math.hypot(tx, ty) || 1;
+          var n = [-ty / L, tx / L];
+          if (prev ? n[0] * prev[0] + n[1] * prev[1] < 0 : n[1] < 0) n = [-n[0], -n[1]];
+          nrm.push(n); prev = n;
+        }
+        // four little clawed legs (behind the body)
+        [0.16, 0.22, 0.5, 0.56].forEach(function (f, li) {
+          var k = Math.round(f * SEG), P = pts[k], n = nrm[k], s = P[2], r = thick(k) * s, sw = Math.sin(t * 7 + li * 1.7) * 0.5;
+          var kx = P[0] + n[0] * (r + 4 * s) + (n[1]) * sw * 4 * s, ky = P[1] + n[1] * (r + 4 * s) - n[0] * sw * 4 * s;
+          var fx = kx + n[0] * 4 * s - n[1] * 3 * s * (li % 2 ? 1 : -1), fy = ky + n[1] * 4 * s + n[0] * 3 * s * (li % 2 ? 1 : -1);
+          line(P[0], P[1], kx, ky, 3.6 * s, li % 2 ? C.greenD : C.green); line(kx, ky, fx, fy, 3 * s, li % 2 ? C.greenD : C.green);
+          [-1, 0, 1].forEach(function (c) { line(fx, fy, fx + n[0] * 2.6 * s + c * 1.6 * s * n[1], fy + n[1] * 2.6 * s - c * 1.6 * s * n[0], 1.1 * s, C.horn); });
+        });
+        // tail tuft (flame-like fur)
+        var T = pts[SEG], Tn = nrm[SEG], tb = pts[SEG - 3], dx = T[0] - tb[0], dy = T[1] - tb[1], dl = Math.hypot(dx, dy) || 1;
+        for (var f = 0; f < 5; f++) {
+          var aa = Math.atan2(dy, dx) + (f - 2) * 0.35 + Math.sin(t * 6 + f) * 0.15, len = (12 - Math.abs(f - 2) * 2) * T[2];
+          poly([[T[0] + Tn[0] * 2, T[1] + Tn[1] * 2], [T[0] - Tn[0] * 2, T[1] - Tn[1] * 2], [T[0] + Math.cos(aa) * len, T[1] + Math.sin(aa) * len]], f % 2 ? C.gold : C.fire2);
+        }
+        // dorsal fin spikes along the back
+        for (var k2 = 6; k2 < SEG - 4; k2 += 4) {
+          var P2 = pts[k2], n2 = nrm[k2], r2 = thick(k2) * P2[2], h = (2.6 + 1.6 * (1 - k2 / SEG)) * P2[2];
+          var a2 = pts[k2 - 2], ux = P2[0] - a2[0], uy = P2[1] - a2[1], ul = Math.hypot(ux, uy) || 1; ux /= ul; uy /= ul;
+          var bx = P2[0] - n2[0] * r2 * 0.85, by = P2[1] - n2[1] * r2 * 0.85;
+          disc(bx, by, h * 0.75, k2 % 8 ? C.fire2 : C.gold);
+        }
+        // the body: green, back shading, yellow belly plates (tail first so the head end sits on top)
+        for (var j = SEG; j >= 0; j--) disc(pts[j][0], pts[j][1], thick(j) * pts[j][2], C.green);
+        for (var j2 = SEG; j2 >= 0; j2--) { var Q = pts[j2], r3 = thick(j2) * Q[2]; disc(Q[0] - nrm[j2][0] * r3 * 0.45, Q[1] - nrm[j2][1] * r3 * 0.45, r3 * 0.42, C.greenL); }
+        for (var j3 = SEG; j3 >= 0; j3--) { var Q3 = pts[j3], r4 = thick(j3) * Q3[2]; disc(Q3[0] + nrm[j3][0] * r4 * 0.5, Q3[1] + nrm[j3][1] * r4 * 0.5, r4 * 0.5, C.belly); }
+        for (var j4 = 4; j4 < SEG; j4 += 3) {
+          var Q4 = pts[j4], n4 = nrm[j4], r5 = thick(j4) * Q4[2], cx4 = Q4[0] + n4[0] * r5 * 0.5, cy4 = Q4[1] + n4[1] * r5 * 0.5;
+          line(cx4 - n4[0] * r5 * 0.45, cy4 - n4[1] * r5 * 0.45, cx4 + n4[0] * r5 * 0.45, cy4 + n4[1] * r5 * 0.45, 0.6 * Q4[2], C.bellyD);
+          var sx4 = Q4[0] - n4[0] * r5 * (j4 % 2 ? 0.05 : 0.45), sy4 = Q4[1] - n4[1] * r5 * (j4 % 2 ? 0.05 : 0.45);
+          g.strokeStyle = C.greenD; g.lineWidth = 0.7 * Q4[2]; g.beginPath(); g.arc(sx4, sy4, 1.4 * Q4[2], Math.atan2(n4[1], n4[0]) - 1.2, Math.atan2(n4[1], n4[0]) + 1.2); g.stroke();
+        }
+        return { head: pts[0], n: nrm[0], dir: Math.atan2(pts[0][1] - pts[3][1], pts[0][0] - pts[3][0]) };
+      }
+      // long flowing whiskers; (dx, dy) = the way they stream, they ripple sideways
+      function whisker(x, y, dx, dy, len, t, ph, s) {
+        g.strokeStyle = C.gold; g.lineWidth = 1.1 * s; g.lineCap = "round"; g.beginPath(); g.moveTo(x, y);
+        for (var i = 1; i <= 12; i++) { var u = i / 12, w = Math.sin(t * 7 + ph - u * 5) * 3 * u * s; g.lineTo(x + dx * len * u - dy * w, y + dy * len * u + dx * w); }
+        g.stroke();
+      }
+      function shape(cmds, col) {
+        g.fillStyle = col; g.beginPath(); g.moveTo(cmds[0][0], cmds[0][1]);
+        for (var i = 1; i < cmds.length; i++) { var c = cmds[i]; if (c.length === 2) g.lineTo(c[0], c[1]); else g.quadraticCurveTo(c[0], c[1], c[2], c[3]); }
+        g.closePath(); g.fill();
+      }
+      // Chinese dragon head in profile, facing +x (rotated to ang, mirrored when facing left), scale s.
+      // o: { t, mouth 0..1, glow 0..1 }. Returns the mouth position on screen (where the fire comes out).
+      function headSide(x, y, ang, s, o) {
+        var t = o.t, m = o.mouth || 0, flip = Math.cos(ang) < 0 ? -1 : 1;
+        var c = Math.cos(ang), sn = Math.sin(ang);
+        function at(lx, ly) { ly *= flip; return [x + (lx * c - ly * sn) * s, y + (lx * sn + ly * c) * s]; }
+        var w1 = at(27, 3), dn = [-sn * flip, c * flip];
+        whisker(w1[0], w1[1], -c * 0.75 + dn[0] * 0.66, -sn * 0.75 + dn[1] * 0.66, 30 * s, t, 0, s);
+        whisker(w1[0], w1[1], -c * 0.45 + dn[0] * 0.9, -sn * 0.45 + dn[1] * 0.9, 22 * s, t, 1.4, s);
+        g.save(); g.translate(x, y); g.rotate(ang); g.scale(s * (o.sx || 1), s * flip);
+        // flowing mane: wavy locks streaming back
+        for (var i = 0; i < 6; i++) {
+          var top = [], bot = [];
+          for (var j = 0; j <= 8; j++) {
+            var u = j / 8, bx = -3 + i * 0.6 - j * 2.2, by = -7 + i * 2.2 + Math.sin(t * 7 - j * 0.6 + i) * j * 0.3 + (i - 2.5) * j * 0.32, w = 2.6 * (1 - u);
+            top.push([bx, by - w]); bot.unshift([bx, by + w]);
+          }
+          poly(top.concat(bot), i % 3 === 0 ? C.fire3 : i % 3 === 1 ? C.fire2 : C.gold);
+        }
+        // antlers (far one darker)
+        line(2, -9, -6, -19, 2, C.hornD); line(-3, -15, -1, -21, 1.4, C.hornD);
+        line(-1, -9, -11, -19, 2.3, C.horn); line(-6, -14.5, -4.5, -21.5, 1.6, C.horn); line(-11, -19, -17, -20, 1.5, C.horn); line(-9, -17, -12, -24, 1.4, C.horn);
+        // cheek frills
+        [[-5, 1, 2.7], [-4, 4, 2.9], [-6, -2, 2.5]].forEach(function (f, k) { poly([[f[0] + 2, f[1] - 1.6], [f[0] + 2, f[1] + 1.6], [f[0] - 10, f[1] + 2 + k + Math.sin(t * 8 + k)]], k % 2 ? C.fire2 : C.gold); });
+        // lower jaw: drops open for the fire
+        g.save(); g.translate(-3, 2); g.rotate(m * 0.55);
+        if (m > 0.05) shape([[0, 0], [25, -0.5], [20, -3], [0, -2]], C.mouth);
+        shape([[0, 0], [25, 0], [27, 2, 23, 4], [6, 6.5], [-1, 5, 0, 0]], C.belly);
+        line(3, 3.5, 22, 2.5, 0.6, C.bellyD);
+        [10, 17].forEach(function (k) { poly([[k, 0.2], [k + 1, -2.6], [k + 2, 0.2]], C.white); });
+        // beard
+        for (var b = 0; b < 4; b++) { var bx2 = 4 + b * 3.5; poly([[bx2, 5.5], [bx2 + 3, 5], [bx2 - 4 + Math.sin(t * 7 + b) * 1.2, 12 - b * 0.8]], b % 2 ? C.fire2 : C.gold); }
+        g.restore();
+        if (m > 0.05) { ell(18, 3 + m * 4, 7, 1.5 + m * 3.5, 0.25 * m, C.mouth); ell(20, 3 + m * 4, 4, 1 + m * 2, 0.25 * m, C.fire1); }
+        // the head: skull, brow dome, long snout, bulb nose
+        shape([[-8, 2], [-10, -8, -1, -10], [6, -12, 11, -8], [16, -6.5, 22, -6.5], [27, -9, 29.5, -4.5], [31.5, 0, 27.5, 2.5], [8, 3.2], [-2, 5, -8, 2]], C.green);
+        shape([[1, -9.5], [7, -10.8, 10.5, -7.6], [16, -5.8, 22, -6], [16, -4.6, 9, -6], [6, -8.6, 1, -9.5]], C.greenL);
+        disc(27.4, -4, 3.5, C.green); disc(26.6, -5.2, 1.4, C.greenL);
+        g.strokeStyle = C.greenDD; g.lineWidth = 0.9; g.beginPath(); g.arc(28.6, -2.2, 1.4, 3.6, 7.6); g.stroke();   // nostril curl
+        // fangs + lip line
+        line(8, 3, 27, 2.4, 0.7, C.greenDD);
+        poly([[12, 3], [13.2, 6.4], [14.4, 3]], C.white); poly([[22, 2.7], [23, 5.4], [24, 2.6]], C.white);
+        // heavy brow + almond eye
+        line(1.5, -8.6, 10.5, -6.2, 1.8, C.greenDD);
+        ell(6.2, -4.7, 3.2, 2.1, -0.12, C.eye); disc(6.9, -4.8, 1.35, C.ink); rect(5.3, -5.9, 0.8, 0.8, C.white);
+        line(3, -2.6, 9, -2.9, 0.6, C.greenD);
+        // scale marks on the cheek
+        [[0, -2], [-2.5, 0.5], [1, 1]].forEach(function (c) { g.strokeStyle = C.greenD; g.lineWidth = 0.6; g.beginPath(); g.arc(c[0], c[1], 1.3, 0.2, 2.9); g.stroke(); });
+        if (o.glow > 0 && m < 0.05) disc(26, 2.5, 1.2 + o.glow * 1.5, C.fire2);                               // smoke-glow at the lips
+        g.restore();
+        return at(25, 4 + m * 4);
+      }
+
+      // ============================================================ fire
+      // jets in every direction from the mouth; particles age white -> yellow -> orange -> red, growing as they fly
+      var JETS = 18, EMIT = 0.02, LIFE = 0.6;
+      var FIRE_COLS = ["hot", "fire1", "fire2", "fire3", "fire4", "fire5"];
+      function fireCol(a) { return C[FIRE_COLS[Math.min(5, Math.floor(a * 6))]]; }
+      // a flame tongue: round head, tail streaming back toward the mouth, a hotter core inside
+      function tongue(x, y, a, r, age) {
+        var ca = Math.cos(a), sa = Math.sin(a);
+        for (var l = 0; l < 3; l++) {
+          var rr = r * [1, 0.62, 0.3][l], col = fireCol(Math.max(0, age - l * 0.22)), bx = x - ca * r * 0.25 * l, by = y - sa * r * 0.25 * l;
+          if (rr < 0.5) break;
+          disc(bx, by, rr, col);
+          poly([[bx - sa * rr, by + ca * rr], [bx + sa * rr, by - ca * rr], [bx - ca * rr * 2.6, by - sa * rr * 2.6]], col);
+        }
+      }
+      function fire(t, mx, my) {
+        if (t < T_FIRE) return;
+        var fade = ramp(t, T_FADE, T_FADE + 0.45), frame = Math.floor(t * 15);
+        var n0 = Math.max(0, Math.floor((t - LIFE - T_FIRE) / EMIT)), n1 = Math.floor((Math.min(t, FIRE_END) - T_FIRE) / EMIT);
+        for (var e = n0; e <= n1; e++) {
+          var te = T_FIRE + e * EMIT, age = (t - te) / LIFE;
+          if (age < 0 || age > 1) continue;
+          for (var j = 0; j < JETS; j++) {
+            var id = e * 31 + j * 7, a = (j + hash1(id) * 0.8) / JETS * 6.2832 + Math.sin(te * 3 + j) * 0.12;
+            var d = (420 + hash1(id + 3) * 150) * (t - te) * (1 - 0.25 * age);
+            var r = (2 + 34 * age) * (0.82 + 0.3 * hash1(id + frame)) * (1 - fade);
+            if (r < 0.4) continue;
+            // a wobble so the jets lick like flames
+            var px = mx + Math.cos(a) * d + Math.sin(t * 9 + id) * 3 * age, py = my + Math.sin(a) * d * 0.9 - age * age * 18;
+            tongue(px, py, a, r, age + fade * 0.5);
+          }
+        }
+        // the blast at the camera: big rolling fireballs out of the mouth
+        for (var b = 0; b < 0; b++) {
+          var tb = T_FIRE + 0.03 + b * 0.08, u = (t - tb) / 0.4;
+          if (u < 0 || u > 1) continue;
+          var ang = b * 2.4, rr = (6 + 60 * easeOut(u)) * (1 - u * 0.6) * (1 - fade), off = 30 * u;
+          tongue(mx + Math.cos(ang) * off, my + Math.sin(ang) * off, ang, rr, 0.15 + u * 0.5 + fade * 0.4);
+        }
+        if (fade < 1 && t < T_FADE + 0.4) { lighter(); glow(mx, my, 30 + 60 * clamp01((t - T_FIRE) / 0.5), C.fire1, 0.6 * (1 - fade)); normalBlend(); }
+      }
+      // embers + ash drifting up as the fire dies
+      function embers(t) {
+        var u = t - T_FADE; if (u < 0 || u > 1.6) return;
+        for (var i = 0; i < 70; i++) {
+          var x0 = hash1(i) * 340 - 10, y0 = 10 + hash1(i + 50) * 175, life = 0.6 + hash1(i + 9) * 0.9, k = u / life;
+          if (k > 1) continue;
+          var x = x0 + Math.sin(t * 2 + i) * 4, y = y0 - u * (14 + hash1(i + 4) * 22);
+          var col = k < 0.35 ? C.fire1 : k < 0.7 ? C.fire2 : (i % 3 ? C.ash : C.fire3);
+          var sz = (i % 4 ? 1.5 : 2.5) * (1 - k * 0.5);
+          rect(x, y, sz, sz, col);
+        }
+      }
+
+      // ============================================================ the title: a chunky pixel logo
+      var GL = {
+        "@": ["0111110", "1000001", "1001101", "1010101", "1001110", "1000000", "0111110"],
+        h: ["10000", "10000", "10110", "11001", "10001", "10001", "10001"],
+        e: ["00000", "00000", "01110", "10001", "11111", "10000", "01110"],
+        y: ["00000", "00000", "10001", "10001", "10001", "01111", "00001", "10001", "01110"],
+        ".": ["00", "00", "00", "00", "00", "11", "11"],
+        r: ["00000", "00000", "10110", "11001", "10000", "10000", "10000"],
+        i: ["010", "000", "110", "010", "010", "010", "111"],
+        s: ["00000", "00000", "01111", "10000", "01110", "00001", "11110"],
+      };
+      var HANDLE = "@hey.rishish";
+      function letterTime(i) { return i < 5 ? T_HANDLE + i * 0.035 : T_NAME + (i - 5) * 0.035; }
+      function logo(t, cx, top, S) {
+        var E = 2, widths = HANDLE.split("").map(function (c) { return GL[c][0].length; });
+        var total = widths.reduce(function (a, b) { return a + b + 1; }, -1) * S, x = Math.round(cx - total / 2);
+        var shine = (t - (T_NAME + 0.3)) * 320;
+        var dots = [];
+        HANDLE.split("").forEach(function (ch, i) {
+          var p = clamp01((t - letterTime(i)) / 0.3);
+          if (p > 0) {
+            var dy = Math.round((1 - easeBack(p)) * -26), gl = GL[ch];
+            for (var r = 0; r < gl.length; r++) for (var c = 0; c < gl[r].length; c++) if (gl[r][c] === "1") dots.push([x + c * S, top + r * S + dy, r, x + c * S - (top + r * S)]);
+          }
+          x += (widths[i] + 1) * S;
+        });
+        var has = {}; dots.forEach(function (d) { has[Math.round(d[0]) + "," + Math.round(d[1])] = 1; });
+        dots.forEach(function (d) { rect(d[0] - 1, d[1] - 1, S + 2, S + 2 + E, C.ink); });      // outline (with the extrude)
+        dots.forEach(function (d) { rect(d[0], d[1] + 1, S, S + E - 1, C.goldD); rect(d[0], d[1] + 1, S, S + E - 2, C.gold); }); // 3D side
+        dots.forEach(function (d) {
+          var col = C.green;
+          if (Math.abs(d[3] - shine) < 14) col = d[2] < 4 ? C.white : C.greenL;                    // a shine sweeps across
+          rect(d[0], d[1], S, S, col);
+        });
+        dots.forEach(function (d) { if (!has[Math.round(d[0]) + "," + Math.round(d[1] - S)]) rect(d[0], d[1], S, 1, C.greenL); });
+      }
+      function banner(t, cx, y) {
+        var u = clamp01((t - T_TITLE) / 0.3), w = 196 * easeOut(u);
+        if (u <= 0) return;
+        w = Math.round(w); var x0 = Math.round(cx - w / 2);
+        // ribbon tails
+        if (u > 0.6) { poly([[x0 + 6, y + 3], [x0 - 12, y + 3], [x0 - 6, y + 10], [x0 - 12, y + 17], [x0 + 6, y + 17]], C.goldD); poly([[x0 + w - 6, y + 3], [x0 + w + 12, y + 3], [x0 + w + 6, y + 10], [x0 + w + 12, y + 17], [x0 + w - 6, y + 17]], C.goldD); }
+        rect(x0 - 1, y - 1, w + 2, 22, C.ink);
+        rect(x0, y, w, 20, C.gold); rect(x0, y, w, 3, C.bellyL); rect(x0, y + 17, w, 3, C.goldD);
+        var str = "WELCOME BACK TO", n = Math.floor(clamp01((t - T_TITLE - 0.12) / 0.3) * str.length);
+        if (n > 0) { var full = str.length * 12 - 2, left = cx - full / 2; worldText(str.slice(0, n), left + (n * 12 - 2) / 2, y + 3, 2, C.greenDD); }
+      }
+      function sparkle(t, cx, cy) {
+        var u = t - T_NAME - 0.15; if (u < 0) return;
+        for (var i = 0; i < 9; i++) {
+          var ph = (u * 1.4 + hash1(i) ) % 1, a = hash1(i + 20) * 6.2832;
+          var x = cx + Math.cos(a) * (60 + hash1(i + 3) * 90), y = cy + Math.sin(a) * (22 + hash1(i + 5) * 26);
+          var r = Math.sin(ph * Math.PI) * 3.5;
+          if (r > 0.6) star(x, y, r, i % 2 ? C.gold : C.green);
+        }
+      }
+
+      // ============================================================ Chinese lucky clouds drifting on the white
+      var CLOUDS = [[40, 30, 1.1], [250, 24, 0.9], [120, 150, 0.8], [300, 140, 1.2], [180, 70, 0.7], [-10, 110, 0.9]];
+      function luckyCloud(x, y, k) {
+        disc(x, y, 7 * k, C.cloud); disc(x + 9 * k, y + 1 * k, 5.5 * k, C.cloud); disc(x - 9 * k, y + 2 * k, 5 * k, C.cloud); ell(x, y + 4 * k, 17 * k, 3.5 * k, 0, C.cloud);
+        g.strokeStyle = C.cloudD; g.lineWidth = 1; g.lineCap = "round";
+        [[x, y, 3.5], [x + 9 * k, y + 1 * k, 2.5], [x - 9 * k, y + 2 * k, 2.4]].forEach(function (c, i) { g.beginPath(); g.arc(c[0], c[1], c[2] * k, i ? 3.6 : 3.3, i ? 8.6 : 8.9); g.stroke(); });
+      }
+      function clouds(t) {
+        screen();
+        CLOUDS.forEach(function (c, i) { var x = ((c[0] - t * (8 + i * 3) + 60) % 400 + 400) % 400 - 60; luckyCloud(x, c[1], c[2]); });
+      }
+      // the ending: the dragon slithers back in, wraps its body under the name and pops its head up by the banner
+      var WRAP = [[-70, 150], [-20, 152], [30, 158], [80, 146], [130, 158], [180, 146], [228, 156], [272, 150], [300, 124], [306, 92], [302, 66]];
+      function wrapAt(u) {
+        u = clamp01(u) * (WRAP.length - 1);
+        var i = Math.min(WRAP.length - 2, Math.floor(u)), f = u - i;
+        var p0 = WRAP[Math.max(0, i - 1)], p1 = WRAP[i], p2 = WRAP[i + 1], p3 = WRAP[Math.min(WRAP.length - 1, i + 2)];
+        function cr(a, b, c, d) { return 0.5 * (2 * b + (-a + c) * f + (2 * a - 5 * b + 4 * c - d) * f * f + (-a + 3 * b - 3 * c + d) * f * f * f); }
+        return [cr(p0[0], p1[0], p2[0], p3[0]), cr(p0[1], p1[1], p2[1], p3[1]), 0.8];
+      }
+      function finale(t) {
+        var lead = easeOut((t - T_TITLE - 0.12) / 0.7);
+        if (t < T_TITLE + 0.12) return;
+        var pts = [];
+        for (var k = 0; k <= SEG; k++) { var u = lead - k * 0.0105, P = wrapAt(u); if (u < 0) P[0] -= -u * 380; P[1] += Math.sin(t * 5 - k * 0.25) * 1.5 * clamp01(k / 10); pts.push(P); }
+        var settle = ramp(t, T_TITLE + 0.6, T_TITLE + 0.95);
+        character(function () {
+          var b = dragonBody(t, pts);
+          var d = Math.PI + 0.35 - b.dir; d = Math.atan2(Math.sin(d), Math.cos(d));                            // ends looking at the name
+          headSide(b.head[0], b.head[1] + Math.sin(t * 4) * settle, b.dir + d * settle, 0.55, { t: t, mouth: 0.25 * ramp(t, T_NAME + 0.2, T_NAME + 0.4) });
+        });
+      }
+
+      // ============================================================ the scene
+      function scene(t) {
+        var cam = { x: 160, y: 90, z: 1 + 0.06 * ramp(t, T_INHALE, T_FIRE) - 0.06 * ramp(t, T_FIRE + 0.6, T_FADE + 0.6) };
+        shake(cam, t, T_FIRE, 9, 1.3);
+        screen(); rect(0, 0, W, H, C.white);
+        clouds(t);
+        setCam(cam);
+        var MX = 160, MY = 92;
+        if (t < T_FADE) {
+          var H0 = proj(headPath(t));
+          ell(H0[0], 170, 30 * H0[2], 2 + H0[2], 0, C.mist);                                  // soft shadow on the white
+          if (t < T_TURN + 0.3) for (var sl = 0; sl < 4; sl++) { var ly = H0[1] - 10 + sl * 8, lx = H0[0] - 40 - hash1(sl) * 30 - (t * 140 % 24); rect(lx, ly, 18 + hash1(sl + 7) * 16, 1, C.mist); }
+          // turning to the camera: side head squashes away, front head grows in
+          var glowK = ramp(t, T_INHALE, T_FIRE) * (1 - ramp(t, T_FIRE + 0.3, T_FIRE + 0.6));
+          var m = t < T_FIRE - 0.1 ? 0 : clamp01((t - T_FIRE + 0.1) / 0.12);
+          var mouthAt = null;
+          character(function () {
+            var b = dragonBody(t);
+            var hs = b.head[2] * (1 + 0.06 * glowK);
+            // the head turns from its flight direction to face the viewer's right, rearing back for the fire
+            var k = ramp(t, T_TURN + 0.2, T_INHALE), want = -0.15 - 0.25 * glowK + 0.2 * m, d = want - b.dir;
+            d = Math.atan2(Math.sin(d), Math.cos(d));
+            var ang = b.dir + d * k;
+            mouthAt = headSide(b.head[0] - 8 * hs * k, b.head[1] + 2 * hs * k, ang, hs * 0.62, { t: t, mouth: m, glow: glowK });
+          });
+          if (glowK > 0 && t < T_FIRE && mouthAt) { lighter(); glow(mouthAt[0], mouthAt[1], 10 + 30 * glowK, C.fire2, 0.6 * glowK); normalBlend(); }
+          if (mouthAt) { MX = mouthAt[0]; MY = mouthAt[1]; }
+        }
+        fire(t, MX, MY);
+        embers(t);
+        // 4. the title
+        if (t > T_TITLE - 0.05) {
+          screen();
+          finale(t);
+          banner(t, 160, 46);
+          logo(t, 160, 82, 4);
+          sparkle(t, 160, 100);
+        }
+      }
+      PX.setup(C, {
+        scenes: { main: scene },
+        sceneAt: function () { return "main"; },
+        cuts: [],
+        post: function (t, img) {
+          if (t > T_FIRE && t < T_FIRE + 0.05) tintImg(img, C.hot, 0.35);          // the flash as the fire leaves the mouth
+        },
+        captions: [],
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
