@@ -49,16 +49,16 @@
       id="root"
       data-composition-id="main"
       data-start="0"
-      data-duration="5"
+      data-duration="6.5"
       data-width="1920"
       data-height="1080"
     >
-      <section id="stage" class="clip" data-start="0" data-duration="5" data-track-index="0">
+      <section id="stage" class="clip" data-start="0" data-duration="6.5" data-track-index="0">
         <canvas id="world" width="320" height="180" data-layout-allow-overflow></canvas>
         <canvas id="ui" width="640" height="360"></canvas>
       </section>
       <!-- built by scripts/synth_audio.py: the host's line + ducked open-source SFX -->
-      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="5" data-track-index="1"></audio>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="6.5" data-track-index="1"></audio>
     </div>
     <script>
       window.PX_W = 320;
@@ -69,7 +69,7 @@
     <script src="pixel-engine.js"></script>
     <script src="captions.js"></script>
     <script>
-      var DUR = window.DUR || 5;
+      var DUR = window.DUR || 6.5;
       var C = {
         white: "#ffffff", cloud: "#e2f4e4", cloudD: "#b6dcbe", mist: "#dfe4d8", ash: "#b4b8b0", smoke: "#80847c", ink: "#0a0614",
         // the dragon
@@ -96,11 +96,11 @@
       // ============================================================ the dragon: a long Chinese lóng (no wings, serpent body)
       // The head flies a 3D path; the body is the head's own trail (where the head was k*DT seconds ago), so it
       // swims through the air in S-curves. D = distance from the camera (1 = far, smaller = closer, bigger on screen).
-      var SEG = 76, DT = 0.0105;
+      var SEG = 76, DT = 0.0137;
       function headPath(t) {
         var t1 = T_TURN;
         if (t <= t1) {
-          var x = -30 + 180 * t, y = 76 + 10 * ease(t / t1) + 15 * Math.sin(t * 7);
+          var x = -30 + 138 * t, y = 76 + 10 * ease(t / t1) + 15 * Math.sin(t * 5.4);
           return [x, y, 1];
         }
         var e = headPath(t1), p = clamp01((t - t1) / (T_INHALE - t1)), q = ease(p);
@@ -224,7 +224,7 @@
 
       // ============================================================ fire
       // jets in every direction from the mouth; particles age white -> yellow -> orange -> red, growing as they fly
-      var JETS = 18, EMIT = 0.02, LIFE = 0.6;
+      var JETS = 18, EMIT = 0.024, LIFE = 0.75;
       var FIRE_COLS = ["hot", "fire1", "fire2", "fire3", "fire4", "fire5"];
       function fireCol(a) { return C[FIRE_COLS[Math.min(5, Math.floor(a * 6))]]; }
       // a flame tongue: round head, tail streaming back toward the mouth, a hotter core inside
@@ -239,14 +239,14 @@
       }
       function fire(t, mx, my) {
         if (t < T_FIRE) return;
-        var fade = ramp(t, T_FADE, T_FADE + 0.45), frame = Math.floor(t * 15);
+        var fade = ramp(t, T_FADE, T_FADE + 0.6), frame = Math.floor(t * 15);
         var n0 = Math.max(0, Math.floor((t - LIFE - T_FIRE) / EMIT)), n1 = Math.floor((Math.min(t, FIRE_END) - T_FIRE) / EMIT);
         for (var e = n0; e <= n1; e++) {
           var te = T_FIRE + e * EMIT, age = (t - te) / LIFE;
           if (age < 0 || age > 1) continue;
           for (var j = 0; j < JETS; j++) {
             var id = e * 31 + j * 7, a = (j + hash1(id) * 0.8) / JETS * 6.2832 + Math.sin(te * 3 + j) * 0.12;
-            var d = (420 + hash1(id + 3) * 150) * (t - te) * (1 - 0.25 * age);
+            var d = (330 + hash1(id + 3) * 120) * (t - te) * (1 - 0.25 * age);
             var r = (2 + 34 * age) * (0.82 + 0.3 * hash1(id + frame)) * (1 - fade);
             if (r < 0.4) continue;
             // a wobble so the jets lick like flames
@@ -288,7 +288,7 @@
         s: ["00000", "00000", "01111", "10000", "01110", "00001", "11110"],
       };
       var HANDLE = "@hey.rishish";
-      function letterTime(i) { return i < 5 ? T_HANDLE + i * 0.035 : T_NAME + (i - 5) * 0.035; }
+      function letterTime(i) { return i < 5 ? T_HANDLE + i * 0.04 : T_NAME + (i - 5) * 0.04; }
       function logo(t, cx, top, S) {
         var E = 2, widths = HANDLE.split("").map(function (c) { return GL[c][0].length; });
         var total = widths.reduce(function (a, b) { return a + b + 1; }, -1) * S, x = Math.round(cx - total / 2);
@@ -320,7 +320,7 @@
         if (u > 0.6) { poly([[x0 + 6, y + 3], [x0 - 12, y + 3], [x0 - 6, y + 10], [x0 - 12, y + 17], [x0 + 6, y + 17]], C.goldD); poly([[x0 + w - 6, y + 3], [x0 + w + 12, y + 3], [x0 + w + 6, y + 10], [x0 + w + 12, y + 17], [x0 + w - 6, y + 17]], C.goldD); }
         rect(x0 - 1, y - 1, w + 2, 22, C.ink);
         rect(x0, y, w, 20, C.gold); rect(x0, y, w, 3, C.bellyL); rect(x0, y + 17, w, 3, C.goldD);
-        var str = "WELCOME BACK TO", n = Math.floor(clamp01((t - T_TITLE - 0.12) / 0.3) * str.length);
+        var str = "WELCOME BACK TO", n = Math.floor(clamp01((t - T_TITLE - 0.15) / 0.4) * str.length);
         if (n > 0) { var full = str.length * 12 - 2, left = cx - full / 2; worldText(str.slice(0, n), left + (n * 12 - 2) / 2, y + 3, 2, C.greenDD); }
       }
       function sparkle(t, cx, cy) {
@@ -354,11 +354,11 @@
         return [cr(p0[0], p1[0], p2[0], p3[0]), cr(p0[1], p1[1], p2[1], p3[1]), 0.8];
       }
       function finale(t) {
-        var lead = easeOut((t - T_TITLE - 0.12) / 0.7);
+        var lead = easeOut((t - T_TITLE - 0.12) / 0.9);
         if (t < T_TITLE + 0.12) return;
         var pts = [];
         for (var k = 0; k <= SEG; k++) { var u = lead - k * 0.0105, P = wrapAt(u); if (u < 0) P[0] -= -u * 380; P[1] += Math.sin(t * 5 - k * 0.25) * 1.5 * clamp01(k / 10); pts.push(P); }
-        var settle = ramp(t, T_TITLE + 0.6, T_TITLE + 0.95);
+        var settle = ramp(t, T_TITLE + 0.8, T_TITLE + 1.2);
         character(function () {
           var b = dragonBody(t, pts);
           var d = Math.PI + 0.35 - b.dir; d = Math.atan2(Math.sin(d), Math.cos(d));                            // ends looking at the name
