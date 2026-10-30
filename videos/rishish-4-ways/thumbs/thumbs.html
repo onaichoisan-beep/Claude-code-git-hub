@@ -49,6 +49,23 @@ body { background: #222; display: flex; flex-direction: column; gap: 30px; paddi
 .note2.big span { font-size: 32px; color: #cfcfd6; }
 .cash { background: url('../edit/assets/stock/rupees.jpg') center/cover; -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: brightness(1.7) contrast(1.15) saturate(1.4) drop-shadow(0 0 30px rgba(216,255,79,.35)) drop-shadow(0 12px 0 rgba(0,0,0,.6)); }
+
+.inter { font-family: Inter; font-weight: 900; letter-spacing: -1px; line-height: 1; white-space: nowrap; }
+.silver { font-family: Anton; line-height: .95; color: transparent;
+  background: linear-gradient(180deg, #ffffff 0%, #e9e9ee 35%, #9a9aa6 62%, #f2f2f6 78%, #b9b9c4 100%);
+  -webkit-background-clip: text; background-clip: text;
+  filter: drop-shadow(0 2px 0 #7d7d88) drop-shadow(0 4px 0 #5e5e68) drop-shadow(0 6px 0 #45454d) drop-shadow(0 18px 30px rgba(0,0,0,.8)); }
+.phone2 { position: absolute; width: 380px; height: 620px; border-radius: 52px; background: #e8e8ec; padding: 14px;
+  box-shadow: 0 0 0 4px #b8b8c0, 0 40px 80px rgba(0,0,0,.75); }
+.scr2 { width: 100%; height: 100%; border-radius: 40px; background: linear-gradient(180deg,#2a2a30,#121216); padding: 70px 18px 18px; }
+.tot { background: #fff; border-radius: 22px; padding: 18px 20px; box-shadow: 0 14px 30px rgba(0,0,0,.45); margin-bottom: 18px; }
+.tot span { display: block; font-family: Inter; font-weight: 800; font-size: 30px; color: #222; }
+.tot b { display: block; font-family: Inter; font-weight: 900; font-size: 68px; letter-spacing: -3px; color: #111; line-height: 1; margin-top: 4px; }
+.rcv { display: flex; align-items: center; gap: 14px; background: #fff; border-radius: 16px; padding: 12px 14px; margin-bottom: 12px; box-shadow: 0 8px 20px rgba(0,0,0,.35); }
+.rcv i { flex: none; width: 46px; height: 46px; border-radius: 50%; background: conic-gradient(#4285f4 0 25%, #34a853 0 50%, #fbbc05 0 75%, #ea4335 0); }
+.rcv b { display: block; font-family: Inter; font-weight: 900; font-size: 26px; color: #111; }
+.rcv span { display: block; font-family: Inter; font-weight: 700; font-size: 24px; color: #333; }
+.rcv.dim { opacity: .75; }
 </style></head><body>
 
 <!-- 1: ₹80,000 behind head (matches the video's hook) -->
@@ -161,5 +178,55 @@ body { background: #222; display: flex; flex-direction: column; gap: 30px; paddi
   </div>
   <div class="tag" style="left:44px;top:640px;font-size:40px;padding:6px 16px 2px">1st year MBBS</div>
   <img src="cut/calm.png" style="position:absolute;width:1350px;left:380px;top:95px;filter:brightness(1.1) contrast(1.12) saturate(1.15) drop-shadow(5px 0 0 #fff) drop-shadow(-5px 0 0 #fff) drop-shadow(0 5px 0 #fff) drop-shadow(0 -5px 0 #fff) drop-shadow(0 0 30px rgba(255,40,40,.8))">
+</div>
+
+<!-- V1: giant number behind head (glasses) -->
+<div class="t" id="t10" style="background:#08080a">
+  <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg,#0d0d10 0 34px,#18181d 34px 40px,#0d0d10 40px 74px)"></div>
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 38%, rgba(255,255,255,.10) 0%, transparent 55%), radial-gradient(ellipse at 50% 100%, rgba(200,10,25,.35) 0%, transparent 60%)"></div>
+  <div class="silver" style="position:absolute;left:0;right:0;top:22px;text-align:center;font-size:330px;letter-spacing:2px">₹80,000</div>
+  <img src="cut/glasses.png" style="position:absolute;width:1880px;left:-312px;top:30px;filter:brightness(1.1) contrast(1.12) saturate(1.1) drop-shadow(0 0 40px rgba(0,0,0,.8))">
+  <div style="position:absolute;right:40px;top:405px;text-align:right">
+    <div class="inter" style="font-size:64px;color:#ffd400;text-shadow:0 4px 0 rgba(0,0,0,.6),0 0 30px rgba(255,212,0,.35)">in 1st Year</div>
+    <div class="inter" style="font-size:64px;color:#ffd400;text-shadow:0 4px 0 rgba(0,0,0,.6),0 0 30px rgba(255,212,0,.35)">MBBS</div>
+  </div>
+  <svg style="position:absolute;right:250px;top:330px;width:120px;height:90px" viewBox="0 0 120 90"><path d="M110 80 C 90 40, 60 20, 14 14" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M14 14 L 36 4 M14 14 L 30 34" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round"/></svg>
+</div>
+
+<!-- V2: proof phone + face -->
+<div class="t" id="t11" style="background:#050505">
+  <img src="../edit/assets/stock/rupees.jpg" style="position:absolute;inset:-30px;width:1340px;height:780px;object-fit:cover;filter:blur(6px) brightness(.38) saturate(.8)">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 72% 45%, rgba(255,255,255,.08) 0%, transparent 50%), linear-gradient(90deg, rgba(0,0,0,.5), transparent 45%)"></div>
+  <img src="cut/calm.png" style="position:absolute;width:1760px;left:40px;top:44px;filter:brightness(1.12) contrast(1.12) saturate(1.12) drop-shadow(0 0 40px rgba(0,0,0,.8))">
+  <div class="phone2" style="left:40px;top:60px">
+    <div class="scr2">
+      <div class="tot"><span>Total Earnings:</span><b>₹80,000</b></div>
+      <div class="rcv"><i></i><div><b>Received</b><span>Received ₹10,000</span></div></div>
+      <div class="rcv"><i></i><div><b>Received</b><span>Received ₹7,000</span></div></div>
+      <div class="rcv dim"><i></i><div><b>Received</b><span>Brand deal · UGC</span></div></div>
+    </div>
+  </div>
+  <div style="position:absolute;left:640px;top:480px">
+    <div class="inter" style="font-size:66px;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.6)">as a</div>
+    <div class="inter" style="display:inline-block;margin-top:6px;padding:4px 18px;background:#ffd400;color:#111;font-size:70px">MBBS Student</div>
+  </div>
+  <svg style="position:absolute;left:1140px;top:330px;width:110px;height:120px" viewBox="0 0 110 120"><path d="M14 110 L 92 18" stroke="#fff" stroke-width="12" stroke-linecap="round"/><path d="M40 16 L 94 14 L 96 68" stroke="#fff" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</div>
+
+<!-- V3: growth graph on bright grid -->
+<div class="t" id="t12" style="background:#f4f4f6">
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(0,0,0,.07) 2px,transparent 2px),linear-gradient(90deg,rgba(0,0,0,.07) 2px,transparent 2px);background-size:56px 56px"></div>
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%, transparent 50%, rgba(0,0,0,.12) 100%)"></div>
+  <svg style="position:absolute;inset:0;width:1280px;height:720px" viewBox="0 0 1280 720">
+    <path d="M120 440 C 220 400, 280 330, 360 320 S 760 360, 930 270 S 1100 190, 1180 170" stroke="#111" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <circle cx="120" cy="440" r="20" fill="#e0141e"/><circle cx="360" cy="320" r="20" fill="#e0141e"/>
+    <circle cx="930" cy="270" r="20" fill="#e0141e"/><circle cx="1180" cy="170" r="22" fill="#e0141e"/>
+  </svg>
+  <img src="cut/smirk.png" style="position:absolute;width:1590px;left:-212px;top:70px;filter:brightness(1.08) contrast(1.1) saturate(1.1) drop-shadow(4px 0 0 #fff) drop-shadow(-4px 0 0 #fff) drop-shadow(0 4px 0 #fff) drop-shadow(0 -4px 0 #fff) drop-shadow(0 20px 40px rgba(0,0,0,.35))">
+  <div class="inter" style="position:absolute;left:40px;top:470px;font-size:120px;color:#e0141e;letter-spacing:-3px">₹0</div>
+  <div class="inter" style="position:absolute;right:36px;top:20px;font-size:118px;color:#12b64a;letter-spacing:-3px">₹80K</div>
+  <div class="inter" style="position:absolute;left:170px;top:220px;font-size:30px;color:#111;background:#fff;padding:4px 12px;border:3px solid #111">1st viral video</div>
+  <div class="inter" style="position:absolute;left:960px;top:300px;font-size:30px;color:#111;background:#fff;padding:4px 12px;border:3px solid #111">1st brand deal</div>
+  <div class="inter" style="position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:70px;color:#fff;background:#111;padding:14px 0 12px">AS A <span style="color:#ffd400">MEDICAL STUDENT</span></div>
 </div>
 </body></html>
