@@ -1,0 +1,54 @@
+{
+ "keys": {
+  "rishish": "red",
+  "student": "red"
+ },
+ "cues": [
+  {
+   "type": "l3",
+   "t": 0.6,
+   "d": 1.7,
+   "name": "Rishish",
+   "role": "1st year MBBS · medico"
+  },
+  {
+   "type": "broll",
+   "t": 2.3,
+   "d": 1.25,
+   "img": "assets/stock/steth.jpg",
+   "small": "still a first-year medico",
+   "nocaps": true
+  },
+  {
+   "type": "note",
+   "t": 3.75,
+   "d": 1.6,
+   "x": 1180,
+   "y": 230,
+   "text": "results pending…",
+   "arrow": "left"
+  },
+  {
+   "type": "bh",
+   "t": 5.75,
+   "d": 1.5,
+   "text": "FOR YOU",
+   "style": "chrome",
+   "matte": "a"
+  },
+  {
+   "type": "pop",
+   "t": 7.75,
+   "d": 1.5,
+   "x": 1540,
+   "y": 400,
+   "icon": "rupee",
+   "label": "EARN AS A STUDENT",
+   "tile": "red"
+  }
+ ],
+ "id": "clip07",
+ "video": "assets/video/clip07.mp4",
+ "words": "../work/base/clip07.words.json",
+ "duration": 9.487
+}

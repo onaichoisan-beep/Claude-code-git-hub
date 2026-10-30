@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1920, height=1080" />
+<title>clip02</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+@font-face { font-family: 'Anton'; font-weight: 400; font-style: normal; font-display: block; src: url('assets/fonts/Anton-400.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 500; font-style: normal; font-display: block; src: url('assets/fonts/Inter-500.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 800; font-style: normal; font-display: block; src: url('assets/fonts/Inter-800.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 900; font-style: normal; font-display: block; src: url('assets/fonts/Inter-900.woff2') format('woff2'); }
+@font-face { font-family: 'Permanent Marker'; font-weight: 400; font-style: normal; font-display: block; src: url('assets/fonts/PermanentMarker-400.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 500; font-style: normal; font-display: block; src: url('assets/fonts/JetBrainsMono-500.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 700; font-style: normal; font-display: block; src: url('assets/fonts/JetBrainsMono-700.woff2') format('woff2'); }
+
+:root {
+  --red: #e0141e;
+  --glow: #ff2a2a;
+  --ink: #0a0a0a;
+  --money: #d8ff4f;
+  --white: #ffffff;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+#root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #000;
+  font-family: "Inter", sans-serif; color: #fff; }
+.layer { position: absolute; inset: 0; }
+
+/* camera: footage + behind-head text + person matte, zoomed together */
+#cam { position: absolute; inset: 0; transform-origin: 50% 24%; }
+#cam video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+#base { filter: contrast(1.08) saturate(1.12) brightness(1.02); }
+.matte { filter: contrast(1.08) saturate(1.12) brightness(1.02); }
+.vignette { background: radial-gradient(ellipse at 50% 42%, rgba(0,0,0,0) 52%, rgba(0,0,0,.55) 100%); pointer-events: none; }
+.dim { background: #000; opacity: 0; }
+
+/* behind-head text */
+.bh { position: absolute; left: 0; right: 0; top: 40px; display: flex; justify-content: center;
+  font-family: "Anton", sans-serif; text-transform: uppercase; line-height: .9; white-space: nowrap;
+  letter-spacing: 2px; }
+.bh .w { display: inline-block; }
+.bh.white .w { color: #fff; text-shadow: 0 10px 40px rgba(0,0,0,.45); }
+.bh.red .w { color: var(--red); text-shadow: 0 0 40px rgba(255,42,42,.55), 0 10px 40px rgba(0,0,0,.5); }
+.bh.money .w { color: var(--money); text-shadow: 0 0 50px rgba(216,255,79,.45), 0 10px 40px rgba(0,0,0,.5); }
+.bh.chrome .w { background: linear-gradient(175deg, #ffffff 0%, #c9c3e8 22%, #6c6a92 38%, #f4f2ff 52%,
+  #a49fd0 66%, #ffffff 80%, #8a86b8 100%); -webkit-background-clip: text; background-clip: text;
+  color: transparent; filter: drop-shadow(0 12px 30px rgba(0,0,0,.5)); }
+
+/* captions */
+#caps { position: absolute; left: 0; right: 0; bottom: 120px; height: 200px; }
+.cap { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: center;
+  align-items: flex-end; opacity: 0; }
+.cap span { display: inline-block; font-weight: 900; font-size: 76px; letter-spacing: -1.5px;
+  color: #fff; text-shadow: 0 6px 28px rgba(0,0,0,.7), 0 2px 2px rgba(0,0,0,.5); white-space: nowrap; }
+.cap.key span { font-family: "Anton", sans-serif; font-weight: 400; font-size: 118px; letter-spacing: 1px;
+  text-transform: uppercase; }
+.cap.key.red span { color: #fff; text-shadow: 0 0 0 transparent, 0 6px 28px rgba(0,0,0,.7); }
+.cap.key.red span::after { content: ""; display: block; height: 12px; margin-top: 4px; background: var(--red);
+  box-shadow: 0 0 24px rgba(255,42,42,.7); }
+.cap.key.money span { color: var(--money); text-shadow: 0 0 36px rgba(216,255,79,.35), 0 6px 28px rgba(0,0,0,.75); }
+
+/* icon pops */
+.pop { position: absolute; width: 260px; display: flex; flex-direction: column; align-items: center; opacity: 0; }
+.pop .tile { width: 176px; height: 176px; border-radius: 40px; display: grid; place-items: center;
+  background: linear-gradient(160deg, rgba(255,255,255,.26), rgba(255,255,255,.07));
+  border: 2px solid rgba(255,255,255,.45); box-shadow: 0 20px 50px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.5);
+  backdrop-filter: blur(14px); }
+.pop .tile.red { background: linear-gradient(160deg, #ff3b3b, #a5000a); border-color: rgba(255,140,140,.8);
+  box-shadow: 0 0 50px rgba(255,42,42,.55), 0 20px 50px rgba(0,0,0,.45); }
+.pop .tile.logo { background: #fff; border-color: #fff; overflow: hidden; }
+.pop .tile.logo img { width: 100%; height: 100%; object-fit: contain; }
+.pop .tile svg { width: 92px; height: 92px; stroke: #fff; fill: none; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round; }
+.pop .lbl { margin-top: 18px; font-family: "Permanent Marker", cursive; font-size: 42px; line-height: 1.05;
+  text-align: center; color: #fff; text-shadow: 0 4px 16px rgba(0,0,0,.75); white-space: nowrap; }
+
+/* side note (marker text + arrow) */
+.note { position: absolute; font-family: "Permanent Marker", cursive; font-size: 54px; color: #fff;
+  text-shadow: 0 4px 18px rgba(0,0,0,.8); white-space: nowrap; opacity: 0; }
+.note svg { position: absolute; width: 150px; height: 90px; stroke: #fff; fill: none; stroke-width: 4;
+  stroke-linecap: round; }
+
+/* lower third */
+.l3 { position: absolute; left: 110px; bottom: 300px; opacity: 0; }
+.l3 .name { display: inline-block; background: var(--red); padding: 10px 26px 6px; font-family: "Anton", sans-serif;
+  font-size: 78px; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 0 40px rgba(255,42,42,.45); }
+.l3 .role { display: block; margin-top: 10px; font-family: "JetBrains Mono", monospace; font-weight: 700;
+  font-size: 34px; letter-spacing: 4px; text-transform: uppercase; color: #fff; text-shadow: 0 3px 12px rgba(0,0,0,.8); }
+
+/* proof card */
+.proof { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; }
+.proof .card { position: relative; padding: 22px; background: #fff; border-radius: 26px;
+  box-shadow: 0 40px 90px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.2); }
+.proof .card img { display: block; max-width: 1060px; max-height: 560px; border-radius: 12px; }
+.proof .cap2 { position: absolute; left: 0; right: 0; top: 70px; text-align: center; font-family: "Anton", sans-serif;
+  font-size: 88px; letter-spacing: 2px; text-transform: uppercase; text-shadow: 0 6px 24px rgba(0,0,0,.8); }
+.stamp { position: absolute; right: -70px; bottom: -60px; padding: 12px 30px; border: 8px solid var(--red);
+  border-radius: 16px; color: var(--red); font-family: "Anton", sans-serif; font-size: 84px; letter-spacing: 4px;
+  transform: rotate(-12deg); background: rgba(255,255,255,.92); box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+
+/* fullscreen scenes */
+.scene { position: absolute; inset: 0; overflow: hidden; opacity: 0; }
+.bg-dark { background: radial-gradient(ellipse at 50% 45%, #2b0507 0%, #120203 45%, #050505 100%); }
+.bg-dark::before { content: ""; position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,40,40,.08) 2px, transparent 2px), linear-gradient(90deg, rgba(255,40,40,.08) 2px, transparent 2px);
+  background-size: 96px 96px; }
+.scene .kicker { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 34px; letter-spacing: 10px;
+  color: var(--glow); text-transform: uppercase; }
+
+/* chapter card */
+.chapter .num { position: absolute; left: 150px; top: 120px; font-family: "Anton", sans-serif; font-size: 640px;
+  line-height: .85; color: transparent; -webkit-text-stroke: 6px var(--red);
+  filter: drop-shadow(0 0 30px rgba(255,42,42,.6)); }
+.chapter .txt { position: absolute; left: 760px; right: 120px; top: 330px; }
+.chapter .title { font-family: "Anton", sans-serif; font-size: 150px; line-height: .95; text-transform: uppercase;
+  margin-top: 20px; }
+.chapter .sub { margin-top: 26px; font-size: 44px; font-weight: 800; color: rgba(255,255,255,.75); }
+.chapter .bar { position: absolute; left: 0; right: 0; bottom: 140px; height: 14px; background: var(--red);
+  box-shadow: 0 0 40px rgba(255,42,42,.8); transform-origin: 0 50%; }
+
+/* 4-ways table */
+.table .wrap { position: absolute; left: 230px; right: 230px; top: 120px; bottom: 90px; transform-origin: 50% 50%; }
+.table h2 { text-align: center; font-family: "Anton", sans-serif; font-size: 96px; letter-spacing: 2px;
+  text-transform: uppercase; margin-bottom: 40px; }
+.table h2 b { color: var(--red); font-weight: 400; }
+.row { position: relative; display: grid; grid-template-columns: 130px 1fr 420px; align-items: center; height: 150px;
+  margin-bottom: 22px; padding: 0 36px; border: 3px solid rgba(255,42,42,.65); border-radius: 22px;
+  background: linear-gradient(90deg, rgba(60,0,4,.85), rgba(20,0,2,.85)); box-shadow: 0 0 30px rgba(255,42,42,.25); }
+.row .n { font-family: "Anton", sans-serif; font-size: 84px; color: var(--red); }
+.row .t { font-family: "Anton", sans-serif; font-size: 64px; letter-spacing: 1px; text-transform: uppercase; }
+.row .m { justify-self: end; font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 36px; color: var(--money); }
+.row.blur { filter: blur(9px); opacity: .55; }
+.row .hl { position: absolute; inset: -3px; border-radius: 22px; border: 5px solid #fff; opacity: 0;
+  box-shadow: 0 0 50px rgba(255,255,255,.55), inset 0 0 40px rgba(255,42,42,.4); }
+
+/* b-roll / big stat */
+.broll img { position: absolute; inset: -4%; width: 108%; height: 108%; object-fit: cover; }
+.broll .tint { position: absolute; inset: 0; background: #b0000c; mix-blend-mode: multiply; opacity: .55; }
+.broll .shade { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,.15) 30%, rgba(0,0,0,.8) 100%); }
+.big { position: absolute; left: 0; right: 0; top: 50%; text-align: center; font-family: "Anton", sans-serif;
+  font-size: 300px; line-height: 1; white-space: nowrap; transform: translateY(-58%); }
+.big.chrome { background: linear-gradient(175deg, #fff 0%, #d5d0f0 25%, #77749c 42%, #fbfaff 55%, #aaa5d6 70%, #fff 85%);
+  -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 14px 40px rgba(0,0,0,.6)); }
+.big.money { color: var(--money); text-shadow: 0 0 60px rgba(216,255,79,.45); }
+.small { position: absolute; left: 0; right: 0; top: 66%; text-align: center; font-family: "Permanent Marker", cursive;
+  font-size: 64px; text-shadow: 0 4px 18px rgba(0,0,0,.85); }
+
+/* phone screen-time mock */
+.phone { position: absolute; left: 50%; top: 50%; width: 460px; height: 900px; margin: -450px 0 0 -230px;
+  border-radius: 64px; background: #0d0d0f; border: 10px solid #2a2a2e; box-shadow: 0 0 0 3px #555, 0 50px 120px rgba(0,0,0,.8), 0 0 90px rgba(255,42,42,.25); }
+.phone .scr { position: absolute; inset: 26px; border-radius: 42px; background: #000; padding: 70px 34px; }
+.phone .lbl { font-weight: 800; font-size: 34px; color: #9a9aa2; }
+.phone .val { font-weight: 900; font-size: 96px; margin-top: 10px; letter-spacing: -2px; }
+.phone .bars { display: flex; align-items: flex-end; gap: 16px; height: 300px; margin-top: 50px; }
+.phone .bars i { flex: 1; background: var(--red); border-radius: 8px 8px 0 0; transform-origin: 50% 100%; }
+.phone .apps { margin-top: 40px; font-weight: 800; font-size: 32px; color: #cfcfd6; line-height: 1.8; }
+
+/* transitions */
+.flash { background: #fff; opacity: 0; }
+.glitch { opacity: 0; mix-blend-mode: screen;
+  background: repeating-linear-gradient(0deg, rgba(255,0,60,.0) 0px, rgba(255,0,60,.0) 18px, rgba(255,0,60,.55) 18px, rgba(255,0,60,.55) 26px, rgba(0,255,255,.0) 26px, rgba(0,255,255,.0) 60px, rgba(0,255,255,.4) 60px, rgba(0,255,255,.4) 66px); }
+
+/* editing-timeline mock */
+.nle { position: absolute; left: 140px; right: 140px; bottom: 120px; height: 420px; padding: 30px 30px 30px 0;
+  border-radius: 22px; background: rgba(18,18,22,.92); border: 2px solid rgba(255,255,255,.12);
+  box-shadow: 0 40px 100px rgba(0,0,0,.7); }
+.nle-row { display: flex; align-items: center; height: 90px; }
+.nle-row b { width: 9%; text-align: center; font-family: "JetBrains Mono", monospace; font-size: 28px; color: #9a9aa2; }
+.nle-track { position: relative; flex: 1; height: 64px; background: rgba(255,255,255,.05); border-radius: 8px; }
+.nle-track i { position: absolute; top: 4px; bottom: 4px; border-radius: 8px; transform-origin: 0 50%;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.25); }
+.nle-head { position: absolute; top: 10px; bottom: 10px; width: 4px; background: #fff; box-shadow: 0 0 20px #fff; }
+.nle-head::before { content: ""; position: absolute; top: -14px; left: -12px; border: 14px solid transparent; border-top-color: #fff; }
+
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="clip02" data-start="0" data-duration="35.442" data-width="1920" data-height="1080">
+  <div id="camx" class="layer"><div id="cam">
+    <video id="base" class="clip" src="assets/video/clip02.mp4" playsinline data-has-audio="true" data-start="0" data-duration="35.442" data-track-index="0" data-volume="1"></video>
+    <div id="bh15" class="bh white" style="font-size:420px;top:75px;opacity:0"><span class="w">8</span><span class="w">0</span><span class="w">0</span><span class="w">&nbsp;</span><span class="w">S</span><span class="w">U</span><span class="w">B</span><span class="w">S</span></div>
+    <video id="bh15m" class="matte clip" src="assets/mattes/clip02_a.webm" muted playsinline data-start="11.500" data-duration="1.600" data-track-index="2"></video>
+  </div></div>
+  <div class="layer vignette"></div>
+  <div id="over" class="layer">
+    <div id="dim19" class="layer dim"></div>
+    <div id="note8" class="note" style="left:1180px;top:250px;">after NEET 2025<svg viewBox="0 0 150 90" style="left:-170px;top:10px"><path d="M140 20 C 100 0, 40 10, 14 60"/><path d="M14 60 L 10 30 M14 60 L 42 52"/></svg></div>
+    <div id="proof18" class="proof"><div class="cap2">First paid collab</div><div class="card"><img src="assets/proof/payment-10000.jpg" alt=""><div class="stamp">PAID</div></div></div>
+    <div id="note22" class="note" style="left:1180px;top:250px;color:var(--glow)">not even monetized!<svg viewBox="0 0 150 90" style="left:-170px;top:10px"><path d="M140 20 C 100 0, 40 10, 14 60"/><path d="M14 60 L 10 30 M14 60 L 42 52"/></svg></div>
+    <div id="pop24" class="pop" style="left:250px;top:312px"><div class="tile logo"><img src="assets/proof/neetprep.jpg" alt=""></div><div class="lbl">NEETprep</div></div>
+    <div id="pop26" class="pop" style="left:1410px;top:312px"><div class="tile logo"><img src="assets/proof/oswaal.jpg" alt=""></div><div class="lbl">OSWAAL BOOKS</div></div>
+    <div id="note28" class="note" style="left:800px;top:110px;color:var(--money)">they pay well</div>
+    <div id="pop30" class="pop" style="left:250px;top:312px"><div class="tile "><svg viewBox="0 0 24 24"><rect x='3' y='8' width='18' height='4' rx='1'/><path d='M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5'/></svg></div><div class="lbl">FREE ACCESS</div></div>
+    <div id="pop32" class="pop" style="left:1410px;top:312px"><div class="tile "><svg viewBox="0 0 24 24"><path d='M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20'/></svg></div><div class="lbl">FREE BOOKS</div></div>
+    <div id="pop34" class="pop" style="left:250px;top:312px"><div class="tile red"><svg viewBox="0 0 24 24"><path d='M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z'/></svg></div><div class="lbl">GIVEAWAY</div></div>
+  </div>
+  <div id="scenes" class="layer">
+    <div id="ch1" class="scene chapter bg-dark"><div class="num">02</div><div class="txt"><div class="kicker">WAY 02 / 04</div><div class="title">Content Creation</div><div class="sub">Grow a page, land brand deals</div></div><div class="bar"></div></div>
+    <div id="tb4" class="scene table bg-dark"><div class="wrap"><h2>4 Ways to Earn <b>as a Student</b></h2><div class="row" id="tb4r1"><div class="n">01</div><div class="t">UGC Content Creation</div><div class="m">₹60K+ EARNED</div><div class="hl"></div></div><div class="row" id="tb4r2"><div class="n">02</div><div class="t">Content Creation</div><div class="m">PAID BRAND DEALS</div><div class="hl"></div></div><div class="row blur" id="tb4r3"><div class="n">03</div><div class="t">Online Tutoring</div><div class="m">ZERO INVESTMENT</div><div class="hl"></div></div><div class="row blur" id="tb4r4"><div class="n">04</div><div class="t">Freelancing</div><div class="m">₹3–4K / VIDEO</div><div class="hl"></div></div></div></div>
+    <div id="br12" class="scene broll bg-dark"><div class="big chrome" id="br12b" style="font-size:230px">1 VIRAL VIDEO</div></div>
+  </div>
+  <div id="caps">
+    <div id="cap36" class="cap"><span>neet 2025</span></div>
+    <div id="cap37" class="cap"><span>exams</span></div>
+    <div id="cap38" class="cap"><span>Even though</span></div>
+    <div id="cap39" class="cap"><span>maine utne</span></div>
+    <div id="cap40" class="cap"><span>videos nhi</span></div>
+    <div id="cap41" class="cap"><span>upload kiye</span></div>
+    <div id="cap42" class="cap"><span>but ek</span></div>
+    <div id="cap43" class="cap key red"><span>viral</span></div>
+    <div id="cap44" class="cap"><span>video gave</span></div>
+    <div id="cap45" class="cap"><span>me so</span></div>
+    <div id="cap46" class="cap"><span>many opportunities</span></div>
+    <div id="cap47" class="cap"><span>At just</span></div>
+    <div id="cap48" class="cap key money"><span>800</span></div>
+    <div id="cap49" class="cap"><span>subs i</span></div>
+    <div id="cap50" class="cap"><span>locked my</span></div>
+    <div id="cap51" class="cap"><span>first paid</span></div>
+    <div id="cap52" class="cap key red"><span>monetized</span></div>
+    <div id="cap53" class="cap"><span>You know</span></div>
+    <div id="cap54" class="cap"><span>i did</span></div>
+    <div id="cap55" class="cap"><span>work with</span></div>
+    <div id="cap56" class="cap"><span>many famous</span></div>
+    <div id="cap57" class="cap"><span>brands like</span></div>
+    <div id="cap58" class="cap"><span>neetprep</span></div>
+    <div id="cap59" class="cap"><span>Oswaal books</span></div>
+    <div id="cap60" class="cap"><span>and they</span></div>
+    <div id="cap61" class="cap"><span>really pay</span></div>
+    <div id="cap62" class="cap"><span>well and</span></div>
+    <div id="cap63" class="cap"><span>you will</span></div>
+    <div id="cap64" class="cap"><span>also get</span></div>
+    <div id="cap65" class="cap"><span>free access</span></div>
+    <div id="cap66" class="cap"><span>to their</span></div>
+    <div id="cap67" class="cap"><span>platforms that</span></div>
+    <div id="cap68" class="cap"><span>can resell</span></div>
+    <div id="cap69" class="cap"><span>you get</span></div>
+    <div id="cap70" class="cap"><span>books that</span></div>
+    <div id="cap71" class="cap"><span>you can</span></div>
+    <div id="cap72" class="cap"><span>give away</span></div>
+    <div id="cap73" class="cap"><span>and this</span></div>
+    <div id="cap74" class="cap"><span>will help</span></div>
+    <div id="cap75" class="cap"><span>you also</span></div>
+    <div id="cap76" class="cap"><span>to grow</span></div>
+    <div id="cap77" class="cap"><span>in the</span></div>
+    <div id="cap78" class="cap"><span>content creation</span></div>
+    <div id="cap79" class="cap"><span>run</span></div>
+  </div>
+  <div id="fl2" class="layer flash"></div>
+  <div id="gl10" class="layer glitch"></div>
+  <audio id="sfx3" class="clip" src="assets/sfx/impact-bass-2.mp3" data-start="0.050" data-duration="2.200" data-track-index="10" data-volume="0.55"></audio>
+  <audio id="sfx5" class="clip" src="assets/sfx/whoosh.mp3" data-start="2.100" data-duration="0.700" data-track-index="11" data-volume="0.45"></audio>
+  <audio id="sfx6" class="clip" src="assets/sfx/click.mp3" data-start="2.800" data-duration="0.700" data-track-index="10" data-volume="0.5"></audio>
+  <audio id="sfx7" class="clip" src="assets/sfx/ping.mp3" data-start="3.050" data-duration="0.700" data-track-index="11" data-volume="0.3"></audio>
+  <audio id="sfx9" class="clip" src="assets/sfx/click-soft.mp3" data-start="4.100" data-duration="0.700" data-track-index="10" data-volume="0.4"></audio>
+  <audio id="sfx11" class="clip" src="assets/sfx/glitch-1.mp3" data-start="8.500" data-duration="0.500" data-track-index="10" data-volume="0.35"></audio>
+  <audio id="sfx13" class="clip" src="assets/sfx/impact-bass-1.mp3" data-start="8.670" data-duration="1.800" data-track-index="11" data-volume="0.45"></audio>
+  <audio id="sfx14" class="clip" src="assets/sfx/whoosh.mp3" data-start="8.450" data-duration="0.700" data-track-index="12" data-volume="0.4"></audio>
+  <audio id="sfx16" class="clip" src="assets/sfx/whoosh-short.mp3" data-start="11.380" data-duration="0.700" data-track-index="10" data-volume="0.35"></audio>
+  <audio id="sfx17" class="clip" src="assets/sfx/impact-bass-1.mp3" data-start="11.550" data-duration="1.800" data-track-index="11" data-volume="0.5"></audio>
+  <audio id="sfx20" class="clip" src="assets/sfx/impact-bass-2.mp3" data-start="15.340" data-duration="2.200" data-track-index="10" data-volume="0.45"></audio>
+  <audio id="sfx21" class="clip" src="assets/sfx/whoosh.mp3" data-start="14.550" data-duration="0.700" data-track-index="11" data-volume="0.45"></audio>
+  <audio id="sfx23" class="clip" src="assets/sfx/click-soft.mp3" data-start="17.550" data-duration="0.700" data-track-index="10" data-volume="0.4"></audio>
+  <audio id="sfx25" class="clip" src="assets/sfx/pop.mp3" data-start="21.900" data-duration="0.700" data-track-index="10" data-volume="0.45"></audio>
+  <audio id="sfx27" class="clip" src="assets/sfx/pop.mp3" data-start="22.650" data-duration="0.700" data-track-index="10" data-volume="0.45"></audio>
+  <audio id="sfx29" class="clip" src="assets/sfx/click-soft.mp3" data-start="24.400" data-duration="0.700" data-track-index="10" data-volume="0.4"></audio>
+  <audio id="sfx31" class="clip" src="assets/sfx/pop.mp3" data-start="26.300" data-duration="0.700" data-track-index="10" data-volume="0.45"></audio>
+  <audio id="sfx33" class="clip" src="assets/sfx/pop.mp3" data-start="29.800" data-duration="0.700" data-track-index="10" data-volume="0.45"></audio>
+  <audio id="sfx35" class="clip" src="assets/sfx/pop.mp3" data-start="30.800" data-duration="0.700" data-track-index="10" data-volume="0.45"></audio>
+</div>
+<script>
+function fmt(v){return Math.round(v).toLocaleString("en-IN");}
+const tl = gsap.timeline({ paused: true });
+tl.set("#ch1",{opacity:1},0.000);
+tl.fromTo("#ch1 .num",{x:-420,opacity:0},{x:0,opacity:1,duration:.5,ease:"expo.out"},0.000);
+tl.fromTo("#ch1 .kicker",{opacity:0,x:40},{opacity:1,x:0,duration:.3},0.150);
+tl.fromTo("#ch1 .title",{opacity:0,y:60,filter:"blur(14px)"},{opacity:1,y:0,filter:"blur(0px)",duration:.4,ease:"power3.out"},0.220);
+tl.fromTo("#ch1 .sub",{opacity:0},{opacity:1,duration:.3},0.450);
+tl.fromTo("#ch1 .bar",{scaleX:0},{scaleX:1,duration:.6,ease:"power2.inOut"},0.100);
+tl.fromTo("#ch1",{scale:1},{scale:1.05,duration:2.200,ease:"none"},0.000);
+tl.to("#ch1",{opacity:0,duration:.16},2.040);
+tl.fromTo("#fl2",{opacity:0},{opacity:.9,duration:.05},2.120);
+tl.to("#fl2",{opacity:0,duration:.18},2.170);
+tl.set("#tb4",{opacity:1},2.200);
+tl.fromTo("#tb4 .wrap",{scale:.9,opacity:0},{scale:1,opacity:1,duration:.4,ease:"power3.out"},2.200);
+tl.fromTo("#tb4 .row",{x:-60,opacity:0},{x:0,opacity:1,duration:.3,stagger:.06,ease:"power2.out"},2.300);
+tl.fromTo("#tb4r2 .hl",{opacity:0},{opacity:1,duration:.2,repeat:1,yoyo:true},2.800);
+tl.set("#tb4r2 .hl",{opacity:1},3.200);
+tl.to("#tb4 .wrap",{scale:1.28,transformOrigin:"50% 497px",duration:0.700,ease:"power2.inOut"},3.100);
+tl.to("#tb4",{opacity:0,duration:.18},3.820);
+tl.fromTo("#note8",{opacity:0,rotation:-6,scale:.7},{opacity:1,rotation:0,scale:1,duration:.3,ease:"back.out(2)"},4.100);
+tl.to("#note8",{opacity:0,duration:.18},5.420);
+tl.set("#gl10",{opacity:0.9,y:0},8.500);
+tl.set("#camx",{x:-28},8.500);
+tl.set("#gl10",{opacity:0.5,y:37},8.550);
+tl.set("#camx",{x:22},8.550);
+tl.set("#gl10",{opacity:0.8,y:14},8.600);
+tl.set("#camx",{x:-12},8.600);
+tl.set("#gl10",{opacity:0.4,y:51},8.650);
+tl.set("#camx",{x:16},8.650);
+tl.set("#gl10",{opacity:0,y:28},8.700);
+tl.set("#camx",{x:0},8.700);
+tl.set("#br12",{opacity:1},8.550);
+tl.fromTo("#br12b",{scale:1.5,opacity:0,filter:"blur(20px)"},{scale:1,opacity:1,filter:"blur(0px)",duration:.4,ease:"power3.out"},8.650);
+tl.to("#br12",{opacity:0,duration:.18},10.570);
+tl.set("#bh15",{opacity:1},11.500);
+tl.fromTo("#bh15 .w",{y:-90,opacity:0,filter:"blur(18px)"},{y:0,opacity:1,filter:"blur(0px)",duration:.32,ease:"power3.out",stagger:0.045},11.500);
+tl.to("#bh15",{opacity:0,scale:1.04,duration:.22,ease:"power2.in"},12.860);
+tl.fromTo("#dim19",{opacity:0},{opacity:0.62,duration:.2},14.600);
+tl.to("#dim19",{opacity:0,duration:.2},17.300);
+tl.set("#proof18",{opacity:1},14.600);
+tl.fromTo("#proof18 .card",{x:900,rotation:14,opacity:0},{x:0,rotation:-3,opacity:1,duration:.5,ease:"back.out(1.3)"},14.600);
+tl.fromTo("#proof18 .cap2",{y:-40,opacity:0},{y:0,opacity:1,duration:.3,ease:"power3.out"},14.750);
+tl.fromTo("#proof18 .stamp",{scale:2.6,opacity:0},{scale:1,opacity:1,duration:.22,ease:"power4.in"},15.150);
+tl.to("#proof18",{opacity:0,scale:.92,duration:.22,ease:"power2.in"},17.280);
+tl.fromTo("#note22",{opacity:0,rotation:-6,scale:.7},{opacity:1,rotation:0,scale:1,duration:.3,ease:"back.out(2)"},17.550);
+tl.to("#note22",{opacity:0,duration:.18},18.670);
+tl.fromTo("#pop24",{opacity:0,scale:.35,y:40},{opacity:1,scale:1,y:0,duration:.34,ease:"back.out(2.4)"},21.900);
+tl.to("#pop24",{opacity:0,scale:.6,duration:.18,ease:"power2.in"},24.720);
+tl.fromTo("#pop26",{opacity:0,scale:.35,y:40},{opacity:1,scale:1,y:0,duration:.34,ease:"back.out(2.4)"},22.650);
+tl.to("#pop26",{opacity:0,scale:.6,duration:.18,ease:"power2.in"},24.720);
+tl.fromTo("#note28",{opacity:0,rotation:-6,scale:.7},{opacity:1,rotation:0,scale:1,duration:.3,ease:"back.out(2)"},24.400);
+tl.to("#note28",{opacity:0,duration:.18},25.720);
+tl.fromTo("#pop30",{opacity:0,scale:.35,y:40},{opacity:1,scale:1,y:0,duration:.34,ease:"back.out(2.4)"},26.300);
+tl.to("#pop30",{opacity:0,scale:.6,duration:.18,ease:"power2.in"},27.720);
+tl.fromTo("#pop32",{opacity:0,scale:.35,y:40},{opacity:1,scale:1,y:0,duration:.34,ease:"back.out(2.4)"},29.800);
+tl.to("#pop32",{opacity:0,scale:.6,duration:.18,ease:"power2.in"},30.920);
+tl.fromTo("#pop34",{opacity:0,scale:.35,y:40},{opacity:1,scale:1,y:0,duration:.34,ease:"back.out(2.4)"},30.800);
+tl.to("#pop34",{opacity:0,scale:.6,duration:.18,ease:"power2.in"},32.020);
+tl.set("#cam",{scale:1.0},0.000);
+tl.set("#cam",{scale:1.16},2.540);
+tl.set("#cam",{scale:1.0},5.420);
+tl.set("#cam",{scale:1.26},11.100);
+tl.set("#cam",{scale:1.0},18.520);
+tl.set("#cam",{scale:1.16},22.660);
+tl.set("#cam",{scale:1.0},29.600);
+tl.fromTo("#cap36",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},4.220);
+tl.set("#cap36",{opacity:0},4.900);
+tl.fromTo("#cap37",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},4.900);
+tl.set("#cap37",{opacity:0},5.420);
+tl.fromTo("#cap38",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},5.420);
+tl.set("#cap38",{opacity:0},5.840);
+tl.fromTo("#cap39",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},5.840);
+tl.set("#cap39",{opacity:0},6.360);
+tl.fromTo("#cap40",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},6.360);
+tl.set("#cap40",{opacity:0},6.960);
+tl.fromTo("#cap41",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},6.960);
+tl.set("#cap41",{opacity:0},7.740);
+tl.fromTo("#cap42",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},7.740);
+tl.set("#cap42",{opacity:0},8.560);
+tl.fromTo("#cap43",{opacity:0,scale:0.7,y:20},{opacity:1,scale:1,y:0,duration:0.16,ease:"back.out(2.5)"},8.560);
+tl.set("#cap43",{opacity:0},8.960);
+tl.fromTo("#cap44",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},8.960);
+tl.set("#cap44",{opacity:0},9.520);
+tl.fromTo("#cap45",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},9.520);
+tl.set("#cap45",{opacity:0},10.020);
+tl.fromTo("#cap46",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},10.020);
+tl.set("#cap46",{opacity:0},11.100);
+tl.fromTo("#cap47",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},11.100);
+tl.set("#cap47",{opacity:0},11.640);
+tl.fromTo("#cap48",{opacity:0,scale:0.7,y:20},{opacity:1,scale:1,y:0,duration:0.16,ease:"back.out(2.5)"},11.640);
+tl.set("#cap48",{opacity:0},12.420);
+tl.fromTo("#cap49",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},12.420);
+tl.set("#cap49",{opacity:0},13.600);
+tl.fromTo("#cap50",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},13.600);
+tl.set("#cap50",{opacity:0},14.300);
+tl.fromTo("#cap51",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},14.300);
+tl.set("#cap51",{opacity:0},15.340);
+tl.fromTo("#cap52",{opacity:0,scale:0.7,y:20},{opacity:1,scale:1,y:0,duration:0.16,ease:"back.out(2.5)"},17.660);
+tl.set("#cap52",{opacity:0},18.520);
+tl.fromTo("#cap53",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},18.520);
+tl.set("#cap53",{opacity:0},18.940);
+tl.fromTo("#cap54",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},18.940);
+tl.set("#cap54",{opacity:0},20.100);
+tl.fromTo("#cap55",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},20.100);
+tl.set("#cap55",{opacity:0},20.700);
+tl.fromTo("#cap56",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},20.700);
+tl.set("#cap56",{opacity:0},21.320);
+tl.fromTo("#cap57",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},21.320);
+tl.set("#cap57",{opacity:0},22.000);
+tl.fromTo("#cap58",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},22.000);
+tl.set("#cap58",{opacity:0},22.660);
+tl.fromTo("#cap59",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},22.660);
+tl.set("#cap59",{opacity:0},23.420);
+tl.fromTo("#cap60",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},23.420);
+tl.set("#cap60",{opacity:0},24.300);
+tl.fromTo("#cap61",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},24.300);
+tl.set("#cap61",{opacity:0},24.820);
+tl.fromTo("#cap62",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},24.820);
+tl.set("#cap62",{opacity:0},25.460);
+tl.fromTo("#cap63",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},25.460);
+tl.set("#cap63",{opacity:0},25.820);
+tl.fromTo("#cap64",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},25.820);
+tl.set("#cap64",{opacity:0},26.340);
+tl.fromTo("#cap65",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},26.340);
+tl.set("#cap65",{opacity:0},26.880);
+tl.fromTo("#cap66",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},26.880);
+tl.set("#cap66",{opacity:0},27.360);
+tl.fromTo("#cap67",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},27.360);
+tl.set("#cap67",{opacity:0},28.360);
+tl.fromTo("#cap68",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},28.360);
+tl.set("#cap68",{opacity:0},29.600);
+tl.fromTo("#cap69",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},29.600);
+tl.set("#cap69",{opacity:0},29.920);
+tl.fromTo("#cap70",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},29.920);
+tl.set("#cap70",{opacity:0},30.480);
+tl.fromTo("#cap71",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},30.480);
+tl.set("#cap71",{opacity:0},30.840);
+tl.fromTo("#cap72",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},30.840);
+tl.set("#cap72",{opacity:0},31.260);
+tl.fromTo("#cap73",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},31.260);
+tl.set("#cap73",{opacity:0},31.780);
+tl.fromTo("#cap74",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},31.780);
+tl.set("#cap74",{opacity:0},32.260);
+tl.fromTo("#cap75",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},32.260);
+tl.set("#cap75",{opacity:0},32.840);
+tl.fromTo("#cap76",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},32.840);
+tl.set("#cap76",{opacity:0},33.300);
+tl.fromTo("#cap77",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},33.300);
+tl.set("#cap77",{opacity:0},34.040);
+tl.fromTo("#cap78",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},34.040);
+tl.set("#cap78",{opacity:0},34.860);
+tl.fromTo("#cap79",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},34.860);
+tl.set("#cap79",{opacity:0},35.442);
+window.__timelines["clip02"] = tl;
+</script>
+</body>
+</html>

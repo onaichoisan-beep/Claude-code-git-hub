@@ -1,0 +1,9 @@
+# raw footage, intermediates and renders stay local (large / personal)
+raw/
+work/
+edit/assets/video/
+edit/assets/proof/
+edit/renders/
+edit/.hyperframes/
+edit/node_modules/
+edit/assets/mattes/

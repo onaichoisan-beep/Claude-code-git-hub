@@ -1,0 +1,133 @@
+{
+ "keys": {
+  "viral": "red",
+  "800": "money",
+  "monetized.": "red"
+ },
+ "fix": {
+  "25": "2025",
+  "oswal": "Oswaal"
+ },
+ "cues": [
+  {
+   "type": "chapter",
+   "t": 0.0,
+   "d": 2.2,
+   "num": "02",
+   "title": "Content Creation",
+   "sub": "Grow a page, land brand deals"
+  },
+  {
+   "type": "table",
+   "t": 2.2,
+   "d": 1.8,
+   "active": 2
+  },
+  {
+   "type": "note",
+   "t": 4.1,
+   "d": 1.5,
+   "x": 1180,
+   "y": 250,
+   "text": "after NEET 2025",
+   "arrow": "left"
+  },
+  {
+   "type": "glitch",
+   "t": 8.5
+  },
+  {
+   "type": "broll",
+   "t": 8.55,
+   "d": 2.2,
+   "img": "assets/stock/creator.jpg",
+   "big": "1 VIRAL VIDEO",
+   "size": 230
+  },
+  {
+   "type": "bh",
+   "t": 11.5,
+   "d": 1.6,
+   "text": "800 SUBS",
+   "style": "white",
+   "matte": "a"
+  },
+  {
+   "type": "proof",
+   "t": 14.6,
+   "d": 2.9,
+   "img": "assets/proof/payment-10000.jpg",
+   "caption": "First paid collab",
+   "stamp": "PAID"
+  },
+  {
+   "type": "note",
+   "t": 17.55,
+   "d": 1.3,
+   "x": 1180,
+   "y": 250,
+   "text": "not even monetized!",
+   "color": "red",
+   "arrow": "left"
+  },
+  {
+   "type": "pop",
+   "t": 21.9,
+   "d": 3.0,
+   "x": 380,
+   "y": 400,
+   "logo": "assets/proof/neetprep.jpg",
+   "label": "NEETprep"
+  },
+  {
+   "type": "pop",
+   "t": 22.65,
+   "d": 2.25,
+   "x": 1540,
+   "y": 400,
+   "logo": "assets/proof/oswaal.jpg",
+   "label": "OSWAAL BOOKS"
+  },
+  {
+   "type": "note",
+   "t": 24.4,
+   "d": 1.5,
+   "x": 800,
+   "y": 110,
+   "text": "they pay well",
+   "color": "money"
+  },
+  {
+   "type": "pop",
+   "t": 26.3,
+   "d": 1.6,
+   "x": 380,
+   "y": 400,
+   "icon": "gift",
+   "label": "FREE ACCESS"
+  },
+  {
+   "type": "pop",
+   "t": 29.8,
+   "d": 1.3,
+   "x": 1540,
+   "y": 400,
+   "icon": "book",
+   "label": "FREE BOOKS"
+  },
+  {
+   "type": "pop",
+   "t": 30.8,
+   "d": 1.4,
+   "x": 380,
+   "y": 400,
+   "icon": "heart",
+   "label": "GIVEAWAY",
+   "tile": "red"
+  }
+ ],
+ "id": "clip02",
+ "video": "assets/video/clip02.mp4",
+ "words": "../work/base/clip02.words.json",
+ "duration": 35.442
+}

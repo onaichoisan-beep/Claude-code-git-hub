@@ -1,0 +1,35 @@
+{
+ "keys": {
+  "doomscrolling": "red",
+  "money.": "money"
+ },
+ "cues": [
+  {
+   "type": "phone",
+   "t": 1.9,
+   "d": 1.45,
+   "minutes": 462
+  },
+  {
+   "type": "bh",
+   "t": 3.45,
+   "d": 1.75,
+   "text": "7+ HOURS",
+   "style": "white",
+   "matte": "a"
+  },
+  {
+   "type": "broll",
+   "t": 5.25,
+   "d": 2.3,
+   "img": "assets/stock/phone.jpg",
+   "big": "= MONEY",
+   "bigStyle": "money",
+   "size": 260
+  }
+ ],
+ "id": "clip09",
+ "video": "assets/video/clip09.mp4",
+ "words": "../work/base/clip09.words.json",
+ "duration": 7.562
+}

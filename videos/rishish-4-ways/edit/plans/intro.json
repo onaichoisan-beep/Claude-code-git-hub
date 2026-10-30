@@ -1,0 +1,253 @@
+{
+ "id": "intro",
+ "duration": 24.2,
+ "zoom": [
+  [
+   0.0,
+   1.0
+  ],
+  [
+   1.6,
+   1.18
+  ],
+  [
+   3.05,
+   1.0
+  ],
+  [
+   4.3999999999999995,
+   1.16
+  ],
+  [
+   7.549999999999999,
+   1.0
+  ],
+  [
+   10.75,
+   1.22
+  ],
+  [
+   12.45,
+   1.2
+  ],
+  [
+   15.75,
+   1.0
+  ],
+  [
+   18.95,
+   1.12
+  ],
+  [
+   19.95,
+   1.2
+  ],
+  [
+   20.9,
+   1.3
+  ]
+ ],
+ "keys": {
+  "80000": "money",
+  "4": "red",
+  "800": "money",
+  "knowledge": "red",
+  "-4k": "money"
+ },
+ "fix": {
+  "80000": "₹80,000",
+  "-4k": "₹3–4K",
+  "3": ""
+ },
+ "segments": [
+  {
+   "video": "assets/video/clip06.mp4",
+   "words": "../work/base/clip06.words.json",
+   "from": 0.0,
+   "to": 3.05
+  },
+  {
+   "video": "assets/video/clip08.mp4",
+   "words": "../work/base/clip08.words.json",
+   "from": 9.15,
+   "to": 10.5
+  },
+  {
+   "video": "assets/video/clip01.mp4",
+   "words": "../work/base/clip01.words.json",
+   "from": 2.2,
+   "to": 5.35
+  },
+  {
+   "video": "assets/video/clip02.mp4",
+   "words": "../work/base/clip02.words.json",
+   "from": 11.1,
+   "to": 16.0
+  },
+  {
+   "video": "assets/video/clip03.mp4",
+   "words": "../work/base/clip03.words.json",
+   "from": 13.3,
+   "to": 16.6
+  },
+  {
+   "video": "assets/video/clip04.mp4",
+   "words": "../work/base/clip04.words.json",
+   "from": 5.9,
+   "to": 9.1
+  },
+  {
+   "video": "assets/video/clip10.mp4",
+   "words": "../work/base/clip10.words.json",
+   "from": 15.5,
+   "to": 18.75
+  }
+ ],
+ "cues": [
+  {
+   "type": "flash",
+   "t": 0.0
+  },
+  {
+   "type": "bh",
+   "t": 0.85,
+   "d": 1.55,
+   "text": "80,000",
+   "style": "money",
+   "matteFile": "assets/mattes/clip06_a.webm"
+  },
+  {
+   "type": "pop",
+   "t": 2.45,
+   "d": 0.6,
+   "x": 380,
+   "y": 400,
+   "icon": "steth",
+   "label": "1ST YEAR MBBS",
+   "tile": "red"
+  },
+  {
+   "type": "title",
+   "t": 3.05,
+   "d": 1.35,
+   "kicker": "as a student",
+   "line1": "4 WAYS",
+   "line2": "to earn money",
+   "line3": "all trusted · all easy"
+  },
+  {
+   "type": "chapter",
+   "t": 4.3999999999999995,
+   "d": 0.8,
+   "num": "01",
+   "title": "UGC Content Creation"
+  },
+  {
+   "type": "bh",
+   "t": 6.0,
+   "d": 1.35,
+   "text": "₹60K+",
+   "style": "money",
+   "matteFile": "assets/mattes/clip01_a.webm"
+  },
+  {
+   "type": "chapter",
+   "t": 7.549999999999999,
+   "d": 0.8,
+   "num": "02",
+   "title": "Content Creation"
+  },
+  {
+   "type": "bh",
+   "t": 7.95,
+   "d": 1.6,
+   "text": "800 SUBS",
+   "style": "white",
+   "matteFile": "assets/mattes/clip02_a.webm"
+  },
+  {
+   "type": "note",
+   "t": 10.75,
+   "d": 1.6,
+   "x": 1180,
+   "y": 250,
+   "text": "first paid collab!",
+   "color": "money",
+   "arrow": "left"
+  },
+  {
+   "type": "chapter",
+   "t": 12.45,
+   "d": 0.8,
+   "num": "03",
+   "title": "Online Tutoring"
+  },
+  {
+   "type": "bh",
+   "t": 13.3,
+   "d": 1.6,
+   "text": "KNOWLEDGE",
+   "style": "chrome",
+   "matteFile": "assets/mattes/clip03_a.webm"
+  },
+  {
+   "type": "chapter",
+   "t": 15.75,
+   "d": 0.8,
+   "num": "04",
+   "title": "Freelancing"
+  },
+  {
+   "type": "timeline",
+   "t": 16.75,
+   "d": 2.2,
+   "big": "₹3–4K",
+   "small": "per video"
+  },
+  {
+   "type": "glitch",
+   "t": 18.9
+  },
+  {
+   "type": "bh",
+   "t": 19.0,
+   "d": 0.95,
+   "text": "MORE SKILL",
+   "style": "white",
+   "matteFile": "assets/mattes/clip10_a.webm"
+  },
+  {
+   "type": "bh",
+   "t": 19.95,
+   "d": 0.95,
+   "text": "MORE MONEY",
+   "style": "money",
+   "matteFile": "assets/mattes/clip10_b.webm"
+  },
+  {
+   "type": "bh",
+   "t": 20.9,
+   "d": 0.85,
+   "text": "BETTER SKILL",
+   "style": "chrome",
+   "matteFile": "assets/mattes/clip10_c.webm"
+  },
+  {
+   "type": "sfx",
+   "t": 21.0,
+   "name": "riser",
+   "vol": 0.3,
+   "dur": 1.2
+  },
+  {
+   "type": "title",
+   "t": 22.2,
+   "d": 2.0,
+   "kicker": "watch till the end",
+   "line1": "4 WAYS",
+   "line2": "to earn as a student",
+   "line3": "from a 1st-year MBBS student",
+   "out": false
+  }
+ ]
+}

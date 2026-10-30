@@ -1,0 +1,85 @@
+{
+ "keys": {
+  "experiences": "red",
+  "skills.": "red"
+ },
+ "cues": [
+  {
+   "type": "glitch",
+   "t": 4.35
+  },
+  {
+   "type": "broll",
+   "t": 5.5,
+   "d": 1.9,
+   "big": "7+ HRS",
+   "small": "of doomscrolling",
+   "nocaps": true
+  },
+  {
+   "type": "pop",
+   "t": 8.0,
+   "d": 1.4,
+   "x": 380,
+   "y": 400,
+   "icon": "laptop",
+   "label": "LEARN"
+  },
+  {
+   "type": "pop",
+   "t": 9.2,
+   "d": 1.6,
+   "x": 1540,
+   "y": 400,
+   "icon": "brain",
+   "label": "SKILLS",
+   "tile": "red"
+  },
+  {
+   "type": "pop",
+   "t": 11.7,
+   "d": 1.25,
+   "x": 380,
+   "y": 400,
+   "icon": "trending",
+   "label": "GET BETTER"
+  },
+  {
+   "type": "pop",
+   "t": 13.55,
+   "d": 0.75,
+   "x": 1540,
+   "y": 400,
+   "icon": "rupee",
+   "label": "CHARGE MORE"
+  },
+  {
+   "type": "bh",
+   "t": 15.55,
+   "d": 0.95,
+   "text": "MORE SKILL",
+   "style": "white",
+   "matte": "a"
+  },
+  {
+   "type": "bh",
+   "t": 16.5,
+   "d": 0.95,
+   "text": "MORE MONEY",
+   "style": "money",
+   "matte": "b"
+  },
+  {
+   "type": "bh",
+   "t": 17.45,
+   "d": 0.85,
+   "text": "BETTER SKILL",
+   "style": "chrome",
+   "matte": "c"
+  }
+ ],
+ "id": "clip10",
+ "video": "assets/video/clip10.mp4",
+ "words": "../work/base/clip10.words.json",
+ "duration": 19.198
+}

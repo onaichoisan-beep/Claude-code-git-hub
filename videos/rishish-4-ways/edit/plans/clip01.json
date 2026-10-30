@@ -1,0 +1,147 @@
+{
+ "keys": {
+  "60k": "money",
+  "faceless": "red",
+  "telegram,": "red"
+ },
+ "cues": [
+  {
+   "type": "chapter",
+   "t": 0.0,
+   "d": 2.0,
+   "num": "01",
+   "title": "UGC Content Creation",
+   "sub": "User-generated content for brands"
+  },
+  {
+   "type": "table",
+   "t": 2.0,
+   "d": 1.75,
+   "active": 1
+  },
+  {
+   "type": "bh",
+   "t": 3.8,
+   "d": 1.6,
+   "text": "₹60K+",
+   "style": "money",
+   "matte": "a"
+  },
+  {
+   "type": "proof",
+   "t": 5.5,
+   "d": 2.0,
+   "img": "assets/proof/payment-7000.jpg",
+   "caption": "UGC payout",
+   "stamp": "PAID"
+  },
+  {
+   "type": "pop",
+   "t": 7.6,
+   "d": 1.6,
+   "x": 1540,
+   "y": 400,
+   "icon": "eyeoff",
+   "label": "FACELESS",
+   "tile": "red"
+  },
+  {
+   "type": "glitch",
+   "t": 9.3
+  },
+  {
+   "type": "broll",
+   "t": 9.35,
+   "d": 3.5,
+   "img": "assets/stock/unboxing.jpg",
+   "big": "UGC",
+   "small": "content you make for brands"
+  },
+  {
+   "type": "pop",
+   "t": 15.95,
+   "d": 3.4,
+   "x": 380,
+   "y": 400,
+   "icon": "cpu",
+   "label": "TECH UGC"
+  },
+  {
+   "type": "pop",
+   "t": 17.25,
+   "d": 2.1,
+   "x": 1540,
+   "y": 400,
+   "icon": "tag",
+   "label": "BRAND UGC"
+  },
+  {
+   "type": "pop",
+   "t": 18.15,
+   "d": 1.2,
+   "x": 1540,
+   "y": 700,
+   "icon": "link",
+   "label": "AFFILIATE UGC"
+  },
+  {
+   "type": "pop",
+   "t": 20.25,
+   "d": 1.6,
+   "x": 380,
+   "y": 400,
+   "icon": "trending",
+   "label": "PAGE GROWS"
+  },
+  {
+   "type": "note",
+   "t": 22.0,
+   "d": 1.4,
+   "x": 1180,
+   "y": 260,
+   "text": "charge more ↑",
+   "color": "money",
+   "arrow": "left"
+  },
+  {
+   "type": "pop",
+   "t": 25.4,
+   "d": 4.6,
+   "x": 1540,
+   "y": 400,
+   "icon": "send",
+   "label": "JOIN TELEGRAM",
+   "tile": "red"
+  },
+  {
+   "type": "pop",
+   "t": 31.65,
+   "d": 1.6,
+   "x": 380,
+   "y": 400,
+   "icon": "refresh",
+   "label": "RESELL"
+  },
+  {
+   "type": "pop",
+   "t": 33.55,
+   "d": 1.4,
+   "x": 1540,
+   "y": 400,
+   "icon": "gift",
+   "label": "OR USE THEM"
+  },
+  {
+   "type": "bh",
+   "t": 38.4,
+   "d": 1.65,
+   "text": "EARN MORE",
+   "style": "money",
+   "matte": "b"
+  }
+ ],
+ "id": "clip01",
+ "video": "assets/video/clip01.mp4",
+ "words": "../work/base/clip01.words.json",
+ "duration": 40.085
+}

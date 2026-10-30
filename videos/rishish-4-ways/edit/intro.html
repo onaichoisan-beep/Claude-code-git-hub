@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1920, height=1080" />
+<title>intro</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+@font-face { font-family: 'Anton'; font-weight: 400; font-style: normal; font-display: block; src: url('assets/fonts/Anton-400.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 500; font-style: normal; font-display: block; src: url('assets/fonts/Inter-500.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 800; font-style: normal; font-display: block; src: url('assets/fonts/Inter-800.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 900; font-style: normal; font-display: block; src: url('assets/fonts/Inter-900.woff2') format('woff2'); }
+@font-face { font-family: 'Permanent Marker'; font-weight: 400; font-style: normal; font-display: block; src: url('assets/fonts/PermanentMarker-400.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 500; font-style: normal; font-display: block; src: url('assets/fonts/JetBrainsMono-500.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 700; font-style: normal; font-display: block; src: url('assets/fonts/JetBrainsMono-700.woff2') format('woff2'); }
+
+:root {
+  --red: #e0141e;
+  --glow: #ff2a2a;
+  --ink: #0a0a0a;
+  --money: #d8ff4f;
+  --white: #ffffff;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+#root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #000;
+  font-family: "Inter", sans-serif; color: #fff; }
+.layer { position: absolute; inset: 0; }
+
+/* camera: footage + behind-head text + person matte, zoomed together */
+#cam { position: absolute; inset: 0; transform-origin: 50% 24%; }
+#cam video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+#base { filter: contrast(1.08) saturate(1.12) brightness(1.02); }
+.matte { filter: contrast(1.08) saturate(1.12) brightness(1.02); }
+.vignette { background: radial-gradient(ellipse at 50% 42%, rgba(0,0,0,0) 52%, rgba(0,0,0,.55) 100%); pointer-events: none; }
+.dim { background: #000; opacity: 0; }
+
+/* behind-head text */
+.bh { position: absolute; left: 0; right: 0; top: 40px; display: flex; justify-content: center;
+  font-family: "Anton", sans-serif; text-transform: uppercase; line-height: .9; white-space: nowrap;
+  letter-spacing: 2px; }
+.bh .w { display: inline-block; }
+.bh.white .w { color: #fff; text-shadow: 0 10px 40px rgba(0,0,0,.45); }
+.bh.red .w { color: var(--red); text-shadow: 0 0 40px rgba(255,42,42,.55), 0 10px 40px rgba(0,0,0,.5); }
+.bh.money .w { color: var(--money); text-shadow: 0 0 50px rgba(216,255,79,.45), 0 10px 40px rgba(0,0,0,.5); }
+.bh.chrome .w { background: linear-gradient(175deg, #ffffff 0%, #c9c3e8 22%, #6c6a92 38%, #f4f2ff 52%,
+  #a49fd0 66%, #ffffff 80%, #8a86b8 100%); -webkit-background-clip: text; background-clip: text;
+  color: transparent; filter: drop-shadow(0 12px 30px rgba(0,0,0,.5)); }
+
+/* captions */
+#caps { position: absolute; left: 0; right: 0; bottom: 120px; height: 200px; }
+.cap { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: center;
+  align-items: flex-end; opacity: 0; }
+.cap span { display: inline-block; font-weight: 900; font-size: 76px; letter-spacing: -1.5px;
+  color: #fff; text-shadow: 0 6px 28px rgba(0,0,0,.7), 0 2px 2px rgba(0,0,0,.5); white-space: nowrap; }
+.cap.key span { font-family: "Anton", sans-serif; font-weight: 400; font-size: 118px; letter-spacing: 1px;
+  text-transform: uppercase; }
+.cap.key.red span { color: #fff; text-shadow: 0 0 0 transparent, 0 6px 28px rgba(0,0,0,.7); }
+.cap.key.red span::after { content: ""; display: block; height: 12px; margin-top: 4px; background: var(--red);
+  box-shadow: 0 0 24px rgba(255,42,42,.7); }
+.cap.key.money span { color: var(--money); text-shadow: 0 0 36px rgba(216,255,79,.35), 0 6px 28px rgba(0,0,0,.75); }
+
+/* icon pops */
+.pop { position: absolute; width: 260px; display: flex; flex-direction: column; align-items: center; opacity: 0; }
+.pop .tile { width: 176px; height: 176px; border-radius: 40px; display: grid; place-items: center;
+  background: linear-gradient(160deg, rgba(255,255,255,.26), rgba(255,255,255,.07));
+  border: 2px solid rgba(255,255,255,.45); box-shadow: 0 20px 50px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.5);
+  backdrop-filter: blur(14px); }
+.pop .tile.red { background: linear-gradient(160deg, #ff3b3b, #a5000a); border-color: rgba(255,140,140,.8);
+  box-shadow: 0 0 50px rgba(255,42,42,.55), 0 20px 50px rgba(0,0,0,.45); }
+.pop .tile.logo { background: #fff; border-color: #fff; overflow: hidden; }
+.pop .tile.logo img { width: 100%; height: 100%; object-fit: contain; }
+.pop .tile svg { width: 92px; height: 92px; stroke: #fff; fill: none; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round; }
+.pop .lbl { margin-top: 18px; font-family: "Permanent Marker", cursive; font-size: 42px; line-height: 1.05;
+  text-align: center; color: #fff; text-shadow: 0 4px 16px rgba(0,0,0,.75); white-space: nowrap; }
+
+/* side note (marker text + arrow) */
+.note { position: absolute; font-family: "Permanent Marker", cursive; font-size: 54px; color: #fff;
+  text-shadow: 0 4px 18px rgba(0,0,0,.8); white-space: nowrap; opacity: 0; }
+.note svg { position: absolute; width: 150px; height: 90px; stroke: #fff; fill: none; stroke-width: 4;
+  stroke-linecap: round; }
+
+/* lower third */
+.l3 { position: absolute; left: 110px; bottom: 300px; opacity: 0; }
+.l3 .name { display: inline-block; background: var(--red); padding: 10px 26px 6px; font-family: "Anton", sans-serif;
+  font-size: 78px; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 0 40px rgba(255,42,42,.45); }
+.l3 .role { display: block; margin-top: 10px; font-family: "JetBrains Mono", monospace; font-weight: 700;
+  font-size: 34px; letter-spacing: 4px; text-transform: uppercase; color: #fff; text-shadow: 0 3px 12px rgba(0,0,0,.8); }
+
+/* proof card */
+.proof { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; }
+.proof .card { position: relative; padding: 22px; background: #fff; border-radius: 26px;
+  box-shadow: 0 40px 90px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.2); }
+.proof .card img { display: block; max-width: 1060px; max-height: 560px; border-radius: 12px; }
+.proof .cap2 { position: absolute; left: 0; right: 0; top: 70px; text-align: center; font-family: "Anton", sans-serif;
+  font-size: 88px; letter-spacing: 2px; text-transform: uppercase; text-shadow: 0 6px 24px rgba(0,0,0,.8); }
+.stamp { position: absolute; right: -70px; bottom: -60px; padding: 12px 30px; border: 8px solid var(--red);
+  border-radius: 16px; color: var(--red); font-family: "Anton", sans-serif; font-size: 84px; letter-spacing: 4px;
+  transform: rotate(-12deg); background: rgba(255,255,255,.92); box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+
+/* fullscreen scenes */
+.scene { position: absolute; inset: 0; overflow: hidden; opacity: 0; }
+.bg-dark { background: radial-gradient(ellipse at 50% 45%, #2b0507 0%, #120203 45%, #050505 100%); }
+.bg-dark::before { content: ""; position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,40,40,.08) 2px, transparent 2px), linear-gradient(90deg, rgba(255,40,40,.08) 2px, transparent 2px);
+  background-size: 96px 96px; }
+.scene .kicker { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 34px; letter-spacing: 10px;
+  color: var(--glow); text-transform: uppercase; }
+
+/* chapter card */
+.chapter .num { position: absolute; left: 150px; top: 120px; font-family: "Anton", sans-serif; font-size: 640px;
+  line-height: .85; color: transparent; -webkit-text-stroke: 6px var(--red);
+  filter: drop-shadow(0 0 30px rgba(255,42,42,.6)); }
+.chapter .txt { position: absolute; left: 760px; right: 120px; top: 330px; }
+.chapter .title { font-family: "Anton", sans-serif; font-size: 150px; line-height: .95; text-transform: uppercase;
+  margin-top: 20px; }
+.chapter .sub { margin-top: 26px; font-size: 44px; font-weight: 800; color: rgba(255,255,255,.75); }
+.chapter .bar { position: absolute; left: 0; right: 0; bottom: 140px; height: 14px; background: var(--red);
+  box-shadow: 0 0 40px rgba(255,42,42,.8); transform-origin: 0 50%; }
+
+/* 4-ways table */
+.table .wrap { position: absolute; left: 230px; right: 230px; top: 120px; bottom: 90px; transform-origin: 50% 50%; }
+.table h2 { text-align: center; font-family: "Anton", sans-serif; font-size: 96px; letter-spacing: 2px;
+  text-transform: uppercase; margin-bottom: 40px; }
+.table h2 b { color: var(--red); font-weight: 400; }
+.row { position: relative; display: grid; grid-template-columns: 130px 1fr 420px; align-items: center; height: 150px;
+  margin-bottom: 22px; padding: 0 36px; border: 3px solid rgba(255,42,42,.65); border-radius: 22px;
+  background: linear-gradient(90deg, rgba(60,0,4,.85), rgba(20,0,2,.85)); box-shadow: 0 0 30px rgba(255,42,42,.25); }
+.row .n { font-family: "Anton", sans-serif; font-size: 84px; color: var(--red); }
+.row .t { font-family: "Anton", sans-serif; font-size: 64px; letter-spacing: 1px; text-transform: uppercase; }
+.row .m { justify-self: end; font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 36px; color: var(--money); }
+.row.blur { filter: blur(9px); opacity: .55; }
+.row .hl { position: absolute; inset: -3px; border-radius: 22px; border: 5px solid #fff; opacity: 0;
+  box-shadow: 0 0 50px rgba(255,255,255,.55), inset 0 0 40px rgba(255,42,42,.4); }
+
+/* b-roll / big stat */
+.broll img { position: absolute; inset: -4%; width: 108%; height: 108%; object-fit: cover; }
+.broll .tint { position: absolute; inset: 0; background: #b0000c; mix-blend-mode: multiply; opacity: .55; }
+.broll .shade { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,.15) 30%, rgba(0,0,0,.8) 100%); }
+.big { position: absolute; left: 0; right: 0; top: 50%; text-align: center; font-family: "Anton", sans-serif;
+  font-size: 300px; line-height: 1; white-space: nowrap; transform: translateY(-58%); }
+.big.chrome { background: linear-gradient(175deg, #fff 0%, #d5d0f0 25%, #77749c 42%, #fbfaff 55%, #aaa5d6 70%, #fff 85%);
+  -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 14px 40px rgba(0,0,0,.6)); }
+.big.money { color: var(--money); text-shadow: 0 0 60px rgba(216,255,79,.45); }
+.small { position: absolute; left: 0; right: 0; top: 66%; text-align: center; font-family: "Permanent Marker", cursive;
+  font-size: 64px; text-shadow: 0 4px 18px rgba(0,0,0,.85); }
+
+/* phone screen-time mock */
+.phone { position: absolute; left: 50%; top: 50%; width: 460px; height: 900px; margin: -450px 0 0 -230px;
+  border-radius: 64px; background: #0d0d0f; border: 10px solid #2a2a2e; box-shadow: 0 0 0 3px #555, 0 50px 120px rgba(0,0,0,.8), 0 0 90px rgba(255,42,42,.25); }
+.phone .scr { position: absolute; inset: 26px; border-radius: 42px; background: #000; padding: 70px 34px; }
+.phone .lbl { font-weight: 800; font-size: 34px; color: #9a9aa2; }
+.phone .val { font-weight: 900; font-size: 96px; margin-top: 10px; letter-spacing: -2px; }
+.phone .bars { display: flex; align-items: flex-end; gap: 16px; height: 300px; margin-top: 50px; }
+.phone .bars i { flex: 1; background: var(--red); border-radius: 8px 8px 0 0; transform-origin: 50% 100%; }
+.phone .apps { margin-top: 40px; font-weight: 800; font-size: 32px; color: #cfcfd6; line-height: 1.8; }
+
+/* transitions */
+.flash { background: #fff; opacity: 0; }
+.glitch { opacity: 0; mix-blend-mode: screen;
+  background: repeating-linear-gradient(0deg, rgba(255,0,60,.0) 0px, rgba(255,0,60,.0) 18px, rgba(255,0,60,.55) 18px, rgba(255,0,60,.55) 26px, rgba(0,255,255,.0) 26px, rgba(0,255,255,.0) 60px, rgba(0,255,255,.4) 60px, rgba(0,255,255,.4) 66px); }
+
+/* editing-timeline mock */
+.nle { position: absolute; left: 140px; right: 140px; bottom: 120px; height: 420px; padding: 30px 30px 30px 0;
+  border-radius: 22px; background: rgba(18,18,22,.92); border: 2px solid rgba(255,255,255,.12);
+  box-shadow: 0 40px 100px rgba(0,0,0,.7); }
+.nle-row { display: flex; align-items: center; height: 90px; }
+.nle-row b { width: 9%; text-align: center; font-family: "JetBrains Mono", monospace; font-size: 28px; color: #9a9aa2; }
+.nle-track { position: relative; flex: 1; height: 64px; background: rgba(255,255,255,.05); border-radius: 8px; }
+.nle-track i { position: absolute; top: 4px; bottom: 4px; border-radius: 8px; transform-origin: 0 50%;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.25); }
+.nle-head { position: absolute; left: 9%; top: 10px; bottom: 10px; width: 4px; background: #fff; box-shadow: 0 0 20px #fff; }
+.nle-head::before { content: ""; position: absolute; top: -14px; left: -12px; border: 14px solid transparent; border-top-color: #fff; }
+
+/* intro title card */
+.titlecard { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.titlecard .tc1 { font-family: "Anton", sans-serif; font-size: 300px; line-height: .9; color: var(--red);
+  text-shadow: 0 0 60px rgba(255,42,42,.6); }
+.titlecard .tc2 { font-family: "Anton", sans-serif; font-size: 130px; line-height: 1; text-transform: uppercase; margin-top: 10px; }
+.titlecard .tc3 { margin-top: 34px; font-family: "Permanent Marker", cursive; font-size: 58px; color: var(--money); }
+.titlecard .kicker { margin-bottom: 20px; }
+
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="intro" data-start="0" data-duration="24.200" data-width="1920" data-height="1080">
+  <div id="camx" class="layer"><div id="cam">
+    <video id="seg0" class="clip" src="assets/video/clip06.mp4" playsinline data-has-audio="true" data-start="0.000" data-duration="3.050" data-media-start="0.000" data-track-index="0" data-volume="1"></video>
+    <video id="seg1" class="clip" src="assets/video/clip08.mp4" playsinline data-has-audio="true" data-start="3.050" data-duration="1.350" data-media-start="9.150" data-track-index="0" data-volume="1"></video>
+    <video id="seg2" class="clip" src="assets/video/clip01.mp4" playsinline data-has-audio="true" data-start="4.400" data-duration="3.150" data-media-start="2.200" data-track-index="0" data-volume="1"></video>
+    <video id="seg3" class="clip" src="assets/video/clip02.mp4" playsinline data-has-audio="true" data-start="7.550" data-duration="4.900" data-media-start="11.100" data-track-index="0" data-volume="1"></video>
+    <video id="seg4" class="clip" src="assets/video/clip03.mp4" playsinline data-has-audio="true" data-start="12.450" data-duration="3.300" data-media-start="13.300" data-track-index="0" data-volume="1"></video>
+    <video id="seg5" class="clip" src="assets/video/clip04.mp4" playsinline data-has-audio="true" data-start="15.750" data-duration="3.200" data-media-start="5.900" data-track-index="0" data-volume="1"></video>
+    <video id="seg6" class="clip" src="assets/video/clip10.mp4" playsinline data-has-audio="true" data-start="18.950" data-duration="3.250" data-media-start="15.500" data-track-index="0" data-volume="1"></video>
+    <div id="bh2" class="bh money" style="font-size:420px;top:75px;opacity:0"><span class="w">8</span><span class="w">0</span><span class="w">,</span><span class="w">0</span><span class="w">0</span><span class="w">0</span></div>
+    <video id="bh2m" class="matte clip" src="assets/mattes/clip06_a.webm" muted playsinline data-start="0.850" data-duration="1.550" data-track-index="2"></video>
+    <div id="bh14" class="bh money" style="font-size:420px;top:75px;opacity:0"><span class="w">₹</span><span class="w">6</span><span class="w">0</span><span class="w">K</span><span class="w">+</span></div>
+    <video id="bh14m" class="matte clip" src="assets/mattes/clip01_a.webm" muted playsinline data-start="6.000" data-duration="1.350" data-track-index="2"></video>
+    <div id="bh21" class="bh white" style="font-size:420px;top:75px;opacity:0"><span class="w">8</span><span class="w">0</span><span class="w">0</span><span class="w">&nbsp;</span><span class="w">S</span><span class="w">U</span><span class="w">B</span><span class="w">S</span></div>
+    <video id="bh21m" class="matte clip" src="assets/mattes/clip02_a.webm" muted playsinline data-start="7.950" data-duration="1.600" data-track-index="2"></video>
+    <div id="bh30" class="bh chrome" style="font-size:420px;top:75px;opacity:0"><span class="w">K</span><span class="w">N</span><span class="w">O</span><span class="w">W</span><span class="w">L</span><span class="w">E</span><span class="w">D</span><span class="w">G</span><span class="w">E</span></div>
+    <video id="bh30m" class="matte clip" src="assets/mattes/clip03_a.webm" muted playsinline data-start="13.300" data-duration="1.600" data-track-index="2"></video>
+    <div id="bh43" class="bh white" style="font-size:378px;top:75px;opacity:0"><span class="w">M</span><span class="w">O</span><span class="w">R</span><span class="w">E</span><span class="w">&nbsp;</span><span class="w">S</span><span class="w">K</span><span class="w">I</span><span class="w">L</span><span class="w">L</span></div>
+    <video id="bh43m" class="matte clip" src="assets/mattes/clip10_a.webm" muted playsinline data-start="19.000" data-duration="0.950" data-track-index="2"></video>
+    <div id="bh46" class="bh money" style="font-size:378px;top:75px;opacity:0"><span class="w">M</span><span class="w">O</span><span class="w">R</span><span class="w">E</span><span class="w">&nbsp;</span><span class="w">M</span><span class="w">O</span><span class="w">N</span><span class="w">E</span><span class="w">Y</span></div>
+    <video id="bh46m" class="matte clip" src="assets/mattes/clip10_b.webm" muted playsinline data-start="19.950" data-duration="0.950" data-track-index="2"></video>
+    <div id="bh49" class="bh chrome" style="font-size:315px;top:75px;opacity:0"><span class="w">B</span><span class="w">E</span><span class="w">T</span><span class="w">T</span><span class="w">E</span><span class="w">R</span><span class="w">&nbsp;</span><span class="w">S</span><span class="w">K</span><span class="w">I</span><span class="w">L</span><span class="w">L</span></div>
+    <video id="bh49m" class="matte clip" src="assets/mattes/clip10_c.webm" muted playsinline data-start="20.900" data-duration="0.850" data-track-index="2"></video>
+  </div></div>
+  <div class="layer vignette"></div>
+  <div id="over" class="layer">
+    <div id="pop5" class="pop" style="left:250px;top:312px"><div class="tile red"><svg viewBox="0 0 24 24"><path d='M11 2v2M5 2v2M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1'/><path d='M8 15a6 6 0 0 0 12 0v-3'/><circle cx='20' cy='10' r='2'/></svg></div><div class="lbl">1ST YEAR MBBS</div></div>
+    <div id="note24" class="note" style="left:1180px;top:250px;color:var(--money)">first paid collab!<svg viewBox="0 0 150 90" style="left:-170px;top:10px"><path d="M140 20 C 100 0, 40 10, 14 60"/><path d="M14 60 L 10 30 M14 60 L 42 52"/></svg></div>
+  </div>
+  <div id="scenes" class="layer">
+    <div id="ti7" class="scene bg-dark titlecard"><div class="kicker">as a student</div><div class="tc1">4 WAYS</div><div class="tc2">to earn money</div><div class="tc3">all trusted · all easy</div></div>
+    <div id="ch10" class="scene chapter bg-dark"><div class="num">01</div><div class="txt"><div class="kicker">WAY 01 / 04</div><div class="title">UGC Content Creation</div><div class="sub"></div></div><div class="bar"></div></div>
+    <div id="ch17" class="scene chapter bg-dark"><div class="num">02</div><div class="txt"><div class="kicker">WAY 02 / 04</div><div class="title">Content Creation</div><div class="sub"></div></div><div class="bar"></div></div>
+    <div id="ch26" class="scene chapter bg-dark"><div class="num">03</div><div class="txt"><div class="kicker">WAY 03 / 04</div><div class="title">Online Tutoring</div><div class="sub"></div></div><div class="bar"></div></div>
+    <div id="ch33" class="scene chapter bg-dark"><div class="num">04</div><div class="txt"><div class="kicker">WAY 04 / 04</div><div class="title">Freelancing</div><div class="sub"></div></div><div class="bar"></div></div>
+    <div id="tl37" class="scene bg-dark"><div class="nle"><div class="nle-row"><b>V2</b><div class="nle-track"><i style="left:4%;width:14%;background:#7b5cff"></i><i style="left:30%;width:22%;background:#7b5cff"></i><i style="left:66%;width:18%;background:#7b5cff"></i></div></div><div class="nle-row"><b>V1</b><div class="nle-track"><i style="left:0%;width:26%;background:#e0141e"></i><i style="left:27%;width:31%;background:#ff5a36"></i><i style="left:59%;width:25%;background:#e0141e"></i><i style="left:85%;width:15%;background:#ff5a36"></i></div></div><div class="nle-row"><b>A1</b><div class="nle-track"><i style="left:0%;width:58%;background:#1fbf75"></i><i style="left:59%;width:41%;background:#1fbf75"></i></div></div><div class="nle-row"><b>SFX</b><div class="nle-track"><i style="left:12%;width:6%;background:#f5c400"></i><i style="left:40%;width:5%;background:#f5c400"></i><i style="left:63%;width:7%;background:#f5c400"></i><i style="left:88%;width:5%;background:#f5c400"></i></div></div><div class="nle-head"></div></div><div class="big money" id="tl37b" style="top:30%">₹3–4K</div><div class="small" id="tl37s" style="top:46%">per video</div></div>
+    <div id="ti53" class="scene bg-dark titlecard"><div class="kicker">watch till the end</div><div class="tc1">4 WAYS</div><div class="tc2">to earn as a student</div><div class="tc3">from a 1st-year MBBS student</div></div>
+  </div>
+  <div id="caps">
+    <div id="cap56" class="cap"><span>I made</span></div>
+    <div id="cap57" class="cap"><span>around</span></div>
+    <div id="cap58" class="cap key money"><span>₹80,000</span></div>
+    <div id="cap59" class="cap"><span>rupees in</span></div>
+    <div id="cap60" class="cap"><span>my first</span></div>
+    <div id="cap61" class="cap"><span>year mbbs</span></div>
+    <div id="cap62" class="cap"><span>generated me</span></div>
+    <div id="cap63" class="cap"><span>over 60k</span></div>
+    <div id="cap64" class="cap"><span>of revenue</span></div>
+    <div id="cap65" class="cap"><span>subs i</span></div>
+    <div id="cap66" class="cap"><span>locked my</span></div>
+    <div id="cap67" class="cap"><span>first paid</span></div>
+    <div id="cap68" class="cap"><span>collaboration</span></div>
+    <div id="cap69" class="cap key red"><span>knowledge</span></div>
+    <div id="cap70" class="cap"><span>jo ki</span></div>
+    <div id="cap71" class="cap"><span>already tumhare</span></div>
+    <div id="cap72" class="cap"><span>pass h</span></div>
+    <div id="cap73" class="cap"><span>skill</span></div>
+    <div id="cap74" class="cap"><span>more money</span></div>
+    <div id="cap75" class="cap"><span>better skill</span></div>
+    <div id="cap76" class="cap"><span>more money</span></div>
+  </div>
+  <div id="fl1" class="layer flash"></div>
+  <div id="fl11" class="layer flash"></div>
+  <div id="fl18" class="layer flash"></div>
+  <div id="fl27" class="layer flash"></div>
+  <div id="fl34" class="layer flash"></div>
+  <div id="gl41" class="layer glitch"></div>
+  <audio id="sfx3" class="clip" src="assets/sfx/whoosh-short.mp3" data-start="0.730" data-duration="0.700" data-track-index="10" data-volume="0.35"></audio>
+  <audio id="sfx4" class="clip" src="assets/sfx/impact-bass-1.mp3" data-start="0.900" data-duration="1.800" data-track-index="11" data-volume="0.5"></audio>
+  <audio id="sfx6" class="clip" src="assets/sfx/pop.mp3" data-start="2.450" data-duration="0.700" data-track-index="10" data-volume="0.45"></audio>
+  <audio id="sfx8" class="clip" src="assets/sfx/impact-bass-2.mp3" data-start="3.050" data-duration="2.200" data-track-index="11" data-volume="0.55"></audio>
+  <audio id="sfx9" class="clip" src="assets/sfx/whoosh-short.mp3" data-start="3.350" data-duration="0.700" data-track-index="10" data-volume="0.35"></audio>
+  <audio id="sfx12" class="clip" src="assets/sfx/whoosh-cinematic.mp3" data-start="4.150" data-duration="2.200" data-track-index="10" data-volume="0.4"></audio>
+  <audio id="sfx13" class="clip" src="assets/sfx/impact-bass-2.mp3" data-start="4.450" data-duration="2.200" data-track-index="12" data-volume="0.55"></audio>
+  <audio id="sfx15" class="clip" src="assets/sfx/whoosh-short.mp3" data-start="5.880" data-duration="0.700" data-track-index="11" data-volume="0.35"></audio>
+  <audio id="sfx16" class="clip" src="assets/sfx/impact-bass-1.mp3" data-start="6.050" data-duration="1.800" data-track-index="13" data-volume="0.5"></audio>
+  <audio id="sfx19" class="clip" src="assets/sfx/whoosh-cinematic.mp3" data-start="7.300" data-duration="2.200" data-track-index="10" data-volume="0.4"></audio>
+  <audio id="sfx20" class="clip" src="assets/sfx/impact-bass-2.mp3" data-start="7.600" data-duration="2.200" data-track-index="11" data-volume="0.55"></audio>
+  <audio id="sfx22" class="clip" src="assets/sfx/whoosh-short.mp3" data-start="7.830" data-duration="0.700" data-track-index="12" data-volume="0.35"></audio>
+  <audio id="sfx23" class="clip" src="assets/sfx/impact-bass-1.mp3" data-start="8.000" data-duration="1.800" data-track-index="13" data-volume="0.5"></audio>
+  <audio id="sfx25" class="clip" src="assets/sfx/click-soft.mp3" data-start="10.750" data-duration="0.700" data-track-index="10" data-volume="0.4"></audio>
+  <audio id="sfx28" class="clip" src="assets/sfx/whoosh-cinematic.mp3" data-start="12.200" data-duration="2.200" data-track-index="10" data-volume="0.4"></audio>
+  <audio id="sfx29" class="clip" src="assets/sfx/impact-bass-2.mp3" data-start="12.500" data-duration="2.200" data-track-index="11" data-volume="0.55"></audio>
+  <audio id="sfx31" class="clip" src="assets/sfx/whoosh-short.mp3" data-start="13.180" data-duration="0.700" data-track-index="12" data-volume="0.35"></audio>
+  <audio id="sfx32" class="clip" src="assets/sfx/impact-bass-1.mp3" data-start="13.350" data-duration="1.800" data-track-index="13" data-volume="0.5"></audio>
+  <audio id="sfx35" class="clip" src="assets/sfx/whoosh-cinematic.mp3" data-start="15.500" data-duration="2.200" data-track-index="10" data-volume="0.4"></audio>
+  <audio id="sfx36" class="clip" src="assets/sfx/impact-bass-2.mp3" data-start="15.800" data-duration="2.200" data-track-index="11" data-volume="0.55"></audio>
+  <audio id="sfx38" class="clip" src="assets/sfx/impact-bass-1.mp3" data-start="17.120" data-duration="1.800" data-track-index="12" data-volume="0.45"></audio>
+  <audio id="sfx39" class="clip" src="assets/sfx/whoosh.mp3" data-start="16.650" data-duration="0.700" data-track-index="13" data-volume="0.4"></audio>
+  <audio id="sfx40" class="clip" src="assets/sfx/typing.mp3" data-start="16.800" data-duration="1.000" data-track-index="14" data-volume="0.2"></audio>
+  <audio id="sfx42" class="clip" src="assets/sfx/glitch-1.mp3" data-start="18.900" data-duration="0.500" data-track-index="10" data-volume="0.35"></audio>
+  <audio id="sfx44" class="clip" src="assets/sfx/whoosh-short.mp3" data-start="18.880" data-duration="0.700" data-track-index="11" data-volume="0.35"></audio>
+  <audio id="sfx45" class="clip" src="assets/sfx/impact-bass-1.mp3" data-start="19.050" data-duration="1.800" data-track-index="12" data-volume="0.5"></audio>
+  <audio id="sfx47" class="clip" src="assets/sfx/whoosh-short.mp3" data-start="19.830" data-duration="0.700" data-track-index="10" data-volume="0.35"></audio>
+  <audio id="sfx48" class="clip" src="assets/sfx/impact-bass-1.mp3" data-start="20.000" data-duration="1.800" data-track-index="11" data-volume="0.5"></audio>
+  <audio id="sfx50" class="clip" src="assets/sfx/whoosh-short.mp3" data-start="20.780" data-duration="0.700" data-track-index="10" data-volume="0.35"></audio>
+  <audio id="sfx51" class="clip" src="assets/sfx/impact-bass-1.mp3" data-start="20.950" data-duration="1.800" data-track-index="12" data-volume="0.5"></audio>
+  <audio id="sfx52" class="clip" src="assets/sfx/riser.mp3" data-start="21.000" data-duration="1.200" data-track-index="13" data-volume="0.3"></audio>
+  <audio id="sfx54" class="clip" src="assets/sfx/impact-bass-2.mp3" data-start="22.200" data-duration="2.000" data-track-index="10" data-volume="0.55"></audio>
+  <audio id="sfx55" class="clip" src="assets/sfx/whoosh-short.mp3" data-start="22.500" data-duration="0.700" data-track-index="11" data-volume="0.35"></audio>
+</div>
+<script>
+function fmt(v){return Math.round(v).toLocaleString("en-IN");}
+const tl = gsap.timeline({ paused: true });
+tl.fromTo("#fl1",{opacity:0},{opacity:.9,duration:.05},0.000);
+tl.to("#fl1",{opacity:0,duration:.18},0.050);
+tl.set("#bh2",{opacity:1},0.850);
+tl.fromTo("#bh2 .w",{y:-90,opacity:0,filter:"blur(18px)"},{y:0,opacity:1,filter:"blur(0px)",duration:.32,ease:"power3.out",stagger:0.045},0.850);
+tl.to("#bh2",{opacity:0,scale:1.04,duration:.22,ease:"power2.in"},2.160);
+tl.fromTo("#pop5",{opacity:0,scale:.35,y:40},{opacity:1,scale:1,y:0,duration:.34,ease:"back.out(2.4)"},2.450);
+tl.to("#pop5",{opacity:0,scale:.6,duration:.18,ease:"power2.in"},2.870);
+tl.set("#ti7",{opacity:1},3.050);
+tl.fromTo("#ti7 .kicker",{opacity:0,y:-20},{opacity:1,y:0,duration:.3},3.100);
+tl.fromTo("#ti7 .tc1",{opacity:0,scale:1.6,filter:"blur(20px)"},{opacity:1,scale:1,filter:"blur(0px)",duration:.35,ease:"power3.out"},3.150);
+tl.fromTo("#ti7 .tc2",{opacity:0,y:80},{opacity:1,y:0,duration:.4,ease:"expo.out"},3.350);
+tl.fromTo("#ti7 .tc3",{opacity:0},{opacity:1,duration:.3},3.750);
+tl.fromTo("#ti7",{scale:1},{scale:1.06,duration:1.350,ease:"none"},3.050);
+tl.to("#ti7",{opacity:0,duration:.18},4.220);
+tl.set("#ch10",{opacity:1},4.400);
+tl.fromTo("#ch10 .num",{x:-420,opacity:0},{x:0,opacity:1,duration:.5,ease:"expo.out"},4.400);
+tl.fromTo("#ch10 .kicker",{opacity:0,x:40},{opacity:1,x:0,duration:.3},4.550);
+tl.fromTo("#ch10 .title",{opacity:0,y:60,filter:"blur(14px)"},{opacity:1,y:0,filter:"blur(0px)",duration:.4,ease:"power3.out"},4.620);
+tl.fromTo("#ch10 .sub",{opacity:0},{opacity:1,duration:.3},4.850);
+tl.fromTo("#ch10 .bar",{scaleX:0},{scaleX:1,duration:.6,ease:"power2.inOut"},4.500);
+tl.fromTo("#ch10",{scale:1},{scale:1.05,duration:0.800,ease:"none"},4.400);
+tl.to("#ch10",{opacity:0,duration:.16},5.040);
+tl.fromTo("#fl11",{opacity:0},{opacity:.9,duration:.05},5.120);
+tl.to("#fl11",{opacity:0,duration:.18},5.170);
+tl.set("#bh14",{opacity:1},6.000);
+tl.fromTo("#bh14 .w",{y:-90,opacity:0,filter:"blur(18px)"},{y:0,opacity:1,filter:"blur(0px)",duration:.32,ease:"power3.out",stagger:0.045},6.000);
+tl.to("#bh14",{opacity:0,scale:1.04,duration:.22,ease:"power2.in"},7.110);
+tl.set("#ch17",{opacity:1},7.550);
+tl.fromTo("#ch17 .num",{x:-420,opacity:0},{x:0,opacity:1,duration:.5,ease:"expo.out"},7.550);
+tl.fromTo("#ch17 .kicker",{opacity:0,x:40},{opacity:1,x:0,duration:.3},7.700);
+tl.fromTo("#ch17 .title",{opacity:0,y:60,filter:"blur(14px)"},{opacity:1,y:0,filter:"blur(0px)",duration:.4,ease:"power3.out"},7.770);
+tl.fromTo("#ch17 .sub",{opacity:0},{opacity:1,duration:.3},8.000);
+tl.fromTo("#ch17 .bar",{scaleX:0},{scaleX:1,duration:.6,ease:"power2.inOut"},7.650);
+tl.fromTo("#ch17",{scale:1},{scale:1.05,duration:0.800,ease:"none"},7.550);
+tl.to("#ch17",{opacity:0,duration:.16},8.190);
+tl.fromTo("#fl18",{opacity:0},{opacity:.9,duration:.05},8.270);
+tl.to("#fl18",{opacity:0,duration:.18},8.320);
+tl.set("#bh21",{opacity:1},7.950);
+tl.fromTo("#bh21 .w",{y:-90,opacity:0,filter:"blur(18px)"},{y:0,opacity:1,filter:"blur(0px)",duration:.32,ease:"power3.out",stagger:0.045},7.950);
+tl.to("#bh21",{opacity:0,scale:1.04,duration:.22,ease:"power2.in"},9.310);
+tl.fromTo("#note24",{opacity:0,rotation:-6,scale:.7},{opacity:1,rotation:0,scale:1,duration:.3,ease:"back.out(2)"},10.750);
+tl.to("#note24",{opacity:0,duration:.18},12.170);
+tl.set("#ch26",{opacity:1},12.450);
+tl.fromTo("#ch26 .num",{x:-420,opacity:0},{x:0,opacity:1,duration:.5,ease:"expo.out"},12.450);
+tl.fromTo("#ch26 .kicker",{opacity:0,x:40},{opacity:1,x:0,duration:.3},12.600);
+tl.fromTo("#ch26 .title",{opacity:0,y:60,filter:"blur(14px)"},{opacity:1,y:0,filter:"blur(0px)",duration:.4,ease:"power3.out"},12.670);
+tl.fromTo("#ch26 .sub",{opacity:0},{opacity:1,duration:.3},12.900);
+tl.fromTo("#ch26 .bar",{scaleX:0},{scaleX:1,duration:.6,ease:"power2.inOut"},12.550);
+tl.fromTo("#ch26",{scale:1},{scale:1.05,duration:0.800,ease:"none"},12.450);
+tl.to("#ch26",{opacity:0,duration:.16},13.090);
+tl.fromTo("#fl27",{opacity:0},{opacity:.9,duration:.05},13.170);
+tl.to("#fl27",{opacity:0,duration:.18},13.220);
+tl.set("#bh30",{opacity:1},13.300);
+tl.fromTo("#bh30 .w",{y:-90,opacity:0,filter:"blur(18px)"},{y:0,opacity:1,filter:"blur(0px)",duration:.32,ease:"power3.out",stagger:0.045},13.300);
+tl.to("#bh30",{opacity:0,scale:1.04,duration:.22,ease:"power2.in"},14.660);
+tl.set("#ch33",{opacity:1},15.750);
+tl.fromTo("#ch33 .num",{x:-420,opacity:0},{x:0,opacity:1,duration:.5,ease:"expo.out"},15.750);
+tl.fromTo("#ch33 .kicker",{opacity:0,x:40},{opacity:1,x:0,duration:.3},15.900);
+tl.fromTo("#ch33 .title",{opacity:0,y:60,filter:"blur(14px)"},{opacity:1,y:0,filter:"blur(0px)",duration:.4,ease:"power3.out"},15.970);
+tl.fromTo("#ch33 .sub",{opacity:0},{opacity:1,duration:.3},16.200);
+tl.fromTo("#ch33 .bar",{scaleX:0},{scaleX:1,duration:.6,ease:"power2.inOut"},15.850);
+tl.fromTo("#ch33",{scale:1},{scale:1.05,duration:0.800,ease:"none"},15.750);
+tl.to("#ch33",{opacity:0,duration:.16},16.390);
+tl.fromTo("#fl34",{opacity:0},{opacity:.9,duration:.05},16.470);
+tl.to("#fl34",{opacity:0,duration:.18},16.520);
+tl.set("#tl37",{opacity:1},16.750);
+tl.fromTo("#tl37 .nle-track i",{scaleX:0,opacity:0},{scaleX:1,opacity:1,duration:.25,stagger:.035,ease:"power2.out"},16.800);
+tl.fromTo("#tl37 .nle-head",{x:0},{x:1400,duration:2.000,ease:"none"},16.750);
+tl.fromTo("#tl37b",{scale:1.5,opacity:0,filter:"blur(20px)"},{scale:1,opacity:1,filter:"blur(0px)",duration:.4,ease:"power3.out"},17.100);
+tl.fromTo("#tl37s",{opacity:0,y:20},{opacity:1,y:0,duration:.3},17.350);
+tl.to("#tl37",{opacity:0,duration:.18},18.770);
+tl.set("#gl41",{opacity:0.9,y:0},18.900);
+tl.set("#camx",{x:-28},18.900);
+tl.set("#gl41",{opacity:0.5,y:37},18.950);
+tl.set("#camx",{x:22},18.950);
+tl.set("#gl41",{opacity:0.8,y:14},19.000);
+tl.set("#camx",{x:-12},19.000);
+tl.set("#gl41",{opacity:0.4,y:51},19.050);
+tl.set("#camx",{x:16},19.050);
+tl.set("#gl41",{opacity:0,y:28},19.100);
+tl.set("#camx",{x:0},19.100);
+tl.set("#bh43",{opacity:1},19.000);
+tl.fromTo("#bh43 .w",{y:-90,opacity:0,filter:"blur(18px)"},{y:0,opacity:1,filter:"blur(0px)",duration:.32,ease:"power3.out",stagger:0.045},19.000);
+tl.to("#bh43",{opacity:0,scale:1.04,duration:.22,ease:"power2.in"},19.710);
+tl.set("#bh46",{opacity:1},19.950);
+tl.fromTo("#bh46 .w",{y:-90,opacity:0,filter:"blur(18px)"},{y:0,opacity:1,filter:"blur(0px)",duration:.32,ease:"power3.out",stagger:0.045},19.950);
+tl.to("#bh46",{opacity:0,scale:1.04,duration:.22,ease:"power2.in"},20.660);
+tl.set("#bh49",{opacity:1},20.900);
+tl.fromTo("#bh49 .w",{y:-90,opacity:0,filter:"blur(18px)"},{y:0,opacity:1,filter:"blur(0px)",duration:.32,ease:"power3.out",stagger:0.045},20.900);
+tl.to("#bh49",{opacity:0,scale:1.04,duration:.22,ease:"power2.in"},21.510);
+tl.set("#ti53",{opacity:1},22.200);
+tl.fromTo("#ti53 .kicker",{opacity:0,y:-20},{opacity:1,y:0,duration:.3},22.250);
+tl.fromTo("#ti53 .tc1",{opacity:0,scale:1.6,filter:"blur(20px)"},{opacity:1,scale:1,filter:"blur(0px)",duration:.35,ease:"power3.out"},22.300);
+tl.fromTo("#ti53 .tc2",{opacity:0,y:80},{opacity:1,y:0,duration:.4,ease:"expo.out"},22.500);
+tl.fromTo("#ti53 .tc3",{opacity:0},{opacity:1,duration:.3},22.900);
+tl.fromTo("#ti53",{scale:1},{scale:1.06,duration:2.000,ease:"none"},22.200);
+tl.set("#cam",{scale:1.0},0.000);
+tl.set("#cam",{scale:1.18},1.600);
+tl.set("#cam",{scale:1.0},3.050);
+tl.set("#cam",{scale:1.16},4.400);
+tl.set("#cam",{scale:1.0},7.550);
+tl.set("#cam",{scale:1.22},10.750);
+tl.set("#cam",{scale:1.2},12.450);
+tl.set("#cam",{scale:1.0},15.750);
+tl.set("#cam",{scale:1.12},18.950);
+tl.set("#cam",{scale:1.2},19.950);
+tl.set("#cam",{scale:1.3},20.900);
+tl.fromTo("#cap56",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},0.000);
+tl.set("#cap56",{opacity:0},0.500);
+tl.fromTo("#cap57",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},0.500);
+tl.set("#cap57",{opacity:0},0.860);
+tl.fromTo("#cap58",{opacity:0,scale:0.7,y:20},{opacity:1,scale:1,y:0,duration:0.16,ease:"back.out(2.5)"},0.860);
+tl.set("#cap58",{opacity:0},1.520);
+tl.fromTo("#cap59",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},1.520);
+tl.set("#cap59",{opacity:0},2.140);
+tl.fromTo("#cap60",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},2.140);
+tl.set("#cap60",{opacity:0},2.580);
+tl.fromTo("#cap61",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},2.580);
+tl.set("#cap61",{opacity:0},3.120);
+tl.fromTo("#cap62",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},5.200);
+tl.set("#cap62",{opacity:0},5.920);
+tl.fromTo("#cap63",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},5.920);
+tl.set("#cap63",{opacity:0},6.760);
+tl.fromTo("#cap64",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},6.760);
+tl.set("#cap64",{opacity:0},7.550);
+tl.fromTo("#cap65",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},8.870);
+tl.set("#cap65",{opacity:0},10.050);
+tl.fromTo("#cap66",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},10.050);
+tl.set("#cap66",{opacity:0},10.750);
+tl.fromTo("#cap67",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},10.750);
+tl.set("#cap67",{opacity:0},11.790);
+tl.fromTo("#cap68",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},11.790);
+tl.set("#cap68",{opacity:0},12.450);
+tl.fromTo("#cap69",{opacity:0,scale:0.7,y:20},{opacity:1,scale:1,y:0,duration:0.16,ease:"back.out(2.5)"},13.410);
+tl.set("#cap69",{opacity:0},13.830);
+tl.fromTo("#cap70",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},13.830);
+tl.set("#cap70",{opacity:0},14.490);
+tl.fromTo("#cap71",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},14.490);
+tl.set("#cap71",{opacity:0},15.330);
+tl.fromTo("#cap72",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},15.330);
+tl.set("#cap72",{opacity:0},16.090);
+tl.fromTo("#cap73",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},19.390);
+tl.set("#cap73",{opacity:0},19.930);
+tl.fromTo("#cap74",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},19.930);
+tl.set("#cap74",{opacity:0},20.880);
+tl.fromTo("#cap75",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},20.910);
+tl.set("#cap75",{opacity:0},21.710);
+tl.fromTo("#cap76",{opacity:0,scale:0.88,y:10},{opacity:1,scale:1,y:0,duration:0.1,ease:"back.out(2.5)"},21.710);
+tl.set("#cap76",{opacity:0},22.480);
+window.__timelines["intro"] = tl;
+</script>
+</body>
+</html>

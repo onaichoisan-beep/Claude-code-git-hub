@@ -1,0 +1,103 @@
+{
+ "keys": {
+  "freelancing": "red",
+  "-4k": "money"
+ },
+ "fix": {
+  "-4k": "₹3–4K",
+  "3": ""
+ },
+ "cues": [
+  {
+   "type": "chapter",
+   "t": 0.0,
+   "d": 2.3,
+   "num": "04",
+   "title": "Freelancing",
+   "sub": "Video editing for creators"
+  },
+  {
+   "type": "table",
+   "t": 2.3,
+   "d": 1.8,
+   "active": 4
+  },
+  {
+   "type": "pop",
+   "t": 5.1,
+   "d": 1.7,
+   "x": 380,
+   "y": 400,
+   "icon": "scissors",
+   "label": "EDITOR"
+  },
+  {
+   "type": "glitch",
+   "t": 6.85
+  },
+  {
+   "type": "timeline",
+   "t": 6.9,
+   "d": 2.4,
+   "big": "₹3–4K",
+   "small": "per video"
+  },
+  {
+   "type": "pop",
+   "t": 12.3,
+   "d": 1.6,
+   "x": 1540,
+   "y": 400,
+   "icon": "trending",
+   "label": "PRACTICE"
+  },
+  {
+   "type": "bh",
+   "t": 17.9,
+   "d": 1.1,
+   "text": "CHARGE MORE",
+   "style": "money",
+   "matte": "a"
+  },
+  {
+   "type": "pop",
+   "t": 21.75,
+   "d": 1.6,
+   "x": 380,
+   "y": 400,
+   "icon": "chat",
+   "label": "DM CREATORS"
+  },
+  {
+   "type": "pop",
+   "t": 24.0,
+   "d": 1.35,
+   "x": 1540,
+   "y": 400,
+   "icon": "play",
+   "label": "DM YOUTUBERS",
+   "tile": "red"
+  },
+  {
+   "type": "pop",
+   "t": 25.4,
+   "d": 1.6,
+   "x": 380,
+   "y": 400,
+   "icon": "film",
+   "label": "SEND SAMPLES"
+  },
+  {
+   "type": "bh",
+   "t": 27.9,
+   "d": 1.7,
+   "text": "FREELANCING",
+   "style": "red",
+   "matte": "b"
+  }
+ ],
+ "id": "clip04",
+ "video": "assets/video/clip04.mp4",
+ "words": "../work/base/clip04.words.json",
+ "duration": 33.101
+}
