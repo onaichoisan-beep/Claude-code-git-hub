@@ -35,6 +35,20 @@ body { background: #222; display: flex; flex-direction: column; gap: 30px; paddi
 .tile svg { width: 64px; height: 64px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .arrow { position: absolute; stroke: var(--money); fill: none; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round;
   filter: drop-shadow(0 4px 0 rgba(0,0,0,.5)); }
+
+.note2 { position: absolute; display: flex; white-space: nowrap; align-items: center; gap: 26px; padding: 22px 30px; border-radius: 28px;
+  background: rgba(22,22,26,.92); border: 2px solid rgba(255,255,255,.14); box-shadow: 0 24px 60px rgba(0,0,0,.6); transform-origin: 0 50%; }
+.note2 i { flex: none; width: 72px; height: 72px; border-radius: 50%; background: #1fbf75; position: relative; box-shadow: 0 0 24px rgba(31,191,117,.6); }
+.note2 i::after { content: ""; position: absolute; left: 24px; top: 14px; width: 18px; height: 34px; border: solid #fff; border-width: 0 8px 8px 0; transform: rotate(45deg); }
+.note2 b { display: block; font-family: Inter; font-weight: 900; font-size: 64px; letter-spacing: -2px; color: #fff; }
+.note2 span { display: block; font-family: Inter; font-weight: 800; font-size: 26px; color: #9a9aa2; margin-top: 2px; }
+.note2.big { padding: 30px 38px; border-color: rgba(216,255,79,.6); box-shadow: 0 0 60px rgba(216,255,79,.25), 0 30px 70px rgba(0,0,0,.7); }
+.note2.big i { width: 104px; height: 104px; }
+.note2.big i::after { left: 36px; top: 20px; width: 24px; height: 48px; border-width: 0 11px 11px 0; }
+.note2.big b { font-size: 100px; color: #d8ff4f; text-shadow: 0 0 40px rgba(216,255,79,.45); }
+.note2.big span { font-size: 32px; color: #cfcfd6; }
+.cash { background: url('../edit/assets/stock/rupees.jpg') center/cover; -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: brightness(1.7) contrast(1.15) saturate(1.4) drop-shadow(0 0 30px rgba(216,255,79,.35)) drop-shadow(0 12px 0 rgba(0,0,0,.6)); }
 </style></head><body>
 
 <!-- 1: ₹80,000 behind head (matches the video's hook) -->
@@ -94,8 +108,8 @@ body { background: #222; display: flex; flex-direction: column; gap: 30px; paddi
   <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 76% 55%, rgba(255,40,40,.55) 0%, rgba(120,0,6,.25) 30%, rgba(0,0,0,.85) 75%)"></div>
   <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,40,40,.08) 2px,transparent 2px),linear-gradient(90deg,rgba(255,40,40,.08) 2px,transparent 2px);background-size:64px 64px"></div>
   <div style="position:absolute;left:600px;top:140px;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle, rgba(255,60,60,.65) 0%, rgba(255,0,20,.25) 40%, transparent 70%)"></div>
-  <div class="anton money" style="position:absolute;left:40px;top:58px;font-size:240px;letter-spacing:3px;-webkit-text-stroke:3px #0a2a00;
-       text-shadow:0 0 50px rgba(216,255,79,.55),0 10px 0 #1f3a00,0 18px 30px rgba(0,0,0,.7)">₹80,000</div>
+  <div class="anton money" style="position:absolute;left:40px;top:58px;font-size:240px;letter-spacing:3px;
+       text-shadow:0 0 50px rgba(216,255,79,.5),0 14px 30px rgba(0,0,0,.7)">₹80,000</div>
   <div style="position:absolute;left:48px;top:318px;width:790px;height:14px;background:#d8ff4f;box-shadow:0 0 24px rgba(216,255,79,.6),0 5px 0 rgba(0,0,0,.5)"></div>
   <img src="cut/calm.png" style="position:absolute;width:1350px;left:320px;top:95px;filter:brightness(1.1) contrast(1.12) saturate(1.15)
        drop-shadow(5px 0 0 #fff) drop-shadow(-5px 0 0 #fff) drop-shadow(0 5px 0 #fff) drop-shadow(0 -5px 0 #fff) drop-shadow(0 0 30px rgba(255,40,40,.8))">
@@ -103,5 +117,49 @@ body { background: #222; display: flex; flex-direction: column; gap: 30px; paddi
     <svg viewBox="0 0 24 24" style="width:44px;height:44px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;margin-top:-4px"><path d="M11 2v2M5 2v2M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></svg>1st year MBBS</div>
   <div class="anton white" style="position:absolute;left:44px;top:480px;font-size:128px;letter-spacing:1px">as a student</div>
   <div class="anton" style="position:absolute;left:48px;top:622px;font-size:62px;letter-spacing:2px;color:#d8ff4f;text-shadow:0 5px 0 rgba(0,0,0,.6),0 0 24px rgba(216,255,79,.35)">4 WAYS &nbsp;·&nbsp; ALL TRUSTED</div>
+</div>
+
+<!-- A: credited notifications -->
+<div class="t" id="t7" style="background:radial-gradient(ellipse at 30% 50%, #3a0005 0%, #120002 55%, #030000 100%)">
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,40,40,.07) 2px,transparent 2px),linear-gradient(90deg,rgba(255,40,40,.07) 2px,transparent 2px);background-size:64px 64px"></div>
+  <div style="position:absolute;left:640px;top:120px;width:720px;height:720px;border-radius:50%;background:radial-gradient(circle, rgba(255,50,50,.55) 0%, rgba(255,0,20,.2) 40%, transparent 70%)"></div>
+  <div class="note2" style="left:70px;top:40px;width:560px;opacity:.4;transform:scale(.88)"><i></i><div><b>+ ₹7,000</b><span>Credited · UGC payout</span></div></div>
+  <div class="note2" style="left:56px;top:110px;width:600px;opacity:.7;transform:scale(.94)"><i></i><div><b>+ ₹10,000</b><span>Credited · Brand collab</span></div></div>
+  <div class="note2 big" style="left:40px;top:195px"><i></i><div><b>+ ₹80,000</b><span>Credited · 1st year MBBS</span></div></div>
+  <div class="anton white" style="position:absolute;left:44px;top:440px;font-size:132px;letter-spacing:1px">as a student</div>
+  <div class="anton" style="position:absolute;left:48px;top:590px;font-size:60px;letter-spacing:2px;color:#d8ff4f;text-shadow:0 5px 0 rgba(0,0,0,.6)">4 WAYS &nbsp;·&nbsp; ALL TRUSTED</div>
+  <img src="cut/calm.png" style="position:absolute;width:1350px;left:340px;top:95px;filter:brightness(1.1) contrast(1.12) saturate(1.15) drop-shadow(5px 0 0 #fff) drop-shadow(-5px 0 0 #fff) drop-shadow(0 5px 0 #fff) drop-shadow(0 -5px 0 #fff) drop-shadow(0 0 30px rgba(255,40,40,.8))">
+</div>
+
+<!-- B: number filled with rupee notes -->
+<div class="t" id="t8" style="background:#050101">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 75% 50%, rgba(200,10,25,.6) 0%, rgba(60,0,5,.4) 40%, transparent 75%)"></div>
+  <div style="position:absolute;left:0;top:0;width:900px;height:720px;background:repeating-linear-gradient(115deg, rgba(255,255,255,.03) 0 2px, transparent 2px 26px)"></div>
+  <div class="anton" style="position:absolute;left:28px;top:20px;font-size:132px;letter-spacing:6px;color:#fff;text-shadow:0 6px 0 rgba(0,0,0,.5)">I EARNED</div>
+  <div class="anton cash" style="position:absolute;left:24px;top:150px;font-size:270px;letter-spacing:2px">80,000</div>
+  <div style="position:absolute;left:32px;top:445px;display:flex;gap:14px">
+    <div class="tag" style="position:static">in 1st year MBBS</div>
+  </div>
+  <div class="anton white" style="position:absolute;left:32px;top:545px;font-size:118px;letter-spacing:1px">here's how</div>
+  <img src="cut/calm.png" style="position:absolute;width:1350px;left:360px;top:95px;filter:brightness(1.1) contrast(1.12) saturate(1.15) drop-shadow(5px 0 0 #fff) drop-shadow(-5px 0 0 #fff) drop-shadow(0 5px 0 #fff) drop-shadow(0 -5px 0 #fff) drop-shadow(0 0 30px rgba(255,40,40,.8))">
+</div>
+
+<!-- C: ghar se vs khud ke -->
+<div class="t" id="t9" style="background:#060101">
+  <div style="position:absolute;left:0;top:0;width:760px;height:720px;background:linear-gradient(180deg,#1a1a1d,#0b0b0d);clip-path:polygon(0 0,100% 0,82% 100%,0 100%)"></div>
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 80% 55%, rgba(220,15,30,.6) 0%, rgba(70,0,6,.35) 40%, transparent 72%)"></div>
+  <div style="position:absolute;left:44px;top:52px">
+    <div class="anton" style="font-size:66px;letter-spacing:4px;color:#8a8a92">GHAR SE PAISE</div>
+    <div style="position:relative;display:inline-block">
+      <div class="anton" style="font-size:150px;color:#8a8a92;letter-spacing:2px">₹500</div>
+      <div style="position:absolute;left:-10px;right:-10px;top:52%;height:16px;background:#e0141e;box-shadow:0 0 20px rgba(255,42,42,.8)"></div>
+    </div>
+  </div>
+  <div style="position:absolute;left:44px;top:330px">
+    <div class="anton" style="font-size:66px;letter-spacing:4px;color:#fff">KHUD KE PAISE</div>
+    <div class="anton money" style="font-size:230px;letter-spacing:2px;text-shadow:0 0 50px rgba(216,255,79,.5),0 10px 0 rgba(0,0,0,.45)">₹80,000</div>
+  </div>
+  <div class="tag" style="left:44px;top:640px;font-size:40px;padding:6px 16px 2px">1st year MBBS</div>
+  <img src="cut/calm.png" style="position:absolute;width:1350px;left:380px;top:95px;filter:brightness(1.1) contrast(1.12) saturate(1.15) drop-shadow(5px 0 0 #fff) drop-shadow(-5px 0 0 #fff) drop-shadow(0 5px 0 #fff) drop-shadow(0 -5px 0 #fff) drop-shadow(0 0 30px rgba(255,40,40,.8))">
 </div>
 </body></html>
