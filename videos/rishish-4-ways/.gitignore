@@ -7,3 +7,7 @@ edit/renders/
 edit/.hyperframes/
 edit/node_modules/
 edit/assets/mattes/
+thumbs/cut/
+thumbs/frames/
+thumbs/*.png
+thumbs/*.jpg
