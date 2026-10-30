@@ -159,8 +159,9 @@
   },
   {
    "type": "bh",
-   "t": 7.95,
-   "d": 1.6,
+   "t": 8.4,
+   "d": 1.15,
+   "mediaStart": 0.45,
    "text": "800 SUBS",
    "style": "white",
    "matteFile": "assets/mattes/clip02_a.webm"

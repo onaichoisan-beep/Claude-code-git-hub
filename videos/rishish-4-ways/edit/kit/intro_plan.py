@@ -37,7 +37,7 @@ cues = [
     bh("w1", "01", "a", 3.8, 1.35, "₹60K+", "money"),
 
     dict(type="chapter", t=at["w2"], d=0.8, num="02", title="Content Creation"),
-    bh("w2", "02", "a", 11.5, 1.6, "800 SUBS", "white"),
+    dict(type="bh", t=round(at["w2"] + 0.85, 3), d=1.15, mediaStart=0.45, text="800 SUBS", style="white", matteFile=M("02", "a")),
     dict(type="note", t=at["w2"] + 3.2, d=1.6, x=1180, y=250, text="first paid collab!", color="money", arrow="left"),
 
     dict(type="chapter", t=at["w3"], d=0.8, num="03", title="Online Tutoring"),
