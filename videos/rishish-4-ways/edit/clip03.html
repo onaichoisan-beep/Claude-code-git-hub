@@ -151,10 +151,10 @@ html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; backgro
   border-radius: 64px; background: #0d0d0f; border: 10px solid #2a2a2e; box-shadow: 0 0 0 3px #555, 0 50px 120px rgba(0,0,0,.8), 0 0 90px rgba(255,42,42,.25); }
 .phone .scr { position: absolute; inset: 26px; border-radius: 42px; background: #000; padding: 70px 34px; }
 .phone .lbl { font-weight: 800; font-size: 34px; color: #9a9aa2; }
-.phone .val { font-weight: 900; font-size: 96px; margin-top: 10px; letter-spacing: -2px; }
-.phone .bars { display: flex; align-items: flex-end; gap: 16px; height: 300px; margin-top: 50px; }
+.phone .val { font-weight: 900; font-size: 84px; margin-top: 10px; letter-spacing: -2px; white-space: nowrap; }
+.phone .bars { display: flex; align-items: flex-end; gap: 16px; height: 260px; margin-top: 40px; }
 .phone .bars i { flex: 1; background: var(--red); border-radius: 8px 8px 0 0; transform-origin: 50% 100%; }
-.phone .apps { margin-top: 40px; font-weight: 800; font-size: 32px; color: #cfcfd6; line-height: 1.8; }
+.phone .apps { margin-top: 30px; font-weight: 800; font-size: 30px; color: #cfcfd6; line-height: 1.6; white-space: nowrap; }
 
 /* transitions */
 .flash { background: #fff; opacity: 0; }
@@ -170,8 +170,16 @@ html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; backgro
 .nle-track { position: relative; flex: 1; height: 64px; background: rgba(255,255,255,.05); border-radius: 8px; }
 .nle-track i { position: absolute; top: 4px; bottom: 4px; border-radius: 8px; transform-origin: 0 50%;
   box-shadow: inset 0 0 0 2px rgba(255,255,255,.25); }
-.nle-head { position: absolute; top: 10px; bottom: 10px; width: 4px; background: #fff; box-shadow: 0 0 20px #fff; }
+.nle-head { position: absolute; left: 9%; top: 10px; bottom: 10px; width: 4px; background: #fff; box-shadow: 0 0 20px #fff; }
 .nle-head::before { content: ""; position: absolute; top: -14px; left: -12px; border: 14px solid transparent; border-top-color: #fff; }
+
+/* intro title card */
+.titlecard { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.titlecard .tc1 { font-family: "Anton", sans-serif; font-size: 300px; line-height: .9; color: var(--red);
+  text-shadow: 0 0 60px rgba(255,42,42,.6); }
+.titlecard .tc2 { font-family: "Anton", sans-serif; font-size: 130px; line-height: 1; text-transform: uppercase; margin-top: 10px; }
+.titlecard .tc3 { margin-top: 34px; font-family: "Permanent Marker", cursive; font-size: 58px; color: var(--money); }
+.titlecard .kicker { margin-bottom: 20px; }
 
 </style>
 </head>
@@ -194,7 +202,7 @@ html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; backgro
   <div id="scenes" class="layer">
     <div id="ch1" class="scene chapter bg-dark"><div class="num">03</div><div class="txt"><div class="kicker">WAY 03 / 04</div><div class="title">Online Tutoring</div><div class="sub">Sell what you already know</div></div><div class="bar"></div></div>
     <div id="tb4" class="scene table bg-dark"><div class="wrap"><h2>4 Ways to Earn <b>as a Student</b></h2><div class="row" id="tb4r1"><div class="n">01</div><div class="t">UGC Content Creation</div><div class="m">₹60K+ EARNED</div><div class="hl"></div></div><div class="row" id="tb4r2"><div class="n">02</div><div class="t">Content Creation</div><div class="m">PAID BRAND DEALS</div><div class="hl"></div></div><div class="row" id="tb4r3"><div class="n">03</div><div class="t">Online Tutoring</div><div class="m">ZERO INVESTMENT</div><div class="hl"></div></div><div class="row blur" id="tb4r4"><div class="n">04</div><div class="t">Freelancing</div><div class="m">₹3–4K / VIDEO</div><div class="hl"></div></div></div></div>
-    <div id="br10" class="scene broll bg-dark"><div class="small" id="br10s">teaching NEET aspirants</div></div>
+    <div id="br10" class="scene broll"><img src="assets/stock/teacher.jpg" alt=""><div class="tint"></div><div class="shade"></div><div class="small" id="br10s">teaching NEET aspirants</div></div>
     <div id="br17" class="scene broll bg-dark"><div class="big money" id="br17b">₹0</div><div class="small" id="br17s">investment needed</div></div>
   </div>
   <div id="caps">
@@ -284,6 +292,7 @@ tl.to("#tb4",{opacity:0,duration:.18},3.520);
 tl.fromTo("#pop8",{opacity:0,scale:.35,y:40},{opacity:1,scale:1,y:0,duration:.34,ease:"back.out(2.4)"},4.500);
 tl.to("#pop8",{opacity:0,scale:.6,duration:.18,ease:"power2.in"},6.520);
 tl.set("#br10",{opacity:1},6.850);
+tl.fromTo("#br10 img",{scale:1.0,x:0},{scale:1.12,x:-40,duration:2.600,ease:"none"},6.850);
 tl.fromTo("#br10s",{opacity:0,y:20},{opacity:1,y:0,duration:.3},7.300);
 tl.to("#br10",{opacity:0,duration:.18},9.270);
 tl.fromTo("#pop12",{opacity:0,scale:.35,y:40},{opacity:1,scale:1,y:0,duration:.34,ease:"back.out(2.4)"},12.400);
