@@ -14,4 +14,17 @@ Images (Wikimedia Commons):
 - "How to get rid of body fat" by Robin — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:How_to_get_rid_of_body_fat.jpg
 
 Captions are English translations of the Tamil-English conversation.
+
+Video clips (Pexels, free to use, credit not required but appreciated):
+- Bangkok skyline: https://www.pexels.com/video/aerial-view-of-bangkok-s-skyline-and-river-31120402/
+- Chennai aerial: https://www.pexels.com/video/aerial-view-of-apartment-buildings-in-the-city-15847247/
+- Phone scrolling: https://www.pexels.com/video/close-up-view-of-a-person-scrolling-through-a-smartphone-6756650/
+- Back massage: https://www.pexels.com/video/person-doing-back-massage-6629950/
+- Clapperboard: https://www.pexels.com/video/a-clapperboard-used-in-making-film-or-video-scenes-3945486/
+- Hand mirror: https://www.pexels.com/video/a-young-woman-touching-her-face-while-holding-a-hand-mirror-12322671/
+- Beauty salon: https://www.pexels.com/video/women-in-a-beauty-salon-7754397/
+- Botox injection: https://www.pexels.com/video/close-up-view-of-elderly-woman-getting-a-botox-injection-7581716/
+- Skincare: https://www.pexels.com/video/young-woman-applying-makeup-in-front-of-mirror-6604745/
+- Laser hair removal: https://www.pexels.com/video/laser-epilation-lazer-epilasyon-16032412/
+- Waist measuring: https://www.pexels.com/video/woman-measuring-her-waistline-8670903/
 ```

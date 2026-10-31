@@ -9,59 +9,89 @@
 @font-face { font-family: "Montserrat"; font-weight: 600; src: url(assets/fonts/montserrat-latin-600-normal.woff2) format("woff2"); }
 @font-face { font-family: "Montserrat"; font-weight: 800; src: url(assets/fonts/montserrat-latin-800-normal.woff2) format("woff2"); }
 @font-face { font-family: "Montserrat"; font-weight: 900; src: url(assets/fonts/montserrat-latin-900-normal.woff2) format("woff2"); }
-:root { --yel:#FFE14D; --red:#FF3B30; --ink:#fff; --glass:rgba(14,12,20,.72); --pink:#E8326B; }
+:root { --yel:#FFD84A; --red:#E0242F; --pink:#FF4F8B; --ink:#fff; --dark:#15111b; --glass:rgba(16,12,22,.74); }
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { width:1920px; height:1080px; overflow:hidden; background:#000; }
 #root { position:relative; width:100%; height:100%; overflow:hidden; font-family:"Montserrat",sans-serif; color:var(--ink); }
 #cam { position:absolute; inset:0; overflow:hidden; }
-#cam .inner { position:absolute; inset:0; transform-origin:64% 40%; }
+#cam .inner { position:absolute; inset:0; }
 #interview, #gift { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-.broll { position:absolute; inset:0; overflow:hidden; }
-.broll .bimg { position:absolute; inset:-2%; background-size:cover; background-position:center; }
-.broll::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,0) 40%,rgba(0,0,0,.55) 100%); }
-.vignette { position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse at 50% 45%,rgba(0,0,0,0) 55%,rgba(0,0,0,.45) 100%); }
-.capzone { position:absolute; left:0; right:0; bottom:70px; height:180px; }
-.cap { position:absolute; left:0; right:0; bottom:0; display:flex; justify-content:center; align-items:baseline; gap:0 22px; flex-wrap:wrap; padding:0 160px; opacity:0; text-align:center; }
-.w { display:inline-block; font-weight:900; font-size:64px; letter-spacing:-.5px; text-transform:uppercase; line-height:1.05;
-      text-shadow:0 5px 0 rgba(0,0,0,.35),0 0 28px rgba(0,0,0,.6); opacity:0; }
-.w.big { font-size:90px; }
-.cap { white-space:nowrap; flex-wrap:nowrap; }
-#b-hair { background:#15131c; }
-#b-hair .bimg { inset:0; background-size:auto 113%; background-position:10px 22%; background-repeat:no-repeat; }
-.w.ky { color:var(--yel); } .w.kr { color:var(--red); }
-.chip { position:absolute; display:flex; align-items:center; gap:14px; padding:16px 26px 16px 20px; border-radius:18px; background:var(--glass);
-        backdrop-filter:blur(6px); box-shadow:0 10px 40px rgba(0,0,0,.35); }
-.chip .pin { width:44px; height:44px; fill:var(--pink); flex:none; }
-.chip .t1 { font-weight:900; font-size:40px; letter-spacing:.5px; line-height:1; }
-.chip .t2 { font-weight:600; font-size:28px; opacity:.85; margin-top:6px; }
+.bwrap { position:absolute; inset:0; overflow:hidden; }
+.bvid { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.bimg { position:absolute; inset:0; background-size:cover; background-position:center; }
+#b-hair { background-color:#15131c; background-size:auto 104%; background-position:0px 30%; background-repeat:no-repeat; }
+.shade { position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg,rgba(0,0,0,.18) 0%,rgba(0,0,0,0) 30%,rgba(0,0,0,0) 62%,rgba(0,0,0,.55) 100%); }
+#leak { position:absolute; inset:0; pointer-events:none; opacity:0; mix-blend-mode:screen;
+  background:radial-gradient(ellipse 60% 80% at 8% 30%,rgba(255,140,60,.9),rgba(255,80,60,0) 70%),radial-gradient(ellipse 50% 60% at 95% 80%,rgba(255,60,140,.7),rgba(255,60,140,0) 70%); }
+/* captions */
+.capzone { position:absolute; left:0; right:0; bottom:64px; height:190px; }
+.cap { position:absolute; left:0; right:0; bottom:0; display:flex; justify-content:center; align-items:center; gap:0 20px; white-space:nowrap; opacity:0; }
+.w { display:inline-block; position:relative; font-weight:900; font-size:62px; letter-spacing:-.5px; text-transform:uppercase; line-height:1.15;
+  text-shadow:0 4px 0 rgba(0,0,0,.35),0 0 26px rgba(0,0,0,.55); opacity:0; }
+.w.big { font-size:86px; }
+.w.ky { color:var(--yel); } .w.kr { color:#ff4a4a; }
+.hlw .hl { position:absolute; left:-16px; right:-16px; top:8px; bottom:4px; border-radius:14px; background:var(--yel); transform-origin:50% 50%; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+.hlw.kr .hl { background:var(--red); }
+.hlw .tx { position:relative; }
+.hlw.ky .tx { color:var(--dark); text-shadow:none; }
+.hlw.kr .tx { color:#fff; text-shadow:none; }
+/* chips */
+.chip { position:absolute; left:72px; top:66px; display:flex; align-items:center; gap:16px; padding:16px 28px 16px 20px; border-radius:18px; background:var(--glass);
+  border:1px solid rgba(255,255,255,.14); box-shadow:0 14px 40px rgba(0,0,0,.35); }
+.chip .pin { width:46px; height:46px; fill:var(--pink); flex:none; }
 .chip .col { display:flex; flex-direction:column; }
-#hook { left:70px; top:64px; }
-#hook .tag { background:#C4122F; color:#fff; font-weight:900; font-size:28px; letter-spacing:2px; padding:8px 12px; border-radius:8px; }
-#hook .t1 { font-size:34px; }
-#title { left:70px; top:64px; }
+.chip .t1 { font-weight:900; font-size:40px; letter-spacing:.5px; line-height:1.05; }
+.chip .t2 { font-weight:600; font-size:28px; opacity:.88; margin-top:6px; }
+#hook .tag { background:var(--red); font-weight:900; font-size:28px; letter-spacing:2px; padding:6px 14px; border-radius:9px; }
+#hook .t1 { font-size:36px; }
 #title .t1 { font-size:54px; color:var(--yel); }
-#bkk { left:70px; top:64px; } #chn { left:70px; top:64px; } #loc { left:70px; top:64px; } #film { left:70px; top:64px; }
-#chn .status { font-weight:900; font-size:30px; color:var(--red); margin-top:8px; letter-spacing:1px; }
-#chn .ok { font-weight:600; font-size:28px; opacity:.85; margin-top:8px; }
-#lt { position:absolute; left:70px; bottom:300px; }
-#lt .bar { position:absolute; left:0; top:0; bottom:0; width:10px; border-radius:6px; background:var(--pink); }
-#lt .box { padding:14px 30px 16px 34px; background:var(--glass); border-radius:14px; overflow:hidden; }
-#lt .n { font-weight:900; font-size:52px; line-height:1.05; }
-#lt .r { font-weight:600; font-size:28px; opacity:.9; margin-top:6px; }
-#menu { position:absolute; right:60px; top:60px; width:640px; padding:30px 34px 26px; border-radius:26px; background:var(--glass);
-        backdrop-filter:blur(8px); box-shadow:0 20px 60px rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.12); }
-#menu .mh { font-weight:900; font-size:30px; letter-spacing:3px; color:var(--yel); margin-bottom:6px; }
-#menu .ms { font-weight:600; font-size:28px; opacity:.8; margin-bottom:10px; }
-.msec { font-weight:800; font-size:28px; letter-spacing:3px; color:rgba(255,255,255,.62); margin:10px 0 0; }
-.mrow { display:flex; align-items:center; gap:14px; height:42px; font-weight:800; font-size:31px; opacity:.22; }
-.mrow .dot { width:14px; height:14px; border-radius:50%; background:rgba(255,255,255,.5); flex:none; }
-.mrow.on .dot { background:var(--yel); }
-.badge { font-weight:900; font-size:28px; letter-spacing:1px; padding:2px 10px; border-radius:7px; margin-left:6px; }
+/* BTS card */
+#bts { position:absolute; left:150px; top:170px; width:316px; height:560px; padding:12px 12px 52px; background:#f5f1ea; border-radius:10px;
+  box-shadow:0 30px 60px rgba(0,0,0,.5); opacity:0; }
+#bts video { position:relative; display:block; width:292px; height:496px; object-fit:cover; border-radius:4px; }
+#bts .lab { position:absolute; left:0; right:0; bottom:10px; text-align:center; color:#1b1620; font-weight:900; font-size:28px; letter-spacing:1px; }
+/* map */
+#map { position:absolute; inset:0; background:radial-gradient(ellipse at 50% 40%,#22324a 0%,#0d1320 70%); }
+#map .dots { position:absolute; inset:0; fill:rgba(140,180,255,.22); }
+#map svg.route { position:absolute; inset:0; }
+#map .arc { fill:none; stroke:var(--yel); stroke-width:6; stroke-linecap:round; stroke-dasharray:14 16; }
+#map .city { position:absolute; width:300px; display:flex; flex-direction:column; align-items:center; }
+#map .city .pin { width:70px; height:70px; fill:var(--pink); filter:drop-shadow(0 8px 14px rgba(0,0,0,.5)); }
+#map .city .n { font-weight:900; font-size:46px; margin-top:6px; letter-spacing:1px; }
+#map .city .s { font-weight:600; font-size:28px; opacity:.8; }
+#map #c-bkk { left:1200px; top:340px; } #map #c-chn { left:250px; top:380px; }
+#map #plane { position:absolute; left:0; top:0; width:70px; height:70px; fill:#fff; filter:drop-shadow(0 6px 12px rgba(0,0,0,.5)); }
+#map .mh { position:absolute; left:0; right:0; top:120px; text-align:center; font-weight:900; font-size:44px; letter-spacing:4px; color:rgba(255,255,255,.9); }
+/* stamp */
+#stamp { position:absolute; left:120px; top:250px; padding:22px 40px; border:10px solid var(--red); border-radius:22px; color:var(--red);
+  font-weight:900; font-size:76px; line-height:1; letter-spacing:2px; text-align:center; background:rgba(255,255,255,.88); transform:rotate(-8deg); }
+#stamp .s2 { display:block; font-size:38px; letter-spacing:6px; margin-top:10px; }
+/* lower third */
+#lt { position:absolute; left:72px; bottom:290px; }
+#lt .tag { display:inline-block; background:var(--pink); font-weight:900; font-size:28px; letter-spacing:3px; padding:6px 14px; border-radius:8px; }
+#lt .n { font-weight:900; font-size:72px; line-height:1.05; margin-top:10px; text-shadow:0 4px 18px rgba(0,0,0,.6); }
+#lt .line { height:6px; width:520px; background:linear-gradient(90deg,var(--yel),var(--pink)); border-radius:4px; margin:12px 0 10px; transform-origin:0 50%; }
+#lt .r { font-weight:600; font-size:30px; text-shadow:0 2px 12px rgba(0,0,0,.7); }
+/* menu cards */
+#menu { position:absolute; right:60px; top:96px; width:600px; }
+#menu .mh { font-weight:900; font-size:32px; letter-spacing:4px; color:var(--yel); text-shadow:0 2px 14px rgba(0,0,0,.6); }
+#menu .ms { font-weight:600; font-size:28px; margin:4px 0 16px; text-shadow:0 2px 12px rgba(0,0,0,.7); }
+#menu .win { position:relative; height:480px; overflow:hidden; }
+#menu .stack { position:absolute; left:0; right:0; top:0; }
+.card { position:absolute; left:0; right:0; height:84px; display:flex; align-items:center; gap:18px; padding:0 22px 0 14px; border-radius:18px;
+  background:var(--glass); border:1px solid rgba(255,255,255,.14); box-shadow:0 12px 30px rgba(0,0,0,.35); opacity:0; }
+.card .ic { width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg,var(--pink),#ff8a4f); display:flex; align-items:center; justify-content:center; flex:none; }
+.card .ic svg { width:32px; height:32px; fill:#fff; color:#fff; stroke:#fff; }
+.card .cl { display:flex; flex-direction:column; flex:1; }
+.card .ct { font-weight:800; font-size:34px; line-height:1.05; }
+.card .cs { font-weight:800; font-size:28px; letter-spacing:2px; color:rgba(255,255,255,.62); }
+.badge { font-weight:900; font-size:28px; letter-spacing:1px; padding:3px 12px; border-radius:8px; }
 .badge.new { background:#C4122F; } .badge.soon { background:#fff; color:#111; }
+/* end card */
 #endcard { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(8,6,14,.55); }
 #endcard .e1 { font-weight:900; font-size:120px; letter-spacing:-1px; line-height:1; }
 #endcard .x { color:var(--pink); padding:0 24px; }
-#endcard .e2 { font-weight:600; font-size:36px; margin-top:22px; opacity:.95; }
+#endcard .e2 { font-weight:600; font-size:36px; margin-top:22px; }
 #endcard .e3 { font-weight:600; font-size:28px; position:absolute; bottom:34px; opacity:.75; }
 </style>
 </head>
@@ -71,157 +101,211 @@ html,body { width:1920px; height:1080px; overflow:hidden; background:#000; }
     <video id="interview" src="assets/footage/interview.mp4" muted playsinline data-start="0" data-duration="63.367" data-track-index="0"></video>
   </div></div>
   <video id="gift" src="assets/footage/bts-gift.mp4" muted playsinline data-start="63.367" data-duration="3.633" data-track-index="1"></video>
-<div id="b-facial" class="clip broll" data-layout-allow-overflow data-start="3.05" data-duration="1.35" data-track-index="2"><div class="bimg" style="background-image:url(assets/img/B6.jpg)"></div></div>
-<div id="b-phone" class="clip broll" data-layout-allow-overflow data-start="9.6" data-duration="1.17" data-track-index="2"><div class="bimg" style="background-image:url(assets/img/C8.jpg)"></div></div>
-<div id="b-massage" class="clip broll" data-layout-allow-overflow data-start="13.05" data-duration="1.75" data-track-index="2"><div class="bimg" style="background-image:url(assets/img/D1.jpg)"></div></div>
-<div id="b-film" class="clip broll" data-layout-allow-overflow data-start="17.86" data-duration="1.5" data-track-index="2"><div class="bimg" style="background-image:url(assets/img/E1.jpg)"></div></div>
-<div id="b-botox" class="clip broll" data-layout-allow-overflow data-start="33.45" data-duration="1.83" data-track-index="2"><div class="bimg" style="background-image:url(assets/img/G1.jpg)"></div></div>
-<div id="b-hair" class="clip broll" data-layout-allow-overflow data-start="44.22" data-duration="1.74" data-track-index="2"><div class="bimg" style="background-image:url(assets/img/I2.jpg)"></div></div>
-<div id="b-laser" class="clip broll" data-layout-allow-overflow data-start="46.62" data-duration="1.52" data-track-index="2"><div class="bimg" style="background-image:url(assets/img/J4.jpg)"></div></div>
-<div id="b-slim" class="clip broll" data-layout-allow-overflow data-start="50.25" data-duration="1.51" data-track-index="2"><div class="bimg" style="background-image:url(assets/img/K7.jpg)"></div></div>
-  <div class="vignette"></div>
+<div class="bwrap" id="w-b-facial"><div id="b-facial" class="clip bimg" data-start="3.05" data-duration="1.35" data-track-index="2" style="background-image:url(assets/img/B6.jpg)"></div></div>
+<div class="bwrap" id="w-b-bkk"><video id="b-bkk" class="clip bvid" src="assets/broll/bangkok.mp4" muted playsinline data-start="4.4" data-duration="2.35" data-track-index="2"></video></div>
+<div class="bwrap" id="w-b-chn"><video id="b-chn" class="clip bvid" src="assets/broll/chennai.mp4" muted playsinline data-start="8.8" data-duration="0.8" data-track-index="2"></video></div>
+<div class="bwrap" id="w-b-phone"><video id="b-phone" class="clip bvid" src="assets/broll/phone.mp4" muted playsinline data-start="9.6" data-duration="1.17" data-track-index="2"></video></div>
+<div class="bwrap" id="w-b-massage"><video id="b-massage" class="clip bvid" src="assets/broll/massage.mp4" muted playsinline data-start="13.05" data-duration="1.75" data-track-index="2"></video></div>
+<div class="bwrap" id="w-b-clap"><video id="b-clap" class="clip bvid" src="assets/broll/clapper.mp4" muted playsinline data-start="17.86" data-duration="1.5" data-track-index="2"></video></div>
+<div class="bwrap" id="w-b-mirror"><video id="b-mirror" class="clip bvid" src="assets/broll/mirror.mp4" muted playsinline data-start="19.95" data-duration="1.18" data-track-index="2"></video></div>
+<div class="bwrap" id="w-b-salon"><video id="b-salon" class="clip bvid" src="assets/broll/salon.mp4" muted playsinline data-start="29.1" data-duration="2.0" data-track-index="2"></video></div>
+<div class="bwrap" id="w-b-botox"><video id="b-botox" class="clip bvid" src="assets/broll/botox.mp4" muted playsinline data-start="33.45" data-duration="1.83" data-track-index="2"></video></div>
+<div class="bwrap" id="w-b-skin"><video id="b-skin" class="clip bvid" src="assets/broll/skincare.mp4" muted playsinline data-start="35.32" data-duration="1.9" data-track-index="2"></video></div>
+<div class="bwrap" id="w-b-hair"><div id="b-hair" class="clip bimg" data-start="44.22" data-duration="1.74" data-track-index="2" style="background-image:url(assets/img/I2.jpg)"></div></div>
+<div class="bwrap" id="w-b-laser"><video id="b-laser" class="clip bvid" src="assets/broll/laser.mp4" muted playsinline data-start="46.62" data-duration="1.52" data-track-index="2"></video></div>
+<div class="bwrap" id="w-b-slim"><video id="b-slim" class="clip bvid" src="assets/broll/waist.mp4" muted playsinline data-start="50.25" data-duration="1.51" data-track-index="2"></video></div>
+  <div id="map" class="clip" data-start="7.30" data-duration="1.50" data-track-index="3">
+    <svg class="dots" viewBox="0 0 1920 1080"><circle cx="40" cy="40" r="2.2"/><circle cx="40" cy="160" r="2.2"/><circle cx="40" cy="240" r="2.2"/><circle cx="40" cy="360" r="2.2"/><circle cx="40" cy="480" r="2.2"/><circle cx="40" cy="600" r="2.2"/><circle cx="40" cy="680" r="2.2"/><circle cx="40" cy="720" r="2.2"/><circle cx="40" cy="800" r="2.2"/><circle cx="40" cy="920" r="2.2"/><circle cx="40" cy="1040" r="2.2"/><circle cx="80" cy="40" r="2.2"/><circle cx="80" cy="160" r="2.2"/><circle cx="80" cy="280" r="2.2"/><circle cx="80" cy="360" r="2.2"/><circle cx="80" cy="400" r="2.2"/><circle cx="80" cy="480" r="2.2"/><circle cx="80" cy="600" r="2.2"/><circle cx="80" cy="720" r="2.2"/><circle cx="80" cy="840" r="2.2"/><circle cx="80" cy="920" r="2.2"/><circle cx="80" cy="1040" r="2.2"/><circle cx="120" cy="40" r="2.2"/><circle cx="120" cy="80" r="2.2"/><circle cx="120" cy="160" r="2.2"/><circle cx="120" cy="280" r="2.2"/><circle cx="120" cy="400" r="2.2"/><circle cx="120" cy="520" r="2.2"/><circle cx="120" cy="600" r="2.2"/><circle cx="120" cy="720" r="2.2"/><circle cx="120" cy="840" r="2.2"/><circle cx="120" cy="960" r="2.2"/><circle cx="120" cy="1040" r="2.2"/><circle cx="160" cy="80" r="2.2"/><circle cx="160" cy="200" r="2.2"/><circle cx="160" cy="280" r="2.2"/><circle cx="160" cy="400" r="2.2"/><circle cx="160" cy="520" r="2.2"/><circle cx="160" cy="640" r="2.2"/><circle cx="160" cy="720" r="2.2"/><circle cx="160" cy="840" r="2.2"/><circle cx="160" cy="960" r="2.2"/><circle cx="200" cy="80" r="2.2"/><circle cx="200" cy="200" r="2.2"/><circle cx="200" cy="320" r="2.2"/><circle cx="200" cy="400" r="2.2"/><circle cx="200" cy="520" r="2.2"/><circle cx="200" cy="640" r="2.2"/><circle cx="200" cy="760" r="2.2"/><circle cx="200" cy="840" r="2.2"/><circle cx="200" cy="880" r="2.2"/><circle cx="200" cy="960" r="2.2"/><circle cx="240" cy="80" r="2.2"/><circle cx="240" cy="200" r="2.2"/><circle cx="240" cy="320" r="2.2"/><circle cx="240" cy="440" r="2.2"/><circle cx="240" cy="520" r="2.2"/><circle cx="240" cy="560" r="2.2"/><circle cx="240" cy="640" r="2.2"/><circle cx="240" cy="760" r="2.2"/><circle cx="240" cy="880" r="2.2"/><circle cx="240" cy="1000" r="2.2"/><circle cx="280" cy="120" r="2.2"/><circle cx="280" cy="200" r="2.2"/><circle cx="280" cy="240" r="2.2"/><circle cx="280" cy="320" r="2.2"/><circle cx="280" cy="440" r="2.2"/><circle cx="280" cy="560" r="2.2"/><circle cx="280" cy="680" r="2.2"/><circle cx="280" cy="760" r="2.2"/><circle cx="280" cy="880" r="2.2"/><circle cx="280" cy="1000" r="2.2"/><circle cx="320" cy="120" r="2.2"/><circle cx="320" cy="240" r="2.2"/><circle cx="320" cy="360" r="2.2"/><circle cx="320" cy="440" r="2.2"/><circle cx="320" cy="560" r="2.2"/><circle cx="320" cy="680" r="2.2"/><circle cx="320" cy="800" r="2.2"/><circle cx="320" cy="880" r="2.2"/><circle cx="320" cy="1000" r="2.2"/><circle cx="360" cy="40" r="2.2"/><circle cx="360" cy="120" r="2.2"/><circle cx="360" cy="240" r="2.2"/><circle cx="360" cy="360" r="2.2"/><circle cx="360" cy="480" r="2.2"/><circle cx="360" cy="560" r="2.2"/><circle cx="360" cy="680" r="2.2"/><circle cx="360" cy="800" r="2.2"/><circle cx="360" cy="920" r="2.2"/><circle cx="360" cy="1000" r="2.2"/><circle cx="360" cy="1040" r="2.2"/><circle cx="400" cy="40" r="2.2"/><circle cx="400" cy="160" r="2.2"/><circle cx="400" cy="240" r="2.2"/><circle cx="400" cy="360" r="2.2"/><circle cx="400" cy="480" r="2.2"/><circle cx="400" cy="600" r="2.2"/><circle cx="400" cy="680" r="2.2"/><circle cx="400" cy="720" r="2.2"/><circle cx="400" cy="800" r="2.2"/><circle cx="400" cy="920" r="2.2"/><circle cx="400" cy="1040" r="2.2"/><circle cx="440" cy="40" r="2.2"/><circle cx="440" cy="160" r="2.2"/><circle cx="440" cy="280" r="2.2"/><circle cx="440" cy="360" r="2.2"/><circle cx="440" cy="400" r="2.2"/><circle cx="440" cy="480" r="2.2"/><circle cx="440" cy="600" r="2.2"/><circle cx="440" cy="720" r="2.2"/><circle cx="440" cy="840" r="2.2"/><circle cx="440" cy="920" r="2.2"/><circle cx="440" cy="1040" r="2.2"/><circle cx="480" cy="40" r="2.2"/><circle cx="480" cy="80" r="2.2"/><circle cx="480" cy="160" r="2.2"/><circle cx="480" cy="280" r="2.2"/><circle cx="480" cy="400" r="2.2"/><circle cx="480" cy="520" r="2.2"/><circle cx="480" cy="600" r="2.2"/><circle cx="480" cy="720" r="2.2"/><circle cx="480" cy="840" r="2.2"/><circle cx="480" cy="960" r="2.2"/><circle cx="480" cy="1040" r="2.2"/><circle cx="520" cy="80" r="2.2"/><circle cx="520" cy="200" r="2.2"/><circle cx="520" cy="280" r="2.2"/><circle cx="520" cy="400" r="2.2"/><circle cx="520" cy="520" r="2.2"/><circle cx="520" cy="640" r="2.2"/><circle cx="520" cy="720" r="2.2"/><circle cx="520" cy="760" r="2.2"/><circle cx="520" cy="840" r="2.2"/><circle cx="520" cy="960" r="2.2"/><circle cx="560" cy="80" r="2.2"/><circle cx="560" cy="200" r="2.2"/><circle cx="560" cy="320" r="2.2"/><circle cx="560" cy="400" r="2.2"/><circle cx="560" cy="440" r="2.2"/><circle cx="560" cy="520" r="2.2"/><circle cx="560" cy="640" r="2.2"/><circle cx="560" cy="760" r="2.2"/><circle cx="560" cy="880" r="2.2"/><circle cx="560" cy="960" r="2.2"/><circle cx="600" cy="80" r="2.2"/><circle cx="600" cy="120" r="2.2"/><circle cx="600" cy="200" r="2.2"/><circle cx="600" cy="320" r="2.2"/><circle cx="600" cy="440" r="2.2"/><circle cx="600" cy="560" r="2.2"/><circle cx="600" cy="640" r="2.2"/><circle cx="600" cy="760" r="2.2"/><circle cx="600" cy="880" r="2.2"/><circle cx="600" cy="1000" r="2.2"/><circle cx="640" cy="120" r="2.2"/><circle cx="640" cy="240" r="2.2"/><circle cx="640" cy="320" r="2.2"/><circle cx="640" cy="440" r="2.2"/><circle cx="640" cy="560" r="2.2"/><circle cx="640" cy="680" r="2.2"/><circle cx="640" cy="760" r="2.2"/><circle cx="640" cy="880" r="2.2"/><circle cx="640" cy="1000" r="2.2"/><circle cx="680" cy="120" r="2.2"/><circle cx="680" cy="240" r="2.2"/><circle cx="680" cy="360" r="2.2"/><circle cx="680" cy="440" r="2.2"/><circle cx="680" cy="560" r="2.2"/><circle cx="680" cy="680" r="2.2"/><circle cx="680" cy="800" r="2.2"/><circle cx="680" cy="880" r="2.2"/><circle cx="680" cy="920" r="2.2"/><circle cx="680" cy="1000" r="2.2"/><circle cx="720" cy="40" r="2.2"/><circle cx="720" cy="120" r="2.2"/><circle cx="720" cy="240" r="2.2"/><circle cx="720" cy="360" r="2.2"/><circle cx="720" cy="480" r="2.2"/><circle cx="720" cy="560" r="2.2"/><circle cx="720" cy="600" r="2.2"/><circle cx="720" cy="680" r="2.2"/><circle cx="720" cy="800" r="2.2"/><circle cx="720" cy="920" r="2.2"/><circle cx="720" cy="1040" r="2.2"/><circle cx="760" cy="40" r="2.2"/><circle cx="760" cy="160" r="2.2"/><circle cx="760" cy="240" r="2.2"/><circle cx="760" cy="280" r="2.2"/><circle cx="760" cy="360" r="2.2"/><circle cx="760" cy="480" r="2.2"/><circle cx="760" cy="600" r="2.2"/><circle cx="760" cy="720" r="2.2"/><circle cx="760" cy="800" r="2.2"/><circle cx="760" cy="920" r="2.2"/><circle cx="760" cy="1040" r="2.2"/><circle cx="800" cy="40" r="2.2"/><circle cx="800" cy="160" r="2.2"/><circle cx="800" cy="280" r="2.2"/><circle cx="800" cy="400" r="2.2"/><circle cx="800" cy="480" r="2.2"/><circle cx="800" cy="600" r="2.2"/><circle cx="800" cy="720" r="2.2"/><circle cx="800" cy="840" r="2.2"/><circle cx="800" cy="920" r="2.2"/><circle cx="800" cy="1040" r="2.2"/><circle cx="840" cy="80" r="2.2"/><circle cx="840" cy="160" r="2.2"/><circle cx="840" cy="280" r="2.2"/><circle cx="840" cy="400" r="2.2"/><circle cx="840" cy="520" r="2.2"/><circle cx="840" cy="600" r="2.2"/><circle cx="840" cy="720" r="2.2"/><circle cx="840" cy="840" r="2.2"/><circle cx="840" cy="960" r="2.2"/><circle cx="840" cy="1040" r="2.2"/><circle cx="880" cy="80" r="2.2"/><circle cx="880" cy="200" r="2.2"/><circle cx="880" cy="280" r="2.2"/><circle cx="880" cy="400" r="2.2"/><circle cx="880" cy="520" r="2.2"/><circle cx="880" cy="640" r="2.2"/><circle cx="880" cy="720" r="2.2"/><circle cx="880" cy="760" r="2.2"/><circle cx="880" cy="840" r="2.2"/><circle cx="880" cy="960" r="2.2"/><circle cx="920" cy="80" r="2.2"/><circle cx="920" cy="200" r="2.2"/><circle cx="920" cy="320" r="2.2"/><circle cx="920" cy="400" r="2.2"/><circle cx="920" cy="440" r="2.2"/><circle cx="920" cy="520" r="2.2"/><circle cx="920" cy="640" r="2.2"/><circle cx="920" cy="760" r="2.2"/><circle cx="920" cy="880" r="2.2"/><circle cx="920" cy="960" r="2.2"/><circle cx="960" cy="80" r="2.2"/><circle cx="960" cy="120" r="2.2"/><circle cx="960" cy="200" r="2.2"/><circle cx="960" cy="320" r="2.2"/><circle cx="960" cy="440" r="2.2"/><circle cx="960" cy="560" r="2.2"/><circle cx="960" cy="640" r="2.2"/><circle cx="960" cy="760" r="2.2"/><circle cx="960" cy="880" r="2.2"/><circle cx="960" cy="1000" r="2.2"/><circle cx="1000" cy="120" r="2.2"/><circle cx="1000" cy="240" r="2.2"/><circle cx="1000" cy="320" r="2.2"/><circle cx="1000" cy="440" r="2.2"/><circle cx="1000" cy="560" r="2.2"/><circle cx="1000" cy="680" r="2.2"/><circle cx="1000" cy="760" r="2.2"/><circle cx="1000" cy="800" r="2.2"/><circle cx="1000" cy="880" r="2.2"/><circle cx="1000" cy="1000" r="2.2"/><circle cx="1040" cy="120" r="2.2"/><circle cx="1040" cy="240" r="2.2"/><circle cx="1040" cy="360" r="2.2"/><circle cx="1040" cy="440" r="2.2"/><circle cx="1040" cy="480" r="2.2"/><circle cx="1040" cy="560" r="2.2"/><circle cx="1040" cy="680" r="2.2"/><circle cx="1040" cy="800" r="2.2"/><circle cx="1040" cy="920" r="2.2"/><circle cx="1040" cy="1000" r="2.2"/><circle cx="1080" cy="40" r="2.2"/><circle cx="1080" cy="120" r="2.2"/><circle cx="1080" cy="160" r="2.2"/><circle cx="1080" cy="240" r="2.2"/><circle cx="1080" cy="360" r="2.2"/><circle cx="1080" cy="480" r="2.2"/><circle cx="1080" cy="600" r="2.2"/><circle cx="1080" cy="680" r="2.2"/><circle cx="1080" cy="800" r="2.2"/><circle cx="1080" cy="920" r="2.2"/><circle cx="1080" cy="1040" r="2.2"/><circle cx="1120" cy="40" r="2.2"/><circle cx="1120" cy="160" r="2.2"/><circle cx="1120" cy="280" r="2.2"/><circle cx="1120" cy="360" r="2.2"/><circle cx="1120" cy="480" r="2.2"/><circle cx="1120" cy="600" r="2.2"/><circle cx="1120" cy="720" r="2.2"/><circle cx="1120" cy="800" r="2.2"/><circle cx="1120" cy="920" r="2.2"/><circle cx="1120" cy="1040" r="2.2"/><circle cx="1160" cy="40" r="2.2"/><circle cx="1160" cy="160" r="2.2"/><circle cx="1160" cy="280" r="2.2"/><circle cx="1160" cy="400" r="2.2"/><circle cx="1160" cy="480" r="2.2"/><circle cx="1160" cy="600" r="2.2"/><circle cx="1160" cy="720" r="2.2"/><circle cx="1160" cy="840" r="2.2"/><circle cx="1160" cy="920" r="2.2"/><circle cx="1160" cy="960" r="2.2"/><circle cx="1160" cy="1040" r="2.2"/><circle cx="1200" cy="80" r="2.2"/><circle cx="1200" cy="160" r="2.2"/><circle cx="1200" cy="280" r="2.2"/><circle cx="1200" cy="400" r="2.2"/><circle cx="1200" cy="520" r="2.2"/><circle cx="1200" cy="600" r="2.2"/><circle cx="1200" cy="640" r="2.2"/><circle cx="1200" cy="720" r="2.2"/><circle cx="1200" cy="840" r="2.2"/><circle cx="1200" cy="960" r="2.2"/><circle cx="1240" cy="80" r="2.2"/><circle cx="1240" cy="200" r="2.2"/><circle cx="1240" cy="280" r="2.2"/><circle cx="1240" cy="320" r="2.2"/><circle cx="1240" cy="400" r="2.2"/><circle cx="1240" cy="520" r="2.2"/><circle cx="1240" cy="640" r="2.2"/><circle cx="1240" cy="760" r="2.2"/><circle cx="1240" cy="840" r="2.2"/><circle cx="1240" cy="960" r="2.2"/><circle cx="1280" cy="80" r="2.2"/><circle cx="1280" cy="200" r="2.2"/><circle cx="1280" cy="320" r="2.2"/><circle cx="1280" cy="440" r="2.2"/><circle cx="1280" cy="520" r="2.2"/><circle cx="1280" cy="640" r="2.2"/><circle cx="1280" cy="760" r="2.2"/><circle cx="1280" cy="880" r="2.2"/><circle cx="1280" cy="960" r="2.2"/><circle cx="1320" cy="120" r="2.2"/><circle cx="1320" cy="200" r="2.2"/><circle cx="1320" cy="320" r="2.2"/><circle cx="1320" cy="440" r="2.2"/><circle cx="1320" cy="560" r="2.2"/><circle cx="1320" cy="640" r="2.2"/><circle cx="1320" cy="760" r="2.2"/><circle cx="1320" cy="880" r="2.2"/><circle cx="1320" cy="1000" r="2.2"/><circle cx="1360" cy="120" r="2.2"/><circle cx="1360" cy="240" r="2.2"/><circle cx="1360" cy="320" r="2.2"/><circle cx="1360" cy="440" r="2.2"/><circle cx="1360" cy="560" r="2.2"/><circle cx="1360" cy="680" r="2.2"/><circle cx="1360" cy="760" r="2.2"/><circle cx="1360" cy="800" r="2.2"/><circle cx="1360" cy="880" r="2.2"/><circle cx="1360" cy="1000" r="2.2"/><circle cx="1400" cy="120" r="2.2"/><circle cx="1400" cy="240" r="2.2"/><circle cx="1400" cy="360" r="2.2"/><circle cx="1400" cy="440" r="2.2"/><circle cx="1400" cy="480" r="2.2"/><circle cx="1400" cy="560" r="2.2"/><circle cx="1400" cy="680" r="2.2"/><circle cx="1400" cy="800" r="2.2"/><circle cx="1400" cy="920" r="2.2"/><circle cx="1400" cy="1000" r="2.2"/><circle cx="1440" cy="40" r="2.2"/><circle cx="1440" cy="120" r="2.2"/><circle cx="1440" cy="160" r="2.2"/><circle cx="1440" cy="240" r="2.2"/><circle cx="1440" cy="360" r="2.2"/><circle cx="1440" cy="480" r="2.2"/><circle cx="1440" cy="600" r="2.2"/><circle cx="1440" cy="680" r="2.2"/><circle cx="1440" cy="800" r="2.2"/><circle cx="1440" cy="920" r="2.2"/><circle cx="1440" cy="1040" r="2.2"/><circle cx="1480" cy="40" r="2.2"/><circle cx="1480" cy="160" r="2.2"/><circle cx="1480" cy="280" r="2.2"/><circle cx="1480" cy="360" r="2.2"/><circle cx="1480" cy="480" r="2.2"/><circle cx="1480" cy="600" r="2.2"/><circle cx="1480" cy="720" r="2.2"/><circle cx="1480" cy="800" r="2.2"/><circle cx="1480" cy="840" r="2.2"/><circle cx="1480" cy="920" r="2.2"/><circle cx="1480" cy="1040" r="2.2"/><circle cx="1520" cy="40" r="2.2"/><circle cx="1520" cy="160" r="2.2"/><circle cx="1520" cy="280" r="2.2"/><circle cx="1520" cy="400" r="2.2"/><circle cx="1520" cy="480" r="2.2"/><circle cx="1520" cy="520" r="2.2"/><circle cx="1520" cy="600" r="2.2"/><circle cx="1520" cy="720" r="2.2"/><circle cx="1520" cy="840" r="2.2"/><circle cx="1520" cy="960" r="2.2"/><circle cx="1520" cy="1040" r="2.2"/><circle cx="1560" cy="80" r="2.2"/><circle cx="1560" cy="160" r="2.2"/><circle cx="1560" cy="200" r="2.2"/><circle cx="1560" cy="280" r="2.2"/><circle cx="1560" cy="400" r="2.2"/><circle cx="1560" cy="520" r="2.2"/><circle cx="1560" cy="640" r="2.2"/><circle cx="1560" cy="720" r="2.2"/><circle cx="1560" cy="840" r="2.2"/><circle cx="1560" cy="960" r="2.2"/><circle cx="1600" cy="80" r="2.2"/><circle cx="1600" cy="200" r="2.2"/><circle cx="1600" cy="320" r="2.2"/><circle cx="1600" cy="400" r="2.2"/><circle cx="1600" cy="520" r="2.2"/><circle cx="1600" cy="640" r="2.2"/><circle cx="1600" cy="760" r="2.2"/><circle cx="1600" cy="840" r="2.2"/><circle cx="1600" cy="960" r="2.2"/><circle cx="1640" cy="80" r="2.2"/><circle cx="1640" cy="200" r="2.2"/><circle cx="1640" cy="320" r="2.2"/><circle cx="1640" cy="440" r="2.2"/><circle cx="1640" cy="520" r="2.2"/><circle cx="1640" cy="640" r="2.2"/><circle cx="1640" cy="760" r="2.2"/><circle cx="1640" cy="880" r="2.2"/><circle cx="1640" cy="960" r="2.2"/><circle cx="1640" cy="1000" r="2.2"/><circle cx="1680" cy="120" r="2.2"/><circle cx="1680" cy="200" r="2.2"/><circle cx="1680" cy="320" r="2.2"/><circle cx="1680" cy="440" r="2.2"/><circle cx="1680" cy="560" r="2.2"/><circle cx="1680" cy="640" r="2.2"/><circle cx="1680" cy="680" r="2.2"/><circle cx="1680" cy="760" r="2.2"/><circle cx="1680" cy="880" r="2.2"/><circle cx="1680" cy="1000" r="2.2"/><circle cx="1720" cy="120" r="2.2"/><circle cx="1720" cy="240" r="2.2"/><circle cx="1720" cy="320" r="2.2"/><circle cx="1720" cy="360" r="2.2"/><circle cx="1720" cy="440" r="2.2"/><circle cx="1720" cy="560" r="2.2"/><circle cx="1720" cy="680" r="2.2"/><circle cx="1720" cy="800" r="2.2"/><circle cx="1720" cy="880" r="2.2"/><circle cx="1720" cy="1000" r="2.2"/><circle cx="1760" cy="40" r="2.2"/><circle cx="1760" cy="120" r="2.2"/><circle cx="1760" cy="240" r="2.2"/><circle cx="1760" cy="360" r="2.2"/><circle cx="1760" cy="480" r="2.2"/><circle cx="1760" cy="560" r="2.2"/><circle cx="1760" cy="680" r="2.2"/><circle cx="1760" cy="800" r="2.2"/><circle cx="1760" cy="920" r="2.2"/><circle cx="1760" cy="1000" r="2.2"/><circle cx="1800" cy="40" r="2.2"/><circle cx="1800" cy="160" r="2.2"/><circle cx="1800" cy="240" r="2.2"/><circle cx="1800" cy="360" r="2.2"/><circle cx="1800" cy="480" r="2.2"/><circle cx="1800" cy="600" r="2.2"/><circle cx="1800" cy="680" r="2.2"/><circle cx="1800" cy="800" r="2.2"/><circle cx="1800" cy="920" r="2.2"/><circle cx="1800" cy="1040" r="2.2"/><circle cx="1840" cy="40" r="2.2"/><circle cx="1840" cy="160" r="2.2"/><circle cx="1840" cy="280" r="2.2"/><circle cx="1840" cy="360" r="2.2"/><circle cx="1840" cy="480" r="2.2"/><circle cx="1840" cy="600" r="2.2"/><circle cx="1840" cy="720" r="2.2"/><circle cx="1840" cy="800" r="2.2"/><circle cx="1840" cy="840" r="2.2"/><circle cx="1840" cy="920" r="2.2"/><circle cx="1840" cy="1040" r="2.2"/><circle cx="1880" cy="40" r="2.2"/><circle cx="1880" cy="160" r="2.2"/><circle cx="1880" cy="280" r="2.2"/><circle cx="1880" cy="400" r="2.2"/><circle cx="1880" cy="480" r="2.2"/><circle cx="1880" cy="520" r="2.2"/><circle cx="1880" cy="600" r="2.2"/><circle cx="1880" cy="720" r="2.2"/><circle cx="1880" cy="840" r="2.2"/><circle cx="1880" cy="960" r="2.2"/><circle cx="1880" cy="1040" r="2.2"/></svg>
+    <div class="mh">BANGKOK → CHENNAI</div>
+    <svg class="route" viewBox="0 0 1920 1080"><path id="arc" class="arc" d="M1350 408 Q 875 100 400 448"/></svg>
+    <div class="city" id="c-bkk"><svg viewBox="0 0 24 24" class="pin"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span class="n">BANGKOK</span><span class="s">tried it here</span></div>
+    <div class="city" id="c-chn"><svg viewBox="0 0 24 24" class="pin"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span class="n">CHENNAI</span><span class="s">back home</span></div>
+    <svg id="plane" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>
+  </div>
+  <div class="shade"></div>
+  <div id="bts"><video id="bts-v" src="assets/broll/bts-setup.mp4" muted playsinline data-start="0.15" data-duration="2.55" data-track-index="4"></video><div class="lab">BEHIND THE SCENES</div></div>
 
-  <div id="hook" class="clip chip" data-start="0.1" data-duration="2.55" data-track-index="3"><span class="tag">REAL STORY</span><span class="t1">THE FACIAL NOBODY IN CHENNAI OFFERED</span></div>
-  <div id="title" class="clip chip" data-start="2.95" data-duration="2.0" data-track-index="3"><div class="col"><span class="t1">LYMPHATIC DRAINAGE FACIAL</span><span class="t2">A gentle face massage that reduces puffiness</span></div></div>
-  <div id="bkk" class="clip chip" data-start="4.95" data-duration="2.35" data-track-index="3"><svg viewBox="0 0 24 24" class="pin"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><div class="col"><span class="t1">BANGKOK, THAILAND</span><span class="t2">where she first tried it · 2 years ago</span></div></div>
-  <div id="chn" class="clip chip" data-start="7.40" data-duration="5.30" data-track-index="3"><svg viewBox="0 0 24 24" class="pin"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><div class="col"><span class="t1">BACK HOME IN CHENNAI</span><span class="ok" id="chn-ok">searching for a clinic…</span><span class="status" id="chn-no">✕ NOBODY OFFERED IT</span></div></div>
-  <div id="film" class="clip chip" data-start="17.90" data-duration="1.45" data-track-index="3"><div class="col"><span class="t1">FOR A FILM ROLE</span><span class="t2">needed to look younger</span></div></div>
-  <div id="loc" class="clip chip" data-start="21.20" data-duration="3.70" data-track-index="3"><svg viewBox="0 0 24 24" class="pin"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><div class="col"><span class="t1">CHILL BREEZE</span><span class="t2">Valluvar Kottam, Chennai · with TMCC</span></div></div>
-  <div id="lt" class="clip" data-start="26.10" data-duration="5.40" data-track-index="4"><div class="box"><div class="bar"></div><div class="n">Dr. Suman</div><div class="r">Cosmetologist · The Madras Cosmetic Clinic (TMCC)</div></div></div>
-  <div id="menu" class="clip" data-start="27.50" data-duration="24.30" data-track-index="4"><div class="mh">TREATMENT MENU</div><div class="ms">Now at Chill Breeze, Valluvar Kottam</div><div class="msec">SKIN</div><div class="mrow" id="mr0"><span class="dot"></span><span class="mlab">Medicated facials</span></div><div class="mrow" id="mr4"><span class="dot"></span><span class="mlab">Acne treatments</span></div><div class="msec">ANTI-AGEING</div><div class="mrow" id="mr1"><span class="dot"></span><span class="mlab">Botox</span></div><div class="mrow" id="mr2"><span class="dot"></span><span class="mlab">Fillers</span></div><div class="mrow" id="mr3"><span class="dot"></span><span class="mlab">Threads</span></div><div class="msec">HAIR</div><div class="mrow" id="mr5"><span class="dot"></span><span class="mlab">PRP</span></div><div class="mrow" id="mr6"><span class="dot"></span><span class="mlab">GFC</span></div><div class="mrow" id="mr7"><span class="dot"></span><span class="mlab">Exosomes</span></div><div class="mrow" id="mr8"><span class="dot"></span><span class="mlab">Follicular grafting</span><span class="badge new">NEW</span></div><div class="msec">BODY</div><div class="mrow" id="mr9"><span class="dot"></span><span class="mlab">Laser hair removal</span></div><div class="mrow" id="mr10"><span class="dot"></span><span class="mlab">Slimming</span><span class="badge soon">SOON</span></div></div>
-  <div id="endcard" class="clip" data-start="63.367" data-duration="3.633" data-track-index="5"><div class="e1">CHILL BREEZE<span class="x">×</span>TMCC</div><div class="e2">Cosmetology is now at Chill Breeze · Valluvar Kottam, Chennai</div><div class="e3">Music: “Upbeat Corporate”, Soundrider/Dope (CC BY 3.0) · Images: Wikimedia Commons</div></div>
+  <div id="hook" class="clip chip" data-start="0.1" data-duration="2.55" data-track-index="5"><span class="tag">REAL STORY</span><span class="t1">THE FACIAL NOBODY IN CHENNAI OFFERED</span></div>
+  <div id="title" class="clip chip" data-start="2.95" data-duration="1.45" data-track-index="5"><div class="col"><span class="t1">LYMPHATIC DRAINAGE FACIAL</span><span class="t2">face massage for puffiness</span></div></div>
+  <div id="bkk" class="clip chip" data-start="4.50" data-duration="2.25" data-track-index="5"><svg viewBox="0 0 24 24" class="pin"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><div class="col"><span class="t1">BANGKOK, THAILAND</span><span class="t2">2 years ago</span></div></div>
+  <div id="stamp" class="clip" data-start="10.77" data-duration="1.95" data-track-index="6">NOT AVAILABLE<span class="s2">IN CHENNAI</span></div>
+  <div id="film" class="clip chip" data-start="17.90" data-duration="1.45" data-track-index="5"><div class="col"><span class="t1">FOR A FILM ROLE</span><span class="t2">needed to look younger</span></div></div>
+  <div id="loc" class="clip chip" data-start="21.20" data-duration="3.70" data-track-index="5"><svg viewBox="0 0 24 24" class="pin"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><div class="col"><span class="t1">CHILL BREEZE</span><span class="t2">Valluvar Kottam, Chennai · with TMCC</span></div></div>
+  <div id="lt" class="clip" data-start="26.10" data-duration="5.40" data-track-index="6"><span class="tag">COSMETOLOGIST</span><div class="n">Dr. Suman</div><div class="line"></div><div class="r">The Madras Cosmetic Clinic (TMCC)</div></div>
+  <div id="menu" class="clip" data-start="27.50" data-duration="24.30" data-track-index="6"><div class="mh">TREATMENTS</div><div class="ms">now at Chill Breeze, Valluvar Kottam</div><div class="win"><div class="stack"><div class="card" id="mc0"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z"/></svg></span><span class="cl"><span class="ct">Medicated facials</span><span class="cs">SKIN</span></span></div><div class="card" id="mc1"><span class="ic"><svg viewBox="0 0 24 24"><path d="M17.5 3.5l3 3-2 2-1-1-6.8 6.8 1 1-2.2 2.2-1-1L5 20l-1-1 3.5-3.5-1-1L8.7 12.3l1 1L16.5 6.5l-1-1z"/></svg></span><span class="cl"><span class="ct">Botox</span><span class="cs">ANTI-AGEING</span></span></div><div class="card" id="mc2"><span class="ic"><svg viewBox="0 0 24 24"><path d="M17.5 3.5l3 3-2 2-1-1-6.8 6.8 1 1-2.2 2.2-1-1L5 20l-1-1 3.5-3.5-1-1L8.7 12.3l1 1L16.5 6.5l-1-1z"/></svg></span><span class="cl"><span class="ct">Fillers</span><span class="cs">ANTI-AGEING</span></span></div><div class="card" id="mc3"><span class="ic"><svg viewBox="0 0 24 24"><path d="M17.5 3.5l3 3-2 2-1-1-6.8 6.8 1 1-2.2 2.2-1-1L5 20l-1-1 3.5-3.5-1-1L8.7 12.3l1 1L16.5 6.5l-1-1z"/></svg></span><span class="cl"><span class="ct">Threads</span><span class="cs">ANTI-AGEING</span></span></div><div class="card" id="mc4"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/><circle cx="19" cy="19" r="2.2"/></svg></span><span class="cl"><span class="ct">Acne treatments</span><span class="cs">SKIN</span></span></div><div class="card" id="mc5"><span class="ic"><svg viewBox="0 0 24 24"><path d="M7 21c0-6 2-9 5-12s4-5 3-7c3 2 4 5 2 9s-4 6-4 10h-2c0-4 2-7 3-9-2 2-5 4-5 9z"/></svg></span><span class="cl"><span class="ct">PRP</span><span class="cs">HAIR</span></span></div><div class="card" id="mc6"><span class="ic"><svg viewBox="0 0 24 24"><path d="M7 21c0-6 2-9 5-12s4-5 3-7c3 2 4 5 2 9s-4 6-4 10h-2c0-4 2-7 3-9-2 2-5 4-5 9z"/></svg></span><span class="cl"><span class="ct">GFC</span><span class="cs">HAIR</span></span></div><div class="card" id="mc7"><span class="ic"><svg viewBox="0 0 24 24"><path d="M7 21c0-6 2-9 5-12s4-5 3-7c3 2 4 5 2 9s-4 6-4 10h-2c0-4 2-7 3-9-2 2-5 4-5 9z"/></svg></span><span class="cl"><span class="ct">Exosomes</span><span class="cs">HAIR</span></span></div><div class="card" id="mc8"><span class="ic"><svg viewBox="0 0 24 24"><path d="M7 21c0-6 2-9 5-12s4-5 3-7c3 2 4 5 2 9s-4 6-4 10h-2c0-4 2-7 3-9-2 2-5 4-5 9z"/></svg></span><span class="cl"><span class="ct">Follicular grafting</span><span class="cs">HAIR</span></span><span class="badge new">NEW</span></div><div class="card" id="mc9"><span class="ic"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg></span><span class="cl"><span class="ct">Laser hair removal</span><span class="cs">BODY</span></span></div><div class="card" id="mc10"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 9h18v6H3z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 9v3M11 9v3M15 9v3M19 9v2"/></svg></span><span class="cl"><span class="ct">Slimming</span><span class="cs">BODY</span></span><span class="badge soon">SOON</span></div></div></div></div>
+  <div id="endcard" class="clip" data-start="63.367" data-duration="3.633" data-track-index="6"><div class="e1">CHILL BREEZE<span class="x">×</span>TMCC</div><div class="e2">Cosmetology is now at Chill Breeze · Valluvar Kottam, Chennai</div><div class="e3">Music: “Upbeat Corporate”, Soundrider/Dope (CC BY 3.0) · Footage: Pexels · Images: Wikimedia Commons</div></div>
+  <div id="leak"></div>
 
-  <div id="captions" class="clip capzone" data-start="0" data-duration="63.367" data-track-index="6">
-<div class="cap" id="cap0"><span class="w" id="cw0_0">I CAN SEE</span><span class="w" id="cw0_1">THE</span><span class="w ky big" id="cw0_2">DIFFERENCE</span></div>
-<div class="cap" id="cap1"><span class="w" id="cw1_0">I&#x27;M FEELING</span><span class="w ky big" id="cw1_1">GOOD</span><span class="w" id="cw1_2">ABOUT IT</span></div>
-<div class="cap" id="cap2"><span class="w" id="cw2_0">THIS</span><span class="w ky big" id="cw2_1">LYMPHATIC</span><span class="w ky big" id="cw2_2">DRAINAGE</span></div>
-<div class="cap" id="cap3"><span class="w" id="cw3_0">I DID IT IN</span><span class="w ky big" id="cw3_1">BANGKOK</span><span class="w" id="cw3_2">ONCE</span></div>
+  <div id="captions" class="clip capzone" data-start="0" data-duration="63.367" data-track-index="7">
+<div class="cap" id="cap0"><span class="w" id="cw0_0">I CAN SEE</span><span class="w" id="cw0_1">THE</span><span class="w ky big hlw" id="cw0_2"><span class="hl" id="hl0_2"></span><span class="tx">DIFFERENCE</span></span></div>
+<div class="cap" id="cap1"><span class="w" id="cw1_0">I&#x27;M FEELING</span><span class="w ky big hlw" id="cw1_1"><span class="hl" id="hl1_1"></span><span class="tx">GOOD</span></span><span class="w" id="cw1_2">ABOUT IT</span></div>
+<div class="cap" id="cap2"><span class="w" id="cw2_0">THIS</span><span class="w ky big" id="cw2_1">LYMPHATIC</span><span class="w ky big hlw" id="cw2_2"><span class="hl" id="hl2_2"></span><span class="tx">DRAINAGE</span></span></div>
+<div class="cap" id="cap3"><span class="w" id="cw3_0">I DID IT IN</span><span class="w ky big hlw" id="cw3_1"><span class="hl" id="hl3_1"></span><span class="tx">BANGKOK</span></span><span class="w" id="cw3_2">ONCE</span></div>
 <div class="cap" id="cap4"><span class="w" id="cw4_0">TWO YEARS</span><span class="w" id="cw4_1">AGO</span></div>
-<div class="cap" id="cap5"><span class="w" id="cw5_0">HERE</span><span class="w ky big" id="cw5_1">LOCALLY</span></div>
-<div class="cap" id="cap6"><span class="w" id="cw6_0">I ASKED</span><span class="w ky big" id="cw6_1">MANY PEOPLE</span></div>
-<div class="cap" id="cap7"><span class="w" id="cw7_0">PUT IT</span><span class="w ky big" id="cw7_1">ONLINE</span></div>
-<div class="cap" id="cap8"><span class="w kr big" id="cw8_0">NOBODY</span><span class="w kr big" id="cw8_1">OFFERED IT</span></div>
-<div class="cap" id="cap9"><span class="w" id="cw9_0">THEY DID</span><span class="w ky big" id="cw9_1">BODY MASSAGE</span></div>
-<div class="cap" id="cap10"><span class="w ky big" id="cw10_0">FIRST TIME</span><span class="w" id="cw10_1">I ASKED</span></div>
-<div class="cap" id="cap11"><span class="w" id="cw11_0">CAN YOU</span><span class="w ky big" id="cw11_1">DO THAT?</span></div>
-<div class="cap" id="cap12"><span class="w" id="cw12_0">A</span><span class="w ky big" id="cw12_1">SHOOT</span><span class="w" id="cw12_2">IS STARTING</span></div>
-<div class="cap" id="cap13"><span class="w" id="cw13_0">I NEED TO LOOK</span><span class="w ky big" id="cw13_1">VERY</span><span class="w ky big" id="cw13_2">YOUNG</span></div>
-<div class="cap" id="cap14"><span class="w" id="cw14_0">SHE DID A</span><span class="w ky big" id="cw14_1">VERY NICE</span></div>
-<div class="cap" id="cap15"><span class="w ky big" id="cw15_0">LYMPHATIC</span><span class="w ky big" id="cw15_1">DRAINAGE</span></div>
-<div class="cap" id="cap16"><span class="w" id="cw16_0">WHAT</span><span class="w ky big" id="cw16_1">ELSE?</span></div>
-<div class="cap" id="cap17"><span class="w ky big" id="cw17_0">EVERYTHING</span><span class="w" id="cw17_1">IS THERE</span></div>
-<div class="cap" id="cap18"><span class="w" id="cw18_0">STARTING WITH</span><span class="w ky big" id="cw18_1">SKIN</span></div>
-<div class="cap" id="cap19"><span class="w ky big" id="cw19_0">MEDICATED</span><span class="w ky big" id="cw19_1">FACIALS</span></div>
-<div class="cap" id="cap20"><span class="w ky big" id="cw20_0">ANTI-AGEING</span><span class="w" id="cw20_1">PROCEDURES</span></div>
-<div class="cap" id="cap21"><span class="w ky big" id="cw21_0">BOTOX</span><span class="w ky big" id="cw21_1">FILLERS</span><span class="w ky big" id="cw21_2">THREADS</span></div>
-<div class="cap" id="cap22"><span class="w ky big" id="cw22_0">ACNE</span><span class="w" id="cw22_1">TREATMENTS</span></div>
-<div class="cap" id="cap23"><span class="w" id="cw23_0">ALL TYPES OF</span><span class="w ky big" id="cw23_1">ACNE</span></div>
-<div class="cap" id="cap24"><span class="w" id="cw24_0">NOW,</span><span class="w ky big" id="cw24_1">HAIR</span></div>
-<div class="cap" id="cap25"><span class="w ky big" id="cw25_0">PRP</span><span class="w ky big" id="cw25_1">GFC</span><span class="w ky big" id="cw25_2">EXOSOMES</span></div>
-<div class="cap" id="cap26"><span class="w kr big" id="cw26_0">NEW:</span><span class="w ky big" id="cw26_1">FOLLICULAR</span><span class="w ky big" id="cw26_2">GRAFTING</span></div>
-<div class="cap" id="cap27"><span class="w ky big" id="cw27_0">LASER</span><span class="w" id="cw27_1">HAIR REMOVAL</span></div>
-<div class="cap" id="cap28"><span class="w" id="cw28_0">SOON:</span><span class="w ky big" id="cw28_1">SLIMMING</span><span class="w" id="cw28_2">TOO</span></div>
-<div class="cap" id="cap29"><span class="w" id="cw29_0">IT&#x27;S ACTUALLY</span><span class="w" id="cw29_1">VERY</span><span class="w ky big" id="cw29_2">SIMPLE</span></div>
+<div class="cap" id="cap5"><span class="w" id="cw5_0">HERE</span><span class="w ky big hlw" id="cw5_1"><span class="hl" id="hl5_1"></span><span class="tx">LOCALLY</span></span></div>
+<div class="cap" id="cap6"><span class="w" id="cw6_0">I ASKED</span><span class="w ky big hlw" id="cw6_1"><span class="hl" id="hl6_1"></span><span class="tx">MANY PEOPLE</span></span></div>
+<div class="cap" id="cap7"><span class="w" id="cw7_0">PUT IT</span><span class="w ky big hlw" id="cw7_1"><span class="hl" id="hl7_1"></span><span class="tx">ONLINE</span></span></div>
+<div class="cap" id="cap8"><span class="w kr big" id="cw8_0">NOBODY</span><span class="w kr big hlw" id="cw8_1"><span class="hl" id="hl8_1"></span><span class="tx">OFFERED IT</span></span></div>
+<div class="cap" id="cap9"><span class="w" id="cw9_0">THEY DID</span><span class="w ky big hlw" id="cw9_1"><span class="hl" id="hl9_1"></span><span class="tx">BODY MASSAGE</span></span></div>
+<div class="cap" id="cap10"><span class="w ky big hlw" id="cw10_0"><span class="hl" id="hl10_0"></span><span class="tx">FIRST TIME</span></span><span class="w" id="cw10_1">I ASKED</span></div>
+<div class="cap" id="cap11"><span class="w" id="cw11_0">CAN YOU</span><span class="w ky big hlw" id="cw11_1"><span class="hl" id="hl11_1"></span><span class="tx">DO THAT?</span></span></div>
+<div class="cap" id="cap12"><span class="w" id="cw12_0">A</span><span class="w ky big hlw" id="cw12_1"><span class="hl" id="hl12_1"></span><span class="tx">SHOOT</span></span><span class="w" id="cw12_2">IS STARTING</span></div>
+<div class="cap" id="cap13"><span class="w" id="cw13_0">I NEED TO LOOK</span><span class="w ky big" id="cw13_1">VERY</span><span class="w ky big hlw" id="cw13_2"><span class="hl" id="hl13_2"></span><span class="tx">YOUNG</span></span></div>
+<div class="cap" id="cap14"><span class="w" id="cw14_0">SHE DID A</span><span class="w ky big hlw" id="cw14_1"><span class="hl" id="hl14_1"></span><span class="tx">VERY NICE</span></span></div>
+<div class="cap" id="cap15"><span class="w ky big" id="cw15_0">LYMPHATIC</span><span class="w ky big hlw" id="cw15_1"><span class="hl" id="hl15_1"></span><span class="tx">DRAINAGE</span></span></div>
+<div class="cap" id="cap16"><span class="w" id="cw16_0">WHAT</span><span class="w ky big hlw" id="cw16_1"><span class="hl" id="hl16_1"></span><span class="tx">ELSE?</span></span></div>
+<div class="cap" id="cap17"><span class="w ky big hlw" id="cw17_0"><span class="hl" id="hl17_0"></span><span class="tx">EVERYTHING</span></span><span class="w" id="cw17_1">IS THERE</span></div>
+<div class="cap" id="cap18"><span class="w" id="cw18_0">STARTING WITH</span><span class="w ky big hlw" id="cw18_1"><span class="hl" id="hl18_1"></span><span class="tx">SKIN</span></span></div>
+<div class="cap" id="cap19"><span class="w ky big" id="cw19_0">MEDICATED</span><span class="w ky big hlw" id="cw19_1"><span class="hl" id="hl19_1"></span><span class="tx">FACIALS</span></span></div>
+<div class="cap" id="cap20"><span class="w ky big hlw" id="cw20_0"><span class="hl" id="hl20_0"></span><span class="tx">ANTI-AGEING</span></span><span class="w" id="cw20_1">PROCEDURES</span></div>
+<div class="cap" id="cap21"><span class="w ky big" id="cw21_0">BOTOX</span><span class="w ky big" id="cw21_1">FILLERS</span><span class="w ky big hlw" id="cw21_2"><span class="hl" id="hl21_2"></span><span class="tx">THREADS</span></span></div>
+<div class="cap" id="cap22"><span class="w ky big hlw" id="cw22_0"><span class="hl" id="hl22_0"></span><span class="tx">ACNE</span></span><span class="w" id="cw22_1">TREATMENTS</span></div>
+<div class="cap" id="cap23"><span class="w" id="cw23_0">ALL TYPES OF</span><span class="w ky big hlw" id="cw23_1"><span class="hl" id="hl23_1"></span><span class="tx">ACNE</span></span></div>
+<div class="cap" id="cap24"><span class="w" id="cw24_0">NOW,</span><span class="w ky big hlw" id="cw24_1"><span class="hl" id="hl24_1"></span><span class="tx">HAIR</span></span></div>
+<div class="cap" id="cap25"><span class="w ky big" id="cw25_0">PRP</span><span class="w ky big" id="cw25_1">GFC</span><span class="w ky big hlw" id="cw25_2"><span class="hl" id="hl25_2"></span><span class="tx">EXOSOMES</span></span></div>
+<div class="cap" id="cap26"><span class="w kr big" id="cw26_0">NEW:</span><span class="w ky big" id="cw26_1">FOLLICULAR</span><span class="w ky big hlw" id="cw26_2"><span class="hl" id="hl26_2"></span><span class="tx">GRAFTING</span></span></div>
+<div class="cap" id="cap27"><span class="w ky big hlw" id="cw27_0"><span class="hl" id="hl27_0"></span><span class="tx">LASER</span></span><span class="w" id="cw27_1">HAIR REMOVAL</span></div>
+<div class="cap" id="cap28"><span class="w" id="cw28_0">SOON:</span><span class="w ky big hlw" id="cw28_1"><span class="hl" id="hl28_1"></span><span class="tx">SLIMMING</span></span><span class="w" id="cw28_2">TOO</span></div>
+<div class="cap" id="cap29"><span class="w" id="cw29_0">IT&#x27;S ACTUALLY</span><span class="w" id="cw29_1">VERY</span><span class="w ky big hlw" id="cw29_2"><span class="hl" id="hl29_2"></span><span class="tx">SIMPLE</span></span></div>
 <div class="cap" id="cap30"><span class="w" id="cw30_0">WHEN YOU HEAR</span><span class="w" id="cw30_1">THE TERMS</span></div>
-<div class="cap" id="cap31"><span class="w" id="cw31_0">IT SOUNDS LIKE A</span><span class="w kr big" id="cw31_1">BIG PROCEDURE</span></div>
-<div class="cap" id="cap32"><span class="w" id="cw32_0">YOU HAVE A</span><span class="w ky big" id="cw32_1">PROFESSIONAL</span></div>
-<div class="cap" id="cap33"><span class="w ky big" id="cw33_0">DOCTOR</span><span class="w" id="cw33_1">AROUND</span></div>
-<div class="cap" id="cap34"><span class="w" id="cw34_0">DEFINITELY</span><span class="w ky big" id="cw34_1">COME</span></div>
-<div class="cap" id="cap35"><span class="w" id="cw35_0">CHECK THIS</span><span class="w" id="cw35_1">PLACE</span><span class="w ky big" id="cw35_2">OUT</span></div>
+<div class="cap" id="cap31"><span class="w" id="cw31_0">IT SOUNDS LIKE A</span><span class="w kr big hlw" id="cw31_1"><span class="hl" id="hl31_1"></span><span class="tx">BIG PROCEDURE</span></span></div>
+<div class="cap" id="cap32"><span class="w" id="cw32_0">YOU HAVE A</span><span class="w ky big hlw" id="cw32_1"><span class="hl" id="hl32_1"></span><span class="tx">PROFESSIONAL</span></span></div>
+<div class="cap" id="cap33"><span class="w ky big hlw" id="cw33_0"><span class="hl" id="hl33_0"></span><span class="tx">DOCTOR</span></span><span class="w" id="cw33_1">AROUND</span></div>
+<div class="cap" id="cap34"><span class="w" id="cw34_0">DEFINITELY</span><span class="w ky big hlw" id="cw34_1"><span class="hl" id="hl34_1"></span><span class="tx">COME</span></span></div>
+<div class="cap" id="cap35"><span class="w" id="cw35_0">CHECK THIS</span><span class="w" id="cw35_1">PLACE</span><span class="w ky big hlw" id="cw35_2"><span class="hl" id="hl35_2"></span><span class="tx">OUT</span></span></div>
   </div>
 
   <audio id="voice" src="assets/audio/voice.wav" data-start="0" data-duration="63.367" data-track-index="9" data-volume="1"></audio>
-  <audio id="music" src="assets/audio/music.wav" data-start="0" data-duration="67.0" data-track-index="10" data-volume="1" data-automation='{"version": 1, "lanes": [{"target": "volume", "points": [{"t": 0, "v": 1}, {"t": 51.6, "v": 1}, {"t": 51.9, "v": 0.35}, {"t": 53.1, "v": 0.35}, {"t": 53.5, "v": 1}, {"t": 63.3, "v": 1}, {"t": 63.8, "v": 1.4}, {"t": 66.4, "v": 1.4}, {"t": 67, "v": 0}]}]}'></audio>
-<audio id="sfx00" src="assets/sfx/impact-bass-1.mp3" data-start="0.0" data-duration="2.12" data-track-index="11" data-volume="0.55"></audio>
-<audio id="sfx01" src="assets/sfx/pop.mp3" data-start="0.72" data-duration="0.72" data-track-index="12" data-volume="0.3"></audio>
-<audio id="sfx02" src="assets/sfx/whoosh.mp3" data-start="2.98" data-duration="0.57" data-track-index="13" data-volume="0.45"></audio>
-<audio id="sfx03" src="assets/sfx/pop.mp3" data-start="4.92" data-duration="0.72" data-track-index="11" data-volume="0.35"></audio>
-<audio id="sfx04" src="assets/sfx/whoosh-short.mp3" data-start="7.4" data-duration="0.57" data-track-index="12" data-volume="0.4"></audio>
-<audio id="sfx05" src="assets/sfx/whoosh-short.mp3" data-start="9.58" data-duration="0.57" data-track-index="13" data-volume="0.4"></audio>
-<audio id="sfx06" src="assets/sfx/error.mp3" data-start="10.77" data-duration="1.62" data-track-index="11" data-volume="0.3"></audio>
-<audio id="sfx07" src="assets/sfx/whoosh-short.mp3" data-start="13.02" data-duration="0.57" data-track-index="12" data-volume="0.4"></audio>
-<audio id="sfx08" src="assets/sfx/click-soft.mp3" data-start="17.86" data-duration="0.37" data-track-index="13" data-volume="0.6"></audio>
-<audio id="sfx09" src="assets/sfx/whoosh.mp3" data-start="19.98" data-duration="0.57" data-track-index="11" data-volume="0.35"></audio>
-<audio id="sfx10" src="assets/sfx/whoosh-short.mp3" data-start="21.2" data-duration="0.57" data-track-index="12" data-volume="0.35"></audio>
-<audio id="sfx11" src="assets/sfx/whoosh.mp3" data-start="24.96" data-duration="0.57" data-track-index="13" data-volume="0.4"></audio>
-<audio id="sfx12" src="assets/sfx/whoosh.mp3" data-start="26.1" data-duration="0.57" data-track-index="11" data-volume="0.35"></audio>
-<audio id="sfx13" src="assets/sfx/whoosh.mp3" data-start="27.5" data-duration="0.57" data-track-index="12" data-volume="0.4"></audio>
-<audio id="sfx14" src="assets/sfx/pop.mp3" data-start="30.16" data-duration="0.72" data-track-index="13" data-volume="0.22"></audio>
-<audio id="sfx15" src="assets/sfx/pop.mp3" data-start="33.51" data-duration="0.72" data-track-index="11" data-volume="0.22"></audio>
-<audio id="sfx16" src="assets/sfx/pop.mp3" data-start="34.13" data-duration="0.72" data-track-index="12" data-volume="0.22"></audio>
-<audio id="sfx17" src="assets/sfx/pop.mp3" data-start="34.55" data-duration="0.72" data-track-index="13" data-volume="0.22"></audio>
-<audio id="sfx18" src="assets/sfx/pop.mp3" data-start="35.56" data-duration="0.72" data-track-index="11" data-volume="0.22"></audio>
-<audio id="sfx19" src="assets/sfx/pop.mp3" data-start="42.26" data-duration="0.72" data-track-index="12" data-volume="0.22"></audio>
-<audio id="sfx20" src="assets/sfx/pop.mp3" data-start="42.84" data-duration="0.72" data-track-index="13" data-volume="0.22"></audio>
-<audio id="sfx21" src="assets/sfx/pop.mp3" data-start="43.46" data-duration="0.72" data-track-index="11" data-volume="0.22"></audio>
-<audio id="sfx22" src="assets/sfx/sparkle.mp3" data-start="44.6" data-duration="1.8" data-track-index="12" data-volume="0.35"></audio>
-<audio id="sfx23" src="assets/sfx/pop.mp3" data-start="44.6" data-duration="0.72" data-track-index="13" data-volume="0.22"></audio>
-<audio id="sfx24" src="assets/sfx/pop.mp3" data-start="46.92" data-duration="0.72" data-track-index="11" data-volume="0.22"></audio>
-<audio id="sfx25" src="assets/sfx/chime.mp3" data-start="50.41" data-duration="2.54" data-track-index="12" data-volume="0.25"></audio>
-<audio id="sfx26" src="assets/sfx/pop.mp3" data-start="50.41" data-duration="0.72" data-track-index="13" data-volume="0.22"></audio>
-<audio id="sfx27" src="assets/sfx/whoosh.mp3" data-start="51.78" data-duration="0.57" data-track-index="11" data-volume="0.4"></audio>
-<audio id="sfx28" src="assets/sfx/impact-bass-1.mp3" data-start="56.46" data-duration="2.12" data-track-index="12" data-volume="0.35"></audio>
-<audio id="sfx29" src="assets/sfx/whoosh.mp3" data-start="63.45" data-duration="0.57" data-track-index="13" data-volume="0.5"></audio>
-<audio id="sfx30" src="assets/sfx/impact-bass-1.mp3" data-start="63.8" data-duration="2.12" data-track-index="11" data-volume="0.45"></audio>
+  <audio id="music" src="assets/audio/music.wav" data-start="0" data-duration="67.0" data-track-index="10" data-volume="1" data-automation='{"version": 1, "lanes": [{"target": "volume", "points": [{"t": 0, "v": 1}, {"t": 10.6, "v": 1}, {"t": 10.75, "v": 0.4}, {"t": 11.6, "v": 0.4}, {"t": 12.2, "v": 1}, {"t": 51.6, "v": 1}, {"t": 51.9, "v": 0.35}, {"t": 53.1, "v": 0.35}, {"t": 53.5, "v": 1}, {"t": 63.3, "v": 1}, {"t": 63.8, "v": 1.4}, {"t": 66.4, "v": 1.4}, {"t": 67, "v": 0}]}]}'></audio>
+<audio id="sfx00" src="assets/sfx/impact-bass-1.mp3" data-start="0.0" data-duration="2.12" data-track-index="11" data-volume="0.5"></audio>
+<audio id="sfx01" src="assets/sfx/whoosh-short.mp3" data-start="0.25" data-duration="0.57" data-track-index="12" data-volume="0.3"></audio>
+<audio id="sfx02" src="assets/sfx/pop.mp3" data-start="0.72" data-duration="0.72" data-track-index="13" data-volume="0.3"></audio>
+<audio id="sfx03" src="assets/sfx/whoosh.mp3" data-start="3.02" data-duration="0.57" data-track-index="11" data-volume="0.45"></audio>
+<audio id="sfx04" src="assets/sfx/whoosh-short.mp3" data-start="4.38" data-duration="0.57" data-track-index="12" data-volume="0.4"></audio>
+<audio id="sfx05" src="assets/sfx/ping.mp3" data-start="5.08" data-duration="1.32" data-track-index="13" data-volume="0.25"></audio>
+<audio id="sfx06" src="assets/sfx/whoosh-cinematic.mp3" data-start="7.3" data-duration="5.54" data-track-index="11" data-volume="0.35"></audio>
+<audio id="sfx07" src="assets/sfx/ping.mp3" data-start="8.62" data-duration="1.32" data-track-index="12" data-volume="0.25"></audio>
+<audio id="sfx08" src="assets/sfx/whoosh-short.mp3" data-start="8.78" data-duration="0.57" data-track-index="13" data-volume="0.35"></audio>
+<audio id="sfx09" src="assets/sfx/typing.mp3" data-start="9.62" data-duration="1.54" data-track-index="11" data-volume="0.45"></audio>
+<audio id="sfx10" src="assets/sfx/key-press.mp3" data-start="10.3" data-duration="0.43" data-track-index="12" data-volume="0.35"></audio>
+<audio id="sfx11" src="assets/sfx/impact-bass-2.mp3" data-start="10.77" data-duration="2.59" data-track-index="13" data-volume="0.6"></audio>
+<audio id="sfx12" src="assets/sfx/error.mp3" data-start="10.8" data-duration="1.62" data-track-index="11" data-volume="0.25"></audio>
+<audio id="sfx13" src="assets/sfx/whoosh-short.mp3" data-start="13.03" data-duration="0.57" data-track-index="12" data-volume="0.4"></audio>
+<audio id="sfx14" src="assets/sfx/click.mp3" data-start="18.36" data-duration="0.37" data-track-index="13" data-volume="0.9"></audio>
+<audio id="sfx15" src="assets/sfx/impact-bass-1.mp3" data-start="18.38" data-duration="2.12" data-track-index="11" data-volume="0.3"></audio>
+<audio id="sfx16" src="assets/sfx/sparkle.mp3" data-start="19.98" data-duration="1.80" data-track-index="12" data-volume="0.4"></audio>
+<audio id="sfx17" src="assets/sfx/whoosh-short.mp3" data-start="21.18" data-duration="0.57" data-track-index="13" data-volume="0.3"></audio>
+<audio id="sfx18" src="assets/sfx/ping.mp3" data-start="21.3" data-duration="1.32" data-track-index="11" data-volume="0.2"></audio>
+<audio id="sfx19" src="assets/sfx/whoosh.mp3" data-start="24.96" data-duration="0.57" data-track-index="12" data-volume="0.4"></audio>
+<audio id="sfx20" src="assets/sfx/whoosh.mp3" data-start="26.1" data-duration="0.57" data-track-index="13" data-volume="0.4"></audio>
+<audio id="sfx21" src="assets/sfx/whoosh.mp3" data-start="27.5" data-duration="0.57" data-track-index="11" data-volume="0.4"></audio>
+<audio id="sfx22" src="assets/sfx/whoosh-short.mp3" data-start="29.08" data-duration="0.57" data-track-index="12" data-volume="0.35"></audio>
+<audio id="sfx23" src="assets/sfx/pop.mp3" data-start="30.16" data-duration="0.72" data-track-index="13" data-volume="0.25"></audio>
+<audio id="sfx24" src="assets/sfx/whoosh-short.mp3" data-start="33.43" data-duration="0.57" data-track-index="11" data-volume="0.35"></audio>
+<audio id="sfx25" src="assets/sfx/pop.mp3" data-start="33.51" data-duration="0.72" data-track-index="12" data-volume="0.25"></audio>
+<audio id="sfx26" src="assets/sfx/pop.mp3" data-start="34.13" data-duration="0.72" data-track-index="13" data-volume="0.25"></audio>
+<audio id="sfx27" src="assets/sfx/pop.mp3" data-start="34.55" data-duration="0.72" data-track-index="11" data-volume="0.25"></audio>
+<audio id="sfx28" src="assets/sfx/whoosh-short.mp3" data-start="35.3" data-duration="0.57" data-track-index="12" data-volume="0.35"></audio>
+<audio id="sfx29" src="assets/sfx/pop.mp3" data-start="35.56" data-duration="0.72" data-track-index="13" data-volume="0.25"></audio>
+<audio id="sfx30" src="assets/sfx/pop.mp3" data-start="42.26" data-duration="0.72" data-track-index="11" data-volume="0.25"></audio>
+<audio id="sfx31" src="assets/sfx/pop.mp3" data-start="42.84" data-duration="0.72" data-track-index="12" data-volume="0.25"></audio>
+<audio id="sfx32" src="assets/sfx/pop.mp3" data-start="43.46" data-duration="0.72" data-track-index="13" data-volume="0.25"></audio>
+<audio id="sfx33" src="assets/sfx/whoosh-short.mp3" data-start="44.2" data-duration="0.57" data-track-index="11" data-volume="0.35"></audio>
+<audio id="sfx34" src="assets/sfx/sparkle.mp3" data-start="44.6" data-duration="1.80" data-track-index="12" data-volume="0.4"></audio>
+<audio id="sfx35" src="assets/sfx/pop.mp3" data-start="44.6" data-duration="0.72" data-track-index="13" data-volume="0.25"></audio>
+<audio id="sfx36" src="assets/sfx/whoosh-short.mp3" data-start="46.6" data-duration="0.57" data-track-index="11" data-volume="0.35"></audio>
+<audio id="sfx37" src="assets/sfx/glitch-1.mp3" data-start="46.92" data-duration="0.60" data-track-index="12" data-volume="0.12"></audio>
+<audio id="sfx38" src="assets/sfx/pop.mp3" data-start="46.92" data-duration="0.72" data-track-index="13" data-volume="0.25"></audio>
+<audio id="sfx39" src="assets/sfx/whoosh-short.mp3" data-start="50.23" data-duration="0.57" data-track-index="11" data-volume="0.35"></audio>
+<audio id="sfx40" src="assets/sfx/chime.mp3" data-start="50.41" data-duration="2.54" data-track-index="12" data-volume="0.25"></audio>
+<audio id="sfx41" src="assets/sfx/pop.mp3" data-start="50.41" data-duration="0.72" data-track-index="13" data-volume="0.25"></audio>
+<audio id="sfx42" src="assets/sfx/whoosh.mp3" data-start="51.45" data-duration="0.57" data-track-index="11" data-volume="0.4"></audio>
+<audio id="sfx43" src="assets/sfx/impact-bass-1.mp3" data-start="56.46" data-duration="2.12" data-track-index="12" data-volume="0.35"></audio>
+<audio id="sfx44" src="assets/sfx/ping.mp3" data-start="58.29" data-duration="1.32" data-track-index="13" data-volume="0.2"></audio>
+<audio id="sfx45" src="assets/sfx/whoosh-cinematic.mp3" data-start="63.2" data-duration="3.80" data-track-index="11" data-volume="0.4"></audio>
+<audio id="sfx46" src="assets/sfx/impact-bass-1.mp3" data-start="63.75" data-duration="2.12" data-track-index="12" data-volume="0.45"></audio>
 </div>
 <script>
 const tl = gsap.timeline({ paused: true });
-const CAPS = [[0.0, 1.5, [[0.0, 0], [0.36, 0], [0.72, 1]]], [1.54, 2.72, [[1.6, 0], [1.89, 1], [2.11, 0]]], [2.76, 4.32, [[2.76, 0], [3.26, 1], [3.76, 1]]], [4.36, 6.44, [[4.36, 0], [5.08, 1], [5.4, 0]]], [6.48, 7.36, [[6.48, 0], [6.96, 0]]], [7.4, 8.77, [[7.93, 0], [8.25, 1]]], [8.81, 9.95, [[8.81, 0], [9.17, 1]]], [9.99, 10.73, [[9.99, 0], [10.28, 1]]], [10.77, 12.71, [[10.77, 1], [11.2, 1]]], [12.75, 15.36, [[12.75, 0], [13.48, 1]]], [15.4, 16.73, [[15.59, 1], [15.99, 0]]], [16.77, 17.82, [[16.77, 0], [17.39, 1]]], [17.86, 19.35, [[18.1, 0], [18.39, 1], [18.79, 0]]], [19.39, 21.12, [[19.39, 0], [20.12, 1], [20.42, 1]]], [21.16, 23.66, [[21.16, 0], [22.26, 1]]], [23.7, 24.94, [[23.7, 1], [24.18, 1]]], [24.98, 26.21, [[24.98, 0], [25.25, 1]]], [26.25, 27.51, [[26.25, 1], [26.73, 0]]], [27.55, 29.04, [[27.55, 0], [28.3, 1]]], [29.08, 31.88, [[30.16, 1], [30.84, 1]]], [31.92, 33.47, [[31.92, 1], [32.45, 0]]], [33.51, 35.26, [[33.51, 1], [34.13, 1], [34.55, 1]]], [35.3, 37.22, [[35.56, 1], [36.24, 0]]], [37.26, 38.95, [[37.3, 0], [37.9, 1]]], [38.99, 40.56, [[38.99, 0], [39.56, 1]]], [40.6, 44.18, [[42.26, 1], [42.84, 1], [43.46, 1]]], [44.22, 45.95, [[44.3, 1], [44.6, 1], [45.3, 1]]], [45.99, 48.14, [[46.92, 1], [47.24, 0]]], [48.18, 51.76, [[48.51, 0], [50.41, 1], [51.2, 0]]], [51.8, 53.76, [[51.8, 0], [52.61, 0], [53.05, 1]]], [53.8, 55.58, [[53.8, 0], [54.9, 0]]], [55.62, 57.58, [[55.62, 0], [56.46, 1]]], [57.62, 58.84, [[57.62, 0], [58.29, 1]]], [58.88, 60.28, [[58.88, 1], [59.52, 0]]], [60.32, 61.69, [[60.57, 0], [61.11, 1]]], [61.73, 63.4, [[62.0, 0], [62.4, 0], [62.85, 1]]]];
-CAPS.forEach(([s, e, ws], i) => {
+const FOOT = 63.367;
+// captions: word pops + highlight box wipe on the key word
+[[0.0, 1.5, [[0.0, 0, 0], [0.36, 0, 0], [0.72, 1, 1]]], [1.54, 2.72, [[1.6, 0, 0], [1.89, 1, 1], [2.11, 0, 0]]], [2.76, 4.32, [[2.76, 0, 0], [3.26, 1, 0], [3.76, 1, 1]]], [4.36, 6.44, [[4.36, 0, 0], [5.08, 1, 1], [5.4, 0, 0]]], [6.48, 7.36, [[6.48, 0, 0], [6.96, 0, 0]]], [7.4, 8.77, [[7.93, 0, 0], [8.25, 1, 1]]], [8.81, 9.95, [[8.81, 0, 0], [9.17, 1, 1]]], [9.99, 10.73, [[9.99, 0, 0], [10.28, 1, 1]]], [10.77, 12.71, [[10.77, 1, 0], [11.2, 1, 1]]], [12.75, 15.36, [[12.75, 0, 0], [13.48, 1, 1]]], [15.4, 16.73, [[15.59, 1, 1], [15.99, 0, 0]]], [16.77, 17.82, [[16.77, 0, 0], [17.39, 1, 1]]], [17.86, 19.35, [[18.1, 0, 0], [18.39, 1, 1], [18.79, 0, 0]]], [19.39, 21.12, [[19.39, 0, 0], [20.12, 1, 0], [20.42, 1, 1]]], [21.16, 23.66, [[21.16, 0, 0], [22.26, 1, 1]]], [23.7, 24.94, [[23.7, 1, 0], [24.18, 1, 1]]], [24.98, 26.21, [[24.98, 0, 0], [25.25, 1, 1]]], [26.25, 27.51, [[26.25, 1, 1], [26.73, 0, 0]]], [27.55, 29.04, [[27.55, 0, 0], [28.3, 1, 1]]], [29.08, 31.88, [[30.16, 1, 0], [30.84, 1, 1]]], [31.92, 33.47, [[31.92, 1, 1], [32.45, 0, 0]]], [33.51, 35.26, [[33.51, 1, 0], [34.13, 1, 0], [34.55, 1, 1]]], [35.3, 37.22, [[35.56, 1, 1], [36.24, 0, 0]]], [37.26, 38.95, [[37.3, 0, 0], [37.9, 1, 1]]], [38.99, 40.56, [[38.99, 0, 0], [39.56, 1, 1]]], [40.6, 44.18, [[42.26, 1, 0], [42.84, 1, 0], [43.46, 1, 1]]], [44.22, 45.95, [[44.3, 1, 0], [44.6, 1, 0], [45.3, 1, 1]]], [45.99, 48.14, [[46.92, 1, 1], [47.24, 0, 0]]], [48.18, 51.76, [[48.51, 0, 0], [50.41, 1, 1], [51.2, 0, 0]]], [51.8, 53.76, [[51.8, 0, 0], [52.61, 0, 0], [53.05, 1, 1]]], [53.8, 55.58, [[53.8, 0, 0], [54.9, 0, 0]]], [55.62, 57.58, [[55.62, 0, 0], [56.46, 1, 1]]], [57.62, 58.84, [[57.62, 0, 0], [58.29, 1, 1]]], [58.88, 60.28, [[58.88, 1, 1], [59.52, 0, 0]]], [60.32, 61.69, [[60.57, 0, 0], [61.11, 1, 1]]], [61.73, 63.3, [[62.0, 0, 0], [62.4, 0, 0], [62.85, 1, 1]]]].forEach(([s, e, ws], i) => {
   tl.set("#cap" + i, { opacity: 1 }, s);
-  ws.forEach(([t, big], j) => {
+  ws.forEach(([t, big, hl], j) => {
     const el = "#cw" + i + "_" + j;
-    if (big) tl.fromTo(el, { opacity: 0, scale: 1.35, y: 10 }, { opacity: 1, scale: 1, y: 0, duration: 0.16, ease: "back.out(2.6)" }, t);
-    else tl.fromTo(el, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, t);
+    if (big) tl.fromTo(el, { opacity: 0, scale: 1.4, y: 12 }, { opacity: 1, scale: 1, y: 0, duration: 0.18, ease: "back.out(2.8)", immediateRender: false }, t);
+    else tl.fromTo(el, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.12, ease: "power2.out", immediateRender: false }, t);
+    if (hl) tl.fromTo("#hl" + i + "_" + j, { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.14, ease: "back.out(2.5)", immediateRender: false }, t);
   });
   tl.set("#cap" + i, { opacity: 0 }, e);
 });
-// camera: slow push on hook / outro, punch-ins on key words
-tl.fromTo("#cam .inner", { scale: 1.0 }, { scale: 1.07, duration: 2.73, ease: "none" }, 0);
-tl.set("#cam .inner", { scale: 1.0 }, 2.73);
-tl.set("#cam .inner", { transformOrigin: "74% 42%" }, 19.95);
-tl.to("#cam .inner", { scale: 1.28, duration: 0.14, ease: "power3.out" }, 20.10);
-tl.set("#cam .inner", { scale: 1.0, transformOrigin: "64% 40%" }, 21.13);
-tl.to("#cam .inner", { scale: 1.14, duration: 0.14, ease: "power3.out" }, 56.44);
-tl.set("#cam .inner", { scale: 1.0 }, 57.43);
-tl.set("#cam .inner", { transformOrigin: "60% 42%" }, 60.29);
-tl.fromTo("#cam .inner", { scale: 1.0 }, { scale: 1.08, duration: 3.07, ease: "none", immediateRender: false }, 60.29);
-// stock cutaways: pop in + Ken Burns
-[["b-facial", 3.05, 4.4], ["b-phone", 9.6, 10.77], ["b-massage", 13.05, 14.8], ["b-film", 17.86, 19.36], ["b-botox", 33.45, 35.28], ["b-hair", 44.22, 45.96], ["b-laser", 46.62, 48.14], ["b-slim", 50.25, 51.76]].forEach(([id, s, e]) => {
-  tl.fromTo("#" + id + " .bimg", { scale: 1.18, opacity: 0 }, { scale: 1.06, opacity: 1, duration: 0.22, ease: "power3.out" }, s);
-  tl.to("#" + id + " .bimg", { scale: 1.0, xPercent: -1.5, duration: e - s - 0.22, ease: "none" }, s + 0.22);
+// camera: slow drift inside every shot, reset on each cut; punch on "big procedure"
+const ORIGIN = { WIDE: "50% 36%", HOST: "64% 36%", DOC: "33% 36%" };
+[[0, 1.5333, "HOST"], [1.5333, 1.2, "WIDE"], [2.7333, 4.6, "HOST"], [7.3333, 3.1, "WIDE"], [10.4333, 2.2667, "HOST"], [12.7, 0.4333, "HOST"], [13.1333, 1.6667, "WIDE"], [14.8, 5.1667, "HOST"], [19.9667, 1.1667, "WIDE"], [21.1333, 3.8333, "HOST"], [24.9667, 1.1333, "WIDE"], [26.1, 1.3333, "DOC"], [27.4333, 1.0667, "WIDE"], [28.5, 0.2333, "WIDE"], [28.7333, 3.2333, "DOC"], [31.9667, 2.1333, "WIDE"], [34.1, 0.4, "WIDE"], [34.5, 0.8333, "DOC"], [35.3333, 1.9667, "WIDE"], [37.3, 1.4667, "DOC"], [38.7667, 0.2667, "DOC"], [39.0333, 1.6, "WIDE"], [40.6333, 3.6333, "DOC"], [44.2667, 1.7667, "WIDE"], [46.0333, 2.2, "DOC"], [48.2333, 1.0, "WIDE"], [49.2333, 2.6333, "DOC"], [51.8667, 1.5, "HOST"], [53.3667, 3.1, "WIDE"], [56.4667, 1.0667, "HOST"], [57.5333, 1.1667, "WIDE"], [58.7, 1.6667, "HOST"], [60.3667, 3.0, "WIDE"]].forEach(([s, d, shot]) => {
+  tl.set("#cam .inner", { scale: 1, transformOrigin: ORIGIN[shot] }, s);
+  if (s <= 56.46 && s + d > 56.46) {
+    tl.to("#cam .inner", { scale: 1.16, duration: 0.14, ease: "power3.out" }, 56.44);
+  } else {
+    tl.to("#cam .inner", { scale: s === 0 ? 1.07 : 1.035, duration: d, ease: "none" }, s);
+  }
 });
+// b-roll: zoom-blur entry, slow push, light-leak flash
+const leak = (t, a) => tl.fromTo("#leak", { opacity: 0 }, { opacity: a, duration: 0.14, yoyo: true, repeat: 1, ease: "sine.inOut", immediateRender: false }, t);
+[["b-facial", 3.05, 4.4, "img"], ["b-bkk", 4.4, 6.75, "vid"], ["b-chn", 8.8, 9.6, "vid"], ["b-phone", 9.6, 10.77, "vid"], ["b-massage", 13.05, 14.8, "vid"], ["b-clap", 17.86, 19.36, "vid"], ["b-mirror", 19.95, 21.13, "vid"], ["b-salon", 29.1, 31.1, "vid"], ["b-botox", 33.45, 35.28, "vid"], ["b-skin", 35.32, 37.22, "vid"], ["b-hair", 44.22, 45.96, "img"], ["b-laser", 46.62, 48.14, "vid"], ["b-slim", 50.25, 51.76, "vid"]].forEach(([id, s, e, kind]) => {
+  const w = "#w-" + id;
+  tl.fromTo(w, { scale: 1.22, filter: "blur(14px)" }, { scale: 1.06, filter: "blur(0px)", duration: 0.26, ease: "power3.out", immediateRender: false }, s);
+  tl.to(w, { scale: 1.0, duration: Math.max(0.2, e - s - 0.26), ease: "none" }, s + 0.26);
+  leak(s - 0.02, 0.55);
+});
+leak(7.28, 0.6); leak(10.75, 0.4); leak(FOOT - 0.05, 0.7);
+// BTS polaroid
+tl.fromTo("#bts", { opacity: 0, y: 60, rotation: -14, scale: 0.8 }, { opacity: 1, y: 0, rotation: -5, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, 0.15);
+tl.to("#bts", { opacity: 0, x: -80, rotation: -12, duration: 0.25, ease: "power2.in" }, 2.45);
 // chips
-const chipIn = (id, t) => tl.fromTo(id, { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.32, ease: "back.out(1.8)" }, t);
-const chipOut = (id, t) => tl.to(id, { x: -40, opacity: 0, duration: 0.2, ease: "power2.in" }, t);
+const chipIn = (id, t) => tl.fromTo(id, { x: -70, opacity: 0 }, { x: 0, opacity: 1, duration: 0.34, ease: "back.out(1.8)", immediateRender: false }, t);
+const chipOut = (id, t) => tl.to(id, { x: -50, opacity: 0, duration: 0.2, ease: "power2.in" }, t);
 chipIn("#hook", 0.1); chipOut("#hook", 2.45);
-chipIn("#title", 2.95); chipOut("#title", 4.78);
-chipIn("#bkk", 4.95); tl.fromTo("#bkk .pin", { y: -30 }, { y: 0, duration: 0.4, ease: "bounce.out" }, 5.0); chipOut("#bkk", 7.1);
-chipIn("#chn", 7.40); tl.set("#chn-no", { display: "none" }, 7.40);
-tl.set("#chn-ok", { display: "none" }, 10.77); tl.set("#chn-no", { display: "block" }, 10.77);
-tl.fromTo("#chn-no", { scale: 1.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.18, ease: "back.out(3)", transformOrigin: "0% 50%" }, 10.77);
-tl.fromTo("#chn", { x: -8 }, { x: 8, duration: 0.05, repeat: 5, yoyo: true }, 10.80); tl.set("#chn", { x: 0 }, 11.10);
-chipOut("#chn", 12.5);
-chipIn("#film", 17.90); chipOut("#film", 19.15);
-chipIn("#loc", 21.2); chipOut("#loc", 24.7);
+chipIn("#title", 2.95); chipOut("#title", 4.2);
+chipIn("#bkk", 4.5); tl.fromTo("#bkk .pin", { y: -34 }, { y: 0, duration: 0.45, ease: "bounce.out", immediateRender: false }, 4.55); chipOut("#bkk", 6.55);
+chipIn("#film", 17.9); chipOut("#film", 19.15);
+chipIn("#loc", 21.2); tl.fromTo("#loc .pin", { y: -34 }, { y: 0, duration: 0.45, ease: "bounce.out", immediateRender: false }, 21.25); chipOut("#loc", 24.7);
+// map: route draws, plane flies Bangkok -> Chennai
+tl.fromTo("#map .mh", { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3 }, 7.32);
+tl.fromTo("#c-bkk", { scale: 0, transformOrigin: "50% 100%" }, { scale: 1, duration: 0.3, ease: "back.out(2)" }, 7.34);
+tl.fromTo("#arc", { strokeDashoffset: 1300, strokeDasharray: "1300 1300" }, { strokeDashoffset: 0, duration: 0.95, ease: "power2.inOut" }, 7.42);
+const P0 = [1350, 408], P1 = [875, 100], P2 = [400, 448], plane = { t: 0 };
+tl.fromTo(plane, { t: 0 }, { t: 1, duration: 0.95, ease: "power2.inOut", immediateRender: false, onUpdate: () => {
+  const t = plane.t, u = 1 - t;
+  const x = u*u*P0[0] + 2*u*t*P1[0] + t*t*P2[0], y = u*u*P0[1] + 2*u*t*P1[1] + t*t*P2[1];
+  const dx = 2*u*(P1[0]-P0[0]) + 2*t*(P2[0]-P1[0]), dy = 2*u*(P1[1]-P0[1]) + 2*t*(P2[1]-P1[1]);
+  gsap.set("#plane", { x: x - 35, y: y - 35, rotation: Math.atan2(dy, dx) * 180 / Math.PI + 90 });
+} }, 7.42);
+tl.fromTo("#c-chn", { scale: 0, transformOrigin: "50% 100%" }, { scale: 1, duration: 0.32, ease: "back.out(2.2)", immediateRender: false }, 8.3);
+// stamp slam + screen shake
+tl.fromTo("#stamp", { scale: 2.6, opacity: 0, rotation: -2 }, { scale: 1, opacity: 1, rotation: -8, duration: 0.18, ease: "power4.in", immediateRender: false }, 10.77);
+tl.fromTo("#cam", { x: -14, y: 8 }, { x: 0, y: 0, duration: 0.35, ease: "elastic.out(1.2,0.3)", immediateRender: false }, 10.95);
+tl.to("#stamp", { opacity: 0, scale: 0.9, duration: 0.2 }, 12.5);
 // lower third
-tl.fromTo("#lt .box", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.45, ease: "power3.out" }, 26.12);
-tl.fromTo("#lt .n", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3 }, 26.3);
-tl.fromTo("#lt .r", { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3 }, 26.45);
-tl.to("#lt .box", { clipPath: "inset(0 100% 0 0)", duration: 0.3, ease: "power2.in" }, 31.15);
-// treatment menu
-tl.fromTo("#menu", { x: 700, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 27.5);
+tl.fromTo("#lt .tag", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, 26.12);
+tl.fromTo("#lt .n", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.45, ease: "power3.out" }, 26.22);
+tl.fromTo("#lt .line", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power3.out" }, 26.35);
+tl.fromTo("#lt .r", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3 }, 26.5);
+tl.to("#lt", { x: -60, opacity: 0, duration: 0.3, ease: "power2.in" }, 31.15);
+// treatment cards: stack feed, max 5 visible
+tl.fromTo("#menu .mh, #menu .ms", { x: 80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "power3.out", stagger: 0.08 }, 27.5);
+const PITCH = 96;
 [30.16, 33.51, 34.13, 34.55, 35.56, 42.26, 42.84, 43.46, 44.6, 46.92, 50.41].forEach((t, k) => {
-  tl.to("#mr" + k, { opacity: 1, duration: 0.12 }, t);
-  tl.set("#mr" + k, { className: "mrow on" }, t);
-  tl.fromTo("#mr" + k + " .mlab", { x: -14 }, { x: 0, duration: 0.25, ease: "back.out(2)" }, t);
+  gsap.set("#mc" + k, { y: k * PITCH });
+  if (k >= 5) tl.to("#menu .stack", { y: -(k - 4) * PITCH, duration: 0.3, ease: "power3.inOut" }, t - 0.05);
+  tl.fromTo("#mc" + k, { opacity: 0, x: 120 }, { opacity: 1, x: 0, duration: 0.32, ease: "back.out(1.7)", immediateRender: false }, t);
+  tl.fromTo("#mc" + k + " .ic", { scale: 0, rotation: -90 }, { scale: 1, rotation: 0, duration: 0.35, ease: "back.out(2.2)", immediateRender: false }, t + 0.06);
 });
 tl.to("#menu", { x: 700, opacity: 0, duration: 0.35, ease: "power2.in" }, 51.45);
 // end card
-tl.fromTo("#gift", { scale: 1.08 }, { scale: 1.0, duration: 3.633, ease: "none" }, 63.367);
-tl.fromTo("#endcard .e1", { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.7)" }, 63.367+0.25);
-tl.fromTo("#endcard .e2", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4 }, 63.367+0.6);
-tl.fromTo("#endcard .e3", { opacity: 0 }, { opacity: 0.75, duration: 0.3 }, 63.367+0.35);
+tl.fromTo("#gift", { scale: 1.08 }, { scale: 1.0, duration: 3.633, ease: "none" }, FOOT);
+tl.fromTo("#endcard .e1", { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.7)" }, FOOT + 0.25);
+tl.fromTo("#endcard .e2", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4 }, FOOT + 0.55);
+tl.fromTo("#endcard .e3", { opacity: 0 }, { opacity: 0.75, duration: 0.3 }, FOOT + 0.35);
 window.__timelines["main"] = tl;
 </script>
 </body>
