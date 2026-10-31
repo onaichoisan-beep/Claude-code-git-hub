@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Animal That Poops Cubes</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "The animal that poops cubes" (bare-nosed wombat) — house style (STYLE_GUIDE.md): sharp HD pixel art, outlined
+      wombats. Owner's request: NO narration, only text in the middle + loud open-source sound effects (scripts/synth_audio.py).
+      Fact: Yang et al. (2021), Soft Matter 17, 475; Ig Nobel Prize in Physics 2019.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="22" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="22" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="22" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = window.DUR || 22;
+      var BEATS = window.BEATS || {};
+      var T = {
+        DROP: BEATS.DROP || 0.35, GLITCH: BEATS.GLITCH || 1.55, MEET: BEATS.MEET || 1.8, COUNT: BEATS.COUNT || 3.8, GUT: BEATS.GUT || 5.6,
+        SQUEEZE: BEATS.SQUEEZE || 9.0, OUT: BEATS.OUT || 12.2, ROLL: BEATS.ROLL || 15.4, BALL: BEATS.BALL || 15.9, SNIFF: BEATS.SNIFF || 17.4,
+        NOBEL: BEATS.NOBEL || 19.4,
+      };
+      var C = {
+        n1: "#0e0a2e", n2: "#22205a", n3: "#3a3a8a", moon: "#fff4c8", moonG: "#ffd880", star: "#ffffff",
+        grass: "#2a5a3a", grassD: "#1a3a28", grassL: "#4a8a4a", tree: "#3a2a3a", leaf: "#2a4a3a",
+        rock: "#8a8aa8", rockD: "#5a5a78", rockL: "#b8b8d0",
+        // wombat
+        wom: "#9a7a5a", womD: "#6a4a32", womL: "#c8a882", nose: "#2a1a14", pink: "#e88a8a",
+        // poop
+        poo: "#7a4a24", pooD: "#4a2a12", pooL: "#a8703a",
+        // x-ray
+        xr1: "#06123a", xr2: "#0e2a6a", xrL: "#2a5ab8", stiff: "#3a8aff", stiffL: "#8ac8ff", soft: "#ff6a9a", softL: "#ffb0c8", water: "#3ac8ff",
+        // die + stage
+        die: "#fffaf0", dieD: "#d8d0c0", table: "#c8885a", tableD: "#8a5a3a",
+        curtain: "#c81a3a", curtainD: "#8a0a24", spot: "#fff4c8", trophy: "#ffc83a", trophyD: "#c8901a",
+        c1: "#ff3a6a", c2: "#3ae86a", c3: "#3ac8ff", c4: "#ffd03a",
+        white: "#ffffff", ink: "#0a0614", paper: "#f1eef4", gold: "#ffc83a",
+      };
+      DISSOLVE = 0.12;
+      var LOOP = DUR - 0.1;
+
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function sky(stops) { screen(); g.fillStyle = vgrad(0, H, stops); g.fillRect(0, 0, W, H); }
+      function uiText(str, x, y, S, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) { var gl = FONT[str[i]] || FONT[" "]; for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * S + (p % 5) * S, y + Math.floor(p / 5) * S, S, S); }
+      }
+
+      // ============================================================ a poop cube (centre x, y; half size s; sq: 0 round .. 1 square)
+      function cube(x, y, s, sq, rot) {
+        g.save(); g.translate(x, y); g.rotate(rot || 0);
+        var r = lerp(s, s * 0.22, sq === undefined ? 1 : sq);
+        rrect(-s, -s, 2 * s, 2 * s, r, C.pooD); rrect(-s, -s, 2 * s - 0.8, 2 * s - 0.8, r, C.poo);
+        rect(-s * 0.6, -s * 0.6, s * 0.5, s * 0.25, C.pooL);
+        rect(s * 0.1, s * 0.2, s * 0.25, s * 0.25, C.pooD); rect(-s * 0.4, s * 0.3, s * 0.2, s * 0.2, C.pooD);
+        g.restore();
+      }
+
+      // ============================================================ the wombat, side view facing right (feet at x, y; ~40*s tall, ~66*s long)
+      function wombat(x, y, s, o) {
+        var t = o.t || 0, walk = o.walk ? Math.sin(t * 12) : 0, dir = o.dir || 1;
+        g.save(); g.translate(x, y - (o.walk ? Math.abs(Math.cos(t * 12)) * 1.2 : 0)); g.scale(s * dir, s);
+        // legs
+        [[-20, walk], [-10, -walk], [12, -walk], [22, walk]].forEach(function (l, i) {
+          rrect(l[0] - 4 + l[1] * 2, -12, 8, 12, 3, C.womD); ell(l[0] + l[1] * 2 + 1, -1, 5, 2, 0, C.nose);
+        });
+        // body
+        ell(0, -22, 31, 18, 0, C.womD); ell(-0.5, -22.5, 30, 17, 0, C.wom);
+        ell(4, -14, 22, 7, 0, C.womL);
+        for (var k = 0; k < 9; k++) line(-22 + k * 5, -34 + Math.abs(k - 4) * 0.8, -20 + k * 5, -31 + Math.abs(k - 4) * 0.8, 0.8, C.womD);
+        // head
+        ell(28, -24, 14, 12, 0, C.wom); ell(27, -26, 9, 6, -0.2, C.womL);
+        // ears
+        disc(20, -35, 4, C.womD); disc(20, -35, 2.2, C.pink); disc(27, -36, 3.6, C.womD); disc(27, -36, 2, C.pink);
+        // big nose
+        ell(40, -23, 5, 4.4, 0, C.nose); rect(38, -25, 2, 1.2, C.rockL);
+        // eye
+        if (o.closed) line(29, -27, 33, -27, 1, C.ink);
+        else { disc(31, -27, 2.1, C.ink); rect(30.2, -28.2, 0.9, 0.9, C.white); }
+        // mouth
+        if (o.proud) { g.strokeStyle = C.ink; g.lineWidth = 0.8; g.beginPath(); g.arc(36, -18.5, 2.4, 0.2, Math.PI - 0.6); g.stroke(); }
+        g.restore();
+      }
+
+      // ============================================================ the night bush with a big rock (hook, meet, roll)
+      var ROCK_X = 112, ROCK_TOP = 248;
+      function night(cam) {
+        sky([[0, C.n1], [0.7, C.n2], [1, C.n3]]);
+        setCam(cam, 0.3);
+        for (var s = 0; s < 40; s++) rect(hash1(s) * 180, hash1(s + 40) * 160, 1, 1, C.star);
+        lighter(); glow(36, 60, 36, C.moonG, 0.45); normalBlend(); disc(36, 60, 13, C.moon);
+        setCam(cam, 0.6);
+        // gum tree silhouettes
+        rect(150, 140, 6, 160, C.tree); disc(150, 140, 22, C.leaf); disc(166, 150, 16, C.leaf); disc(138, 156, 14, C.leaf);
+        rect(10, 170, 4, 130, C.tree); disc(12, 168, 16, C.leaf);
+        setCam(cam, 1);
+        g.fillStyle = vgrad(292, 330, [[0, C.grass], [1, C.grassD]]); g.fillRect(-60, 292, 300, 60);
+        for (var gi = 0; gi < 26; gi++) { var gx = -40 + hash1(gi) * 260; line(gx, 294, gx + 1, 288, 1, C.grassL); }
+        // the rock
+        poly([[ROCK_X - 34, 296], [ROCK_X - 28, ROCK_TOP + 6], [ROCK_X - 10, ROCK_TOP], [ROCK_X + 18, ROCK_TOP + 2], [ROCK_X + 34, ROCK_TOP + 14], [ROCK_X + 38, 296]], C.rockD);
+        poly([[ROCK_X - 31, 294], [ROCK_X - 26, ROCK_TOP + 7], [ROCK_X - 9, ROCK_TOP + 1.5], [ROCK_X + 17, ROCK_TOP + 3.5], [ROCK_X + 32, ROCK_TOP + 15], [ROCK_X + 35, 294]], C.rock);
+        rect(ROCK_X - 18, ROCK_TOP + 6, 20, 2, C.rockL);
+      }
+      function scene_bush(t) {
+        var hook = t < T.MEET, back = t > T.NOBEL;
+        var cam;
+        if (hook || back) cam = camAt([[0, ROCK_X - 4, ROCK_TOP - 46, 2.0], [T.GLITCH, ROCK_X - 4, ROCK_TOP - 40, 1.8]], hook ? t : 0);
+        else if (t < T.GUT + 0.2) cam = camAt([[T.MEET - 0.2, 90, 178, 1.0], [T.COUNT, 80, 186, 1.12], [T.GUT, 80, 190, 1.2]], t);
+        else cam = camAt([[T.ROLL - 0.2, 100, 176, 1.15], [T.SNIFF, 96, 180, 1.05], [T.NOBEL, 96, 184, 1.1]], t);
+        shake(cam, t, T.DROP + 0.25, 7, 0.4);
+        shake(cam, t, T.BALL + 0.9, 4, 0.3);
+        night(cam);
+        if (hook || back) {
+          // one cube drops onto the rock
+          var dt = hook ? t - T.DROP : 10, y0 = ROCK_TOP - 5;
+          var cy = dt < 0 ? y0 - 120 : dt < 0.25 ? lerp(y0 - 120, y0, dt / 0.25 * dt / 0.25) : y0 - Math.abs(Math.sin(Math.min(dt - 0.25, 0.3) * 10.5)) * 5 * Math.max(0, 1 - (dt - 0.25) / 0.3);
+          cube(ROCK_X - 4, cy, 5, 1, 0);
+          if (hook && dt > 0.25 && dt < 0.7) { for (var d = 0; d < 6; d++) { var a = d / 6 * 3.14 + 3.14; g.globalAlpha = 1 - (dt - 0.25) / 0.45; disc(ROCK_X - 4 + Math.cos(a) * (dt - 0.25) * 40, y0 + 4 + Math.sin(a) * (dt - 0.25) * 20, 1.2, C.rockL); } g.globalAlpha = 1; }
+        } else if (t < T.GUT + 0.2) {
+          // the wombat waddles in, then cubes pile up behind it
+          var wu = clamp01((t - T.MEET) / 1.4), wx = lerp(-40, 96, easeOut(wu));
+          var n = Math.floor(14 * ramp(t, T.COUNT, T.GUT - 0.2));
+          for (var k = 0; k < n; k++) cube(wx - 38 - (k % 5) * 9 + (Math.floor(k / 5) % 2) * 4, 290 - Math.floor(k / 5) * 8, 4, 1, (hash1(k) - 0.5) * 0.4);
+          character(function () { wombat(wx, 296, 1.25, { t: t, walk: wu < 1, proud: t > T.COUNT }); });
+          // a fresh cube pops out
+          if (t > T.COUNT) { var ph = ((t - T.COUNT) * 6) % 1; g.globalAlpha = 1 - ph; cube(wx - 38 - ph * 6, 278 + ph * 10, 3, 1, 0); g.globalAlpha = 1; }
+        } else {
+          // on the rock: a stack of cubes stays put; a round one rolls right off
+          var stack = [[-12, 0], [-3, 0], [6, 0], [-8, -9], [1, -9], [-3, -18]];
+          stack.forEach(function (p2) { cube(ROCK_X + p2[0], ROCK_TOP - 3.5 + p2[1], 4.5, 1, 0); });
+          if (t > T.BALL) {
+            var bu = t - T.BALL;
+            var bx = ROCK_X + 16 + bu * 30, by = ROCK_TOP + 2 + Math.min(bu, 0.6) * 20 + Math.max(0, bu - 0.6) * 60;
+            if (by > 290) by = 290 - Math.abs(Math.sin((bu - 1.0) * 9)) * 6 * Math.max(0, 1 - (bu - 1) * 0.8);
+            if (bx < 220) cube(bx, by, 4.5, 0, bu * 8);
+          }
+          character(function () { wombat(ROCK_X - 50, 296, 1.15, { t: t, proud: true, closed: t > T.ROLL + 0.5 && t < T.ROLL + 1.2 }); });
+          if (t > T.SNIFF) {
+            var su = easeOut(clamp01((t - T.SNIFF) / 1.0)), sx = lerp(240, 172, su);
+            character(function () { wombat(sx, 302, 1.0, { t: t, dir: -1, walk: su < 1 }); });
+            if (su >= 1) { for (var q = 0; q < 3; q++) { var ph2 = ((t - T.SNIFF) * 2 + q / 3) % 1; g.globalAlpha = 1 - ph2; worldText("?", 150 - ph2 * 6, 268 - ph2 * 14 - q * 2, 1, C.white); g.globalAlpha = 1; } }
+          }
+        }
+        vignette(0.4, "rgba(0,0,20,");
+      }
+
+      // ============================================================ x-ray: the gut squeezes the poop into a cube
+      function scene_gut(t) {
+        var cam = camAt([[T.GUT - 0.2, 90, 172, 1.0], [T.OUT, 96, 180, 1.08]], t);
+        shake(cam, t, T.SQUEEZE, 4, 0.3);
+        sky([[0, C.xr1], [1, C.xr2]]);
+        setCam(cam, 1);
+        for (var gx = -40; gx < 240; gx += 20) rect(gx, -60, 0.6, 440, C.xrL);
+        for (var gy = -60; gy < 400; gy += 20) rect(-40, gy, 280, 0.6, C.xrL);
+        // ghost wombat
+        g.globalAlpha = 0.3; ell(90, 262, 82, 44, 0, C.xrL); ell(170, 252, 22, 20, 0, C.xrL); g.globalAlpha = 1;
+        // the intestine: alternating stiff (blue) and stretchy (pink) wall bands
+        var y0 = 262, rad = 13;
+        var pu = ramp(t, T.GUT + 0.3, T.OUT - 0.2), px = lerp(170, 6, pu);
+        for (var x = -10; x < 190; x += 12) {
+          var stiff = Math.floor((x + 10) / 12) % 2 === 0;
+          var bulge = !stiff && Math.abs(x + 6 - px) < 14 ? 3 : 0;
+          rect(x, y0 - rad - 4 - bulge, 12, 4, stiff ? C.stiff : C.soft); rect(x, y0 + rad + bulge, 12, 4, stiff ? C.stiff : C.soft);
+          rect(x + 2, y0 - rad - 3 - bulge, 8, 1, stiff ? C.stiffL : C.softL);
+        }
+        // the poop travels toward the exit (left), getting squarer and drier
+        cube(px, y0, 10, clamp01(1 - (px - 20) / 140), 0);
+        for (var w = 0; w < 4; w++) { var ph = (t * 1.4 + w / 4) % 1; g.globalAlpha = 1 - ph; disc(px + (w - 1.5) * 5, y0 - 10 - ph * 22, 1.4, C.water); g.globalAlpha = 1; }
+        
+        // above the text: the cross-section, round -> square, with the patch labels
+        var sq = ramp(t, T.SQUEEZE, T.OUT - 0.4);
+        var cx = 90, cy = 82;
+        g.save(); g.translate(cx, cy); g.rotate(Math.PI / 4);
+        for (var a = 0; a < 8; a++) {
+          var ang = a / 8 * 6.2832, stiff2 = a % 2 === 0, rr = stiff2 ? 40 : 40 + 3 * Math.sin(t * 6) * (1 - sq);
+          g.strokeStyle = stiff2 ? C.stiff : C.soft; g.lineWidth = 7; g.beginPath(); g.arc(0, 0, rr, ang, ang + 6.2832 / 8); g.stroke();
+        }
+        g.restore();
+        var s2 = lerp(26, 22, sq);
+        cube(cx, cy, s2, sq, 0);
+        screen(); worldText("STIFF", 34, 300, 1, C.stiffL); worldText("STRETCHY", 146, 300, 1, C.softL); setCam(cam, 1);
+        if (sq > 0.95) { var pp = Math.min(pop(t, T.OUT - 0.4), 1); g.globalAlpha = pp; worldText("CORNERS!", 90, 130, 1, C.gold); g.globalAlpha = 1; }
+        worldText("X-RAY", 154, 20, 1, C.xrL);
+      }
+
+      // ============================================================ out come 2 cm cubes, like dice
+      function scene_dice(t) {
+        var cam = camAt([[T.OUT - 0.2, 90, 186, 1.3], [T.ROLL, 90, 190, 1.45]], t);
+        shake(cam, t, T.OUT + 0.4, 5, 0.3);
+        sky([[0, C.n1], [1, C.n2]]);
+        setCam(cam, 1);
+        g.fillStyle = vgrad(240, 330, [[0, C.grass], [1, C.grassD]]); g.fillRect(-60, 240, 300, 100);
+        // the die
+        var dx = 118, dy = 228;
+        rrect(dx - 13, dy - 13, 26, 26, 4, C.dieD); rrect(dx - 13, dy - 13, 25, 25, 4, C.die);
+        [[-6, -6], [6, -6], [0, 0], [-6, 6], [6, 6]].forEach(function (p) { disc(dx + p[0], dy + p[1], 2, C.ink); });
+        // the cube drops in next to it
+        var u0 = t - T.OUT - 0.2, cy = u0 < 0 ? 80 : u0 < 0.2 ? lerp(80, 228, (u0 / 0.2) * (u0 / 0.2)) : 228;
+        cube(64, cy, 13, 1, 0);
+        // the ruler
+        if (t > T.OUT + 0.8) {
+          var rp = Math.min(pop(t, T.OUT + 0.8), 1);
+          g.globalAlpha = rp;
+          rect(51, 248, 26, 6, C.gold); for (var k = 0; k <= 4; k++) rect(51 + k * 6.25, 248, 0.8, k % 2 ? 2.5 : 4, C.ink);
+          worldText("2 CM", 64, 258, 1, C.gold);
+          g.globalAlpha = 1;
+        }
+        // a wombat peeks in from the side
+        var pk = easeOut(clamp01((t - T.OUT - 0.6) / 0.6));
+        character(function () { wombat(lerp(-60, -6, pk), 258, 1.2, { t: t, proud: true }); });
+        vignette(0.4, "rgba(0,0,20,");
+      }
+
+      // ============================================================ the Ig Nobel prize
+      function scene_nobel(t) {
+        var cam = camAt([[T.NOBEL - 0.2, 90, 176, 1.0], [DUR, 90, 182, 1.1]], t);
+        shake(cam, t, T.NOBEL + 0.3, 5, 0.35);
+        sky([[0, C.curtainD], [1, C.n1]]);
+        setCam(cam, 1);
+        for (var c = -2; c < 12; c++) { rect(c * 18, -40, 9, 360, C.curtain); rect(c * 18 + 9, -40, 9, 360, C.curtainD); }
+        lighter(); glow(90, 250, 80, C.spot, 0.55); normalBlend();
+        ell(90, 298, 56, 10, 0, C.tableD); rect(-40, 298, 260, 40, C.tableD); rect(-40, 298, 260, 3, C.table);
+        character(function () { wombat(80, 298, 1.3, { t: t, proud: true, closed: true }); });
+        // the trophy, raised next to it
+        var tx = 136, ty = 250 - Math.sin(Math.min(1, (t - T.NOBEL) * 2) * 1.57) * 10;
+        rrect(tx - 9, ty - 22, 18, 16, 6, C.trophyD); rrect(tx - 8, ty - 22, 16, 14, 6, C.trophy);
+        rect(tx - 2, ty - 7, 4, 8, C.trophyD); rect(tx - 7, ty + 1, 14, 4, C.trophyD);
+        line(tx - 9, ty - 18, tx - 13, ty - 12, 1.5, C.trophyD); line(tx + 9, ty - 18, tx + 13, ty - 12, 1.5, C.trophyD);
+        cube(tx, ty - 26, 3.5, 1, 0);
+        // confetti
+        var cols = [C.c1, C.c2, C.c3, C.c4];
+        for (var k = 0; k < 40; k++) {
+          var cu = t - T.NOBEL - 0.3; if (cu < 0) break;
+          var x = hash1(k) * 180 + Math.sin(t * 3 + k) * 4, y = -10 + ((cu * (50 + hash1(k + 5) * 40) + hash1(k + 9) * 60) % 340);
+          rect(x, y, 2, 1.4, cols[k % 4]);
+        }
+        vignette(0.35, "rgba(30,0,10,");
+      }
+
+      function sceneAt(t) {
+        return t < T.GUT ? "bush" : t < T.OUT ? "gut" : t < T.ROLL ? "dice" : t < T.NOBEL ? "bush" : t < DUR - 0.5 ? "nobel" : "bush";
+      }
+      function drawUI(t) {
+        if (t < T.COUNT || t >= T.GUT) return;
+        var n = Math.round(100 * ramp(t, T.COUNT, T.GUT - 0.2));
+        u.fillStyle = "rgba(6,5,10,0.9)"; u.fillRect(10, 10, 150, 26);
+        uiText("CUBES: " + n, 18, 16, 2, C.gold);
+      }
+
+      PX.setup(C, {
+        scenes: { bush: scene_bush, gut: scene_gut, dice: scene_dice, nobel: scene_nobel },
+        sceneAt: sceneAt,
+        cuts: [[T.GUT, "bush", "gut"], [T.OUT, "gut", "dice"], [T.ROLL, "dice", "bush"], [T.NOBEL, "bush", "nobel"], [DUR - 0.5, "nobel", "bush"]],
+        post: function (t, img) {
+          if (t < 0.12) tintImg(img, C.white, 1 - t / 0.12);
+          if (t > T.GLITCH - 0.05 && t < T.MEET) glitchRows(img, 10 * Math.sin(clamp01((t - T.GLITCH + 0.05) / (T.MEET - T.GLITCH + 0.05)) * Math.PI), Math.floor(t * 30));
+          if (t > LOOP - 0.25 && t < LOOP) tintImg(img, C.white, ramp(t, LOOP - 0.25, LOOP));
+          if (t >= LOOP) tintImg(img, C.white, 1);
+        },
+        ui: drawUI,
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: c.segs.map(function (ln) { return ln.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; }); }) };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

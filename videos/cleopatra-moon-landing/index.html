@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Cleopatra and the Moon Landing</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "Cleopatra lived closer to the Moon landing than to the Great Pyramid" — house style (STYLE_GUIDE.md):
+      sharp HD pixel art, outlined characters (Cleopatra, the astronaut, the mammoth).
+      Owner's request: NO narration, only text in the middle + loud open-source sound effects (scripts/synth_audio.py).
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="22" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="22" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="22" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = window.DUR || 22;
+      var BEATS = window.BEATS || {};
+      var T = {
+        GLITCH: BEATS.GLITCH || 1.55, BUILD: BEATS.BUILD || 1.8, TIMELINE: BEATS.TIMELINE || 5.6, BAR1: BEATS.BAR1 || 6.0, BAR2: BEATS.BAR2 || 10.0,
+        ANCIENT: BEATS.ANCIENT || 14.0, MAMMOTH: BEATS.MAMMOTH || 17.6, BACK: BEATS.BACK || 20.2,
+      };
+      var C = {
+        sky1: "#3a6aff", sky2: "#8ac8ff", sky3: "#ffd08a", dusk1: "#2a1a6a", dusk2: "#c84a8a", dusk3: "#ff9a4a",
+        sand: "#f0c070", sandD: "#c8904a", sandL: "#ffe0a0", stone: "#e8c080", stoneD: "#b88a50", stoneL: "#fff0c0", crack: "#8a5a2a",
+        sun: "#fff4a0", sunG: "#ffc840",
+        // Cleopatra
+        skin: "#c88a5a", skinD: "#9a6038", skinL: "#e8aa78", hairK: "#141024", dress: "#f4f4ff", dressD: "#c8c8e0", goldC: "#ffc83a", goldD: "#c8901a", lapis: "#2a5ad8", lip: "#c8384a",
+        // astronaut + moon
+        suit: "#f4f4ff", suitD: "#b8b8d8", visor: "#ffb83a", visorL: "#fff0b0", panel: "#2a4ab8", metal: "#a8a8c0", moon: "#d8d8e8", moonD: "#a8a8c0", space: "#06061a",
+        flagR: "#ff3a4a", flagB: "#2a4ab8",
+        // mammoth + snow
+        fur: "#8a4a2a", furD: "#5a2a14", furL: "#b8703a", tusk: "#fff4e0", snow: "#f0f8ff", snowD: "#b8d0e8", ice1: "#6a9ac8", ice2: "#c8e0f8",
+        // timeline
+        tl1: "#0e0a2a", tl2: "#1e1a4a", cyan: "#3ae8ff", red: "#ff3a4a", green: "#3ae86a",
+        white: "#ffffff", ink: "#0a0614", paper: "#f1eef4", gold: "#ffc83a",
+      };
+      DISSOLVE = 0.12;
+      var LOOP = DUR - 0.1;
+
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function sky(stops) { screen(); g.fillStyle = vgrad(0, H, stops); g.fillRect(0, 0, W, H); }
+      function uiText(str, x, y, S, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) { var gl = FONT[str[i]] || FONT[" "]; for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * S + (p % 5) * S, y + Math.floor(p / 5) * S, S, S); }
+      }
+      function limb(x1, y1, x2, y2, x3, y3, w, col, colD) {
+        line(x1, y1, x2, y2, w, colD); line(x2, y2, x3, y3, w, colD);
+        line(x1 - 0.4, y1 - 0.4, x2 - 0.4, y2 - 0.4, w - 1, col); line(x2 - 0.4, y2 - 0.4, x3 - 0.4, y3 - 0.4, w - 1, col);
+      }
+
+      // ============================================================ the Great Pyramid (base centre x, base y, width, height); built 0..1; old: weathered
+      function pyramid(x, y, w, h, built, old) {
+        var hb = h * built, topW = w * (1 - built);
+        poly([[x - w / 2, y], [x + w / 2, y], [x + topW / 2, y - hb], [x - topW / 2, y - hb]], old ? C.stoneD : C.stone);
+        poly([[x, y], [x + w / 2, y], [x + topW / 2, y - hb], [x, y - hb]], old ? C.crack : C.stoneD);
+        g.save(); g.beginPath(); g.moveTo(x - w / 2, y); g.lineTo(x + w / 2, y); g.lineTo(x + topW / 2, y - hb); g.lineTo(x - topW / 2, y - hb); g.closePath(); g.clip();
+        for (var r = 0; r < h; r += 6) {
+          line(x - w / 2, y - r, x + w / 2, y - r, 0.6, old ? C.crack : C.stoneD);
+          var off = (r / 6) % 2 ? 0 : 5;
+          for (var c = -w / 2 + off; c < w / 2; c += 10) line(x + c, y - r, x + c, y - r - 6, 0.5, old ? C.crack : C.stoneD);
+        }
+        if (!old && built >= 1) { poly([[x - 5, y - h + 5], [x + 5, y - h + 5], [x, y - h]], C.goldC); }
+        if (old) { for (var k = 0; k < 8; k++) { var cx = x + (hash1(k) - 0.5) * w * 0.7, cy = y - hash1(k + 9) * h * 0.7; line(cx, cy, cx + 4, cy + 6, 0.8, C.ink); line(cx + 4, cy + 6, cx + 2, cy + 10, 0.8, C.ink); } }
+        g.restore();
+      }
+
+      // ============================================================ Cleopatra (feet at x, y; ~78*s tall)
+      function cleo(x, y, s, o) {
+        var t = o.t || 0;
+        g.save(); g.translate(x, y); g.scale(s * (o.flip ? -1 : 1), s);
+        // dress (long, flared)
+        poly([[-9, -44], [9, -44], [14, -1], [-14, -1]], C.dressD); poly([[-8.5, -44], [8.5, -44], [13, -2], [-13, -2]], C.dress);
+        rect(-9, -26, 18, 2, C.goldC); poly([[-2, -24], [2, -24], [1, -2], [-1, -2]], C.goldC);
+        ell(-6, -1, 3.5, 1.6, 0, C.goldD); ell(6, -1, 3.5, 1.6, 0, C.goldD);
+        // back arm
+        limb(-8, -41, -11, -31, -10, -22, 3.6, C.skin, C.skinD); rect(-11.5, -32, 3, 2, C.goldC);
+        // front arm: wave or point
+        var wv = o.wave ? Math.sin(t * 12) * 0.4 : 0;
+        if (o.wave) { limb(8, -41, 14, -50, 15 + wv * 8, -59, 3.6, C.skin, C.skinD); disc(15.5 + wv * 8, -60, 2, C.skin); }
+        else { limb(8, -41, 11, -31, 10, -22, 3.6, C.skin, C.skinD); }
+        // broad gold collar
+        ell(0, -43, 10.5, 5, 0, C.goldD); ell(0, -43.5, 10, 4.4, 0, C.goldC); ell(0, -44, 7.5, 2.6, 0, C.lapis); ell(0, -45, 6, 1.6, 0, C.goldC);
+        // neck + head
+        rect(-2.4, -50, 4.8, 5, C.skinD);
+        disc(0, -57, 9.5, C.skin);
+        // black bob with fringe
+        g.fillStyle = C.hairK; g.beginPath(); g.ellipse(0, -60, 11.5, 9, 0, Math.PI, 0); g.fill();
+        rect(-11.5, -60, 5, 13, C.hairK); rect(6.5, -60, 5, 13, C.hairK);
+        rect(-9, -64, 18, 4, C.hairK);
+        // gold band + cobra
+        rect(-10.5, -63.5, 21, 1.6, C.goldC); poly([[-1.4, -63.5], [1.4, -63.5], [0, -69]], C.goldC); disc(0, -68.5, 1.4, C.goldC);
+        // face: big eyes with eyeliner wings
+        var shock = o.shock;
+        ell(-3.6, -56.5, 2, 2.4, 0, C.white); ell(3.6, -56.5, 2, 2.4, 0, C.white);
+        if (shock) { disc(-3.6, -56.5, 0.8, C.ink); disc(3.6, -56.5, 0.8, C.ink); }
+        else { ell(-3.3, -56.2, 1.2, 1.8, 0, C.ink); ell(3.9, -56.2, 1.2, 1.8, 0, C.ink); rect(-4.2, -57.6, 0.7, 0.7, C.white); rect(3, -57.6, 0.7, 0.7, C.white); }
+        line(-6, -58, -1.5, -58.6, 0.8, C.ink); line(1.5, -58.6, 6, -58, 0.8, C.ink);
+        line(-6, -58, -7.6, -59.4, 0.7, C.ink); line(6, -58, 7.6, -59.4, 0.7, C.ink);
+        if (shock) ell(0, -51.5, 1.6, 2, 0, C.ink);
+        else { g.strokeStyle = C.lip; g.lineWidth = 0.9; g.beginPath(); g.arc(0, -52.6, 1.8, 0.3, Math.PI - 0.3); g.stroke(); }
+        g.restore();
+      }
+
+      // ============================================================ astronaut (feet at x, y; ~74*s tall)
+      function astronaut(x, y, s, t, wave) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        rrect(-12, -50, 24, 26, 4, C.suitD);
+        limb(-4, -24, -5, -12, -5, -3, 7, C.suit, C.suitD); limb(4, -24, 5, -12, 5, -3, 7, C.suit, C.suitD);
+        rrect(-10, -5, 9, 5, 2, C.metal); rrect(1, -5, 9, 5, 2, C.metal);
+        rrect(-10, -48, 20, 26, 6, C.suitD); rrect(-9.5, -48, 18.5, 24.5, 6, C.suit);
+        rect(-5, -42, 10, 6, C.panel); rect(-4, -41, 2, 2, C.red); rect(0, -41, 2, 2, C.green);
+        limb(-8, -44, -12, -34, -11, -26, 6, C.suit, C.suitD); disc(-11, -25.5, 3, C.metal);
+        var wv = wave ? Math.sin(t * 10) * 0.4 : 0;
+        if (wave) { limb(8, -44, 15, -52, 16 + wv * 8, -62, 6, C.suit, C.suitD); disc(16.5 + wv * 8, -63, 3, C.metal); }
+        else { limb(8, -44, 12, -34, 11, -26, 6, C.suit, C.suitD); disc(11, -25.5, 3, C.metal); }
+        disc(0, -60, 12, C.suitD); disc(0, -60.5, 11.2, C.suit);
+        ell(1, -60, 8, 6.5, 0, C.visor); ell(-2, -62.5, 3, 2, -0.4, C.visorL);
+        g.restore();
+      }
+
+      // ============================================================ woolly mammoth (feet at x, y; ~60*s tall)
+      function mammoth(x, y, s, t) {
+        var st = Math.sin(t * 6);
+        g.save(); g.translate(x, y); g.scale(-s, s);
+        // legs (walk cycle)
+        [[-16, st], [-6, -st], [8, -st], [17, st]].forEach(function (l) { rrect(l[0] - 4 + l[1] * 2, -20, 8, 20, 3, C.furD); });
+        // body + hump
+        ell(0, -30, 26, 18, 0, C.furD); ell(0, -31, 25, 17, 0, C.fur); disc(8, -44, 11, C.fur); disc(-6, -42, 10, C.fur);
+        for (var k = 0; k < 14; k++) { var fx = -22 + k * 3.4; line(fx, -18, fx + 1, -13 + (k % 2) * 2, 1, C.furD); }
+        // head
+        disc(24, -38, 11, C.fur); disc(26, -46, 6, C.fur);
+        ell(18, -36, 5, 7, 0, C.furD);
+        // trunk
+        g.strokeStyle = C.furD; g.lineWidth = 6; g.lineCap = "round"; g.beginPath(); g.moveTo(32, -34); g.quadraticCurveTo(38 + st, -18, 33, -8); g.stroke();
+        g.strokeStyle = C.fur; g.lineWidth = 4.5; g.stroke();
+        // tusks
+        g.strokeStyle = C.tusk; g.lineWidth = 2.6; g.beginPath(); g.moveTo(30, -30); g.quadraticCurveTo(44, -22, 40, -36); g.stroke();
+        // eye
+        disc(27, -42, 1.4, C.ink); rect(26.6, -42.8, 0.6, 0.6, C.white);
+        g.restore();
+      }
+
+      // ============================================================ scenes
+      function scene_mash(t) {
+        var back = t > T.BACK;
+        var cam = back ? camAt([[T.BACK, 90, 176, 1.0], [DUR - 0.12, 90, 182, 1.12]], t) : camAt([[0, 90, 182, 1.12], [T.GLITCH, 90, 178, 1.05]], t);
+        shake(cam, t, 0, 7, 0.5);
+        sky([[0, C.dusk1], [0.55, C.dusk2], [1, C.dusk3]]);
+        setCam(cam, 0.3);
+        for (var s = 0; s < 20; s++) rect(hash1(s) * 180, hash1(s + 20) * 120, 1, 1, C.white);
+        // a huge Moon in the sky
+        disc(130, 70, 34, C.moonD); disc(128, 68, 33, C.moon); disc(118, 60, 6, C.moonD); disc(140, 80, 4, C.moonD); disc(132, 52, 3, C.moonD);
+        setCam(cam, 0.6);
+        pyramid(90, 262, 170, 100, 1, false);
+        setCam(cam, 1);
+        g.fillStyle = vgrad(262, 330, [[0, C.sand], [1, C.sandD]]); g.fillRect(-40, 262, 260, 80);
+        // half desert, half moon dust under the astronaut
+        ell(140, 304, 40, 9, 0, C.moonD);
+        rect(150, 238, 1.5, 64, C.metal); rect(151.5, 238, 18, 11, C.white); rect(151.5, 238, 18, 3, C.flagR); rect(151.5, 244, 18, 2, C.flagR); rect(151.5, 238, 7, 6, C.flagB);
+        character(function () { cleo(50, 304, 1.3, { t: t, wave: true }); });
+        character(function () { astronaut(128, 304, 1.3, t + 0.5, true); });
+        vignette(0.3, "rgba(30,10,40,");
+      }
+
+      function scene_build(t) {
+        var cam = camAt([[T.BUILD - 0.2, 90, 176, 1.0], [T.TIMELINE, 90, 186, 1.12]], t);
+        var b = ramp(t, T.BUILD + 0.2, T.TIMELINE - 0.4);
+        var step = Math.floor(b * 8);
+        shake(cam, t, T.BUILD + 0.2 + step * (T.TIMELINE - T.BUILD - 0.6) / 8, 3, 0.2);
+        sky([[0, C.sky1], [0.6, C.sky2], [1, C.sky3]]);
+        setCam(cam, 0.3);
+        lighter(); glow(40, 60, 50, C.sunG, 0.6); normalBlend(); disc(40, 60, 14, C.sun);
+        setCam(cam, 1);
+        g.fillStyle = vgrad(300, 330, [[0, C.sand], [1, C.sandD]]); g.fillRect(-40, 300, 260, 60);
+        pyramid(90, 302, 150, 112, Math.max(0.08, step / 8), false);
+        // a block being hauled up the ramp
+        var bu = (t * 0.9) % 1, rx = lerp(10, 60, bu), ry = lerp(300, 300 - 112 * Math.max(0.08, step / 8), bu);
+        line(0, 302, 70, 300 - 112 * Math.max(0.08, step / 8), 4, C.sandD);
+        rect(rx - 4, ry - 7, 8, 6, C.stoneD); rect(rx - 4, ry - 7, 7, 5, C.stone);
+        // dust puffs
+        for (var d = 0; d < 6; d++) { var ph = (t * 1.3 + d / 6) % 1; g.globalAlpha = 1 - ph; disc(30 + d * 22, 300 - ph * 14, 2 + ph * 4, C.sandL); g.globalAlpha = 1; }
+        vignette(0.2, "rgba(80,40,10,");
+      }
+
+      var X_PYR = 14, X_CLEO = 14 + 2530 / 4529 * 152, X_MOON = 166;
+      function scene_timeline(t) {
+        var cam = camAt([[T.TIMELINE - 0.2, 90, 176, 1.0], [T.ANCIENT, 90, 180, 1.04]], t);
+        shake(cam, t, T.BAR1 + 1.6, 4, 0.3); shake(cam, t, T.BAR2 + 1.6, 4, 0.3);
+        sky([[0, C.tl1], [1, C.tl2]]);
+        setCam(cam, 1);
+        // above the text: the comparison, filling in
+        var p1 = ramp(t, T.BAR1, T.BAR1 + 1.6), p2 = ramp(t, T.BAR2, T.BAR2 + 1.6);
+        worldText("PYRAMID TO CLEO", 90, 36, 1, C.gold);
+        rect(10, 46, 160, 10, C.tl2); rect(10, 46, 160 * p1, 10, C.gold);
+        worldText("CLEO TO MOON", 90, 76, 1, C.cyan);
+        rect(10, 86, 160, 10, C.tl2); rect(10, 86, 160 * (1999 / 2530) * p2, 10, C.cyan);
+        if (p1 > 0) worldText(Math.round(2530 * p1).toLocaleString("en-US") + " YRS", 90, 59 - 12, 1, C.ink);
+        if (p2 > 0) worldText(Math.round(1999 * p2).toLocaleString("en-US") + " YRS", 72, 87, 1, C.ink);
+        // the line
+        rect(8, 258, 164, 2, C.white);
+        [[X_PYR, "2560 BC", 28], [X_CLEO, "30 BC", X_CLEO], [X_MOON, "1969", 158]].forEach(function (m) { rect(m[0] - 1, 254, 2, 10, C.white); worldText(m[1], m[2], 268, 1, C.white); });
+        // filling bars above the line
+        rect(X_PYR, 250, (X_CLEO - X_PYR) * p1, 4, C.gold);
+        rect(X_CLEO, 250, (X_MOON - X_CLEO) * p2, 4, C.cyan);
+        // icons
+        pyramid(X_PYR + 4, 244, 24, 18, 1, false);
+        character(function () { g.save(); g.translate(X_CLEO, 246); g.scale(0.55, 0.55); cleo(0, 40, 1, { t: t }); g.restore(); });
+        disc(X_MOON - 4, 228, 10, C.moon); disc(X_MOON - 8, 225, 2.5, C.moonD); rect(X_MOON - 2, 214, 1, 12, C.metal); rect(X_MOON - 1, 214, 7, 4, C.flagR);
+        // the distances under the line
+        if (p1 > 0.05) worldText("~2,500 YRS", (X_PYR + X_CLEO) / 2, 284, 1, C.gold);
+        if (p2 > 0.05) worldText("~2,000", (X_CLEO + X_MOON) / 2 + 6, 298, 1, C.cyan);
+        vignette(0.3, "rgba(0,0,20,");
+      }
+
+      function scene_ancient(t) {
+        var cam = camAt([[T.ANCIENT - 0.2, 96, 176, 1.0], [T.MAMMOTH, 90, 186, 1.1]], t);
+        shake(cam, t, T.ANCIENT + 0.9, 4, 0.3);
+        sky([[0, C.sky1], [0.6, C.sky2], [1, C.sky3]]);
+        setCam(cam, 0.5);
+        lighter(); glow(150, 50, 40, C.sunG, 0.5); normalBlend(); disc(150, 50, 11, C.sun);
+        setCam(cam, 0.8);
+        pyramid(120, 290, 200, 170, 1, true);
+        setCam(cam, 1);
+        g.fillStyle = vgrad(288, 330, [[0, C.sand], [1, C.sandD]]); g.fillRect(-40, 288, 260, 60);
+        // drifting sand
+        for (var d = 0; d < 10; d++) { var ph = (t * 0.5 + d / 10) % 1; rect(-10 + ph * 200, 270 + hash1(d) * 30, 3, 0.8, C.sandL); }
+        // a few birds
+        for (var bi = 0; bi < 3; bi++) { var bx = 20 + bi * 20 + (t - T.ANCIENT) * 12, by = 90 + bi * 6 + Math.sin(t * 6 + bi) * 2; line(bx - 3, by - 1.5 * Math.sin(t * 12 + bi), bx, by, 0.8, C.ink); line(bx, by, bx + 3, by - 1.5 * Math.sin(t * 12 + bi), 0.8, C.ink); }
+        character(function () { cleo(52, 304, 1.55, { t: t, shock: t > T.ANCIENT + 0.9, flip: false }); });
+        vignette(0.25, "rgba(60,30,10,");
+      }
+
+      function scene_mammoth(t) {
+        var cam = camAt([[T.MAMMOTH - 0.2, 90, 172, 1.0], [T.BACK, 90, 176, 1.05]], t);
+        sky([[0, C.tl1], [1, C.tl2]]);
+        // left: Egypt, the pyramid half built
+        screen(); g.save(); g.beginPath(); g.rect(0, 0, 89, 320); g.clip();
+        g.fillStyle = vgrad(0, 320, [[0, C.sky1], [0.6, C.sky2], [1, C.sky3]]); g.fillRect(0, 0, 90, 320);
+        setCam(cam, 1);
+        g.fillStyle = vgrad(290, 330, [[0, C.sand], [1, C.sandD]]); g.fillRect(-40, 290, 140, 60);
+        pyramid(45, 292, 84, 70, ramp(t, T.MAMMOTH, T.BACK), false);
+        g.restore();
+        // right: Wrangel Island, snow, a woolly mammoth
+        screen(); g.save(); g.beginPath(); g.rect(91, 0, 89, 320); g.clip();
+        g.fillStyle = vgrad(0, 320, [[0, C.ice1], [1, C.ice2]]); g.fillRect(90, 0, 90, 320);
+        setCam(cam, 1);
+        g.fillStyle = vgrad(286, 330, [[0, C.snow], [1, C.snowD]]); g.fillRect(80, 286, 140, 60);
+        var mx = lerp(190, 136, ease(clamp01((t - T.MAMMOTH) / 1.6)));
+        character(function () { mammoth(mx, 298, 0.95, t); });
+        for (var f = 0; f < 30; f++) { var fy = (hash1(f) * 320 + t * 40) % 320, fx = 92 + hash1(f + 30) * 88 + Math.sin(t + f) * 3; rect(fx, fy, 1.2, 1.2, C.snow); }
+        g.restore();
+        screen(); rect(89, 0, 2, 320, C.ink);
+        // labels above the text
+        worldText("EGYPT", 45, 40, 1, C.ink); worldText("WRANGEL", 135, 40, 1, C.ink); worldText("ISLAND", 135, 50, 1, C.ink);
+        worldText("~2500 BC", 45, 120, 1, C.ink); worldText("~2500 BC", 135, 120, 1, C.ink);
+      }
+
+      function sceneAt(t) {
+        return t < T.BUILD ? "mash" : t < T.TIMELINE ? "build" : t < T.ANCIENT ? "timeline" : t < T.MAMMOTH ? "ancient" : t < T.BACK ? "mammoth" : "mash";
+      }
+      function drawUI(t) {
+        var str = t >= T.BUILD && t < T.TIMELINE ? "2560 BC" : t >= T.ANCIENT && t < T.MAMMOTH ? "30 BC" : null;
+        if (!str) return;
+        u.fillStyle = "rgba(6,5,10,0.9)"; u.fillRect(10, 10, str.length * 12 + 14, 26);
+        uiText(str, 18, 16, 2, C.gold);
+      }
+
+      PX.setup(C, {
+        scenes: { mash: scene_mash, build: scene_build, timeline: scene_timeline, ancient: scene_ancient, mammoth: scene_mammoth },
+        sceneAt: sceneAt,
+        cuts: [[T.BUILD, "mash", "build"], [T.TIMELINE, "build", "timeline"], [T.ANCIENT, "timeline", "ancient"], [T.MAMMOTH, "ancient", "mammoth"], [T.BACK, "mammoth", "mash"]],
+        post: function (t, img) {
+          if (t < 0.12) tintImg(img, C.white, 1 - t / 0.12);
+          if (t > T.GLITCH - 0.05 && t < T.BUILD) glitchRows(img, 10 * Math.sin(clamp01((t - T.GLITCH + 0.05) / (T.BUILD - T.GLITCH + 0.05)) * Math.PI), Math.floor(t * 30));
+          if (t > LOOP - 0.25 && t < LOOP) tintImg(img, C.white, ramp(t, LOOP - 0.25, LOOP));
+          if (t >= LOOP) tintImg(img, C.white, 1);
+        },
+        ui: drawUI,
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: c.segs.map(function (ln) { return ln.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; }); }) };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

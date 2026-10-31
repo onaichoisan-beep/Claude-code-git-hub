@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>GPS Needs Einstein</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "GPS only works because of Einstein" — house style (STYLE_GUIDE.md): sharp HD pixel art, outlined characters
+      (Einstein). Owner's request: NO narration, only text in the middle + loud open-source sound effects (scripts/synth_audio.py).
+      Fact: Ashby (2003), "Relativity in the Global Positioning System", Living Reviews in Relativity 6, 1.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="22" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="22" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="22" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = window.DUR || 22;
+      var BEATS = window.BEATS || {};
+      var T = {
+        GLITCH: BEATS.GLITCH || 1.55, SATS: BEATS.SATS || 1.8, CLOCKS: BEATS.CLOCKS || 6.0, NET: BEATS.NET || 8.3, LIGHT: BEATS.LIGHT || 10.4,
+        ERR: BEATS.ERR || 12.5, DRIFT: BEATS.DRIFT || 14.6, FIX: BEATS.FIX || 18.6, SNAP: BEATS.SNAP || 19.9, BACK: BEATS.BACK || 20.6,
+      };
+      var C = {
+        // map
+        land: "#e8f0d8", landD: "#c8d8b8", road: "#ffffff", roadD: "#c8c8d8", park: "#8ae86a", parkD: "#4ac04a", sea: "#4ab8ff", seaD: "#2a8ae8", seaL: "#a8e0ff",
+        bldg: "#d8c8e8", bldgD: "#b0a0c8", dot: "#2a6aff", dotL: "#8ab8ff", red: "#ff3a4a", redD: "#c01a2a", green: "#3ae86a", phone: "#1a1a2a",
+        // space
+        sp1: "#04041a", sp2: "#10103a", earth: "#2a7aff", earthD: "#1a4ac0", landE: "#3ac85a", cloud: "#e8f4ff",
+        foil: "#ffc83a", foilD: "#c8901a", panel: "#2a4ab8", panelL: "#5a8aff", metal: "#a8a8c0", beam: "#fff4a0", beamG: "#ffd860",
+        // clocks
+        face: "#f4f4ff", faceD: "#b8b8d8", cyan: "#3ae8ff",
+        // Einstein
+        skin: "#f0c09a", skinD: "#c8906a", skinL: "#ffd8b8", hairW: "#f4f4ff", hairG: "#c8c8d8", sweater: "#8a5a3a", sweaterD: "#5a3a24", shirt: "#e8e8f0",
+        white: "#ffffff", ink: "#0a0614", paper: "#f1eef4", gold: "#ffc83a",
+      };
+      DISSOLVE = 0.12;
+      var LOOP = DUR - 0.1;
+
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function sky(stops) { screen(); g.fillStyle = vgrad(0, H, stops); g.fillRect(0, 0, W, H); }
+      function uiText(str, x, y, S, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) { var gl = FONT[str[i]] || FONT[" "]; for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * S + (p % 5) * S, y + Math.floor(p / 5) * S, S, S); }
+      }
+
+      // ============================================================ a GPS satellite (centre x, y; scale s), with a little clock on its body
+      function satellite(x, y, s, t, a) {
+        g.save(); g.translate(x, y); g.rotate(a || 0); g.scale(s, s);
+        rect(-34, -1, 68, 2, C.metal);
+        [-34, -24, 12, 22].forEach(function (o) { rect(o, -9, 12, 18, C.panel); rect(o + 1, -8, 3, 16, C.panelL); line(o + 6, -9, o + 6, 9, 0.5, C.sp2); });
+        rrect(-10, -10, 20, 20, 2, C.foilD); rrect(-10, -10, 19, 19, 2, C.foil);
+        disc(0, 0, 6, C.face); line(0, 0, Math.sin(t * 6) * 4.5, -Math.cos(t * 6) * 4.5, 1, C.ink); line(0, 0, 0, -3, 1.2, C.ink);
+        rect(-1, 10, 2, 5, C.metal); disc(0, 16, 3, C.metal);
+        g.restore();
+      }
+      function clockFace(x, y, r, a1, a2, rimCol) {
+        disc(x, y, r + 3, rimCol); disc(x, y, r, C.face);
+        for (var h = 0; h < 12; h++) { var a = h / 12 * 6.2832; rect(x + Math.sin(a) * (r - 4) - 1, y - Math.cos(a) * (r - 4) - 1, 2, 2, C.ink); }
+        line(x, y, x + Math.sin(a1) * r * 0.5, y - Math.cos(a1) * r * 0.5, 3, C.ink);
+        line(x, y, x + Math.sin(a2) * r * 0.8, y - Math.cos(a2) * r * 0.8, 1.5, C.red);
+        disc(x, y, 2, C.ink);
+      }
+
+      // ============================================================ Einstein, head + shoulders (centre of face at x, y; scale s)
+      function einstein(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s, s);
+        rrect(-26, 20, 52, 34, 14, C.sweaterD); rrect(-25, 21, 50, 34, 14, C.sweater);
+        poly([[-8, 20], [8, 20], [0, 30]], C.shirt);
+        rect(-5, 12, 10, 10, C.skinD);
+        // thumbs up
+        if (o.thumb) {
+          var b = Math.sin(t * 8) * 1.5;
+          rrect(20, 6 + b, 12, 12, 4, C.sweater); rrect(22, -2 + b, 9, 10, 3, C.skin); rrect(24.5, -10 + b, 4.5, 10, 2, C.skin);
+        }
+        // wild white hair
+        for (var k = 0; k < 14; k++) { var a = Math.PI + k / 13 * Math.PI, rr = 19 + (k % 3) * 3 + Math.sin(t * 3 + k) * 0.8; disc(Math.cos(a) * rr * 1.1, -4 + Math.sin(a) * rr * 0.9, 6, k % 2 ? C.hairG : C.hairW); }
+        disc(-19, 4, 6, C.hairW); disc(19, 4, 6, C.hairW);
+        // face
+        ell(0, 0, 15, 18, 0, C.skin); ell(-5, -6, 6, 4, -0.4, C.skinL);
+        // bushy brows, eyes
+        rect(-10, -7, 8, 2.4, C.hairG); rect(2, -7, 8, 2.4, C.hairG);
+        ell(-5.5, -2, 2.2, 2.6, 0, C.white); ell(5.5, -2, 2.2, 2.6, 0, C.white); disc(-5.2, -1.6, 1.3, C.ink); disc(5.8, -1.6, 1.3, C.ink);
+        // nose, big moustache, smile
+        ell(0, 3, 2.4, 3.2, 0, C.skinD);
+        ell(-4, 8, 6, 3, 0.2, C.hairW); ell(4, 8, 6, 3, -0.2, C.hairW);
+        g.strokeStyle = C.ink; g.lineWidth = 0.9; g.beginPath(); g.arc(0, 11, 3.6, 0.3, Math.PI - 0.3); g.stroke();
+        disc(-10, 5, 2, "#ff9aa8"); disc(10, 5, 2, "#ff9aa8");
+        g.restore();
+      }
+
+      // ============================================================ the phone map (hook, drift, fix, thanks)
+      var ROAD_Y = 252;
+      function mapBase() {
+        rect(-60, -60, 300, 420, C.land);
+        // sea on the right with a wavy coast
+        g.fillStyle = C.sea; g.beginPath(); g.moveTo(128, -60);
+        for (var y = -60; y <= 360; y += 10) g.lineTo(128 + Math.sin(y * 0.07) * 6, y);
+        g.lineTo(260, 360); g.lineTo(260, -60); g.closePath(); g.fill();
+        for (var w = 0; w < 12; w++) { var wy = (w * 30) % 340; line(146 + (w % 3) * 10, wy, 154 + (w % 3) * 10, wy, 1, C.seaL); }
+        // park + buildings
+        rrect(20, 190, 40, 30, 4, C.park); disc(30, 200, 4, C.parkD); disc(48, 208, 5, C.parkD);
+        [[16, 270, 24, 18], [48, 272, 18, 22], [74, 268, 26, 16], [76, 190, 30, 26], [94, 280, 22, 16]].forEach(function (b) { rect(b[0], b[1], b[2], b[3], C.bldgD); rect(b[0], b[1], b[2] - 1.5, b[3] - 1.5, C.bldg); });
+        // roads
+        rect(-60, ROAD_Y - 5, 196, 10, C.roadD); rect(-60, ROAD_Y - 4, 196, 8, C.road);
+        for (var d = -50; d < 130; d += 12) rect(d, ROAD_Y - 0.5, 6, 1, C.roadD);
+        rect(64, 140, 10, 220, C.roadD); rect(65, 140, 8, 220, C.road);
+        rect(-60, 172, 196, 8, C.roadD); rect(-60, 173, 196, 6, C.road);
+      }
+      function locDot(x, y, t, col, colL) {
+        var r = (t * 1.6) % 1;
+        g.globalAlpha = 1 - r; g.strokeStyle = colL; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, 6 + r * 14, 0, 6.28); g.stroke(); g.globalAlpha = 1;
+        disc(x, y, 7, C.white); disc(x, y, 5, col);
+      }
+      function scene_map(t) {
+        var hook = t < T.SATS, back = t >= T.BACK;
+        var cam = hook ? camAt([[0, 90, 220, 1.4], [T.GLITCH, 96, 214, 1.3]], t) : back ? camAt([[T.BACK, 90, 190, 1.0], [DUR - 0.15, 90, 220, 1.4]], t)
+          : camAt([[T.DRIFT - 0.2, 90, 196, 1.0], [T.FIX, 108, 196, 1.08], [T.BACK, 90, 196, 1.0]], t);
+        var dx = 40, dy = ROAD_Y, err = 0;
+        if (hook) { dx = 40 + t * 22; err = clamp01((t - 0.5) / 0.9); }
+        else if (!back) { var day = clamp01((t - T.DRIFT) / (T.FIX - T.DRIFT - 0.3)); err = day; dx = 60 + day * 30; if (t > T.SNAP) err = 1 - easeOut(clamp01((t - T.SNAP) / 0.35)); }
+        else { dx = 60 + (t - T.BACK) * 10; }
+        shake(cam, t, T.SNAP, 5, 0.3);
+        if (hook) shake(cam, t, 1.2, 6, 0.4);
+        setCam(cam, 1);
+        mapBase();
+        var ex = dx + err * 70, ey = dy + err * 26;
+        // the true road position (ghost) vs the drifting dot
+        if (err > 0.05) { g.globalAlpha = 0.6; disc(dx, dy, 4, C.dotL); g.globalAlpha = 1; for (var k = 0; k < 8; k++) { var f = k / 8; rect(lerp(dx, ex, f) - 0.5, lerp(dy, ey, f) - 0.5, 1.2, 1.2, C.red); } }
+        var wrong = err > 0.5;
+        locDot(ex, ey, t, wrong ? C.red : C.dot, wrong ? C.red : C.dotL);
+        if (wrong && Math.sin(t * 14) > 0) worldText("!", ex + 14, ey - 8, 2, C.red);
+        if (!hook && !back && t < T.SNAP && err > 0.1) { worldText("+" + Math.round(err * 33) + " KM", ex, ey + 12, 1, C.redD); }
+        // the fix: a satellite clock gets slowed (above the text)
+        if (!hook && !back && t > T.FIX - 0.2) {
+          screen();
+          rrect(30, 22, 120, 96, 8, C.sp2);
+          satellite(60, 70, 1.1, t * 0.5, 0);
+          clockFace(120, 70, 18, t * 0.4, (t - T.FIX) * 2.2, C.gold);
+          worldText("SLOWER", 120, 98, 1, C.cyan);
+          // a dial turning down
+          var dial = ramp(t, T.FIX + 0.2, T.SNAP - 0.1);
+          g.strokeStyle = C.cyan; g.lineWidth = 2; g.beginPath(); g.arc(120, 70, 23, -1.6, -1.6 - dial * 2.5, true); g.stroke();
+          setCam(cam, 1);
+        }
+        if (t > T.SNAP && !back) { var sp = t - T.SNAP; if (sp < 0.6) { g.globalAlpha = 1 - sp / 0.6; g.strokeStyle = C.green; g.lineWidth = 2; g.beginPath(); g.arc(dx, dy, 8 + sp * 40, 0, 6.28); g.stroke(); g.globalAlpha = 1; } }
+        // phone bezel
+        screen();
+        g.strokeStyle = C.phone; g.lineWidth = 8; g.strokeRect(0, 0, 180, 320);
+        rrect(66, 4, 48, 6, 3, C.phone);
+        // thanks, Einstein
+        if (back) {
+          var ep = easeOut(clamp01((t - T.BACK) / 0.5));
+          setCam(cam, 1);
+          character(function () { einstein(62, lerp(360, 290, ep), 1.3, t, { thumb: true }); });
+        }
+      }
+
+      // ============================================================ orbit: satellites with atomic clocks; then light beams + the error ruler
+      function scene_orbit(t) {
+        var light = t >= T.LIGHT;
+        var cam = light ? camAt([[T.LIGHT - 0.2, 90, 170, 1.0], [T.ERR, 90, 176, 1.0], [T.DRIFT, 90, 196, 1.15]], t) : camAt([[T.SATS - 0.2, 90, 150, 0.9], [T.CLOCKS, 90, 170, 1.08]], t);
+        shake(cam, t, T.ERR, 5, 0.35);
+        sky([[0, C.sp1], [1, C.sp2]]);
+        for (var s = 0; s < 60; s++) rect(hash1(s) * 180, hash1(s + 60) * 320, 1, 1, Math.sin(t * 2 + s) > 0.6 ? C.white : C.metal);
+        setCam(cam, 1);
+        // Earth
+        disc(90, 440, 196, C.earthD); disc(90, 444, 192, C.earth);
+        ell(40, 268, 30, 9, 0.2, C.landE); ell(140, 262, 34, 10, -0.2, C.landE); ell(96, 284, 46, 7, 0, C.cloud);
+        // the orbit ring + satellites
+        g.strokeStyle = C.panelL; g.lineWidth = 0.6; g.globalAlpha = 0.6; g.beginPath(); g.ellipse(90, 300, 150, 230, 0, Math.PI * 1.08, Math.PI * 1.92); g.stroke(); g.globalAlpha = 1;
+        var sats = [];
+        for (var k = 0; k < 4; k++) { var a = Math.PI * (1.2 + k * 0.2) + (t - T.SATS) * 0.04; sats.push([90 + Math.cos(a) * 150, 300 + Math.sin(a) * 230]); }
+        sats.forEach(function (p, i) { satellite(p[0], p[1], 0.5, t + i, Math.cos(i) * 0.2); });
+        if (!light) {
+          // zoom box on one satellite's atomic clock
+          var zp = Math.min(pop(t, T.SATS + 1.6), 1);
+          if (zp > 0) {
+            g.save(); g.translate(126, 120); g.scale(zp, zp);
+            rrect(-28, -26, 56, 52, 6, C.sp2); clockFace(0, -2, 17, t * 0.5, t * 3, C.cyan);
+            worldText("ATOMIC", 0, 18, 1, C.cyan);
+            g.restore();
+            line(sats[2][0], sats[2][1], 100, 120, 0.8, C.cyan);
+          }
+        } else {
+          // light-speed signals down to the phone
+          var px = 94, py = 252;
+          disc(px, py, 4, C.white); disc(px, py, 3, C.dot);
+          sats.forEach(function (p, i) {
+            lighter(); g.globalAlpha = 0.5; line(p[0], p[1], px, py, 1, C.beamG); g.globalAlpha = 1; normalBlend();
+            for (var q = 0; q < 3; q++) { var f = ((t * 2.2 + q / 3 + i * 0.17) % 1); disc(lerp(p[0], px, f), lerp(p[1], py, f), 1.4, C.beam); }
+          });
+          // 38 microseconds x light speed = ~11 km: a ruler appears along the ground
+          if (t > T.ERR) {
+            var rp = ramp(t, T.ERR, T.ERR + 0.8);
+            rect(px, py + 14, 66 * rp, 3, C.red); rect(px, py + 10, 1.5, 10, C.red); if (rp > 0.98) rect(px + 65, py + 10, 1.5, 10, C.red);
+            if (rp > 0.9) worldText("11 KM", px + 33, py + 4, 1, C.gold);
+          }
+        }
+        vignette(0.3, "rgba(0,0,20,");
+      }
+
+      // ============================================================ clocks: in orbit (above) vs on Earth (below)
+      function scene_clocks(t) {
+        var cam = camAt([[T.CLOCKS - 0.2, 90, 170, 1.0], [T.LIGHT, 90, 174, 1.04]], t);
+        shake(cam, t, T.NET, 5, 0.35);
+        sky([[0, C.sp1], [0.45, C.sp2], [1, C.seaD]]);
+        setCam(cam, 1);
+        // gravity well grid: lines bunch up near Earth
+        for (var i = 0; i < 10; i++) { var y = 320 - Math.pow(i / 10, 1.8) * 300; g.globalAlpha = 0.35; rect(-20, y, 220, 0.6, C.panelL); g.globalAlpha = 1; }
+        // orbit clock (runs a hair faster) + satellite
+        var u0 = t - T.CLOCKS;
+        satellite(46, 70, 0.75, t, 0);
+        clockFace(126, 70, 26, u0 * 0.6, u0 * 3.4, C.cyan);
+        worldText("IN ORBIT", 126, 108, 1, C.cyan);
+        // ground clock
+        g.fillStyle = vgrad(290, 330, [[0, C.landE], [1, C.parkD]]); g.fillRect(-20, 290, 220, 40);
+        rect(30, 252, 34, 38, C.bldgD); rect(30, 252, 33, 37, C.bldg); poly([[26, 254], [47, 236], [68, 254]], C.redD);
+        clockFace(126, 250, 26, u0 * 0.6, u0 * 3.0, C.green);
+        worldText("ON EARTH", 126, 284, 1, C.white);
+        // the gap counter
+        if (t > T.NET) {
+          var gp = ramp(t, T.NET, T.NET + 1.2);
+          var p = Math.min(pop(t, T.NET), 1.1);
+          g.save(); g.translate(60, 120); g.scale(p, p);
+          rrect(-34, -10, 68, 22, 4, C.ink); worldText("+" + Math.round(38 * gp), 0, -6, 2, C.gold);
+          g.restore();
+          worldText("MICROSEC/DAY", 60, 136, 1, C.gold);
+        }
+        vignette(0.3, "rgba(0,0,20,");
+      }
+
+      function sceneAt(t) {
+        return t < T.SATS ? "map" : t < T.CLOCKS ? "orbit" : t < T.LIGHT ? "clocks" : t < T.DRIFT ? "orbit" : "map";
+      }
+      function drawUI(t) {
+        if (t < T.DRIFT || t >= T.SNAP) return;
+        var day = 1 + Math.min(2, Math.floor(3 * clamp01((t - T.DRIFT) / (T.FIX - T.DRIFT - 0.3))));
+        u.fillStyle = "rgba(6,5,10,0.9)"; u.fillRect(10, 10, 84, 26);
+        uiText("DAY " + day, 18, 16, 2, C.gold);
+      }
+
+      PX.setup(C, {
+        scenes: { map: scene_map, orbit: scene_orbit, clocks: scene_clocks },
+        sceneAt: sceneAt,
+        cuts: [[T.SATS, "map", "orbit"], [T.CLOCKS, "orbit", "clocks"], [T.LIGHT, "clocks", "orbit"], [T.DRIFT, "orbit", "map"]],
+        post: function (t, img) {
+          if (t < 0.12) tintImg(img, C.white, 1 - t / 0.12);
+          if (t > T.GLITCH - 0.05 && t < T.SATS) glitchRows(img, 10 * Math.sin(clamp01((t - T.GLITCH + 0.05) / (T.SATS - T.GLITCH + 0.05)) * Math.PI), Math.floor(t * 30));
+          if (t > LOOP - 0.25 && t < LOOP) tintImg(img, C.white, ramp(t, LOOP - 0.25, LOOP));
+          if (t >= LOOP) tintImg(img, C.white, 1);
+        },
+        ui: drawUI,
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: c.segs.map(function (ln) { return ln.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; }); }) };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
