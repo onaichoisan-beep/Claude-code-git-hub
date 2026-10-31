@@ -40,13 +40,13 @@ CAP = [
 for _i in range(len(CAP)-1):
     _s,_e,_w=CAP[_i]; CAP[_i]=(_s,round(min(CAP[_i+1][0]-0.04,_e+0.6),2),_w)
 # comedy "thought" captions + emoji stickers: (id, start, end, text, emoji, x, y, rot)
-JOKES = [("j1",6.10,7.40,"client mode: ON","🦵",1300,190,-4),
-         ("j2",13.85,15.20,"*sips coffee dramatically*","☕",1180,190,3),
-         ("j3",15.95,16.62,"very formal","😂",160,190,-3),
-         ("j4",30.75,32.25,"relationship advice??","💔",1240,190,3),
-         ("j5",51.60,53.30,"she's still going","😳",130,190,-3)]
-STICK = [("s1",1.50,3.25,"🇹🇭",860,110,10),("s2",24.90,25.75,"🔥",880,430,-8),
-         ("s4",59.85,61.95,"✨",1000,140,8),("s5",62.80,FOOT,"👉",1540,520,0)]
+JOKES = [("j1",6.10,7.40,"client mode: ON","🦵",720,90,0),
+         ("j2",14.40,15.20,"*sips coffee dramatically*","☕",760,80,0),
+         ("j3",15.95,16.62,"very formal","😂",780,90,0),
+         ("j4",30.75,32.25,"relationship advice??","💔",120,80,0),
+         ("j5",51.60,53.30,"she's still going","😳",1430,700,0)]
+STICK = [("s1",1.50,3.25,"🇹🇭",120,70,0),("s2",24.90,25.75,"🔥",880,430,0),
+         ("s4",59.85,61.95,"✨",760,110,0),("s5",62.80,FOOT,"👉",880,560,0)]
 # b-roll after 10 s only
 BROLL = [("b-botox","vid","assets/broll/botox.mp4",39.40,41.70),
          ("b-hair","img","assets/img/I2.jpg",51.55,53.30),

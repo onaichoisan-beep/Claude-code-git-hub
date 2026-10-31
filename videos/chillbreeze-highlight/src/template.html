@@ -51,7 +51,7 @@ html,body { width:1920px; height:1080px; overflow:hidden; background:#000; }
 #lt { position:absolute; left:72px; top:64px; }
 #lt .tag { display:inline-block; background:var(--pink); font-weight:900; font-size:28px; letter-spacing:3px; padding:6px 14px; border-radius:8px; }
 #lt .n { font-weight:900; font-size:76px; line-height:1.05; margin-top:10px; text-shadow:0 4px 18px rgba(0,0,0,.6); }
-#lt .line { height:6px; width:540px; background:linear-gradient(90deg,var(--yel),var(--pink)); border-radius:4px; margin:12px 0 10px; transform-origin:0 50%; }
+#lt .line { height:6px; width:100%; background:linear-gradient(90deg,var(--yel),var(--pink)); border-radius:4px; margin:12px 0 10px; transform-origin:0 50%; }
 #lt .r { font-weight:600; font-size:30px; text-shadow:0 2px 12px rgba(0,0,0,.7); }
 /* partnership card */
 #partner { position:absolute; left:0; right:0; top:120px; display:flex; justify-content:center; }
@@ -95,10 +95,10 @@ html,body { width:1920px; height:1080px; overflow:hidden; background:#000; }
   <div class="shade"></div>
 
   <div id="title" class="clip chip" data-start="7.45" data-duration="2.4" data-track-index="5"><span class="t0">MEET THE EXPERT</span><span class="t1">THE DOCTOR WHO SAID YES</span></div>
-  <div id="lt" class="clip" data-start="9.97" data-duration="4.4" data-track-index="6"><span class="tag">COSMETOLOGIST</span><div class="n">Dr. Suman</div><div class="line"></div><div class="r">The Madras Cosmetic Clinic (TMCC)</div></div>
+  <div id="lt" class="clip" data-start="9.97" data-duration="4.4" data-track-index="6"><div class="n">Dr. Suman Vanamala</div><div class="line"></div><div class="r">Director – TMCC</div></div>
   <div id="partner" class="clip" data-start="20.10" data-duration="3.80" data-track-index="6"><div class="pin"><div class="pn"><span class="p1">CHILL BREEZE</span><span class="p2">Anu's salon</span></div><span class="ph">🤝</span><div class="pn"><span class="p1">TMCC</span><span class="p2">Dr. Suman's clinic</span></div></div></div>
   <div id="menu" class="clip" data-start="33.50" data-duration="25.60" data-track-index="6"><div class="mh">DR. SUMAN'S MENU</div><div class="ms">now at Chill Breeze, Valluvar Kottam</div><div class="win"><div class="stack">%%CARDS%%</div></div></div>
-  <div id="endcard" class="clip" data-start="%%FOOT%%" data-duration="%%ENDD%%" data-track-index="6"><div class="e0">CONSULT</div><div class="e1">DR. SUMAN<span class="x">×</span>CHILL BREEZE</div><div class="e2">TMCC cosmetology · Valluvar Kottam, Chennai</div><div class="e3">Music: “Upbeat Corporate”, Soundrider/Dope (CC BY 3.0) · Footage: Pexels · SFX: Freesound (CC0)</div></div>
+  <div id="endcard" class="clip" data-start="%%FOOT%%" data-duration="%%ENDD%%" data-track-index="6"><div class="e0">CONSULT</div><div class="e1">DR. SUMAN<span class="x">×</span>CHILL BREEZE</div><div class="e2">Dr. Suman Vanamala, Director – TMCC · Valluvar Kottam, Chennai</div><div class="e3">Music: “Upbeat Corporate”, Soundrider/Dope (CC BY 3.0) · Footage: Pexels · SFX: Freesound (CC0)</div></div>
 %%JOKES%%
 %%STICKERS%%
   <div id="flash"></div>
@@ -145,7 +145,7 @@ tl.fromTo("#freeze", { scale: 1.0, filter: "saturate(1)" }, { scale: 1.12, filte
   tl.to("#" + id + " .jin", { scale: 0.8, opacity: 0, duration: 0.15 }, e - 0.15);
 });
 %%JS_STICK%%.forEach(([id, s, e]) => {
-  tl.fromTo("#" + id + " .sin", { scale: 0, rotation: -40 }, { scale: 1, rotation: 0, duration: 0.35, ease: "back.out(3)", immediateRender: false }, s);
+  tl.fromTo("#" + id + " .sin", { scale: 0 }, { scale: 1, duration: 0.35, ease: "back.out(3)", immediateRender: false }, s);
   tl.to("#" + id + " .sin", { y: -14, duration: Math.max(0.2, e - s - 0.5), ease: "sine.inOut" }, s + 0.35);
   tl.to("#" + id + " .sin", { scale: 0, duration: 0.15 }, e - 0.15);
 });
@@ -158,7 +158,6 @@ tl.fromTo("#freeze", { scale: 1.0, filter: "saturate(1)" }, { scale: 1.12, filte
 // title + lower third
 tl.fromTo("#title", { x: -70, opacity: 0 }, { x: 0, opacity: 1, duration: 0.34, ease: "back.out(1.8)" }, 7.45);
 tl.to("#title", { x: -50, opacity: 0, duration: 0.2 }, 9.65);
-tl.fromTo("#lt .tag", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, 9.99);
 tl.fromTo("#lt .n", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.45, ease: "power3.out" }, 10.08);
 tl.fromTo("#lt .line", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power3.out" }, 10.2);
 tl.fromTo("#lt .r", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3 }, 10.35);
