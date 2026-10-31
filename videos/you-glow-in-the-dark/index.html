@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>You Glow in the Dark</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #05040e; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #05040e; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "You glow in the dark" — house style (STYLE_GUIDE.md): sharp HD pixel art, outlined characters.
+      Owner's request: NO narration, only text in the middle + loud open-source sound effects.
+      Beats + captions come from scripts/synth_audio.py (captions.js).
+      Fact: Kobayashi, Kikuchi & Okamura (2009), PLoS ONE 4(7): e6256.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="21" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="21" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="21" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = window.DUR || 21;
+      var BEATS = window.BEATS || {};
+      var T = {
+        GLITCH: BEATS.GLITCH || 1.55, CELL: BEATS.CELL || 1.8, BURN: BEATS.BURN || 4.2, LAB: BEATS.LAB || 6.4, SNAP: BEATS.SNAP || 7.2,
+        EYE: BEATS.EYE || 10.6, FACE: BEATS.FACE || 13.8, CLOCK: BEATS.CLOCK || 16.4, BACK: BEATS.BACK || 19.4, OFF: BEATS.OFF || 20.0,
+      };
+      var C = {
+        black: "#05040e", night1: "#0a0a22", night2: "#141436", night3: "#22224e",
+        // glow ramp (cyan)
+        g1: "#0c1a2e", g2: "#16344e", g3: "#2a6a8a", g4: "#4aaac8", g5: "#8af0ff", g6: "#e0fcff",
+        // heat map ramp
+        h1: "#1a1a8a", h2: "#2a6aff", h3: "#2ae8c8", h4: "#e8e83a", h5: "#ff9a2a", h6: "#ffffff",
+        // person
+        skin: "#e8a878", skinD: "#c07a50", skinL: "#ffc8a0", hair: "#3a1a10", hairL: "#6a3a20", shirt: "#3ac87a", shirtD: "#1a8a4a", pink: "#ff8ab0",
+        // cell
+        cyto: "#ff7aa8", cytoD: "#c84a7a", cytoL: "#ffb0cc", mem: "#ffd0e0", mito: "#ff8a2a", mitoD: "#c8541a", mitoL: "#ffc86a", nuc: "#8a3ac8", nucL: "#b87aff",
+        // lab + room
+        metal: "#8a8aa8", metalD: "#4a4a68", metalL: "#c8c8e0", lens: "#1a2a4a", rec: "#ff2a3a",
+        wall: "#ffd38a", wallD: "#e8a860", lamp: "#fff4a0", lampG: "#ffc840", wood: "#8a5a3a",
+        // eye
+        iris: "#3a8aff", irisD: "#1a4ac0", irisL: "#8ac8ff",
+        white: "#ffffff", ink: "#0a0614", paper: "#f1eef4", gold: "#ffc83a",
+      };
+      DISSOLVE = 0.12;
+      var LOOP = DUR - 0.1;
+
+      // ============================================================ helpers
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function sky(stops) { screen(); g.fillStyle = vgrad(0, H, stops); g.fillRect(0, 0, W, H); }
+      function uiText(str, x, y, S, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) { var gl = FONT[str[i]] || FONT[" "]; for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * S + (p % 5) * S, y + Math.floor(p / 5) * S, S, S); }
+      }
+
+      // ============================================================ a big head + shoulders (centre of the face at x, y; radius 22*s)
+      // pal: "skin" (normal), "glow" (seen in the dark, cyan), "heat" (photon map)
+      function head(x, y, s, o) {
+        var t = o.t || 0, pal = o.pal || "skin", k = o.k === undefined ? 1 : o.k;
+        var P = pal === "skin" ? { sk: C.skin, skD: C.skinD, skL: C.skinL, hr: C.hair, sh: C.shirt, shD: C.shirtD, eyeW: C.white, eye: C.ink, ch: C.pink }
+          : pal === "glow" ? { sk: k > 0.66 ? C.g4 : k > 0.33 ? C.g3 : C.g2, skD: k > 0.5 ? C.g3 : C.g2, skL: k > 0.5 ? C.g5 : C.g3, hr: C.g1, sh: C.g1, shD: C.black, eyeW: k > 0.5 ? C.g3 : C.g2, eye: C.black, ch: k > 0.5 ? C.g5 : C.g4 }
+          : { sk: C.h3, skD: C.h2, skL: C.h4, hr: C.h1, sh: C.h1, shD: C.h1, eyeW: C.h3, eye: C.h1, ch: C.h5 };
+        g.save(); g.translate(x, y); g.scale(s, s);
+        // shoulders + neck
+        rrect(-34, 26, 68, 40, 16, P.shD); rrect(-33, 27, 66, 40, 16, P.sh);
+        rect(-7, 14, 14, 16, P.skD);
+        // ears
+        ell(-22, 2, 4, 6, 0, P.skD); ell(22, 2, 4, 6, 0, P.skD);
+        // face
+        ell(0, 0, 22, 25, 0, P.sk);
+        ell(-8, -8, 8, 6, -0.4, P.skL);
+        // hair
+        g.fillStyle = P.hr; g.beginPath(); g.ellipse(0, -10, 24, 19, 0, Math.PI, 0); g.fill();
+        disc(-17, -8, 8, P.hr); disc(17, -9, 7, P.hr); disc(6, -27, 8, P.hr);
+        poly([[-22, -8], [-12, -18], [0, -12], [10, -20], [22, -8], [22, -16], [-22, -16]], P.hr);
+        // cheeks (the brightest spots in the photon map)
+        if (pal === "heat") {
+          ell(0, -12, 13, 6, 0, C.h4);
+          ell(-11, 7, 7, 6, 0, C.h5); ell(11, 7, 7, 6, 0, C.h5); ell(-11, 7, 3.5, 3, 0, C.h6); ell(11, 7, 3.5, 3, 0, C.h6);
+        } else { disc(-13, 8, 3.4, P.ch); disc(13, 8, 3.4, P.ch); }
+        // eyes
+        var blink = Math.sin(t * 1.3 + 3) > 0.985 || o.closed;
+        if (blink) { line(-11, 1, -5, 1, 1.2, P.eye); line(5, 1, 11, 1, 1.2, P.eye); }
+        else {
+          ell(-8, 1, 4.4, 5, 0, P.eyeW); ell(8, 1, 4.4, 5, 0, P.eyeW);
+          ell(-7.4, 1.6, 2.6, 3.4, 0, P.eye); ell(8.6, 1.6, 2.6, 3.4, 0, P.eye);
+          if (pal === "skin") { rect(-8.8, -0.8, 1.4, 1.4, C.white); rect(7.2, -0.8, 1.4, 1.4, C.white); }
+        }
+        line(-12, -6, -4, -7, 1.4, P.hr); line(4, -7, 12, -6, 1.4, P.hr);
+        // mouth
+        if (o.wow) ell(0, 14, 3, 4, 0, P.eye);
+        else { g.strokeStyle = pal === "skin" ? C.skinD : P.eye; g.lineWidth = 1.2; g.beginPath(); g.arc(0, 11, 4.5, 0.3, Math.PI - 0.3); g.stroke(); }
+        g.restore();
+      }
+      function aura(x, y, r, k) { lighter(); glow(x, y, r * 1.6, C.g3, 0.35 * k); glow(x, y, r, C.g4, 0.25 * k); normalBlend(); }
+      function photons(x, y, t, n, r0, r1, seed, col) {
+        for (var i = 0; i < n; i++) {
+          var a = hash1(i + seed) * 6.2832, ph = (t * 0.5 + hash1(i * 3 + seed)) % 1, d = lerp(r0, r1, ph);
+          g.globalAlpha = Math.sin(ph * Math.PI);
+          rect(x + Math.cos(a) * d, y + Math.sin(a) * d, 1.5, 1.5, col || C.g6);
+        }
+        g.globalAlpha = 1;
+      }
+
+      // ============================================================ scene: pitch dark, the face glows (hook + loop); lights on/off
+      function scene_dark(t) {
+        var back = t > T.BACK;
+        var lit = back && t < T.OFF;
+        var cam = back ? camAt([[T.BACK, 90, 176, 1.05], [DUR - 0.12, 90, 172, 1.2]], t) : camAt([[0, 90, 172, 1.2], [T.GLITCH, 90, 176, 1.12]], t);
+        shake(cam, t, 0, 7, 0.5); shake(cam, t, T.OFF, 4, 0.3);
+        if (lit) {
+          sky([[0, C.wall], [1, C.wallD]]);
+          setCam(cam, 1);
+          // the lamp + switch on the wall
+          rect(150, 70, 14, 22, C.metalL); rect(155, 76 + (t > T.OFF - 0.15 ? 6 : 0), 4, 6, C.metalD);
+          lighter(); glow(30, 60, 70, C.lampG, 0.6); normalBlend(); disc(30, 60, 12, C.lamp);
+          character(function () { head(90, 246, 1.6, { t: t }); });
+        } else {
+          sky([[0, C.black], [1, C.night1]]);
+          setCam(cam, 1);
+          var k = back ? 1 : 1;
+          var flick = 0.85 + 0.15 * Math.sin(t * 5);
+          aura(90, 246, 60, flick);
+          character(function () { head(90, 246, 1.6, { t: t, pal: "glow", k: k * flick, wow: !back && t > 0.3 && t < 1.4 }); }, { col: C.black });
+          photons(90, 246, t, 26, 40, 80, 7, C.g5);
+        }
+        vignette(0.4, "rgba(0,0,10,");
+      }
+
+      // ============================================================ scene: inside a cell, mitochondria burn fuel and leak light
+      function mitochondrion(x, y, s, a, t) {
+        g.save(); g.translate(x, y); g.rotate(a); g.scale(s, s);
+        ell(0, 0, 14, 7, 0, C.mitoD); ell(0, -0.4, 13, 6.2, 0, C.mito);
+        g.strokeStyle = C.mitoL; g.lineWidth = 1.2; g.beginPath();
+        for (var i = -10; i <= 10; i += 4) { g.moveTo(i, -4); g.quadraticCurveTo(i + 2, 0, i, 4); }
+        g.stroke();
+        g.restore();
+      }
+      function scene_cell(t) {
+        var cam = camAt([[T.CELL - 0.2, 90, 168, 0.9], [T.BURN, 90, 172, 1.15], [T.LAB, 96, 210, 1.7]], t);
+        sky([[0, C.night1], [1, C.night2]]);
+        setCam(cam, 1);
+        // the cell
+        disc(90, 175, 128, C.mem); disc(90, 175, 124, C.cyto);
+        for (var b = 0; b < 30; b++) disc(90 + (hash1(b) - 0.5) * 220, 175 + (hash1(b + 30) - 0.5) * 220, 1.5 + hash1(b + 7) * 2, C.cytoL);
+        disc(48, 92, 26, C.nuc); disc(44, 88, 10, C.nucL);
+        // mitochondria: the power plants
+        var mits = [[60, 230, 0.4], [126, 216, -0.5], [96, 284, 0.1], [140, 110, 0.8], [36, 160, -0.9]];
+        var burn = clamp01((t - T.BURN + 0.3) / 0.5);
+        mits.forEach(function (m, i) {
+          var jit = burn > 0 ? (hash1(Math.floor(t * 30) + i) - 0.5) * 0.8 : 0;
+          if (burn > 0) { lighter(); glow(m[0], m[1], 26, C.mitoL, 0.45 * burn); normalBlend(); }
+          mitochondrion(m[0] + jit, m[1], 1.3, m[2] + Math.sin(t + i) * 0.1, t);
+          // tiny sparks of light leaking out
+          var n = burn > 0 ? 10 : 4;
+          photons(m[0], m[1], t * (burn > 0 ? 2 : 1), n, 10, 40, i * 11, burn > 0 ? C.g6 : C.g5);
+        });
+        // the label pointing at one
+        if (t > T.CELL + 1.0) { line(66, 238, 90, 252, 1, C.white); worldText("MITOCHONDRIA", 100, 256, 1, C.white); }
+        vignette(0.4, "rgba(10,0,20,");
+      }
+
+      // ============================================================ scene: the lab — in total darkness, a super-sensitive camera films the glow
+      function scene_lab(t) {
+        var cam = camAt([[T.LAB - 0.2, 90, 170, 1.0], [T.EYE, 90, 176, 1.08]], t);
+        var snaps = [T.SNAP, T.SNAP + 1.1, T.SNAP + 2.2];
+        snaps.forEach(function (s) { shake(cam, t, s, 3, 0.2); });
+        sky([[0, C.black], [1, C.night1]]);
+        setCam(cam, 1);
+        rect(-40, 300, 260, 40, C.night2);
+        // the monitor on the wall: the glowing face appears scan line by scan line
+        rrect(36, 34, 108, 84, 4, C.metalD); rect(42, 40, 96, 72, C.black);
+        var scan = ramp(t, T.SNAP, T.SNAP + 2.6);
+        g.save(); g.beginPath(); g.rect(42, 40, 96, 72 * scan); g.clip();
+        aura(90, 76, 26, 1);
+        head(90, 74, 0.62, { t: t, pal: "glow", k: 0.9, closed: true });
+        g.restore();
+        if (scan > 0 && scan < 1) rect(42, 40 + 72 * scan, 96, 1, C.g5);
+        worldText("REC", 126, 44, 1, Math.sin(t * 6) > 0 ? C.rec : C.metalD);
+        // the person on a stool, eyes closed, glowing faintly
+        rect(32, 270, 36, 4, C.metalD); rect(46, 274, 4, 26, C.metalD);
+        aura(52, 226, 30, 0.6);
+        character(function () { head(52, 226, 0.95, { t: t, pal: "glow", k: 0.6, closed: true }); }, { col: C.black });
+        // the camera on a tripod
+        line(142, 300, 150, 258, 2, C.metalD); line(158, 300, 150, 258, 2, C.metalD); line(150, 300, 150, 258, 2, C.metalD);
+        rrect(126, 228, 40, 30, 4, C.metalD); rrect(127, 229, 38, 27, 4, C.metal);
+        rect(112, 234, 16, 18, C.metalD); disc(112, 243, 9, C.metalD); disc(112, 243, 7, C.lens); disc(110, 241, 2, C.g4);
+        disc(158, 234, 2, Math.sin(t * 6) > 0 ? C.rec : C.metalD);
+        // frost on the cooled sensor
+        for (var f = 0; f < 6; f++) rect(130 + f * 6, 226 - (f % 2) * 2, 2, 2, C.g6);
+        // the shutter flash (very faint red light is all the lab allows; draw a soft click ring)
+        snaps.forEach(function (s) { var u0 = t - s; if (u0 > 0 && u0 < 0.3) { g.globalAlpha = 1 - u0 / 0.3; g.strokeStyle = C.g5; g.lineWidth = 1; g.beginPath(); g.arc(112, 243, 10 + u0 * 40, 0, 6.28); g.stroke(); g.globalAlpha = 1; } });
+        vignette(0.4, "rgba(0,0,10,");
+      }
+
+      // ============================================================ scene: your eye can't see it — 1,000x too faint
+      function scene_eye(t) {
+        var cam = camAt([[T.EYE - 0.2, 90, 172, 1.0], [T.FACE, 90, 180, 1.1]], t);
+        shake(cam, t, T.EYE + 1.4, 5, 0.3);
+        sky([[0, C.night1], [1, C.night2]]);
+        setCam(cam, 1);
+        // the meter, above the text: what the eye needs vs your glow
+        worldText("EYE NEEDS", 90, 40, 1, C.white);
+        var fill = ramp(t, T.EYE + 0.2, T.EYE + 1.0);
+        rect(20, 52, 140, 12, C.night3); rect(20, 52, 140 * fill, 12, C.gold);
+        worldText("YOUR GLOW", 90, 82, 1, C.g5);
+        rect(20, 94, 140, 12, C.night3);
+        if (t > T.EYE + 1.4) { rect(20, 94, 0.5, 12, C.g5); var p = pop(t, T.EYE + 1.4); g.save(); g.translate(60, 110); g.scale(p, p); worldText("1/1000", 0, 0, 1, C.g5); g.restore(); line(21, 106, 34, 112, 0.6, C.g5); }
+        // the big eye (part of a face — outlined)
+        var look = Math.sin(t * 1.5) * 4;
+        character(function () {
+          ell(90, 248, 58, 34, 0, C.skin); ell(90, 248, 50, 27, 0, C.white);
+          g.save(); g.beginPath(); g.ellipse(90, 248, 50, 27, 0, 0, 6.28); g.clip();
+          disc(90 + look, 248, 22, C.irisD); disc(90 + look, 248, 20, C.iris);
+          for (var r = 0; r < 12; r++) { var a = r / 12 * 6.28; line(90 + look + Math.cos(a) * 9, 248 + Math.sin(a) * 9, 90 + look + Math.cos(a) * 19, 248 + Math.sin(a) * 19, 1, C.irisL); }
+          disc(90 + look, 248, 9, C.ink); disc(84 + look, 242, 3.5, C.white);
+          g.restore();
+          g.strokeStyle = C.skinD; g.lineWidth = 3; g.beginPath(); g.ellipse(90, 248, 51, 28, 0, Math.PI * 1.05, Math.PI * 1.95); g.stroke();
+          for (var l = 0; l < 7; l++) { var la = Math.PI * (1.15 + l * 0.12); line(90 + Math.cos(la) * 51, 248 + Math.sin(la) * 28, 90 + Math.cos(la) * 60, 248 + Math.sin(la) * 36, 1.5, C.ink); }
+        });
+        // tiny photons drift at the eye and fizzle out before they register
+        for (var i = 0; i < 8; i++) {
+          var ph = (t * 0.6 + hash1(i)) % 1, sx = 10 + hash1(i + 4) * 160, sy = 190 + hash1(i + 8) * 110;
+          g.globalAlpha = (1 - ph) * 0.8; rect(lerp(sx, 90, ph), lerp(sy, 248, ph), 1, 1, C.g5); g.globalAlpha = 1;
+        }
+        vignette(0.35, "rgba(0,0,10,");
+      }
+
+      // ============================================================ scene: the photon map — brightest on the face, peaks at 4 pm
+      function scene_face(t) {
+        var clockPhase = t > T.CLOCK;
+        var cam = camAt([[T.FACE - 0.2, 90, 176, 1.0], [T.CLOCK, 90, 180, 1.08], [T.BACK, 90, 178, 1.0]], t);
+        shake(cam, t, T.FACE + 0.3, 5, 0.3);
+        sky([[0, C.black], [1, C.night1]]);
+        setCam(cam, 1);
+        if (!clockPhase) {
+          worldText("PHOTON MAP", 90, 30, 2, C.h4);
+          // the colour scale
+          [C.h1, C.h2, C.h3, C.h4, C.h5, C.h6].forEach(function (c, i) { rect(40 + i * 17, 54, 17, 8, c); });
+          worldText("DIM", 40, 66, 1, C.h2); worldText("BRIGHT", 136, 66, 1, C.h6);
+          var rev = ramp(t, T.FACE + 0.2, T.FACE + 0.9);
+          g.save(); g.beginPath(); g.rect(0, 320 - 200 * rev, 180, 200); g.clip();
+          character(function () { head(90, 246, 1.6, { t: t, pal: "heat" }); });
+          g.restore();
+          if (rev < 1) rect(0, 320 - 200 * rev, 180, 1.5, C.h6);
+          // pointers at the cheeks
+          if (t > T.FACE + 1.1) { var pp = Math.min(pop(t, T.FACE + 1.1), 1); g.globalAlpha = pp; line(120, 260, 150, 226, 1, C.h6); worldText("CHEEKS", 150, 216, 1, C.h6); g.globalAlpha = 1; }
+        } else {
+          // a clock (above the text) runs 10 AM -> 4 PM; the face glow grows with it
+          var cu = ramp(t, T.CLOCK + 0.3, T.BACK - 0.5);
+          var hr = lerp(10, 16, cu);
+          disc(90, 76, 44, C.metalD); disc(90, 76, 41, C.paper);
+          for (var h = 0; h < 12; h++) { var a = h / 12 * 6.28; rect(90 + Math.sin(a) * 35 - 1, 76 - Math.cos(a) * 35 - 1, 2, 2, C.ink); }
+          var ah = (hr % 12) / 12 * 6.28, am = (hr % 1) * 6.28;
+          line(90, 76, 90 + Math.sin(ah) * 20, 76 - Math.cos(ah) * 20, 3, C.ink);
+          line(90, 76, 90 + Math.sin(am + cu * 6.28 * 6) * 30, 76 - Math.cos(am + cu * 6.28 * 6) * 30, 1.5, C.ink);
+          disc(90, 76, 3, C.rec);
+          var k = lerp(0.25, 1, cu);
+          aura(90, 246, 60, k);
+          character(function () { head(90, 246, 1.6, { t: t, pal: "glow", k: k }); }, { col: C.black });
+          photons(90, 246, t, Math.round(6 + 22 * cu), 40, 80, 3, C.g5);
+          worldText(cu > 0.97 ? "PEAK!" : "", 150, 300, 1, C.gold);
+        }
+        vignette(0.4, "rgba(0,0,10,");
+      }
+
+      function sceneAt(t) {
+        return t < T.CELL ? "dark" : t < T.LAB ? "cell" : t < T.EYE ? "lab" : t < T.FACE ? "eye" : t < T.BACK ? "face" : "dark";
+      }
+      function drawUI(t) {
+        if (t < T.CLOCK || t >= T.BACK) return;
+        var hr = Math.floor(lerp(10, 16, ramp(t, T.CLOCK + 0.3, T.BACK - 0.5)));
+        var str = (hr > 12 ? hr - 12 : hr) + (hr >= 12 ? " PM" : " AM");
+        u.fillStyle = "rgba(6,5,10,0.9)"; u.fillRect(10, 10, 96, 26);
+        uiText(str, 18, 16, 2, C.gold);
+      }
+
+      PX.setup(C, {
+        scenes: { dark: scene_dark, cell: scene_cell, lab: scene_lab, eye: scene_eye, face: scene_face },
+        sceneAt: sceneAt,
+        cuts: [[T.CELL, "dark", "cell"], [T.LAB, "cell", "lab"], [T.EYE, "lab", "eye"], [T.FACE, "eye", "face"], [T.BACK, "face", "dark"]],
+        post: function (t, img) {
+          if (t < 0.12) tintImg(img, C.white, 1 - t / 0.12);
+          if (t > T.GLITCH - 0.05 && t < T.CELL) glitchRows(img, 10 * Math.sin(clamp01((t - T.GLITCH + 0.05) / (T.CELL - T.GLITCH + 0.05)) * Math.PI), Math.floor(t * 30));
+          if (t > LOOP - 0.25 && t < LOOP) tintImg(img, C.white, ramp(t, LOOP - 0.25, LOOP) * 0.9);
+          if (t >= LOOP) tintImg(img, C.white, 1);
+        },
+        ui: drawUI,
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: c.segs.map(function (ln) { return ln.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; }); }) };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

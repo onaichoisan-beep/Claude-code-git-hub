@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>You Shrink Every Day</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "You shrink 1 cm every day" — house style (STYLE_GUIDE.md): sharp HD pixel art, outlined characters.
+      Owner's request for this one: NO narration, only text in the middle + loud open-source sound effects.
+      Beats + captions come from scripts/synth_audio.py (captions.js).
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="22" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="22" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="22" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = window.DUR || 22;
+      var BEATS = window.BEATS || {};
+      var T = {
+        SQUASH: BEATS.SQUASH || 0.45, GLITCH: BEATS.GLITCH || 1.55, MORN: BEATS.MORN || 1.8, MARK_AM: BEATS.MARK_AM || 3.4,
+        SPINE: BEATS.SPINE || 5.0, SQUEEZE: BEATS.SQUEEZE || 7.6, NIGHT: BEATS.NIGHT || 11.0, MARK_PM: BEATS.MARK_PM || 12.6,
+        SLEEP: BEATS.SLEEP || 14.6, REFILL: BEATS.REFILL || 15.2, SPACE: BEATS.SPACE || 17.8, GROW: BEATS.GROW || 18.6,
+        BACK: BEATS.BACK || 20.7,
+      };
+      var C = {
+        // morning room
+        wall: "#ffd38a", wallD: "#e8a860", wallL: "#ffe8b8", floor: "#b8683a", floorD: "#8a4a28", floorL: "#d88a50",
+        skyAM: "#8ad8ff", skyAM2: "#ffb0d0", sun: "#fff4a0", sunG: "#ffc840", frame: "#ffffff", frameD: "#c8c0d8",
+        // night room
+        wallN: "#3a3a8a", wallND: "#26266a", floorN: "#4a2a5a", floorND: "#301a40", skyN: "#141a50", moon: "#f0f4ff", moonG: "#8aa8ff",
+        // chart + marks
+        chart: "#fffaf0", chartD: "#d8d0c0", green: "#3ae86a", greenD: "#1aa84a", red: "#ff3a4a", redD: "#c01a2a",
+        // person (pyjamas)
+        skin: "#e8a878", skinD: "#c07a50", skinL: "#ffc8a0", hair: "#3a1a10", hairL: "#6a3a20",
+        pj: "#4a8aff", pjD: "#2a5ac8", pjL: "#8ab8ff", pink: "#ff8ab0",
+        // x-ray
+        xr1: "#06123a", xr2: "#0e2a6a", xrL: "#2a5ab8", bone: "#f0ead0", boneD: "#b8b090", boneL: "#ffffff",
+        disc: "#ff6a8a", discD: "#c83a5a", discL: "#ffa8c0", water: "#3ac8ff", waterL: "#a8ecff",
+        // bed + space
+        blanket: "#ff8a3a", blanketD: "#c85a1a", sheet: "#e8e8ff", wood: "#7a4a2a",
+        space: "#04041a", star: "#ffffff", earth: "#2a7aff", earthD: "#1a4ac0", land: "#3ac85a", cloud: "#e8f4ff",
+        suit: "#f4f4ff", suitD: "#b8b8d8", visor: "#ffb83a", visorL: "#fff0b0", panel: "#2a4ab8", panelL: "#5a8aff", metal: "#a8a8c0",
+        white: "#ffffff", ink: "#0a0614", paper: "#f1eef4", gold: "#ffc83a", black: "#000000",
+      };
+      DISSOLVE = 0.12;
+      var LOOP = DUR - 0.1;
+      var FLOOR = 290, PX0 = 86;               // the person's feet
+      var MARK_AM_Y = FLOOR - 72.5 * 1.45;     // top of the head at 7 AM
+      var SHRINK = 0.955;                      // drawn ~5 px lower at night (the label says the real number: ~1 cm)
+
+      // ============================================================ helpers
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function sky(stops) { screen(); g.fillStyle = vgrad(0, H, stops); g.fillRect(0, 0, W, H); }
+      function arrowDown(x, y, s, col) { rect(x - 3 * s, y - 14 * s, 6 * s, 10 * s, col); poly([[x - 8 * s, y - 5 * s], [x + 8 * s, y - 5 * s], [x, y + 4 * s]], col); }
+      function uiText(str, x, y, S, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) { var gl = FONT[str[i]] || FONT[" "]; for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * S + (p % 5) * S, y + Math.floor(p / 5) * S, S, S); }
+      }
+      function limb(x1, y1, x2, y2, x3, y3, w, col, colD) {
+        line(x1, y1, x2, y2, w, colD); line(x2, y2, x3, y3, w, colD);
+        line(x1 - 0.4, y1 - 0.4, x2 - 0.4, y2 - 0.4, w - 1, col); line(x2 - 0.4, y2 - 0.4, x3 - 0.4, y3 - 0.4, w - 1, col);
+      }
+
+      // ============================================================ the person in pyjamas (feet at x, y; ~76*s tall; sy squashes the height)
+      function person(x, y, s, o) {
+        var t = o.t || 0, sy = o.sy || 1;
+        g.save(); g.translate(x, y); g.scale(s, s * sy);
+        // legs + bare feet
+        limb(-3.5, -24, -3.6, -12, -3.8, -2, 5.5, C.pj, C.pjD); limb(3.5, -24, 3.6, -12, 3.8, -2, 5.5, C.pj, C.pjD);
+        ell(-4.5, -1.5, 4, 2, 0, C.skinD); ell(4.5, -1.5, 4, 2, 0, C.skinD); ell(-4.8, -2, 3.4, 1.6, 0, C.skin); ell(4.8, -2, 3.4, 1.6, 0, C.skin);
+        // arms (stretch up on cue)
+        var st = o.stretch || 0;
+        limb(-8, -42, lerp(-10, -11, st), lerp(-32, -54, st), lerp(-9, -10, st), lerp(-23, -66, st), 4.5, C.pj, C.pjD);
+        disc(lerp(-9, -10, st), lerp(-22.5, -67, st), 2.2, C.skin);
+        // body: pyjama top with stripes + buttons
+        rrect(-10, -46, 20, 24, 6, C.pjD); rrect(-9.5, -46, 18.5, 22.5, 6, C.pj);
+        for (var k = 0; k < 4; k++) rect(-9, -42 + k * 5, 18, 1, C.pjL);
+        disc(0, -40, 0.8, C.white); disc(0, -34, 0.8, C.white); disc(0, -28, 0.8, C.white);
+        limb(8, -42, lerp(10, 11, st), lerp(-32, -54, st), lerp(9, 10, st), lerp(-23, -66, st), 4.5, C.pj, C.pjD);
+        disc(lerp(9, 10, st), lerp(-22.5, -67, st), 2.2, C.skin);
+        // head
+        rect(-2.5, -50, 5, 5, C.skinD);
+        disc(0, -58, 10.5, C.skin); ell(-2.5, -61, 4, 3, -0.4, C.skinL);
+        disc(0, -63, 9.5, C.hair); disc(-6, -60, 5, C.hair); disc(7, -61, 4.5, C.hair); disc(3, -69, 3, C.hairL);
+        poly([[-9, -60], [-4, -66], [2, -62], [6, -66], [9, -59], [9, -64], [-9, -64]], C.hair);
+        // face
+        var blink = o.sleepy || (Math.sin(t * 1.7 + 0.5) > 0.985);
+        if (blink) { line(-5.5, -56.5, -2.5, -56.5, 1, C.ink); line(2.5, -56.5, 5.5, -56.5, 1, C.ink); }
+        else {
+          ell(-4, -56.5, 2.2, 2.8, 0, C.white); ell(4, -56.5, 2.2, 2.8, 0, C.white);
+          ell(-3.8, -56.2, 1.4, 2, 0, C.ink); ell(4.2, -56.2, 1.4, 2, 0, C.ink);
+          rect(-4.6, -57.8, 0.8, 0.8, C.white); rect(3.4, -57.8, 0.8, 0.8, C.white);
+        }
+        line(-6, -60.5, -2.5, -61, 0.8, C.hair); line(2.5, -61, 6, -60.5, 0.8, C.hair);
+        disc(-7, -53.5, 1.6, C.pink); disc(7, -53.5, 1.6, C.pink);
+        var k2 = o.mouth || 0;
+        if (k2 > 0.12) { ell(0, -51.8, 2 + k2, 0.6 + 2 * k2, 0, C.discD); }
+        else { g.strokeStyle = C.skinD; g.lineWidth = 0.8; g.beginPath(); g.arc(0, -53, 2.2, 0.3, Math.PI - 0.3); g.stroke(); }
+        g.restore();
+      }
+
+      // ============================================================ scene: the bedroom + height chart (morning / night)
+      function isNight(t) { return t > T.NIGHT - 0.3 && t < T.SLEEP + 0.3; }
+      function scene_room(t) {
+        var night = isNight(t);
+        var cam = camAt([[0, 92, 142, 1.6], [T.SQUASH + 0.5, 92, 146, 1.6], [T.GLITCH, 92, 150, 1.45], [T.MORN + 0.2, 90, 166, 1.0], [T.SPINE, 90, 166, 1.06],
+          [T.NIGHT, 90, 166, 1.0], [T.MARK_PM - 0.5, 90, 166, 1.0], [T.MARK_PM + 0.2, 88, 146, 1.6], [T.SLEEP, 88, 148, 1.65],
+          [T.BACK, 90, 166, 1.0], [DUR - 1.0, 90, 166, 1.0], [DUR - 0.12, 92, 142, 1.6]], t);
+        shake(cam, t, T.SQUASH + 0.25, 6, 0.4);
+        shake(cam, t, T.MARK_PM, 5, 0.4);
+        setCam(cam, 1);
+        // wall + floor
+        rect(-100, -100, 380, FLOOR + 100, night ? C.wallN : C.wall);
+        for (var i = -6; i < 16; i++) rect(i * 16, -100, 2, FLOOR + 100, night ? C.wallND : C.wallL);
+        rect(-100, FLOOR - 6, 380, 6, night ? C.wallND : C.wallD);
+        rect(-100, FLOOR, 380, 120, night ? C.floorN : C.floor);
+        for (var j = 0; j < 4; j++) rect(-100, FLOOR + 8 + j * 9, 380, 1.5, night ? C.floorND : C.floorD);
+        // the window (sun rising in the morning, moon at night)
+        var wx = 14, wy = 58, ww = 52, wh = 66;
+        rect(wx - 3, wy - 3, ww + 6, wh + 6, night ? C.frameD : C.frame);
+        g.save(); g.beginPath(); g.rect(wx, wy, ww, wh); g.clip();
+        if (night) {
+          rect(wx, wy, ww, wh, C.skyN);
+          for (var s = 0; s < 9; s++) rect(wx + hash1(s) * ww, wy + hash1(s + 9) * wh, 1, 1, C.star);
+          lighter(); glow(wx + 34, wy + 20, 22, C.moonG, 0.5); normalBlend();
+          disc(wx + 34, wy + 20, 8, C.moon); disc(wx + 30, wy + 17, 7, C.skyN);
+        } else {
+          g.fillStyle = vgrad(wy, wy + wh, [[0, C.skyAM], [1, C.skyAM2]]); g.fillRect(wx, wy, ww, wh);
+          var rise = t > T.BACK ? 1 : t < T.GLITCH ? 1 : ramp(t, T.MORN - 0.2, T.MARK_AM);
+          var sy = lerp(wy + wh + 10, wy + 24, rise);
+          lighter(); glow(wx + 24, sy, 30, C.sunG, 0.7); normalBlend();
+          disc(wx + 24, sy, 10, C.sun);
+        }
+        g.restore();
+        rect(wx + ww / 2 - 1, wy, 2, wh, night ? C.frameD : C.frame); rect(wx, wy + wh / 2 - 1, ww, 2, night ? C.frameD : C.frame);
+        if (!night) { lighter(); glow(60, 200, 90, C.sunG, 0.18); normalBlend(); }
+        // nightstand + alarm clock (rings in the morning)
+        rect(140, FLOOR - 30, 30, 30, night ? C.floorND : C.floorD); rect(140, FLOOR - 30, 30, 3, night ? C.floorN : C.floorL);
+        var ring = !night && t > T.MORN + 0.2 && t < T.MORN + 1.4;
+        var jx = ring ? (hash1(Math.floor(t * 30)) - 0.5) * 2 : 0;
+        disc(155 + jx, FLOOR - 39, 8, C.red); disc(155 + jx, FLOOR - 39, 6, C.white);
+        line(155 + jx, FLOOR - 39, 155 + jx, FLOOR - 43, 1, C.ink); line(155 + jx, FLOOR - 39, 158 + jx, FLOOR - 39, 1, C.ink);
+        disc(149 + jx, FLOOR - 47, 2.5, C.red); disc(161 + jx, FLOOR - 47, 2.5, C.red);
+        if (ring) { line(144, FLOOR - 52, 140, FLOOR - 56, 1, C.ink); line(166, FLOOR - 52, 170, FLOOR - 56, 1, C.ink); line(155, FLOOR - 55, 155, FLOOR - 60, 1, C.ink); }
+        // the height chart
+        rect(110, 150, 16, FLOOR - 150, C.chartD); rect(110, 150, 15, FLOOR - 150, C.chart);
+        for (var y = 152; y < FLOOR; y += 4) rect(110, y, (y % 20 === 12) ? 8 : 4, 0.8, C.ink);
+        // the person: tall in the morning, a little shorter at night
+        var sy2 = 1;
+        if (t < T.GLITCH) sy2 = lerp(1, SHRINK, easeOut(clamp01((t - T.SQUASH) / 0.3)));
+        else if (night) sy2 = SHRINK;
+        var stretch = !night && t > T.MORN + 1.2 && t < T.MARK_AM - 0.2 ? Math.sin(clamp01((t - T.MORN - 1.2) / (T.MARK_AM - T.MORN - 1.4)) * Math.PI) : 0;
+        var yawn = night && t > T.NIGHT + 0.3 && t < T.NIGHT + 1.3 ? Math.sin((t - T.NIGHT - 0.3) * Math.PI) : 0;
+        character(function () { person(PX0, FLOOR, 1.45, { t: t, sy: sy2, stretch: stretch, mouth: yawn, sleepy: night && yawn > 0.2 }); });
+        // marks on the chart
+        var amOn = t < T.GLITCH || t > T.MARK_AM || night;
+        if (amOn) {
+          var pa = t < T.GLITCH || night || t > T.BACK ? 1 : pop(t, T.MARK_AM);
+          rect(38, MARK_AM_Y - 0.6, 90 * Math.min(pa, 1), 1.4, C.greenD); rect(112, MARK_AM_Y - 1, 16 * Math.min(pa, 1), 2, C.green);
+          worldText("7 AM", 52, MARK_AM_Y - 9, 1, C.greenD);
+        }
+        var pmY = FLOOR - 72.5 * 1.45 * SHRINK;
+        var pmOn = (t < T.GLITCH && t > T.SQUASH + 0.3) || (night && t > T.MARK_PM);
+        if (pmOn) {
+          var pp = t < T.GLITCH ? pop(t, T.SQUASH + 0.3) : pop(t, T.MARK_PM);
+          rect(38, pmY - 0.6, 90 * Math.min(pp, 1), 1.4, C.redD); rect(112, pmY - 1, 16 * Math.min(pp, 1), 2, C.red);
+          worldText("10 PM", 52, pmY + 3, 1, C.redD);
+          // the gap
+          if (pp > 0.9) { line(131, MARK_AM_Y + 0.5, 131, pmY - 0.5, 1, C.ink); }
+        }
+        vignette(night ? 0.45 : 0.2, night ? "rgba(10,6,40," : "rgba(80,30,10,");
+      }
+
+      // ============================================================ scene: x-ray of the spine, gravity squeezes the discs
+      function vertebra(x, y, s) {
+        rrect(x - 22 * s, y - 8 * s, 44 * s, 16 * s, 5 * s, C.boneD);
+        rrect(x - 21 * s, y - 8 * s, 42 * s, 14.5 * s, 5 * s, C.bone);
+        rect(x - 17 * s, y - 6.5 * s, 22 * s, 2 * s, C.boneL);
+        poly([[x + 18 * s, y - 4 * s], [x + 32 * s, y + 2 * s], [x + 18 * s, y + 5 * s]], C.boneD);
+        poly([[x - 18 * s, y - 4 * s], [x - 32 * s, y + 2 * s], [x - 18 * s, y + 5 * s]], C.boneD);
+      }
+      function discShape(x, y, w, h) {
+        ell(x, y, w, h, 0, C.discD); ell(x, y - 0.4, w - 1, h - 1, 0, C.disc); ell(x - w * 0.3, y - h * 0.35, w * 0.35, Math.max(h * 0.25, 0.5), 0, C.discL);
+      }
+      function scene_spine(t) {
+        var u0 = t - T.SPINE;
+        var cam = camAt([[T.SPINE - 0.2, 90, 170, 1.0], [T.NIGHT, 90, 182, 1.12]], t);
+        var nThump = 0;
+        for (var k = 0; k < 4; k++) { var tk = T.SQUEEZE + k * 0.8; if (t >= tk) nThump = k + 1; shake(cam, t, tk, 4, 0.3); }
+        sky([[0, C.xr1], [1, C.xr2]]);
+        setCam(cam, 1);
+        for (var gx = -40; gx < 240; gx += 20) rect(gx, -60, 0.6, 440, C.xrL);
+        for (var gy = -60; gy < 400; gy += 20) rect(-40, gy, 280, 0.6, C.xrL);
+        // a ghost of the body behind the spine
+        g.globalAlpha = 0.35; rrect(40, 172, 100, 160, 30, C.xrL); g.globalAlpha = 1;
+        // gravity, pressing down from above (pulses on each squeeze)
+        var press = clamp01((t - T.SQUEEZE + 0.6) / 0.6);
+        screen();
+        for (var a = 0; a < 3; a++) {
+          var ph = (t * 1.25 + a * 0.33) % 1, ax = 50 + a * 40, ay = 62 + ph * 60;
+          g.globalAlpha = press * Math.sin(ph * Math.PI); arrowDown(ax, ay, 1.4, C.gold); g.globalAlpha = 1;
+        }
+        if (press > 0) worldText("GRAVITY", 90, 30, 2, C.gold);
+        setCam(cam, 1);
+        // the stack: discs squash flat as the day goes on
+        var q = ramp(t, T.SQUEEZE, T.NIGHT - 0.6);
+        var dh = lerp(5.5, 2.6, q), dw = lerp(22, 25, q);
+        var y = 304;
+        var discs = [];
+        for (var v = 0; v < 4; v++) {
+          vertebra(90, y, 1);
+          if (v < 3) { y -= 8 + dh; discs.push(y); y -= dh + 8; }
+        }
+        // draw discs over the bone edges
+        var y2 = 304;
+        for (var d = 0; d < 3; d++) { y2 -= 8 + dh; discShape(90, y2, dw, dh); y2 -= dh + 8; }
+        // water squeezed out sideways
+        if (t > T.SQUEEZE) {
+          for (var dd = 0; dd < 3; dd++) for (var w = 0; w < 6; w++) {
+            var seed = dd * 10 + w, life = ((t - T.SQUEEZE) * 0.9 + hash1(seed)) % 1;
+            var side = w % 2 ? 1 : -1, dx = side * (dw + 2 + life * 34), dy = (hash1(seed + 3) - 0.5) * 6 + life * life * 18;
+            g.globalAlpha = 1 - life;
+            disc(90 + dx, discs[dd] + dy, 1.8, C.water); rect(90 + dx - 0.6, discs[dd] + dy - 1, 0.8, 0.8, C.waterL);
+            g.globalAlpha = 1;
+          }
+        }
+        // labels
+        if (t > T.SPINE + 0.6) {
+          var lp = Math.min(pop(t, T.SPINE + 0.6), 1);
+          line(118, discs[1], 140, discs[1] - 10, 1, C.discL);
+          worldText("DISC", 154, discs[1] - 15, 1, C.discL);
+        }
+        worldText("X-RAY", 150, 310, 1, C.xrL);
+      }
+
+      // ============================================================ scene: asleep, the discs soak back up
+      function scene_sleep(t) {
+        var u0 = t - T.SLEEP;
+        var cam = camAt([[T.SLEEP - 0.2, 90, 160, 1.0], [T.SPACE, 90, 164, 1.06]], t);
+        sky([[0, C.skyN], [1, C.wallND]]);
+        setCam(cam, 1);
+        rect(-60, -60, 300, 300, C.wallN);
+        for (var i = -4; i < 16; i++) rect(i * 16, -60, 2, 360, C.wallND);
+        rect(-60, 296, 300, 80, C.floorN);
+        // the bed
+        rect(14, 256, 156, 30, C.wood); rect(14, 286, 6, 12, C.wood); rect(164, 286, 6, 12, C.wood); rect(10, 236, 8, 62, C.wood);
+        rect(18, 252, 150, 10, C.sheet);
+        ell(38, 248, 16, 7, 0, C.sheet);
+        // the sleeper (outlined): head on the pillow, under the blanket
+        character(function () {
+          var br = Math.sin(t * 2.6) * 0.8;
+          rrect(50, 238 - br, 116, 20 + br, 8, C.blanketD); rrect(51, 238 - br, 114, 18 + br, 8, C.blanket);
+          for (var k = 0; k < 5; k++) rect(60 + k * 22, 240 - br, 2, 16, C.blanketD);
+          disc(40, 238, 11, C.skin); ell(37, 234, 4, 3, -0.4, C.skinL);
+          disc(36, 231, 9, C.hair); disc(30, 236, 5, C.hair); disc(44, 229, 5, C.hair);
+          line(38, 240, 42, 240.5, 1, C.ink); line(46, 240, 49, 239, 1, C.ink);
+          disc(45, 245, 1.2, C.pink);
+        });
+        // Zzz
+        for (var z = 0; z < 3; z++) {
+          var ph = ((t - T.SLEEP) * 0.6 + z / 3) % 1;
+          g.globalAlpha = Math.sin(ph * Math.PI);
+          worldText("Z", 58 + ph * 26 + z * 2, 222 - ph * 30, z === 1 ? 2 : 1, C.white);
+          g.globalAlpha = 1;
+        }
+        // x-ray window: the spine lying flat, discs refilling with water
+        rrect(20, 44, 140, 84, 6, C.xrL); rrect(22, 46, 136, 80, 5, C.xr1);
+        var q = ramp(t, T.REFILL, T.SPACE - 0.5);
+        var dw = lerp(2.6, 5.5, q), x = 30;
+        var cx = [];
+        for (var v = 0; v < 5; v++) {
+          rrect(x, 70, 18, 34, 5, C.boneD); rrect(x, 70, 16.5, 32, 5, C.bone); rect(x + 2, 74, 2, 20, C.boneL);
+          x += 18;
+          if (v < 4) { cx.push(x + dw); x += 2 * dw; }
+        }
+        cx.forEach(function (c) { ell(c, 87, dw, 15, 0, C.discD); ell(c - 0.3, 87, dw - 0.8, 14, 0, C.disc); });
+        // water flows back in
+        for (var k = 0; k < 4; k++) for (var w = 0; w < 4; w++) {
+          var life = ((t - T.SLEEP) * 1.1 + hash1(k * 7 + w)) % 1;
+          if (q >= 1) break;
+          g.globalAlpha = 1 - life * 0.6;
+          disc(cx[k] + (w % 2 ? 1 : -1) * (1 - life) * 6, 52 + life * 30, 1.6, C.water);
+          g.globalAlpha = 1;
+        }
+        worldText("X-RAY", 132, 118, 1, C.xrL);
+        vignette(0.4, "rgba(10,6,40,");
+      }
+
+      // ============================================================ scene: in space, astronauts grow taller
+      function astronaut(x, y, s, sy, t) {
+        g.save(); g.translate(x, y); g.rotate(Math.sin(t * 0.8) * 0.06); g.scale(s, s * sy);
+        // backpack
+        rrect(-12, -50, 24, 26, 4, C.suitD);
+        // legs
+        limb(-4, -24, -6, -12, -7, -2, 7, C.suit, C.suitD); limb(4, -24, 6, -13, 8, -4, 7, C.suit, C.suitD);
+        rrect(-11, -4, 8, 5, 2, C.metal); rrect(4, -6, 8, 5, 2, C.metal);
+        // body
+        rrect(-10, -48, 20, 26, 6, C.suitD); rrect(-9.5, -48, 18.5, 24.5, 6, C.suit);
+        rect(-5, -42, 10, 6, C.panel); rect(-4, -41, 2, 2, C.red); rect(0, -41, 2, 2, C.green);
+        // arms out, floating
+        limb(-8, -44, -16, -40, -22, -46, 6, C.suit, C.suitD); disc(-22.5, -46.5, 3, C.metal);
+        limb(8, -44, 16, -48, 21, -56, 6, C.suit, C.suitD); disc(21.5, -56.5, 3, C.metal);
+        // helmet
+        disc(0, -60, 12, C.suitD); disc(0, -60.5, 11.2, C.suit);
+        ell(1, -60, 8, 6.5, 0, C.visor); ell(-2, -62.5, 3, 2, -0.4, C.visorL);
+        g.restore();
+      }
+      function scene_space(t) {
+        var cam = camAt([[T.SPACE - 0.2, 90, 164, 1.0], [T.BACK, 90, 170, 1.08]], t);
+        shake(cam, t, T.GROW + 1.0, 5, 0.4);
+        sky([[0, C.space], [1, C.xr1]]);
+        for (var s = 0; s < 60; s++) { var tw = Math.sin(t * 3 + s) > 0.7 ? C.white : C.frameD; rect(hash1(s) * 180, hash1(s + 60) * 320, 1, 1, tw); }
+        setCam(cam, 0.6);
+        disc(90, 470, 190, C.earthD); disc(90, 474, 186, C.earth);
+        ell(40, 300, 26, 8, 0.2, C.land); ell(130, 296, 30, 9, -0.2, C.land); ell(90, 312, 40, 6, 0, C.cloud);
+        setCam(cam, 0.85);
+        // the space station drifting above
+        var sx = 60 + (t - T.SPACE) * 6;
+        rect(sx - 30, 74, 60, 3, C.metal); rect(sx - 6, 68, 12, 14, C.suitD);
+        [-28, -18, 12, 22].forEach(function (o) { rect(sx + o, 58, 8, 36, C.panel); rect(sx + o + 1, 60, 2, 32, C.panelL); });
+        setCam(cam, 1);
+        var gu = ramp(t, T.GROW, T.GROW + 1.0);
+        var sy = lerp(1, 1.05, gu);
+        var ay = 292 + Math.sin(t * 1.4) * 2;
+        character(function () { astronaut(76, ay, 1.3, sy, t); });
+        // the height bar
+        var top0 = ay - 72 * 1.3, top1 = ay - 72 * 1.3 * sy;
+        rect(128, top0, 3, ay - top0, C.white);
+        rect(124, top0 - 0.5, 11, 1.5, C.white);
+        if (gu > 0) { rect(128, top1, 3, top0 - top1, C.gold); rect(124, top1 - 0.5, 11, 1.5, C.gold); }
+        if (t > T.GROW + 1.0) { var p = pop(t, T.GROW + 1.0); g.save(); g.translate(150, top1 + 16); g.scale(p, p); worldText("+5 CM", 0, -3, 1, C.gold); g.restore(); }
+        vignette(0.3, "rgba(0,0,20,");
+      }
+
+      function sceneAt(t) {
+        return t < T.SPINE ? "room" : t < T.NIGHT ? "spine" : t < T.SLEEP ? "room" : t < T.SPACE ? "sleep" : t < T.BACK ? "space" : "room";
+      }
+
+      // the clock box (upper left) while the day goes by
+      function clockLabel(h) { h = ((Math.floor(h) % 24) + 24) % 24; var ap = h < 12 ? "AM" : "PM", hh = h % 12 === 0 ? 12 : h % 12; return hh + " " + ap; }
+      function drawUI(t) {
+        var h = null;
+        if (t >= T.SPINE && t < T.NIGHT) h = lerp(7, 22, ramp(t, T.SPINE + 0.6, T.NIGHT - 0.3));
+        else if (t >= T.NIGHT && t < T.SLEEP) h = 22;
+        else if (t >= T.SLEEP && t < T.SPACE) h = lerp(22, 31, ramp(t, T.SLEEP + 0.4, T.SPACE - 0.3));
+        if (h === null) return;
+        var str = clockLabel(h);
+        u.fillStyle = "rgba(6,5,10,0.9)"; u.fillRect(10, 10, 96, 26);
+        uiText(str, 18, 16, 2, h >= 19 || h < 6 || h >= 30 ? C.moonG : C.gold);
+      }
+
+      PX.setup(C, {
+        scenes: { room: scene_room, spine: scene_spine, sleep: scene_sleep, space: scene_space },
+        sceneAt: sceneAt,
+        cuts: [[T.SPINE, "room", "spine"], [T.NIGHT, "spine", "room"], [T.SLEEP, "room", "sleep"], [T.SPACE, "sleep", "space"], [T.BACK, "space", "room"]],
+        post: function (t, img) {
+          if (t < 0.12) tintImg(img, C.white, 1 - t / 0.12);
+          if (t > T.GLITCH - 0.05 && t < T.MORN) glitchRows(img, 10 * Math.sin(clamp01((t - T.GLITCH + 0.05) / (T.MORN - T.GLITCH + 0.05)) * Math.PI), Math.floor(t * 30));
+          if (t > T.SQUASH + 0.25 && t < T.SQUASH + 0.38) tintImg(img, C.red, 0.35);
+          if (t > LOOP - 0.25 && t < LOOP) tintImg(img, C.white, ramp(t, LOOP - 0.25, LOOP));
+          if (t >= LOOP) tintImg(img, C.white, 1);
+        },
+        ui: drawUI,
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: c.segs.map(function (ln) { return ln.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; }); }) };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

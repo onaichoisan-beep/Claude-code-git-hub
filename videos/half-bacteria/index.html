@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Half of You Isn't You</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "Half of you isn't you" — house style (STYLE_GUIDE.md): sharp HD pixel art, outlined characters
+      (the person, the cells, every bacterium, the white blood cell). Owner's request: NO narration, only text in
+      the middle + loud open-source sound effects. Beats + captions come from scripts/synth_audio.py (captions.js).
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="22" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="22" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="22" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = window.DUR || 22;
+      var BEATS = window.BEATS || {};
+      var T = {
+        GLITCH: BEATS.GLITCH || 1.55, COUNT: BEATS.COUNT || 1.8, HUMAN: BEATS.HUMAN || 2.1, BACT: BEATS.BACT || 4.8,
+        GUT: BEATS.GUT || 7.6, FOOD: BEATS.FOOD || 11.4, VIT: BEATS.VIT || 13.6, IMMUNE: BEATS.IMMUNE || 15.6,
+        SCALE: BEATS.SCALE || 17.9, BALANCE: BEATS.BALANCE || 18.9, BACK: BEATS.BACK || 20.4,
+      };
+      var C = {
+        bg1: "#1a0a3a", bg2: "#3a1a6a", bgL: "#5a3a9a",
+        // person
+        skin: "#e8a878", skinD: "#c07a50", skinL: "#ffc8a0", hair: "#3a1a10", hairL: "#6a3a20",
+        shirt: "#ff7a3a", shirtD: "#c84a1a", shirtL: "#ffaa6a", jeans: "#3a6ad8", jeansD: "#2a4aa0", pink: "#ff8ab0",
+        // bacteria
+        bac1: "#3ae86a", bac1D: "#1aa84a", bac2: "#c86aff", bac2D: "#8a3ac8", bac3: "#3ad8e8", bac3D: "#1a98b8", bac4: "#ffd03a", bac4D: "#c8901a",
+        goo: "#0e3a2a", gooL: "#1e5a3a",
+        // human cell
+        cell: "#ff5a6a", cellD: "#c02a4a", cellL: "#ff9aa8", nuc: "#8a2a8a",
+        // gut
+        gut1: "#7a1a3a", gut2: "#c83a5a", gutL: "#ff7a8a", gutD: "#4a0a24", fiber: "#5ac83a", fiberD: "#2a8a2a",
+        // immune cell + vitamins + scale
+        wbc: "#f4f0ff", wbcD: "#c0b8e0", vit: "#ffc83a", vitD: "#c8901a", metal: "#c8c8e0", metalD: "#8a8aa8",
+        apple: "#ff2a3a", appleD: "#b81a2a", leaf: "#3ac85a", stem: "#6a3a1a",
+        white: "#ffffff", ink: "#0a0614", paper: "#f1eef4", gold: "#ffc83a",
+      };
+      DISSOLVE = 0.12;
+      var LOOP = DUR - 0.1;
+
+      // ============================================================ helpers
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function sky(stops) { screen(); g.fillStyle = vgrad(0, H, stops); g.fillRect(0, 0, W, H); }
+      function limb(x1, y1, x2, y2, x3, y3, w, col, colD) {
+        line(x1, y1, x2, y2, w, colD); line(x2, y2, x3, y3, w, colD);
+        line(x1 - 0.4, y1 - 0.4, x2 - 0.4, y2 - 0.4, w - 1, col); line(x2 - 0.4, y2 - 0.4, x3 - 0.4, y3 - 0.4, w - 1, col);
+      }
+      function eyes(x, y, s, look) {
+        look = look || 0;
+        ell(x - 2.2 * s, y, 1.5 * s, 1.8 * s, 0, C.white); ell(x + 2.2 * s, y, 1.5 * s, 1.8 * s, 0, C.white);
+        disc(x - 2.2 * s + look * s * 0.5, y + 0.2 * s, 0.85 * s, C.ink); disc(x + 2.2 * s + look * s * 0.5, y + 0.2 * s, 0.85 * s, C.ink);
+      }
+      var BCOL = [["bac1", "bac1D"], ["bac2", "bac2D"], ["bac3", "bac3D"], ["bac4", "bac4D"]];
+      // one bacterium (draw inside character()): rod or round, wiggly tail, eyes, little smile
+      function bug(x, y, s, kind, t, o) {
+        o = o || {};
+        var col = C[BCOL[kind % 4][0]], colD = C[BCOL[kind % 4][1]], ang = o.ang || 0, chomp = o.chomp || 0;
+        g.save(); g.translate(x, y); g.rotate(ang); g.scale(s, s);
+        g.strokeStyle = colD; g.lineWidth = 0.9; g.beginPath(); g.moveTo(-6, 0);
+        for (var k = 1; k <= 6; k++) g.lineTo(-6 - k * 1.4, Math.sin(t * 14 + k + kind) * 1.4);
+        g.stroke();
+        if (kind % 2 === 0) { rrect(-6.5, -3.5, 13, 7, 3.5, colD); rrect(-6.5, -3.5, 12.5, 6.3, 3.2, col); rect(-4, -2.5, 6, 1, C.white); }
+        else { disc(0, 0, 4.6, colD); disc(-0.3, -0.3, 4.2, col); rect(-2, -3, 2, 1, C.white); }
+        g.rotate(-ang);
+        eyes(1.2, -0.6, 0.7, o.look || 0.6);
+        if (chomp > 0) ell(1.4, 2, 1.6, 0.4 + chomp * 1.4, 0, C.ink);
+        else { g.strokeStyle = C.ink; g.lineWidth = 0.5; g.beginPath(); g.arc(1.4, 1.4, 1.2, 0.3, Math.PI - 0.3); g.stroke(); }
+        g.restore();
+      }
+
+      // ============================================================ the person (feet at x, y; ~76*s tall)
+      function person(x, y, s, o) {
+        var t = o.t || 0;
+        g.save(); g.translate(x, y); g.scale(s, s);
+        limb(-3.5, -24, -3.6, -12, -3.8, -2, 5.5, C.jeans, C.jeansD); limb(3.5, -24, 3.6, -12, 3.8, -2, 5.5, C.jeans, C.jeansD);
+        ell(-4.5, -1.5, 4.2, 2.2, 0, C.ink); ell(4.5, -1.5, 4.2, 2.2, 0, C.ink);
+        limb(-8, -42, -10, -32, -9, -23, 4.5, C.shirt, C.shirtD); disc(-9, -22.5, 2.2, C.skin);
+        rrect(-10, -46, 20, 24, 6, C.shirtD); rrect(-9.5, -46, 18.5, 22.5, 6, C.shirt); rect(-9, -26, 18, 2, C.shirtD);
+        limb(8, -42, 10, -32, 9, -23, 4.5, C.shirt, C.shirtD); disc(9, -22.5, 2.2, C.skin);
+        rect(-2.5, -50, 5, 5, C.skinD);
+        disc(0, -58, 10.5, C.skin); ell(-2.5, -61, 4, 3, -0.4, C.skinL);
+        disc(0, -63, 9.5, C.hair); disc(-6, -60, 5, C.hair); disc(7, -61, 4.5, C.hair);
+        poly([[-9, -60], [-4, -66], [2, -62], [6, -66], [9, -59], [9, -64], [-9, -64]], C.hair);
+        var shock = o.shock;
+        ell(-4, -56.5, 2.2, 2.8, 0, C.white); ell(4, -56.5, 2.2, 2.8, 0, C.white);
+        if (shock) { disc(-4, -56.5, 0.9, C.ink); disc(4, -56.5, 0.9, C.ink); ell(0, -51.6, 1.6, 2, 0, C.cellD); }
+        else {
+          ell(-3.8, -56.2, 1.4, 2, 0, C.ink); ell(4.2, -56.2, 1.4, 2, 0, C.ink);
+          g.strokeStyle = C.skinD; g.lineWidth = 0.8; g.beginPath(); g.arc(0, -53, 2.2, 0.3, Math.PI - 0.3); g.stroke();
+        }
+        rect(-4.6, -57.8, 0.8, 0.8, C.white); rect(3.4, -57.8, 0.8, 0.8, C.white);
+        line(-6, -61, -2.5, -61.5, 0.8, C.hair); line(2.5, -61.5, 6, -61, 0.8, C.hair);
+        disc(-7, -53.5, 1.6, C.pink); disc(7, -53.5, 1.6, C.pink);
+        g.restore();
+      }
+
+      // ============================================================ scene: the person, the right half made of bacteria
+      var PX0 = 90, FLOOR = 300, PS = 1.6;
+      function scene_split(t) {
+        var tl = t > T.BACK ? t - T.BACK : t;
+        var cam = t > T.BACK ? camAt([[T.BACK, 90, 168, 1.0], [DUR - 0.15, 92, 158, 1.35]], t) : camAt([[0, 92, 158, 1.35], [T.GLITCH, 92, 162, 1.25]], t);
+        shake(cam, t, 0, 7, 0.5);
+        sky([[0, C.bg1], [1, C.bg2]]);
+        setCam(cam, 0.5);
+        for (var i = 0; i < 26; i++) { var x = hash1(i) * 220 - 20, y = hash1(i + 40) * 340; disc(x, y + Math.sin(t + i) * 3, 1 + hash1(i + 9) * 2, C.bgL); }
+        setCam(cam, 1);
+        ell(PX0, FLOOR + 2, 30, 5, 0, C.bg1);
+        var seam = 0.6 + 0.4 * Math.sin(t * 9);
+        character(function () {
+          person(PX0, FLOOR, PS, { t: t, shock: t < T.GLITCH });
+          // the right half of the body is a crowd of bacteria (paints only over the body)
+          g.save();
+          g.beginPath(); g.rect(PX0, 0, 200, 400); g.clip();
+          g.globalCompositeOperation = "source-atop";
+          rect(PX0, 100, 120, 220, C.goo);
+          for (var k = 0; k < 70; k++) {
+            var bx = PX0 + 2 + hash1(k * 3.1) * 22, by = FLOOR - 4 - hash1(k * 7.7) * 120;
+            bx += Math.sin(t * 3 + k) * 1.2; by += Math.cos(t * 2.6 + k * 1.3) * 1.2;
+            bug(bx, by, 0.55 + hash1(k) * 0.25, k, t, { ang: hash1(k * 5) * 6.28 + t * (k % 2 ? 0.6 : -0.6) });
+          }
+          g.restore();
+        });
+        // a glowing seam down the middle
+        g.globalAlpha = seam; rect(PX0 - 0.5, FLOOR - 122, 1, 122, C.bac1); g.globalAlpha = 1;
+        // little bacteria escaping the body
+        for (var e = 0; e < 6; e++) {
+          var ph = (t * 0.35 + e / 6) % 1;
+          var ex = PX0 + 22 + ph * 50 + e * 3, ey = FLOOR - 30 - e * 16 - Math.sin(ph * 6) * 4;
+          g.globalAlpha = Math.sin(ph * Math.PI);
+          character(function () { bug(ex, ey, 1.1, e, t, { ang: -0.3 }); });
+          g.globalAlpha = 1;
+        }
+        vignette(0.35, "rgba(10,0,30,");
+      }
+
+      // ============================================================ scene: 30 trillion vs 38 trillion
+      function humanCell(x, y, s, t) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        disc(0, 0, 10, C.cellD); disc(-0.4, -0.4, 9.4, C.cell); ell(-3.5, -4, 3, 2, -0.5, C.cellL);
+        disc(3, 3, 3.4, C.nuc);
+        eyes(-1.5, -1, 1.3, 0.3);
+        g.strokeStyle = C.ink; g.lineWidth = 0.6; g.beginPath(); g.arc(-1, 2.6, 2, 0.3, Math.PI - 0.3); g.stroke();
+        g.restore();
+      }
+      function scene_count(t) {
+        var cam = camAt([[T.COUNT - 0.2, 90, 172, 1.0], [T.GUT, 90, 176, 1.06]], t);
+        shake(cam, t, T.BACT + 2.0, 6, 0.4);
+        sky([[0, C.bg1], [1, C.bg2]]);
+        setCam(cam, 1);
+        // the two mascots + VS (above the text)
+        var hb = Math.sin(t * 3) * 2;
+        character(function () { humanCell(44, 92 + hb, 1.8, t); });
+        character(function () { bug(136, 92 - hb, 2.4, 0, t, { ang: Math.sin(t * 2) * 0.2 }); });
+        worldText("VS", 90, 86, 2, C.gold);
+        // floor
+        rect(-40, 298, 260, 40, C.bg1);
+        // left column: human cells (30 rows), right: bacteria (38 rows), each row = 3 px
+        var hu = ramp(t, T.HUMAN, T.BACT - 0.5), bu = ramp(t, T.BACT, T.BACT + 2.0);
+        var hRows = Math.floor(30 * hu), bRows = Math.floor(38 * bu);
+        for (var r = 0; r < hRows; r++) for (var c = 0; c < 6; c++) {
+          var x = 24 + c * 7.4 + (r % 2) * 1.5, y = 294 - r * 3;
+          disc(x, y, 2.2, r % 3 ? C.cell : C.cellD); disc(x + 0.6, y + 0.4, 0.8, C.nuc);
+        }
+        for (var r2 = 0; r2 < bRows; r2++) for (var c2 = 0; c2 < 6; c2++) {
+          var x2 = 112 + c2 * 7.4 + (r2 % 2) * 1.5, y2 = 294 - r2 * 3, k = (r2 + c2) % 4;
+          rrect(x2 - 3, y2 - 1.3, 6, 2.6, 1.3, C[BCOL[k][0]]);
+        }
+        // the live counters under the columns
+        var hn = Math.round(30 * hu), bn = Math.round(38 * bu);
+        worldText(hn + " TRILLION", 45, 303, 1, C.cellL);
+        worldText(bn + " TRILLION", 135, 303, 1, C.bac1);
+        worldText("HUMAN", 45, 312, 1, C.white);
+        worldText("BACTERIA", 135, 312, 1, C.white);
+        // the winner flash
+        if (t > T.BACT + 2.0) { var p = pop(t, T.BACT + 2.0); g.globalAlpha = clamp01(1.4 - (t - T.BACT - 2.0)); g.strokeStyle = C.gold; g.lineWidth = 1.5; g.strokeRect(108, 294 - 38 * 3 - 4, 52 + 4 * p, 38 * 3 + 8); g.globalAlpha = 1; }
+        vignette(0.3, "rgba(10,0,30,");
+      }
+
+      // ============================================================ scene: inside the gut — eat fibre, make vitamins, train the immune system
+      function scene_gut(t) {
+        var u0 = t - T.GUT;
+        var cam = camAt([[T.GUT - 0.2, 90, 150, 1.5], [T.GUT + 1.2, 90, 168, 1.0], [T.IMMUNE, 90, 170, 1.04], [T.SCALE, 96, 186, 1.18]], t);
+        shake(cam, t, T.IMMUNE + 1.0, 6, 0.4);
+        sky([[0, C.gut1], [0.5, C.gut2], [1, C.gut1]]);
+        setCam(cam, 0.6);
+        var off = (t * 24) % 30;
+        for (var i = -2; i < 10; i++) { ell(i * 30 - off, 160, 6, 160, 0, C.gutD); }
+        setCam(cam, 1);
+        // villi walls top and bottom, scrolling past
+        var off2 = (t * 36) % 14;
+        rect(-60, -60, 300, 74, C.gutD); rect(-60, 306, 300, 60, C.gutD);
+        for (var v = -6; v < 22; v++) {
+          var vx = v * 14 - off2, h1 = 18 + 6 * Math.sin(v * 1.7), h2 = 16 + 6 * Math.cos(v * 1.3);
+          rrect(vx, 2, 10, h1, 5, C.gutL); rect(vx + 2, 4, 2, h1 - 8, C.white);
+          rrect(vx, 306 - h2, 10, h2 + 6, 5, C.gutL); rect(vx + 2, 310 - h2, 2, h2 - 8, C.white);
+        }
+        // food fibre floating in, getting eaten
+        var eat = ramp(t, T.FOOD + 1.0, T.VIT);
+        var fib = [[60, 236], [118, 262], [92, 70]];
+        if (t > T.FOOD - 0.3 && t < T.VIT + 0.3) {
+          fib.forEach(function (f, j) {
+            var fin = clamp01((t - T.FOOD + 0.3) / 0.5), sz = (1 - eat) * 1.6;
+            if (sz <= 0.02) return;
+            var fx = lerp(f[0] + 120, f[0], easeOut(fin));
+            g.save(); g.translate(fx, f[1]); g.rotate(j + t * 0.4); g.scale(sz, sz);
+            rrect(-12, -4, 24, 8, 3, C.fiberD); rrect(-11, -4, 22, 6.5, 3, C.fiber);
+            for (var q = -8; q < 10; q += 5) rect(q, -3, 1, 5, C.fiberD);
+            g.restore();
+            // crumbs
+            for (var cr = 0; cr < 4; cr++) { var cp = ((t * 2 + cr * 0.25 + j) % 1); disc(fx + (cr - 1.5) * 6 * cp, f[1] - 8 * cp + 10 * cp * cp, 1, C.fiber); }
+          });
+        }
+        // the swarm (outlined, all together)
+        var bugs = [];
+        for (var k = 0; k < 14; k++) {
+          var lane = k < 9 ? 200 + hash1(k * 3) * 86 : 40 + hash1(k * 3) * 90;
+          var bx = ((hash1(k) * 220 + t * (10 + hash1(k + 2) * 14)) % 220) - 20;
+          var by = lane + Math.sin(t * 2 + k) * 5;
+          var target = null;
+          if (t > T.FOOD && t < T.VIT + 0.3) { var f = fib[k % 3]; target = [f[0] + (k % 2 ? 12 : -12) + Math.sin(k) * 4, f[1] + Math.cos(k) * 6]; }
+          if (target) { var w = clamp01((t - T.FOOD) / 0.6) * (t > T.VIT ? 1 - clamp01((t - T.VIT) / 0.3) : 1); bx = lerp(bx, target[0], w); by = lerp(by, target[1], w); }
+          bugs.push([bx, by, k]);
+        }
+        character(function () {
+          bugs.forEach(function (b) {
+            var ch = t > T.FOOD + 0.3 && t < T.VIT ? Math.abs(Math.sin(t * 12 + b[2])) : 0;
+            bug(b[0], b[1], 1.5, b[2], t, { ang: Math.sin(t * 2 + b[2]) * 0.25, chomp: ch, look: 0.8 });
+          });
+        });
+        // vitamins pop out
+        if (t > T.VIT) {
+          for (var p = 0; p < 6; p++) {
+            var b = bugs[p], tp = T.VIT + 0.15 + p * 0.22, pu = t - tp;
+            if (pu < 0) continue;
+            var vx2 = b[0] + pu * 14 * (p % 2 ? 1 : -1), vy2 = b[1] - 14 - pu * 22 + pu * pu * 4, ps = Math.min(pop(t, tp), 1.2);
+            if (vy2 < 20 || t > T.IMMUNE + 0.2) continue;
+            g.save(); g.translate(vx2, vy2); g.scale(ps, ps);
+            rrect(-6, -3.5, 12, 7, 3.5, C.vitD); rrect(-6, -3.5, 11.5, 6.4, 3.2, C.vit); rect(-4, -2.4, 4, 1, C.white);
+            worldText(p % 2 ? "B" : "K", 0, -3, 1, C.ink);
+            g.restore();
+          }
+        }
+        // the white blood cell rolls in and bumps fists with the bacteria
+        if (t > T.IMMUNE - 0.3) {
+          var iu = easeOut(clamp01((t - T.IMMUNE + 0.3) / 0.9));
+          var wx = lerp(240, 120, iu), wy = 252 + Math.sin(t * 3) * 2;
+          character(function () {
+            for (var bl = 0; bl < 9; bl++) { var a = bl / 9 * 6.28 + t; disc(wx + Math.cos(a) * 19, wy + Math.sin(a) * 17, 6, C.wbcD); }
+            disc(wx, wy, 20, C.wbcD); disc(wx - 0.5, wy - 0.5, 19, C.wbc);
+            ell(wx + 5, wy + 6, 7, 5, 0.3, C.bac2);
+            eyes(wx - 6, wy - 5, 2.2, -0.8);
+            g.strokeStyle = C.ink; g.lineWidth = 1; g.beginPath(); g.arc(wx - 6, wy + 1, 4, 0.3, Math.PI - 0.3); g.stroke();
+          });
+          if (t > T.IMMUNE + 1.0) {
+            var sp = t - T.IMMUNE - 1.0;
+            for (var s = 0; s < 10; s++) { var a2 = s / 10 * 6.28, d = 6 + sp * 40; g.globalAlpha = clamp01(1 - sp); rect(97 + Math.cos(a2) * d, 250 + Math.sin(a2) * d, 2, 2, C.gold); }
+            g.globalAlpha = 1;
+          }
+        }
+        vignette(0.4, "rgba(40,0,20,");
+      }
+
+      // ============================================================ scene: all of them weigh about 0.2 kg (one apple)
+      function scene_scale(t) {
+        var cam = camAt([[T.SCALE - 0.2, 90, 172, 1.0], [T.BACK, 90, 178, 1.06]], t);
+        shake(cam, t, T.BALANCE, 5, 0.35);
+        sky([[0, C.bg1], [1, C.bg2]]);
+        setCam(cam, 1);
+        rect(-40, 300, 260, 40, C.bg1);
+        // stand + beam (wobbles, then balances)
+        var wob = t < T.BALANCE ? 0.25 * Math.sin((t - T.SCALE) * 9) * (1 - clamp01((t - T.SCALE) / (T.BALANCE - T.SCALE))) : 0;
+        rect(86, 206, 8, 94, C.metalD); rect(87, 206, 4, 94, C.metal);
+        rrect(62, 292, 56, 10, 3, C.metalD); rrect(64, 290, 52, 9, 3, C.metal);
+        disc(90, 206, 5, C.gold);
+        var bx1 = 90 - Math.cos(wob) * 56, by1 = 206 - Math.sin(wob) * 56, bx2 = 90 + Math.cos(wob) * 56, by2 = 206 + Math.sin(wob) * 56;
+        line(bx1, by1, bx2, by2, 3, C.metal);
+        [[bx1, by1], [bx2, by2]].forEach(function (p) { line(p[0], p[1], p[0] - 18, p[1] + 34, 0.8, C.metalL || C.metal); line(p[0], p[1], p[0] + 18, p[1] + 34, 0.8, C.metal); ell(p[0], p[1] + 36, 22, 4, 0, C.metalD); ell(p[0], p[1] + 35, 21, 3, 0, C.metal); });
+        // left pan: all the bacteria (a tiny mound)
+        character(function () {
+          for (var k = 0; k < 16; k++) { var row = Math.floor(k / 6), col = k % 6; bug(bx1 - 13 + col * 5.2 + row * 2.5, by1 + 31 - row * 4.5, 0.55, k, t, { ang: k }); }
+        });
+        // right pan: one apple
+        character(function () {
+          var ax = bx2, ay = by2 + 22;
+          disc(ax - 4, ay, 9, C.appleD); disc(ax + 4, ay, 9, C.appleD); disc(ax - 4, ay - 0.5, 8.4, C.apple); disc(ax + 4, ay - 0.5, 8.4, C.apple);
+          ell(ax - 6, ay - 4, 2.5, 1.6, -0.4, C.cellL);
+          rect(ax - 0.5, ay - 13, 1.5, 6, C.stem); ell(ax + 4, ay - 11, 4, 2, -0.4, C.leaf);
+        });
+        worldText("BACTERIA", 34, 260, 1, C.bac1);
+        worldText("1 APPLE", 146, 260, 1, C.cellL);
+        // display
+        if (t > T.BALANCE) { var p = Math.min(pop(t, T.BALANCE), 1.1); rrect(66, 304, 48, 12, 2, C.ink); g.save(); g.translate(90, 306); g.scale(p, p); worldText("0.2 KG", 0, 0, 1, C.bac1); g.restore(); }
+        // above the text: a mini body with the bacteria glowing in the gut
+        lighter(); glow(90, 90, 40, C.bac1, 0.35); normalBlend();
+        character(function () { person(90, 136, 0.95, { t: t }); });
+        disc(90, 113, 4, C.bac1);
+        vignette(0.3, "rgba(10,0,30,");
+      }
+
+      function sceneAt(t) {
+        return t < T.COUNT ? "split" : t < T.GUT ? "count" : t < T.SCALE ? "gut" : t < T.BACK ? "scale" : "split";
+      }
+
+      PX.setup(C, {
+        scenes: { split: scene_split, count: scene_count, gut: scene_gut, scale: scene_scale },
+        sceneAt: sceneAt,
+        cuts: [[T.COUNT, "split", "count"], [T.GUT, "count", "gut"], [T.SCALE, "gut", "scale"], [T.BACK, "scale", "split"]],
+        post: function (t, img) {
+          if (t < 0.12) tintImg(img, C.white, 1 - t / 0.12);
+          if (t > T.GLITCH - 0.05 && t < T.COUNT) glitchRows(img, 10 * Math.sin(clamp01((t - T.GLITCH + 0.05) / (T.COUNT - T.GLITCH + 0.05)) * Math.PI), Math.floor(t * 30));
+          if (t > LOOP - 0.25 && t < LOOP) tintImg(img, C.white, ramp(t, LOOP - 0.25, LOOP));
+          if (t >= LOOP) tintImg(img, C.white, 1);
+        },
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: c.segs.map(function (ln) { return ln.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; }); }) };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
