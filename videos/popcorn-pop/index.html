@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Why Popcorn Pops</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "Why popcorn pops (and jumps)" — house style + the engagement rules (STYLE_GUIDE.md section 6): the kernel is the
+      character, a live counter at the top the whole time (TEMP -> PRESSURE -> VOLUME -> POPPED), one camera journey,
+      text cards every ~2 s, handle on every frame (engine), sound that follows the counter (scripts/synth_audio.py).
+      Fact: Virot & Ponomarenko (2015), J. R. Soc. Interface 12: 20141247.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="32" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="32" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="32" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = window.DUR || 32;
+      var B = window.BEATS || {};
+      var T = {};
+      [["GLITCH", 1.6], ["HEAT", 2.0], ["INSIDE", 5.0], ["STEAM", 6.8], ["PRESS", 9.5], ["BREAK", 13.75], ["POP", 14.0], ["FOAM", 15.2],
+       ["LEG", 19.0], ["PUSH", 20.3], ["JUMP", 21.3], ["HISS", 23.5], ["DUD", 25.7], ["BOWL", 27.6], ["STOP", 30.5], ["REWIND", 31.3]]
+        .forEach(function (k) { T[k[0]] = B[k[0]] !== undefined ? B[k[0]] : k[1]; });
+      var C = {
+        bg1: "#140a2a", bg2: "#2a1650", bg3: "#3e2270", tile: "#4a2a80",
+        pan: "#3a3a4e", panD: "#22222e", panL: "#6a6a86", oil: "#ffd860", flame: "#3a8aff", flameL: "#8ad8ff", flameO: "#ff8a2a", heat: "#ff5a2a",
+        // kernel
+        k1: "#ffb830", k2: "#e0861a", k3: "#ffe07a", tip: "#9a5a1a", crack: "#fff4c8",
+        // popcorn
+        p1: "#fffaf0", p2: "#e8dcc0", p3: "#ffe680", p4: "#c8b890",
+        // inside
+        starch: "#fff0c8", starchD: "#e8d0a0", water: "#3ab8ff", waterL: "#a8e8ff", steam: "#f4f8ff", steamD: "#c0cce0",
+        // bowl
+        boxR: "#ff2a3a", boxRD: "#b81a2a", boxW: "#fff4f0", gold: "#ffc83a", pink: "#ff5ab8", green: "#3ae86a", red: "#ff3a4a", blush: "#ff8ab0", sweat: "#8ad8ff",
+        white: "#ffffff", ink: "#0a0614", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function sky(stops) { screen(); g.fillStyle = vgrad(0, H, stops); g.fillRect(0, 0, W, H); }
+      function uiText(str, x, y, S, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) { var gl = FONT[str[i]] || FONT[" "]; for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * S + (p % 5) * S, y + Math.floor(p / 5) * S, S, S); }
+      }
+      function uiCentre(str, y, S, col) { var w = str.length * 6 * S - S; uiText(str, Math.round(180 - w / 2) + 1, y + 1, S, C.ink); uiText(str, Math.round(180 - w / 2), y, S, col); }
+      function temp(t) {
+        if (t < T.GLITCH) return 150 + 25 * Math.min(1, t / 1.6);
+        if (t >= T.REWIND) return 150 + 25 * Math.min(1, (t - T.REWIND) / 1.6);
+        if (t < T.HEAT) return lerp(175, 20, (t - T.GLITCH) / (T.HEAT - T.GLITCH));
+        if (t < T.POP) return 20 + 160 * Math.pow((t - T.HEAT) / (T.POP - T.HEAT), 0.75);
+        return 180;
+      }
+      function pressure(t) { return 1 + 8 * ramp(t, T.PRESS, T.BREAK); }
+      function bubble(x, y, str, col) {
+        var w = str.length * 6 + 5;
+        rrect(x - w / 2, y - 6, w, 11, 2, C.white); poly([[x - 3, y + 5], [x + 2, y + 5], [x - 5, y + 10]], C.white);
+        worldText(str, x, y - 3.5, 1, col || C.ink);
+      }
+
+      // ============================================================ the kernel (tip at x, y; ~36*s tall). o: mood calm|scared|strain|sad, vib, bulge, sweat, cracks
+      function kernel(x, y, s, t, o) {
+        o = o || {};
+        var vib = o.vib || 0, bx = (hash1(Math.floor(t * 30)) - 0.5) * vib, by = (hash1(Math.floor(t * 30) + 7) - 0.5) * vib;
+        var bu = 1 + (o.bulge || 0) * 0.12;
+        g.save(); g.translate(x + bx, y + by); g.rotate(o.rot || 0); g.scale(s * bu, s * (1 + (o.bulge || 0) * 0.06));
+        // body: a rounded teardrop, tip down
+        poly([[-9, -14], [9, -14], [2.5, -1], [-2.5, -1]], C.k2);
+        ell(0, -21, 13.5, 15, 0, C.k2); ell(-0.5, -21.5, 12.8, 14.3, 0, C.k1);
+        poly([[-8.5, -14], [8.5, -14], [2, -1.6], [-2, -1.6]], C.k1);
+        ell(-5, -27, 4.5, 6, -0.4, C.k3);
+        ell(0, -1.5, 3, 2, 0, C.tip);
+        // cracks glow under pressure
+        if (o.cracks) { g.globalAlpha = o.cracks; line(-6, -33, -2, -27, 0.9, C.crack); line(-2, -27, -4, -22, 0.9, C.crack); line(7, -30, 4, -24, 0.9, C.crack); line(4, -24, 7, -18, 0.9, C.crack); g.globalAlpha = 1; }
+        // face
+        var mood = o.mood || "calm";
+        if (mood === "strain") { line(-7, -22, -2.5, -21, 1.1, C.ink); line(7, -22, 2.5, -21, 1.1, C.ink); line(-7.5, -25, -2.5, -23.5, 0.9, C.ink); line(7.5, -25, 2.5, -23.5, 0.9, C.ink); rect(-4, -16.5, 8, 3, C.white); line(-4, -15, 4, -15, 0.5, C.ink); }
+        else if (mood === "sad") { ell(-4.5, -21, 2, 2.4, 0, C.white); ell(4.5, -21, 2, 2.4, 0, C.white); disc(-4.5, -20.3, 1.1, C.ink); disc(4.5, -20.3, 1.1, C.ink); line(-7, -24, -3, -25.5, 0.8, C.ink); line(7, -24, 3, -25.5, 0.8, C.ink); g.strokeStyle = C.ink; g.lineWidth = 0.8; g.beginPath(); g.arc(0, -13.5, 2.6, Math.PI + 0.4, -0.4); g.stroke(); ell(-5.5, -17, 0.9, 1.6, 0, C.sweat); }
+        else {
+          var big = mood === "scared" ? 1.3 : 1;
+          ell(-4.5, -21, 2.4 * big, 2.9 * big, 0, C.white); ell(4.5, -21, 2.4 * big, 2.9 * big, 0, C.white);
+          disc(-4.2, -20.6, (mood === "scared" ? 1 : 1.5), C.ink); disc(4.8, -20.6, (mood === "scared" ? 1 : 1.5), C.ink);
+          rect(-5.2, -22.4, 0.9, 0.9, C.white); rect(3.8, -22.4, 0.9, 0.9, C.white);
+          if (mood === "scared") { ell(0, -14.5, 2.4, 2.8, 0, C.ink); }
+          else { g.strokeStyle = C.ink; g.lineWidth = 0.8; g.beginPath(); g.arc(0, -16.5, 2.6, 0.3, Math.PI - 0.3); g.stroke(); }
+        }
+        disc(-8, -17, 1.6, C.blush); disc(8, -17, 1.6, C.blush);
+        if (o.sweat) { for (var k = 0; k < 2; k++) { var ph = (t * 1.6 + k * 0.5) % 1; g.globalAlpha = 1 - ph; ell(k ? 11 : -11, -28 + ph * 12, 1.2, 1.8, 0, C.sweat); g.globalAlpha = 1; } }
+        g.restore();
+      }
+
+      // ============================================================ a popped kernel (centre x, y; radius r)
+      function popcorn(x, y, r, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.rotate(o.rot || 0); g.scale(r / 20, (r / 20) * (o.squash || 1));
+        var lobes = [[0, -8, 10], [-10, -3, 9], [10, -4, 9], [-6, 7, 9], [7, 7, 9], [0, 2, 10], [-13, 6, 6], [13, 6, 6], [2, -15, 7]];
+        lobes.forEach(function (l) { disc(l[0], l[1], l[2], C.p2); });
+        lobes.forEach(function (l) { disc(l[0] - 0.8, l[1] - 0.8, l[2] - 1.2, C.p1); });
+        disc(-9, -6, 3, C.p3); disc(8, 9, 3, C.p3); disc(3, -14, 2.4, C.p3);
+        poly([[10, 10], [15, 13], [11, 15]], C.k2);
+        if (o.leg) { rrect(-4, 10, 8, 8 + o.leg * 10, 4, C.p2); rrect(-3.4, 10, 6.8, 7 + o.leg * 10, 3.4, C.p1); }
+        // face
+        ell(-4, -1, 2.2, 2.6, 0, C.white); ell(4, -1, 2.2, 2.6, 0, C.white); disc(-3.7, -0.6, 1.3, C.ink); disc(4.3, -0.6, 1.3, C.ink);
+        if (o.wow) ell(0, 6, 2.4, 3, 0, C.ink); else { g.strokeStyle = C.ink; g.lineWidth = 1; g.beginPath(); g.arc(0, 4, 3, 0.2, Math.PI - 0.2); g.stroke(); }
+        disc(-7, 3, 1.5, C.blush); disc(7, 3, 1.5, C.blush);
+        g.restore();
+      }
+
+      // ============================================================ the pan on the stove (shared)
+      var PAN_Y = 272, KX = 90, KY = 266, KS = 1.45;
+      function kitchen(cam, t, heat) {
+        sky([[0, C.bg1], [0.6, C.bg2], [1, C.bg3]]);
+        setCam(cam, 0.5);
+        for (var x = -40; x < 240; x += 18) rect(x, -80, 1, 460, C.tile);
+        for (var y = -80; y < 380; y += 18) rect(-40, y, 280, 1, C.tile);
+        setCam(cam, 1);
+        // flames under the pan
+        for (var f = 0; f < 9; f++) {
+          var fx = 34 + f * 14, fh = 8 + 4 * Math.sin(t * 14 + f * 1.7) + 6 * heat;
+          poly([[fx - 4, 304], [fx + 4, 304], [fx, 304 - fh]], C.flame); poly([[fx - 2, 304], [fx + 2, 304], [fx, 304 - fh * 0.6]], C.flameL);
+        }
+        lighter(); glow(90, 292, 70, C.heat, 0.25 + 0.35 * heat); normalBlend();
+        rect(-40, 304, 260, 40, C.panD);
+        // pan
+        rect(150, PAN_Y - 3, 60, 6, C.panD);
+        ell(90, PAN_Y + 6, 76, 14, 0, C.panD); ell(90, PAN_Y + 2, 74, 12, 0, C.pan); ell(90, PAN_Y + 1, 66, 8, 0, C.panD);
+        ell(90, PAN_Y + 1, 62, 6.5, 0, mix(C.panD, C.oil, 0.15 + 0.2 * heat));
+        for (var o2 = 0; o2 < 7; o2++) { var ph = (t * (1 + 3 * heat) + o2 / 7) % 1; g.globalAlpha = (1 - ph) * heat; disc(40 + o2 * 15, PAN_Y + 1 - ph * 3, 1 + ph, C.oil); g.globalAlpha = 1; }
+        // heat shimmer lines
+        for (var h2 = 0; h2 < 5; h2++) { var hp = (t * 0.8 + h2 / 5) % 1; g.globalAlpha = heat * 0.5 * Math.sin(hp * Math.PI); line(50 + h2 * 20 + Math.sin(t * 6 + h2) * 2, PAN_Y - 6 - hp * 40, 52 + h2 * 20 + Math.sin(t * 6 + h2 + 1) * 2, PAN_Y - 12 - hp * 40, 1, C.oil); g.globalAlpha = 1; }
+      }
+      function otherKernels(t, heat) { [[40, 0.95, 0.3], [138, 1.0, -0.4], [60, 0.85, 1.4], [120, 0.85, 2.2]].forEach(function (k, i) { var vib = heat * 1.2; character(function () { kernel(k[0] + (hash1(Math.floor(t * 30) + i * 13) - 0.5) * vib, PAN_Y + (i < 2 ? 0 : -2), k[1], t, { rot: Math.sin(k[2]) * 0.3, mood: heat > 0.7 ? "scared" : "calm" }); }); }); }
+
+      function scene_pan(t) {
+        var hookT = t >= T.REWIND ? t - T.REWIND : t < T.GLITCH + 0.4 ? t : null;
+        var cam;
+        if (hookT !== null) cam = camAt([[0, 90, 199, 1.7], [1.6, 90, 200, 1.75]], hookT);
+        else cam = camAt([[T.HEAT, 90, 200, 1.0], [T.HEAT + 1.2, 90, 204, 1.08], [T.INSIDE, 90, 230, 4.2],
+          [T.INSIDE + 0.01, 90, 206, 1.35], [T.PRESS, 90, 206, 1.35], [T.BREAK, 90, 199, 1.7], [T.POP, 90, 199, 1.7],
+          [T.FOAM, 90, 196, 1.15], [T.LEG, 90, 160, 1.1], [T.JUMP, 90, 160, 1.1], [T.JUMP + 1.2, 90, 150, 1.0], [T.HISS, 90, 140, 1.0]], t);
+        var press = ramp(t, T.PRESS, T.BREAK);
+        var heat = hookT !== null ? 0.9 : clamp01((temp(t) - 20) / 160);
+        if (hookT !== null) shake(cam, hookT, 0, 6, 0.5);
+        if (t > T.PRESS && t < T.POP && hookT === null) { cam.x += (hash1(Math.floor(t * 30)) - 0.5) * press * 2.5; cam.y += (hash1(Math.floor(t * 30) + 5) - 0.5) * press * 2.5; }
+        shake(cam, t, T.POP, 14, 0.7);
+        shake(cam, t, T.PUSH, 5, 0.3);
+        kitchen(cam, t, heat);
+        if (t < T.POP || hookT !== null) {
+          otherKernels(t, heat);
+          var mood = hookT !== null ? "scared" : t > T.PRESS + 1.2 ? "strain" : temp(t) > 110 ? "scared" : "calm";
+          character(function () { kernel(KX, KY, KS, t, { mood: mood, vib: hookT !== null ? 2 : press * 3, bulge: hookT !== null ? 0.6 : press, sweat: hookT !== null || temp(t) > 120, cracks: hookT !== null ? 0.8 : press }); });
+          if (hookT === null && t > T.PRESS + 2.6 && t < T.BREAK) bubble(KX - 26, KY - 54, "HELP.", C.red);
+          if (hookT !== null && hookT > 0.6) bubble(KX - 26, KY - 54, "UH OH.", C.red);
+        } else {
+          otherKernels(t, 0.6);
+          var u0 = t - T.POP;
+          // the burst: hull shards + steam
+          if (u0 < 1.2) {
+            for (var s = 0; s < 14; s++) { var a = s / 14 * 6.28 + 0.3, d = 6 + u0 * (60 + hash1(s) * 40); g.globalAlpha = 1 - u0 / 1.2; g.save(); g.translate(KX + Math.cos(a) * d, KY - 26 + Math.sin(a) * d + u0 * u0 * 30); g.rotate(u0 * 10 + s); rect(-2, -1, 4, 2, s % 2 ? C.k2 : C.k1); g.restore(); disc(KX + Math.cos(a + 0.2) * d * 0.7, KY - 26 + Math.sin(a + 0.2) * d * 0.7, 3 + u0 * 6, C.steam); g.globalAlpha = 1; }
+          }
+          // the foam grows (x1 -> x40 volume = x3.4 across), then grows a leg and jumps
+          var grow = lerp(0.35, 1, easeOut(clamp01(u0 / 0.25))) * lerp(1, 2.9, ease(clamp01((t - T.FOAM) / (T.LEG - T.FOAM - 0.4))));
+          var r = 13 * grow, px = KX, py = KY - r * 0.9, rot = 0, squash = 1, leg = 0;
+          if (t > T.LEG) {
+            leg = clamp01((t - T.LEG) / (T.PUSH - T.LEG)) * (t < T.JUMP ? 1 : Math.max(0, 1 - (t - T.JUMP) / 0.4));
+            squash = t > T.PUSH && t < T.JUMP ? 1 - 0.12 * Math.sin(clamp01((t - T.PUSH) / (T.JUMP - T.PUSH)) * Math.PI) : 1;
+            py -= leg * r * 0.45;
+            if (t > T.JUMP) { var j = t - T.JUMP; py -= j * 120 - j * j * 30; rot = j * 2.4; px += j * 8; }
+          }
+          character(function () { popcorn(px, py, r, t, { wow: t < T.FOAM + 1.0 || t > T.JUMP, rot: rot, squash: squash, leg: leg }); });
+          if (t > T.JUMP && t < T.JUMP + 0.8) { for (var w = 0; w < 4; w++) { g.globalAlpha = 1 - (t - T.JUMP) / 0.8; line(px - 16 + w * 10, py + r + 6, px - 16 + w * 10, py + r + 22, 1.2, C.white); g.globalAlpha = 1; } }
+        }
+        vignette(0.35, "rgba(10,0,30,");
+      }
+
+      // ============================================================ inside the kernel: water -> steam bouncing off the shell
+      function scene_inside(t) {
+        var cam = camAt([[T.INSIDE - 0.2, 90, 196, 1.35], [T.PRESS, 90, 200, 1.0]], t);
+        var hot = clamp01((temp(t) - 20) / 160);
+        sky([[0, C.bg1], [1, C.bg2]]);
+        setCam(cam, 1);
+        // the shell (cross-section)
+        var cx = 90, cy = 196, rx = 82, ry = 112, puls = 1 + 0.015 * Math.sin(t * (6 + 20 * hot)) * hot;
+        ell(cx, cy, rx * puls + 8, ry * puls + 8, 0, C.k2); ell(cx, cy, rx * puls + 3, ry * puls + 3, 0, C.k1);
+        ell(cx, cy, rx * puls, ry * puls, 0, C.starch);
+        for (var gI = 0; gI < 60; gI++) { var ga = hash1(gI) * 6.28, gd = Math.sqrt(hash1(gI + 60)) * 0.9; ell(cx + Math.cos(ga) * rx * gd, cy + Math.sin(ga) * ry * gd, 4, 3, ga, C.starchD); }
+        // water drops jiggle faster as it heats; at 100 C they become steam puffs bouncing off the walls
+        var isSteam = t > T.STEAM;
+        var speed = 10 + 70 * hot;
+        character(function () {
+          for (var k = 0; k < 7; k++) {
+            var bxp, byp;
+            if (!isSteam) {
+              var home = [[60, 230], [118, 240], [90, 282], [56, 120], [124, 118], [90, 96], [40, 270]][k];
+              bxp = home[0] + Math.sin(t * (4 + 18 * hot) + k) * (1 + 5 * hot); byp = home[1] + Math.cos(t * (5 + 16 * hot) + k * 2) * (1 + 4 * hot);
+              poly([[bxp, byp - 9], [bxp - 5, byp], [bxp + 5, byp]], C.water); disc(bxp, byp + 1, 5.5, C.water); rect(bxp - 2.5, byp - 2, 1.5, 3, C.waterL);
+              disc(bxp - 2, byp + 1, 1.1, C.ink); disc(bxp + 2, byp + 1, 1.1, C.ink);
+            } else {
+              // bounce inside an ellipse: deterministic billiard via triangle waves
+              var st = (t - T.STEAM) * speed * 0.03 + k * 0.37;
+              var ux = Math.abs(((st * (1 + k * 0.13)) % 2) - 1) * 2 - 1, uy = Math.abs(((st * (0.8 + k * 0.17) + 0.5) % 2) - 1) * 2 - 1;
+              bxp = cx + ux * (rx - 18) * Math.sqrt(1 - 0.5 * uy * uy); byp = cy + uy * (ry - 18);
+              var sz = 1 + 0.25 * Math.sin(t * 9 + k);
+              disc(bxp - 5 * sz, byp + 1, 5 * sz, C.steamD); disc(bxp + 5 * sz, byp + 1, 5 * sz, C.steamD); disc(bxp, byp - 3, 6.5 * sz, C.steam); disc(bxp - 5 * sz, byp, 4.4 * sz, C.steam); disc(bxp + 5 * sz, byp, 4.4 * sz, C.steam);
+              disc(bxp - 2.4, byp - 1, 1.1, C.ink); disc(bxp + 2.4, byp - 1, 1.1, C.ink); ell(bxp, byp + 2.5, 1.4, 1.6, 0, C.ink);
+            }
+          }
+        });
+        if (isSteam) { var fl = clamp01(1 - (t - T.STEAM) / 0.3); if (fl > 0) { g.globalAlpha = fl; ell(cx, cy, rx, ry, 0, C.white); g.globalAlpha = 1; } }
+        // hits on the wall flash
+        if (isSteam) { for (var h = 0; h < 6; h++) { var hp = ((t - T.STEAM) * (2 + 8 * hot) + h / 6) % 1; if (hp < 0.25) { var a = h * 1.1 + Math.floor((t - T.STEAM) * (2 + 8 * hot)); g.globalAlpha = 1 - hp * 4; disc(cx + Math.cos(a) * rx, cy + Math.sin(a) * ry, 5, C.white); g.globalAlpha = 1; } } }
+        screen(); worldText("INSIDE THE KERNEL", 90, 304, 1, C.k3);
+        vignette(0.3, "rgba(10,0,30,");
+      }
+
+      // ============================================================ the hiss: the pop sound is steam escaping
+      function scene_hiss(t) {
+        var cam = camAt([[T.HISS - 0.2, 90, 186, 1.0], [T.DUD, 90, 190, 1.08]], t);
+        shake(cam, t, T.HISS + 0.3, 6, 0.4);
+        sky([[0, C.bg1], [1, C.bg2]]);
+        setCam(cam, 1);
+        var cr = clamp01((t - T.HISS - 0.25) / 0.15);
+        character(function () { kernel(90, 300, 2.6, t, { mood: cr > 0 ? "scared" : "strain", cracks: 1, vib: cr > 0 ? 1 : 2 }); });
+        if (cr > 0) {
+          var u0 = t - T.HISS - 0.3;
+          for (var p = 0; p < 22; p++) { var ph = (u0 * 1.6 + p / 22) % 1; if (u0 < ph * 0.6) continue; var y = 216 - ph * 180, x = 90 + Math.sin(p * 2.3 + ph * 4) * (4 + ph * 22); g.globalAlpha = 1 - ph * 0.8; disc(x, y, 3 + ph * 9, ph < 0.3 ? C.white : C.steam); g.globalAlpha = 1; }
+          for (var w = 0; w < 4; w++) { var wp = (u0 * 1.2 + w / 4) % 1; g.globalAlpha = (1 - wp) * 0.8; g.strokeStyle = C.gold; g.lineWidth = 1.2; g.beginPath(); g.arc(90, 216, 10 + wp * 80, Math.PI * 1.1, Math.PI * 1.9); g.stroke(); g.globalAlpha = 1; }
+          if (u0 > 0.1) { var pp = Math.min(pop(t, T.HISS + 0.4), 1.1); g.save(); g.translate(90, 56); g.scale(pp, pp); worldText("PSSHHH!", 0, 0, 2, C.white); g.restore(); }
+        }
+        vignette(0.35, "rgba(10,0,30,");
+      }
+
+      // ============================================================ the bowl: the dud at the bottom, then the popping frenzy
+      function box(x, y, w, h) {
+        poly([[x - w / 2, y - h], [x + w / 2, y - h], [x + w * 0.4, y], [x - w * 0.4, y]], C.boxRD);
+        g.save(); g.beginPath(); g.moveTo(x - w / 2 + 1, y - h); g.lineTo(x + w / 2 - 1, y - h); g.lineTo(x + w * 0.4 - 1, y); g.lineTo(x - w * 0.4 + 1, y); g.closePath(); g.clip();
+        for (var s = -6; s < 6; s++) poly([[x + s * 16, y - h], [x + s * 16 + 8, y - h], [x + s * 13 + 6.5, y], [x + s * 13, y]], s % 2 ? C.boxW : C.boxR);
+        g.restore();
+        rect(x - w / 2 - 2, y - h - 3, w + 4, 5, C.boxRD);
+      }
+      function scene_bowl(t) {
+        var dud = t < T.BOWL;
+        var tt = t;
+        if (t > T.STOP) { var tau = t - T.STOP, TT = T.REWIND - T.STOP; tt = T.STOP + tau - tau * tau / (2 * TT); }
+        var cam = dud ? camAt([[T.DUD - 0.2, 90, 236, 1.6], [T.BOWL, 90, 232, 1.7]], t) : camAt([[T.BOWL - 0.2, 90, 190, 1.0], [T.STOP, 90, 196, 1.1]], tt);
+        sky([[0, C.bg1], [0.6, C.bg2], [1, C.bg3]]);
+        setCam(cam, 1);
+        var bx = 90, by = 318;
+        // the pile inside (back row)
+        var pile = [];
+        for (var k = 0; k < 16; k++) pile.push([bx - 46 + (k % 6) * 18 + (Math.floor(k / 6) % 2) * 8, by - 92 - Math.floor(k / 6) * 12, 11 + hash1(k) * 3, k]);
+        character(function () { pile.forEach(function (p) { popcorn(p[0], p[1] + Math.abs(Math.sin(tt * 6 + p[3])) * (dud ? 0 : -3), p[2], tt, { rot: hash1(p[3]) - 0.5, wow: !dud && p[3] % 3 === 0 }); }); });
+        box(bx, by, 120, 92);
+        if (dud) {
+          // the dud sits on the counter in front, cracked, leaking steam
+          character(function () { kernel(54, 300, 1.3, t, { mood: "sad", cracks: 0.6 }); });
+          for (var w = 0; w < 3; w++) { var ph = (t * 0.7 + w / 3) % 1; g.globalAlpha = (1 - ph) * 0.8; disc(50 + Math.sin(ph * 6 + w) * 3, 270 - ph * 26, 1.5 + ph * 2, C.steam); g.globalAlpha = 1; }
+          if (t > T.DUD + 0.6) bubble(76, 250, "...", C.ink);
+        } else {
+          // more popcorn rains in, faster and faster
+          var u0 = tt - T.BOWL;
+          for (var n = 0; n < 40; n++) {
+            var t0 = Math.pow(n / 40, 0.6) * (T.STOP - T.BOWL), fu = u0 - t0;
+            if (fu < 0 || fu > 0.9) continue;
+            var x = 20 + hash1(n) * 140, y = -20 + fu * 300 - fu * fu * 60;
+            character(function () { popcorn(x, Math.min(y, 236), 9 + hash1(n + 3) * 4, tt, { rot: fu * 6 + n, wow: true }); });
+          }
+        }
+        vignette(0.3, "rgba(10,0,30,");
+      }
+
+      function sceneAt(t) {
+        return t < T.INSIDE ? "pan" : t < T.PRESS ? "inside" : t < T.HISS ? "pan" : t < T.DUD ? "hiss" : t < T.REWIND ? "bowl" : "pan";
+      }
+
+      // ============================================================ the live counter, top centre (it never stops changing)
+      function drawUI(t) {
+        var l1 = "", l2 = "", c1 = C.gold, S1 = 3;
+        if (t < T.POP || t >= T.REWIND) {
+          var tp = Math.round(temp(t));
+          l1 = "TEMP " + tp + "°C"; c1 = tp < 100 ? C.green : tp < 150 ? C.gold : C.red;
+          if (t > T.GLITCH && t < T.HEAT) { l1 = "TEMP " + (Math.floor(hash1(Math.floor(t * 30)) * 900)) + "°C"; c1 = C.white; }
+          if (t >= T.PRESS && t < T.POP) l2 = "PRESSURE " + Math.round(pressure(t)) + " ATM";
+        } else if (t < T.FOAM) { l1 = "POP!"; c1 = Math.floor(t * 10) % 2 ? C.pink : C.white; S1 = 4; }
+        else if (t < T.LEG) { l1 = "VOLUME X" + Math.max(1, Math.round(1 + 39 * ease(clamp01((t - T.FOAM) / (T.LEG - T.FOAM - 0.4))))); c1 = C.pink; }
+        else if (t < T.HISS) { l1 = "SLOW MOTION"; c1 = C.pink; S1 = 2; l2 = Math.floor(t * 4) % 2 ? "" : "REC"; }
+        else if (t < T.DUD) { l1 = "POP = STEAM"; c1 = C.white; S1 = 2; }
+        else if (t < T.BOWL) { l1 = "POPPED 99 : DUDS 1"; c1 = C.gold; S1 = 2; }
+        else {
+          var tt = t; if (t > T.STOP) { var tau = t - T.STOP, TT = T.REWIND - T.STOP; tt = T.STOP + tau - tau * tau / (2 * TT); }
+          var n = 99 + Math.round(500 * Math.pow(clamp01((tt - T.BOWL) / (T.STOP - T.BOWL)), 2));
+          l1 = "POPPED " + n; c1 = C.gold;
+        }
+        uiCentre(l1, 18, S1, c1);
+        if (l2) uiCentre(l2, 18 + 7 * S1 + 8, 2, C.white);
+      }
+
+      PX.setup(C, {
+        scenes: { pan: scene_pan, inside: scene_inside, hiss: scene_hiss, bowl: scene_bowl },
+        sceneAt: sceneAt,
+        cuts: [[T.INSIDE, "pan", "inside"], [T.PRESS, "inside", "pan"], [T.HISS, "pan", "hiss"], [T.DUD, "hiss", "bowl"]],
+        post: function (t, img) {
+          if (t < 0.1) tintImg(img, C.white, 1 - t / 0.1);
+          if (t > T.GLITCH - 0.05 && t < T.HEAT) glitchRows(img, 12 * Math.sin(clamp01((t - T.GLITCH + 0.05) / (T.HEAT - T.GLITCH + 0.05)) * Math.PI), Math.floor(t * 30));
+          if (t > T.BREAK && t < T.POP) tintImg(img, C.ink, 0.35);
+          if (t >= T.POP && t < T.POP + 0.15) tintImg(img, C.white, 1 - (t - T.POP) / 0.15);
+          if (t > T.LEG && t < T.HISS) tintImg(img, C.bg2, 0.12);
+          if (t > T.STOP && t < T.REWIND) tintImg(img, C.ink, 0.7 * (t - T.STOP) / (T.REWIND - T.STOP));
+          if (t >= T.REWIND && t < T.REWIND + 0.3) glitchRows(img, 12 * (1 - (t - T.REWIND) / 0.3), Math.floor(t * 30));
+        },
+        ui: drawUI,
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: c.segs.map(function (ln) { return ln.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; }); }) };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { PX.render(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
