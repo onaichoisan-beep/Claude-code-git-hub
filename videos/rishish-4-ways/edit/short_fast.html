@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=1080, height=1920" />
+<title>short</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+@font-face { font-family: 'Anton'; font-weight: 400; font-style: normal; font-display: block; src: url('assets/fonts/Anton-400.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 500; font-style: normal; font-display: block; src: url('assets/fonts/Inter-500.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 800; font-style: normal; font-display: block; src: url('assets/fonts/Inter-800.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 900; font-style: normal; font-display: block; src: url('assets/fonts/Inter-900.woff2') format('woff2'); }
+@font-face { font-family: 'Permanent Marker'; font-weight: 400; font-style: normal; font-display: block; src: url('assets/fonts/PermanentMarker-400.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 500; font-style: normal; font-display: block; src: url('assets/fonts/JetBrainsMono-500.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 700; font-style: normal; font-display: block; src: url('assets/fonts/JetBrainsMono-700.woff2') format('woff2'); }
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #0a0a0a; }
+#root { position: relative; width: 100%; height: 100%; overflow: hidden; font-family: "Inter", sans-serif; color: #fff;
+  background: radial-gradient(ellipse at 50% 45%, #3a0508 0%, #140203 50%, #050505 100%); }
+#bar { position: absolute; left: 0; top: 0; width: 100%; height: 12px; background: #e0141e; transform-origin: 0 50%; box-shadow: 0 0 20px rgba(255,42,42,.8); }
+#win { position: absolute; left: 40px; right: 40px; top: 330px; height: 1250px; border-radius: 36px; overflow: hidden;
+  box-shadow: 0 0 0 4px rgba(255,255,255,.12), 0 40px 90px rgba(0,0,0,.7); }
+#cam { position: absolute; inset: 0; transform-origin: 50% 30%; }
+#cam video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%;
+  filter: contrast(1.08) saturate(1.12); }
+.head { position: absolute; left: 50px; right: 50px; top: 50px; height: 260px; display: flex; align-items: center; justify-content: center;
+  text-align: center; font-family: "Anton", sans-serif; font-size: 108px; line-height: .98; text-transform: uppercase; opacity: 0; }
+.g { color: #d8ff4f; text-shadow: 0 0 30px rgba(216,255,79,.45); } .r { color: #ff2a2a; text-shadow: 0 0 30px rgba(255,42,42,.5); }
+#caps { position: absolute; left: 40px; right: 40px; top: 1360px; height: 200px; }
+.cap { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; opacity: 0; }
+.cap span { font-weight: 900; font-size: 86px; letter-spacing: -2px; white-space: nowrap; text-shadow: 0 6px 24px rgba(0,0,0,.85), 0 2px 2px rgba(0,0,0,.6); }
+.cap.key span { font-family: "Anton", sans-serif; font-weight: 400; font-size: 130px; letter-spacing: 1px; text-transform: uppercase; }
+.cap.g span { color: #d8ff4f; } .cap.r span { color: #ff2a2a; }
+.sub { position: absolute; left: 0; right: 0; top: 1640px; text-align: center; font-family: "JetBrains Mono", monospace; font-weight: 700;
+  font-size: 30px; letter-spacing: 6px; color: rgba(255,255,255,.55); text-transform: uppercase; }
+#endc { position: absolute; inset: 0; opacity: 0; display: flex; flex-direction: column; align-items: center; padding-top: 420px;
+  background: radial-gradient(ellipse at 50% 40%, #4a060b 0%, #120203 55%, #050505 100%); }
+#endc .e1 { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 40px; letter-spacing: 10px; color: #ff2a2a; }
+#endc .e2 { margin-top: 30px; font-family: "Anton", sans-serif; font-size: 200px; line-height: .92; text-align: center; text-transform: uppercase; }
+#endc .e3 { margin-top: 40px; font-weight: 800; font-size: 50px; text-align: center; line-height: 1.25; color: #d8ff4f; }
+#endc .arrow { position: absolute; left: 120px; top: 1330px; width: 200px; height: 260px; }
+#pulse { position: absolute; inset: 0; opacity: .25; background: radial-gradient(ellipse at 50% 50%, rgba(255,30,40,.75) 0%, transparent 65%); }
+#flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+#gl { position: absolute; inset: 0; opacity: 0; mix-blend-mode: screen;
+  background: repeating-linear-gradient(0deg, transparent 0 22px, rgba(255,0,60,.55) 22px 32px, transparent 32px 70px, rgba(0,255,255,.4) 70px 76px); }
+.head { font-size: 120px !important; }
+</style></head>
+<body>
+<div id="root" data-composition-id="short" data-start="0" data-duration="21.639" data-width="1080" data-height="1920">
+  <div id="pulse"></div><div id="bar"></div>
+    <div id="h0" class="head"><div><span class="g">₹80,000</span><br>in 1st year MBBS</div></div>
+  <div id="h1" class="head"><div>way 1 →<br><span class="g">₹60K+</span></div></div>
+  <div id="h2" class="head"><div>no face<br><span class="r">needed?</span></div></div>
+  <div id="h3" class="head"><div>way 2 →<br>paid at <span class="g">800</span> subs</div></div>
+  <div id="h4" class="head"><div>way 3 →<br>you <span class="r">already</span> have it</div></div>
+  <div id="h5" class="head"><div>way 4 →<br><span class="g">₹3–4K</span> a project</div></div>
+  <div id="h6" class="head"><div>more skill =<br><span class="g">more money</span></div></div>
+  <div id="win"><div id="cam">
+        <video id="v0" class="clip" src="assets/video/clip06.mp4" playsinline data-has-audio="true" data-start="0.000" data-duration="2.723" data-media-start="0.000" data-playback-rate="1.12" data-track-index="0" data-volume="1"></video>
+    <video id="v1" class="clip" src="assets/video/clip01.mp4" playsinline data-has-audio="true" data-start="2.723" data-duration="2.812" data-media-start="2.150" data-playback-rate="1.12" data-track-index="1" data-volume="1"></video>
+    <video id="v2" class="clip" src="assets/video/clip01.mp4" playsinline data-has-audio="true" data-start="5.536" data-duration="1.429" data-media-start="7.050" data-playback-rate="1.12" data-track-index="0" data-volume="1"></video>
+    <video id="v3" class="clip" src="assets/video/clip02.mp4" playsinline data-has-audio="true" data-start="6.964" data-duration="4.375" data-media-start="11.050" data-playback-rate="1.12" data-track-index="1" data-volume="1"></video>
+    <video id="v4" class="clip" src="assets/video/clip03.mp4" playsinline data-has-audio="true" data-start="11.339" data-duration="3.125" data-media-start="0.450" data-playback-rate="1.12" data-track-index="0" data-volume="1"></video>
+    <video id="v5" class="clip" src="assets/video/clip04.mp4" playsinline data-has-audio="true" data-start="14.464" data-duration="2.589" data-media-start="5.800" data-playback-rate="1.12" data-track-index="1" data-volume="1"></video>
+    <video id="v6" class="clip" src="assets/video/clip10.mp4" playsinline data-has-audio="true" data-start="17.054" data-duration="1.786" data-media-start="15.450" data-playback-rate="1.12" data-track-index="0" data-volume="1"></video>
+  </div></div>
+  <div id="gl"></div><div id="flash"></div><div id="caps">
+    <div id="c0" class="cap "><span>I made</span></div>
+    <div id="c1" class="cap "><span>around</span></div>
+    <div id="c2" class="cap key g"><span>₹80,000</span></div>
+    <div id="c3" class="cap "><span>rupees in</span></div>
+    <div id="c4" class="cap "><span>my first</span></div>
+    <div id="c5" class="cap "><span>year mbbs</span></div>
+    <div id="c6" class="cap "><span>This alone</span></div>
+    <div id="c7" class="cap "><span>has generated</span></div>
+    <div id="c8" class="cap "><span>me over</span></div>
+    <div id="c9" class="cap key g"><span>₹60K</span></div>
+    <div id="c10" class="cap "><span>of revenue</span></div>
+    <div id="c11" class="cap "><span>completely</span></div>
+    <div id="c12" class="cap key r"><span>faceless</span></div>
+    <div id="c13" class="cap "><span>option</span></div>
+    <div id="c14" class="cap "><span>At just</span></div>
+    <div id="c15" class="cap key g"><span>800</span></div>
+    <div id="c16" class="cap "><span>subs i</span></div>
+    <div id="c17" class="cap "><span>locked my</span></div>
+    <div id="c18" class="cap "><span>first paid</span></div>
+    <div id="c19" class="cap "><span>collaboration</span></div>
+    <div id="c20" class="cap "><span>if you</span></div>
+    <div id="c21" class="cap "><span>are only</span></div>
+    <div id="c22" class="cap "><span>good at</span></div>
+    <div id="c23" class="cap "><span>studies</span></div>
+    <div id="c24" class="cap "><span>then you</span></div>
+    <div id="c25" class="cap "><span>can also</span></div>
+    <div id="c26" class="cap "><span>earn money</span></div>
+    <div id="c27" class="cap "><span>roughly charges</span></div>
+    <div id="c28" class="cap "><span>around</span></div>
+    <div id="c29" class="cap key g"><span>₹3–4K</span></div>
+    <div id="c30" class="cap "><span>per videos</span></div>
+    <div id="c31" class="cap "><span>more skill</span></div>
+    <div id="c32" class="cap "><span>more money</span></div>
+  </div>
+  <div class="sub">full video ↓ related video</div>
+  <div id="endc">
+    <div class="e1">ALL 4 WAYS + EXACT STEPS</div>
+    <div class="e2">watch the<br>full video</div>
+    <div class="e3">tap the link below ⬇</div>
+    <svg class="arrow" viewBox="0 0 200 260"><path d="M100 10 V220" stroke="#d8ff4f" stroke-width="26" stroke-linecap="round"/>
+      <path d="M30 160 L100 236 L170 160" stroke="#d8ff4f" stroke-width="26" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+  <audio id="sfx0" class="clip" src="assets/sfx/riser.mp3" data-start="0.323" data-duration="2.400" data-media-start="0.600" data-track-index="10" data-volume="0.3"></audio>
+  <audio id="sfx1" class="clip" src="assets/sfx/impact-bass-1.mp3" data-start="0.000" data-duration="1.200" data-track-index="11" data-volume="0.45"></audio>
+  <audio id="sfx2" class="clip" src="assets/sfx/glitch-1.mp3" data-start="2.723" data-duration="0.450" data-track-index="11" data-volume="0.3"></audio>
+  <audio id="sfx3" class="clip" src="assets/sfx/whoosh-cinematic.mp3" data-start="3.136" data-duration="2.400" data-media-start="0.200" data-track-index="10" data-volume="0.32"></audio>
+  <audio id="sfx4" class="clip" src="assets/sfx/impact-bass-1.mp3" data-start="2.723" data-duration="1.200" data-track-index="12" data-volume="0.45"></audio>
+  <audio id="sfx5" class="clip" src="assets/sfx/riser.mp3" data-start="5.536" data-duration="1.429" data-media-start="1.571" data-track-index="11" data-volume="0.3"></audio>
+  <audio id="sfx6" class="clip" src="assets/sfx/impact-bass-1.mp3" data-start="5.536" data-duration="1.200" data-track-index="12" data-volume="0.45"></audio>
+  <audio id="sfx7" class="clip" src="assets/sfx/glitch-1.mp3" data-start="6.964" data-duration="0.450" data-track-index="10" data-volume="0.3"></audio>
+  <audio id="sfx8" class="clip" src="assets/sfx/whoosh-cinematic.mp3" data-start="8.939" data-duration="2.400" data-media-start="0.200" data-track-index="10" data-volume="0.32"></audio>
+  <audio id="sfx9" class="clip" src="assets/sfx/impact-bass-1.mp3" data-start="6.964" data-duration="1.200" data-track-index="12" data-volume="0.45"></audio>
+  <audio id="sfx10" class="clip" src="assets/sfx/riser.mp3" data-start="12.064" data-duration="2.400" data-media-start="0.600" data-track-index="10" data-volume="0.3"></audio>
+  <audio id="sfx11" class="clip" src="assets/sfx/impact-bass-1.mp3" data-start="11.339" data-duration="1.200" data-track-index="11" data-volume="0.45"></audio>
+  <audio id="sfx12" class="clip" src="assets/sfx/glitch-1.mp3" data-start="14.464" data-duration="0.450" data-track-index="11" data-volume="0.3"></audio>
+  <audio id="sfx13" class="clip" src="assets/sfx/whoosh-cinematic.mp3" data-start="14.654" data-duration="2.400" data-media-start="0.200" data-track-index="10" data-volume="0.32"></audio>
+  <audio id="sfx14" class="clip" src="assets/sfx/impact-bass-1.mp3" data-start="14.464" data-duration="1.200" data-track-index="12" data-volume="0.45"></audio>
+  <audio id="sfx15" class="clip" src="assets/sfx/riser.mp3" data-start="17.054" data-duration="1.786" data-media-start="1.214" data-track-index="11" data-volume="0.3"></audio>
+  <audio id="sfx16" class="clip" src="assets/sfx/impact-bass-1.mp3" data-start="17.054" data-duration="1.200" data-track-index="12" data-volume="0.45"></audio>
+  <audio id="sfx17" class="clip" src="assets/sfx/impact-bass-2.mp3" data-start="18.839" data-duration="2.200" data-track-index="10" data-volume="0.6"></audio>
+  <audio id="sfx18" class="clip" src="assets/sfx/glitch-2.mp3" data-start="18.839" data-duration="0.500" data-track-index="12" data-volume="0.3"></audio>
+  <audio id="sfx19" class="clip" src="assets/sfx/pop.mp3" data-start="19.739" data-duration="0.700" data-track-index="11" data-volume="0.45"></audio>
+  <audio id="sfx20" class="clip" src="assets/sfx/click-soft.mp3" data-start="0.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx21" class="clip" src="assets/sfx/click-soft.mp3" data-start="0.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx22" class="clip" src="assets/sfx/click-soft.mp3" data-start="1.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx23" class="clip" src="assets/sfx/click-soft.mp3" data-start="1.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx24" class="clip" src="assets/sfx/click-soft.mp3" data-start="2.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx25" class="clip" src="assets/sfx/click-soft.mp3" data-start="2.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx26" class="clip" src="assets/sfx/click-soft.mp3" data-start="3.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx27" class="clip" src="assets/sfx/click-soft.mp3" data-start="3.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx28" class="clip" src="assets/sfx/click-soft.mp3" data-start="4.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx29" class="clip" src="assets/sfx/click-soft.mp3" data-start="4.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx30" class="clip" src="assets/sfx/click-soft.mp3" data-start="5.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx31" class="clip" src="assets/sfx/click-soft.mp3" data-start="5.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx32" class="clip" src="assets/sfx/click-soft.mp3" data-start="6.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx33" class="clip" src="assets/sfx/click-soft.mp3" data-start="6.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx34" class="clip" src="assets/sfx/click-soft.mp3" data-start="7.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx35" class="clip" src="assets/sfx/click-soft.mp3" data-start="7.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx36" class="clip" src="assets/sfx/click-soft.mp3" data-start="8.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx37" class="clip" src="assets/sfx/click-soft.mp3" data-start="8.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx38" class="clip" src="assets/sfx/click-soft.mp3" data-start="9.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx39" class="clip" src="assets/sfx/click-soft.mp3" data-start="9.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx40" class="clip" src="assets/sfx/click-soft.mp3" data-start="10.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx41" class="clip" src="assets/sfx/click-soft.mp3" data-start="10.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx42" class="clip" src="assets/sfx/click-soft.mp3" data-start="11.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx43" class="clip" src="assets/sfx/click-soft.mp3" data-start="11.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx44" class="clip" src="assets/sfx/click-soft.mp3" data-start="12.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx45" class="clip" src="assets/sfx/click-soft.mp3" data-start="12.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx46" class="clip" src="assets/sfx/click-soft.mp3" data-start="13.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx47" class="clip" src="assets/sfx/click-soft.mp3" data-start="13.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx48" class="clip" src="assets/sfx/click-soft.mp3" data-start="14.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx49" class="clip" src="assets/sfx/click-soft.mp3" data-start="14.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx50" class="clip" src="assets/sfx/click-soft.mp3" data-start="15.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx51" class="clip" src="assets/sfx/click-soft.mp3" data-start="15.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx52" class="clip" src="assets/sfx/click-soft.mp3" data-start="16.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx53" class="clip" src="assets/sfx/click-soft.mp3" data-start="16.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx54" class="clip" src="assets/sfx/click-soft.mp3" data-start="17.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx55" class="clip" src="assets/sfx/click-soft.mp3" data-start="17.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx56" class="clip" src="assets/sfx/click-soft.mp3" data-start="18.000" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+  <audio id="sfx57" class="clip" src="assets/sfx/click-soft.mp3" data-start="18.500" data-duration="0.300" data-track-index="13" data-volume="0.14"></audio>
+</div>
+<script>
+const tl = gsap.timeline({ paused: true });
+tl.set("#cam",{scale:1},0);
+tl.set("#flash",{opacity:0},0);
+tl.set("#pulse",{opacity:.25},0);
+tl.fromTo("#cam",{scale:1.06},{scale:1.0,duration:.14,ease:"power3.out"},0.000);
+tl.fromTo("#cam",{scale:1.24},{scale:1.18,duration:.14,ease:"power3.out"},0.908);
+tl.fromTo("#cam",{scale:1.1400000000000001},{scale:1.08,duration:.14,ease:"power3.out"},1.815);
+tl.fromTo("#flash",{opacity:.85},{opacity:0,duration:.16},0.000);
+tl.fromTo("#pulse",{opacity:.9},{opacity:.25,duration:.6,ease:"power2.out"},0.000);
+tl.fromTo("#h0",{opacity:0,y:30,scale:.92},{opacity:1,y:0,scale:1,duration:.22,ease:"back.out(2)"},0.000);
+tl.set("#h0",{opacity:0},2.723);
+tl.fromTo("#c0",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},0.000);
+tl.set("#c0",{opacity:0},0.446);
+tl.fromTo("#c1",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},0.446);
+tl.set("#c1",{opacity:0},0.768);
+tl.fromTo("#c2",{opacity:0,scale:0.7},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},0.768);
+tl.set("#c2",{opacity:0},1.357);
+tl.fromTo("#c3",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},1.357);
+tl.set("#c3",{opacity:0},1.911);
+tl.fromTo("#c4",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},1.911);
+tl.set("#c4",{opacity:0},2.304);
+tl.fromTo("#c5",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},2.304);
+tl.set("#c5",{opacity:0},2.723);
+tl.fromTo("#cam",{scale:1.24},{scale:1.18,duration:.14,ease:"power3.out"},2.723);
+tl.fromTo("#cam",{scale:1.1400000000000001},{scale:1.08,duration:.14,ease:"power3.out"},3.661);
+tl.fromTo("#cam",{scale:1.36},{scale:1.3,duration:.14,ease:"power3.out"},4.598);
+tl.fromTo("#flash",{opacity:.85},{opacity:0,duration:.16},2.723);
+tl.fromTo("#pulse",{opacity:.9},{opacity:.25,duration:.6,ease:"power2.out"},2.723);
+tl.set("#win",{x:-30},2.723);
+tl.set("#gl",{opacity:1,y:0},2.723);
+tl.set("#win",{x:24},2.763);
+tl.set("#gl",{opacity:0.6,y:41},2.763);
+tl.set("#win",{x:-12},2.803);
+tl.set("#gl",{opacity:0.8,y:82},2.803);
+tl.set("#win",{x:0},2.843);
+tl.set("#gl",{opacity:0,y:33},2.843);
+tl.fromTo("#h1",{opacity:0,y:30,scale:.92},{opacity:1,y:0,scale:1,duration:.22,ease:"back.out(2)"},2.723);
+tl.set("#h1",{opacity:0},5.536);
+tl.fromTo("#c6",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},2.732);
+tl.set("#c6",{opacity:0},3.250);
+tl.fromTo("#c7",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},3.250);
+tl.set("#c7",{opacity:0},3.875);
+tl.fromTo("#c8",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},3.875);
+tl.set("#c8",{opacity:0},4.321);
+tl.fromTo("#c9",{opacity:0,scale:0.7},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},4.321);
+tl.set("#c9",{opacity:0},4.875);
+tl.fromTo("#c10",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},4.875);
+tl.set("#c10",{opacity:0},5.536);
+tl.fromTo("#cam",{scale:1.1400000000000001},{scale:1.08,duration:.14,ease:"power3.out"},5.536);
+tl.fromTo("#flash",{opacity:.85},{opacity:0,duration:.16},5.536);
+tl.fromTo("#pulse",{opacity:.9},{opacity:.25,duration:.6,ease:"power2.out"},5.536);
+tl.fromTo("#h2",{opacity:0,y:30,scale:.92},{opacity:1,y:0,scale:1,duration:.22,ease:"back.out(2)"},5.536);
+tl.set("#h2",{opacity:0},6.964);
+tl.fromTo("#c11",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},5.562);
+tl.set("#c11",{opacity:0},6.152);
+tl.fromTo("#c12",{opacity:0,scale:0.7},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},6.152);
+tl.set("#c12",{opacity:0},6.545);
+tl.fromTo("#c13",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},6.545);
+tl.set("#c13",{opacity:0},6.964);
+tl.fromTo("#cam",{scale:1.36},{scale:1.3,duration:.14,ease:"power3.out"},6.964);
+tl.fromTo("#cam",{scale:1.06},{scale:1.0,duration:.14,ease:"power3.out"},8.058);
+tl.fromTo("#cam",{scale:1.24},{scale:1.18,duration:.14,ease:"power3.out"},9.152);
+tl.fromTo("#cam",{scale:1.1400000000000001},{scale:1.08,duration:.14,ease:"power3.out"},10.246);
+tl.fromTo("#flash",{opacity:.85},{opacity:0,duration:.16},6.964);
+tl.fromTo("#pulse",{opacity:.9},{opacity:.25,duration:.6,ease:"power2.out"},6.964);
+tl.set("#win",{x:-30},6.964);
+tl.set("#gl",{opacity:1,y:0},6.964);
+tl.set("#win",{x:24},7.004);
+tl.set("#gl",{opacity:0.6,y:41},7.004);
+tl.set("#win",{x:-12},7.044);
+tl.set("#gl",{opacity:0.8,y:82},7.044);
+tl.set("#win",{x:0},7.084);
+tl.set("#gl",{opacity:0,y:33},7.084);
+tl.fromTo("#h3",{opacity:0,y:30,scale:.92},{opacity:1,y:0,scale:1,duration:.22,ease:"back.out(2)"},6.964);
+tl.set("#h3",{opacity:0},11.339);
+tl.fromTo("#c14",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},7.009);
+tl.set("#c14",{opacity:0},7.491);
+tl.fromTo("#c15",{opacity:0,scale:0.7},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},7.491);
+tl.set("#c15",{opacity:0},8.187);
+tl.fromTo("#c16",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},8.187);
+tl.set("#c16",{opacity:0},9.241);
+tl.fromTo("#c17",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},9.241);
+tl.set("#c17",{opacity:0},9.866);
+tl.fromTo("#c18",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},9.866);
+tl.set("#c18",{opacity:0},10.795);
+tl.fromTo("#c19",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},10.795);
+tl.set("#c19",{opacity:0},11.339);
+tl.fromTo("#cam",{scale:1.06},{scale:1.0,duration:.14,ease:"power3.out"},11.339);
+tl.fromTo("#cam",{scale:1.24},{scale:1.18,duration:.14,ease:"power3.out"},12.381);
+tl.fromTo("#cam",{scale:1.1400000000000001},{scale:1.08,duration:.14,ease:"power3.out"},13.423);
+tl.fromTo("#flash",{opacity:.85},{opacity:0,duration:.16},11.339);
+tl.fromTo("#pulse",{opacity:.9},{opacity:.25,duration:.6,ease:"power2.out"},11.339);
+tl.fromTo("#h4",{opacity:0,y:30,scale:.92},{opacity:1,y:0,scale:1,duration:.22,ease:"back.out(2)"},11.339);
+tl.set("#h4",{opacity:0},14.464);
+tl.fromTo("#c20",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},11.366);
+tl.set("#c20",{opacity:0},11.741);
+tl.fromTo("#c21",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},11.741);
+tl.set("#c21",{opacity:0},12.312);
+tl.fromTo("#c22",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},12.312);
+tl.set("#c22",{opacity:0},12.705);
+tl.fromTo("#c23",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},12.705);
+tl.set("#c23",{opacity:0},13.295);
+tl.fromTo("#c24",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},13.295);
+tl.set("#c24",{opacity:0},13.491);
+tl.fromTo("#c25",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},13.491);
+tl.set("#c25",{opacity:0},14.134);
+tl.fromTo("#c26",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},14.134);
+tl.set("#c26",{opacity:0},14.464);
+tl.fromTo("#cam",{scale:1.24},{scale:1.18,duration:.14,ease:"power3.out"},14.464);
+tl.fromTo("#cam",{scale:1.1400000000000001},{scale:1.08,duration:.14,ease:"power3.out"},15.327);
+tl.fromTo("#cam",{scale:1.36},{scale:1.3,duration:.14,ease:"power3.out"},16.190);
+tl.fromTo("#flash",{opacity:.85},{opacity:0,duration:.16},14.464);
+tl.fromTo("#pulse",{opacity:.9},{opacity:.25,duration:.6,ease:"power2.out"},14.464);
+tl.set("#win",{x:-30},14.464);
+tl.set("#gl",{opacity:1,y:0},14.464);
+tl.set("#win",{x:24},14.504);
+tl.set("#gl",{opacity:0.6,y:41},14.504);
+tl.set("#win",{x:-12},14.544);
+tl.set("#gl",{opacity:0.8,y:82},14.544);
+tl.set("#win",{x:0},14.584);
+tl.set("#gl",{opacity:0,y:33},14.584);
+tl.fromTo("#h5",{opacity:0,y:30,scale:.92},{opacity:1,y:0,scale:1,duration:.22,ease:"back.out(2)"},14.464);
+tl.set("#h5",{opacity:0},17.054);
+tl.fromTo("#c27",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},14.536);
+tl.set("#c27",{opacity:0},15.232);
+tl.fromTo("#c28",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},15.232);
+tl.set("#c28",{opacity:0},15.857);
+tl.fromTo("#c29",{opacity:0,scale:0.7},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},15.857);
+tl.set("#c29",{opacity:0},16.571);
+tl.fromTo("#c30",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},16.571);
+tl.set("#c30",{opacity:0},17.054);
+tl.fromTo("#cam",{scale:1.1400000000000001},{scale:1.08,duration:.14,ease:"power3.out"},17.054);
+tl.fromTo("#cam",{scale:1.36},{scale:1.3,duration:.14,ease:"power3.out"},17.946);
+tl.fromTo("#flash",{opacity:.85},{opacity:0,duration:.16},17.054);
+tl.fromTo("#pulse",{opacity:.9},{opacity:.25,duration:.6,ease:"power2.out"},17.054);
+tl.fromTo("#h6",{opacity:0,y:30,scale:.92},{opacity:1,y:0,scale:1,duration:.22,ease:"back.out(2)"},17.054);
+tl.set("#h6",{opacity:0},18.839);
+tl.fromTo("#c31",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},17.205);
+tl.set("#c31",{opacity:0},17.973);
+tl.fromTo("#c32",{opacity:0,scale:0.88},{opacity:1,scale:1,duration:.12,ease:"back.out(2.5)"},17.973);
+tl.set("#c32",{opacity:0},18.809);
+tl.fromTo("#bar",{scaleX:0},{scaleX:1,duration:18.839,ease:"none"},0);
+tl.set("#endc",{opacity:1},18.839);
+tl.fromTo("#endc .e1",{opacity:0,y:-40},{opacity:1,y:0,duration:.3,ease:"power3.out"},18.889);
+tl.fromTo("#endc .e2",{opacity:0,scale:1.6,filter:"blur(16px)"},{opacity:1,scale:1,filter:"blur(0px)",duration:.35,ease:"power3.out"},19.039);
+tl.fromTo("#endc .e3",{opacity:0},{opacity:1,duration:.3},19.439);
+tl.fromTo("#endc .arrow",{opacity:0,y:-30},{opacity:1,y:0,duration:.3,ease:"back.out(2)"},19.739);
+tl.to("#endc .arrow",{y:26,duration:.45,ease:"sine.inOut",yoyo:true,repeat:3},20.089);
+window.__timelines["short"] = tl;
+</script>
+</body></html>
