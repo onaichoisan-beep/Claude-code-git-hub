@@ -46,8 +46,9 @@ the owner asks for it.
 
 ## The pacing (viral format)
 
-1. **Hook in the first 1.5–2s**: cold open on the most shocking moment (flash, shake, boom) + one punchy line.
-2. **Rewind glitch** (`glitchRows`) into the story at ~1.6s.
+1. **No cold-open hook, no rewind glitch at the start** (owner's rule, Oct 31 2026): start straight in the story's flow;
+   the first text card is the hook line.
+2. (removed: the old 1.6 s rewind glitch)
 3. A new beat every **2–4s**, continuous camera moves (zooms/dives/pull-backs), scene changes via dither dissolve.
 4. Twist near the end ("Hanu means jaw", "Blue is the hardest to make", "Don't try this").
 5. **Loop**: the last frame returns to the hook so replays are seamless.

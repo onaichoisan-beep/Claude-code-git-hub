@@ -98,3 +98,9 @@ Measured: about 3.3 sound hits per second, a sound bed that never goes quiet (on
 - **The ending:** a tape-stop (everything pitches down and slows to a halt), then a rewind sweep up into the opening frame
   for the loop.
 - **Counter at the very top, big:** "0 LIGHT", "10 CLICKS/SEC", "MOTH 1 : BAT 0"; it changes colour at the twist (green -> pink).
+
+### No cold-open hook (owner's rule, Oct 31 2026; overrides section 4)
+
+Do NOT open with a 1-2 s flash-forward "hook" + rewind glitch: it makes the video worse. Start straight in the story's
+flow (frame 1 is the story's first moment); the FIRST TEXT CARD is the hook line. The ending still loops: tape-stop, then
+a short rewind glitch that lands exactly on frame 1.
