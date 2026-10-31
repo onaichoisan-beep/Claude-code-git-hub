@@ -20,6 +20,13 @@ current look). The one-page rules are in `/STYLE_GUIDE.md`. Follow them without 
 - When done: send the MP4(s), summarise the story beat by beat, note any fixes and fact corrections,
   and include an **Instagram caption** in their format (below). Commit and push.
 
+## Engagement (owner's rule, Oct 31 2026): read STYLE_GUIDE.md section 6 first
+
+Handle `@SCROLL2STUDY.IN` on every frame (engine does it), an 8-bit beat bed that never stops, a sound on every text card /
+counter tick / cut (3+ hits per second), the main object as a character with a face, a live counter on screen the whole time,
+one continuous camera journey, a call to action inside the video, and a perfect loop. Text-only (no narration) is fine when
+the owner asks for it.
+
 ## The look: SHARP HD pixel art (owner's rule, Oct 2026; full rules in /STYLE_GUIDE.md)
 
 - 9:16, **1080×1920 @ 30fps**. Scenes are written in a **180×320 world**, rendered **sharp at 360×640**

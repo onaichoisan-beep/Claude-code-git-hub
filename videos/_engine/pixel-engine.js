@@ -185,7 +185,7 @@ var FONT = {
   "'": "00100001000100000000000000000000000", "!": "00100001000010000100001000000000100", ":": "00000011000110000000011000110000000",
   "-": "00000000000000011111000000000000000", "%": "11001110010001000100010001001110011", "/": "00001000010001000100010001000010000",
   "+": "00000001000010011111001000010000000", "=": "00000000001111100000111110000000000", "~": "00000000000100010101000100000000000",
-  "$": "00100011111010001110001011111000100", "#": "01010010101111101010111110101001010", "[": "01110010000100001000010000100001110", "]": "01110000100001000010000100001001110", "(": "00010001000100001000010000010000010", ")": "01000001000001000010000100010001000",
+  "@": "01110100011011110101101111000001111", "_": "00000000000000000000000000000011111", "$": "00100011111010001110001011111000100", "#": "01010010101111101010111110101001010", "[": "01110010000100001000010000100001110", "]": "01110000100001000010000100001001110", "(": "00010001000100001000010000010000010", ")": "01000001000001000010000100010001000",
   " ": "00000000000000000000000000000000000",
 };
 var CAPTIONS = [];
@@ -267,7 +267,29 @@ PX.render = function (t) {
   u.clearRect(0, 0, ui.width, ui.height);
   CAPTIONS.forEach(function (c) { if (t >= c.a && t < c.b) drawCaption(c, t); });
   if (cfg.ui) cfg.ui(t);
+  drawHandle(t);
 };
+
+// ---------------------------------------------------------------- the channel handle, on every frame
+// Small and subtle (like a signature), centred under the action, above the Reels UI. Override with
+// window.PX_HANDLE = "..." (uppercase; "" turns it off) and window.PX_HANDLE_Y (caption-canvas px, 0..640).
+var HANDLE = window.PX_HANDLE === undefined ? "@SCROLL2STUDY.IN" : window.PX_HANDLE;
+var HANDLE_Y = window.PX_HANDLE_Y || 492;
+function drawHandle(t) {
+  if (!HANDLE) return;
+  var w = HANDLE.length * 6 - 1, x = Math.round(180 - w / 2);
+  u.save();
+  u.globalAlpha = 0.55; textAt(HANDLE, x + 1, HANDLE_Y + 1, "#0a0614");
+  u.globalAlpha = 0.6; textAt(HANDLE, x, HANDLE_Y, "#ffffff");
+  u.restore();
+}
+function textAt(str, x, y, col) {
+  u.fillStyle = col;
+  for (var i = 0; i < str.length; i++) {
+    var gl = FONT[str[i]] || FONT[" "];
+    for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 + (p % 5), y + Math.floor(p / 5), 1, 1);
+  }
+}
 
 // ---------------------------------------------------------------- post effects (operate on ImageData)
 // VHS-style rewind tear: rows slide sideways in bands, with bright scan lines

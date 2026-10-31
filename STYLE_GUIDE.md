@@ -63,3 +63,24 @@ videos/_engine/new_video.sh <slug>      # starts from videos/_template (sharp en
 
 `videos/style-sample/` is the reference: a narrator, a kid and a cat with their own voices, outlined,
 sharp, with CC0 + sfxr sound. The full workflow is in `.claude/skills/pixel-short/SKILL.md`.
+
+## 6. Engagement rules learned from @science_in_8bit (owner's reference, Oct 31 2026)
+
+Reference reels: salt grain (zoom into the atoms), knuckle crack, liver regrowing. Simple everyday topics, millions of views.
+Measured: about 3.3 sound hits per second, a sound bed that never goes quiet (only 1-3% of frames silent), mean level about -15 dBFS.
+
+- **The handle on every frame:** `@SCROLL2STUDY.IN`, small and subtle, centred under the action. The engine's
+  `drawHandle()` does it automatically (`window.PX_HANDLE` / `PX_HANDLE_Y` to adjust).
+- **A beat that never stops:** an 8-bit music bed under everything: a kick on every beat (~125-135 BPM), a square-wave
+  bassline, short arpeggio melodies, hi-hats. It drops out for half a second just before a big reveal, then slams back in.
+  No long wind/boil noise beds.
+- **A sound on every change:** a blip/pop on every new text card, a click on every counter tick, a whoosh + hit on every cut,
+  a riser into every reveal. Aim for 3+ hits per second.
+- **The subject is the character:** the salt shaker, the joint, the liver have faces and react ("NO PROBLEM.", "NOPE.",
+  "AND ME?" speech bubbles). Give the main object eyes and a personality.
+- **A live counter on screen the whole time:** ZOOM x1 -> x95,000,000, a 20:00 countdown, LIVER SIZE 30% -> 100%, DAY 9.
+  It ticks constantly, so the viewer always sees something changing.
+- **One continuous camera journey** (a zoom from the kitchen table down to atoms) rather than many unrelated scenes.
+- **Text cards: 3-6 words, one gold keyword, a new one every ~2 s,** the question/answer rhythm ("WHY A CUBE?" -> "ATOMS!").
+- **Topic shape:** one everyday thing + one surprising mechanism + one myth-bust or record + a call to action inside the video
+  ("SEND THIS TO YOUR KNUCKLE CRACKER"), then the last frame is the first frame. 30-38 s.
