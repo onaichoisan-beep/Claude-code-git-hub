@@ -46,30 +46,30 @@ S = [
   {foot(2)}
 </section>''',
     f'''<section class="s" id="s3">
-  <div class="kick">the mindset</div>
-  <h2>your skills are<br>your salary.</h2>
+  <div class="kick">the experiment</div>
+  <h2>I tested 4 ways<br>in my 1st year.</h2>
   <div class="rule"></div>
   <div class="ladder">
-    <p><i>01</i>more skill = more money</p>
-    <p><i>02</i>better skill = more money</p>
-    <p><i>03</i>₹0 investment. just start.</p>
+    <p><i>01</i>no investment.</p>
+    <p><i>02</i>no degree needed.</p>
+    <p><i>03</i>all doable while studying.</p>
   </div>
-  {nxt("here are the 4 ways I tested")}
+  {nxt("ready? way 01 paid me the most")}
   {foot(3)}
 </section>''',
-    way(4, "01", "UGC content<br>creation", ["short videos for brands.", "paid in money + products.", "can be 100% faceless."],
-        "₹60K+", "earned from this alone", "the forms brands use to find you? in the video"),
-    way(5, "02", "content<br>creation", ["start a page. stay consistent.", "one viral video changes everything.", "brands send free books &amp; courses."],
-        "800", "subs when I got my first paid collab", "how I pitched brands at 800 subs"),
-    way(6, "03", "online<br>tutoring", ["only good at studies? enough.", "teach what juniors find hard.", "local coachings value real knowledge."],
-        "₹0", "investment needed", "where to find your first students"),
-    way(7, "04", "freelancing", ["learn video editing.", "DM creators &amp; YouTubers.", "send samples, raise your price."],
-        "₹3–4K", "per video edit", "how to land your first client"),
+    way(4, "01", "the one that<br>paid me the most.", ["brands pay for it.", "you don’t even have to show your face."],
+        "₹60K+", "from this one way alone", "what is it? watch the video"),
+    way(5, "02", "it worked before<br>I had 1,000 subs.", ["one video changed everything.", "that’s all it took."],
+        "800", "subscribers when I got my first paid deal", "how did I get it? watch the video"),
+    way(6, "03", "you already<br>have this skill.", ["if you’re good at studies,", "you’re halfway there."],
+        "₹0", "needed to start", "what is it? find out in the video"),
+    way(7, "04", "the skill<br>behind this video.", ["creators need it", "every single week."],
+        "₹3–4K", "per project", "how do you land the first client? watch the video"),
     f'''<section class="s" id="s8">
   <div class="kick">watch the full video</div>
   <h2>the full breakdown<br>is on YouTube.</h2>
   <div class="tv"><img src="thumb.png" alt=""></div>
-  <p class="title">How to Earn Money as a Medical Student<br>(4 Ways, No Investment)</p>
+  <p class="title">all 4 ways + the exact steps to start. ▶</p>
   <div class="bio">link in bio <b>↗</b></div>
   {foot(8)}
 </section>''',
