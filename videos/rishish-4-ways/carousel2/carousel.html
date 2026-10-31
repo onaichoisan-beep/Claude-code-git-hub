@@ -1,0 +1,166 @@
+<!doctype html><html><head><meta charset="utf-8"><style>@font-face { font-family: 'Fraunces'; font-weight: 900; src: url('fonts/Fraunces-900.woff2'); }
+@font-face { font-family: 'Bagel'; src: url('fonts/BagelFatOne-400.woff2'); }
+@font-face { font-family: 'DM Sans'; font-weight: 100 1000; src: url('fonts/DMSans-800.woff2'); }
+:root { --butter: #feefb8; --line: #f4dd98; --choc: #3d2a2b; --sky: #bfd7ea; --orange: #e8733a; --gold: #f2c14e;
+  --cream: #fff9ec; --blush: #f5a6a6; --brown: #6b4a4a; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #999; display: flex; flex-direction: column; gap: 40px; padding: 40px; }
+.s { position: relative; width: 1080px; height: 1350px; overflow: hidden; color: var(--choc); font-family: 'DM Sans';
+  background: var(--butter); background-image: repeating-linear-gradient(180deg, transparent 0 58px, var(--line) 58px 61px); }
+
+.head { position: absolute; left: 64px; right: 64px; top: 56px; display: flex; justify-content: space-between; align-items: center;
+  padding-bottom: 22px; border-bottom: 5px solid var(--choc); font-weight: 800; letter-spacing: 4px; font-size: 24px; }
+.head .tag { color: var(--brown); }
+.foot { position: absolute; left: 0; right: 0; bottom: 44px; text-align: center; font-weight: 800; font-size: 24px;
+  letter-spacing: 5px; text-transform: uppercase; color: var(--brown); }
+
+.pixy { position: absolute; filter: drop-shadow(0 6px 0 rgba(61,42,43,.08)); }
+h1, h2 { font-family: 'Fraunces'; font-weight: 900; line-height: .9; letter-spacing: -3px; }
+
+.bubble { position: absolute; padding: 26px 34px; background: var(--cream); border: 5px solid var(--choc); border-radius: 40px;
+  font-family: 'Bagel'; font-size: 44px; line-height: 1.08; box-shadow: 8px 8px 0 var(--choc); }
+.bubble::after { content: ""; position: absolute; width: 40px; height: 40px; background: var(--cream); border: 5px solid var(--choc);
+  border-top: 0; border-left: 0; transform: rotate(45deg); }
+
+.sticker { position: absolute; width: 300px; height: 300px; border-radius: 50%; border: 5px solid var(--choc); box-shadow: 8px 8px 0 var(--choc);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.sticker b { font-family: 'Bagel'; font-weight: 400; font-size: 76px; line-height: 1; }
+.sticker span { margin-top: 8px; font-weight: 800; font-size: 25px; line-height: 1.15; letter-spacing: 1px; text-transform: uppercase; }
+.sticker.gold { background: var(--gold); } .sticker.orange { background: var(--orange); color: var(--cream); } .sticker.sky { background: var(--sky); }
+
+.card { position: absolute; background: var(--cream); border: 5px solid var(--choc); border-radius: 34px; box-shadow: 10px 10px 0 var(--choc); }
+.card ul { list-style: none; padding: 40px 44px; }
+.card li { position: relative; padding-left: 52px; font-size: 38px; font-weight: 500; line-height: 1.2; }
+.card li + li { margin-top: 26px; }
+.card li::before { content: ""; position: absolute; left: 0; top: 8px; width: 28px; height: 28px; border-radius: 50%; background: var(--orange); border: 4px solid var(--choc); }
+.card li:nth-child(2)::before { background: var(--sky); } .card li:nth-child(3)::before { background: var(--gold); }
+.card b { font-weight: 800; }
+
+.next { position: absolute; left: 64px; right: 64px; bottom: 110px; display: flex; align-items: center; gap: 22px; padding: 22px 30px;
+  background: var(--choc); color: var(--cream); border-radius: 26px; font-size: 32px; font-weight: 700; }
+.next span { flex: none; font-family: 'Bagel'; font-size: 34px; background: var(--gold); color: var(--choc); padding: 6px 20px 2px; border-radius: 16px; }
+
+/* 1 cover */
+.c1 { position: absolute; left: 64px; top: 150px; font-size: 138px; }
+.c1sub { position: absolute; left: 68px; top: 560px; font-size: 36px; font-weight: 700; color: var(--brown); }
+.c1st { left: 70px; top: 820px; width: 270px; height: 270px; transform: rotate(-6deg); }
+.c1st b { font-size: 50px; }
+.c1p { right: 60px; bottom: 110px; }
+.c1b { left: 360px; top: 650px; font-size: 38px; }
+.c1b::after { right: -25px; top: 40px; transform: rotate(-45deg); }
+.swipe { position: absolute; left: 90px; bottom: 120px; padding: 18px 40px 12px; border-radius: 40px; background: var(--choc); color: var(--cream);
+  font-family: 'Bagel'; font-size: 44px; }
+
+/* 2, 3 */
+.t2 { position: absolute; left: 64px; top: 160px; font-size: 112px; }
+.p2 { left: 70px; bottom: 210px; }
+.b2 { left: 330px; top: 420px; }
+.b2::after { left: 40px; bottom: -25px; }
+.stat { right: 64px; bottom: 240px; width: 500px; padding: 40px 40px 36px; text-align: center; }
+.stat .lbl { font-weight: 800; font-size: 28px; letter-spacing: 2px; text-transform: uppercase; }
+.stat .num { white-space: nowrap; font-family: 'Bagel'; font-size: 118px; color: var(--orange); line-height: 1.05; margin: 6px 0; }
+.stat .small { margin-top: 14px; font-size: 28px; color: var(--brown); font-weight: 600; }
+.p3 { right: 60px; bottom: 210px; }
+.ladder { position: absolute; left: 64px; top: 470px; width: 600px; }
+.step { display: flex; align-items: center; gap: 22px; padding: 26px 30px; background: var(--cream); border: 5px solid var(--choc); border-radius: 28px;
+  box-shadow: 8px 8px 0 var(--choc); font-size: 34px; font-weight: 800; }
+.step + .step { margin-top: 30px; }
+.step.s2 { margin-left: 30px; } .step.s3 { margin-left: 60px; background: var(--sky); }
+.step i { flex: none; width: 58px; height: 58px; border-radius: 50%; background: var(--gold); border: 4px solid var(--choc); font-style: normal;
+  font-family: 'Bagel'; font-size: 34px; display: grid; place-items: center; padding-top: 4px; }
+.b3 { right: 70px; top: 300px; font-size: 38px; }
+.b3::after { right: 90px; bottom: -25px; }
+
+/* ways */
+.wnum { position: absolute; left: 64px; top: 150px; width: 128px; height: 128px; border-radius: 50%; background: var(--sky); border: 5px solid var(--choc);
+  box-shadow: 6px 6px 0 var(--choc); font-family: 'Bagel'; font-size: 60px; display: grid; place-items: center; padding-top: 8px; }
+.wt { position: absolute; left: 64px; top: 300px; font-size: 118px; }
+.wc { left: 400px; right: 64px; top: 620px; }
+.wst { right: 70px; top: 150px; width: 270px; height: 270px; transform: rotate(6deg); }
+.wst b { font-size: 66px; }
+.wp { left: 90px; bottom: 210px; }
+#s4 .wp { left: 40px; }
+
+/* 8 end */
+.t8 { position: absolute; left: 0; right: 0; top: 150px; text-align: center; font-size: 104px; }
+.tv { position: absolute; left: 110px; right: 110px; top: 360px; border: 6px solid var(--choc); border-radius: 30px; overflow: hidden; box-shadow: 12px 12px 0 var(--choc); }
+.tv img { display: block; width: 100%; }
+.yt { position: absolute; left: 390px; right: 70px; top: 920px; display: flex; gap: 18px; align-items: flex-start; font-size: 34px; font-weight: 800; line-height: 1.2; }
+.yt .play { flex: none; width: 66px; height: 48px; margin-top: 2px; border-radius: 13px; background: #ff0000; border: 4px solid var(--choc); position: relative; }
+.yt .play::after { content: ""; position: absolute; left: 22px; top: 9px; border-left: 19px solid #fff; border-top: 11px solid transparent; border-bottom: 11px solid transparent; }
+.p8 { left: 70px; bottom: 100px; height: 350px !important; }
+.bio { position: absolute; left: 390px; top: 1070px; padding: 16px 36px 10px; border-radius: 40px; background: var(--orange); color: var(--cream);
+  border: 5px solid var(--choc); box-shadow: 6px 6px 0 var(--choc); font-family: 'Bagel'; font-size: 44px; }
+</style></head><body>
+<section class="s" id="s1"><div class="head"><span class="brand">DR. DRAGON’S MONEY NOTES</span><span class="tag">1ST YEAR MBBS · REAL NUMBERS</span></div>
+  <h1 class="c1">why you<br>need your<br>own money</h1>
+  <div class="c1sub">(and the 4 ways I made it in college)</div>
+  <div class="sticker gold c1st"><b>₹80,000</b><span>earned in<br>1st year</span></div>
+  <img class="pixy c1p" src="pixy/attitude.png" style="height:700px" alt="">
+  <div class="bubble c1b">ghar se paise?<br>not anymore.</div>
+  <div class="swipe">swipe &nbsp;→</div>
+  <div class="foot">save for later &amp; follow for more</div>
+</section><section class="s" id="s2"><div class="head"><span class="brand">DR. DRAGON’S MONEY NOTES</span><span class="tag">THE PROBLEM</span></div>
+  <h2 class="t2">ghar se paise?<br>ajeeb lagta hai.</h2>
+  <img class="pixy p2" src="pixy/facepalm.png" style="height:600px" alt="">
+  <div class="bubble b2">every ₹500 =<br>a full interrogation</div>
+  <div class="card stat"><div class="lbl">most students spend</div><div class="num">7+ hrs</div>
+    <div class="lbl">a day on their phone</div><div class="small">that’s 200+ hours a month</div></div>
+  <div class="next"><span>next</span>what if those hours paid you?</div>
+  <div class="foot">save for later &amp; follow for more</div>
+</section><section class="s" id="s3"><div class="head"><span class="brand">DR. DRAGON’S MONEY NOTES</span><span class="tag">THE MINDSET</span></div>
+  <h2 class="t2">your skills are<br>your salary.</h2>
+  <img class="pixy p3" src="pixy/think.png" style="height:600px" alt="">
+  <div class="ladder">
+    <div class="step s1"><i>1</i>more skill → more money</div>
+    <div class="step s2"><i>2</i>better skill → more money</div>
+    <div class="step s3"><i>3</i>₹0 investment. just start.</div>
+  </div>
+  <div class="bubble b3">hmm… so which<br>skills pay?</div>
+  <div class="next"><span>next</span>the 4 ways I actually tested</div>
+  <div class="foot">save for later &amp; follow for more</div>
+</section><section class="s" id="s4"><div class="head"><span class="brand">DR. DRAGON’S MONEY NOTES</span><span class="tag">WAY 01 / 04</span></div>
+  <div class="wnum">01</div>
+  <h2 class="wt">UGC content<br>creation</h2>
+  <div class="card wc"><ul><li>short videos <b>for brands</b></li><li>paid in <b>money + products</b></li><li><b>100% faceless</b> option</li></ul></div>
+  <div class="sticker orange wst"><b>₹60K+</b><span>earned from<br>this alone</span></div>
+  <img class="pixy wp" src="pixy/point.png" style="height:560px" alt="">
+  
+  <div class="next"><span>next</span>the forms brands use to find you → in the video</div>
+  <div class="foot">save for later &amp; follow for more</div>
+</section><section class="s" id="s5"><div class="head"><span class="brand">DR. DRAGON’S MONEY NOTES</span><span class="tag">WAY 02 / 04</span></div>
+  <div class="wnum">02</div>
+  <h2 class="wt">content<br>creation</h2>
+  <div class="card wc"><ul><li>start a page, <b>stay consistent</b></li><li><b>1 viral video</b> changes everything</li><li>free books &amp; courses from brands</li></ul></div>
+  <div class="sticker gold wst"><b>800</b><span>subs → my 1st<br>paid collab</span></div>
+  <img class="pixy wp" src="pixy/celebrate.png" style="height:560px" alt="">
+  
+  <div class="next"><span>next</span>how I pitched brands at 800 subs → video</div>
+  <div class="foot">save for later &amp; follow for more</div>
+</section><section class="s" id="s6"><div class="head"><span class="brand">DR. DRAGON’S MONEY NOTES</span><span class="tag">WAY 03 / 04</span></div>
+  <div class="wnum">03</div>
+  <h2 class="wt">online<br>tutoring</h2>
+  <div class="card wc"><ul><li>only good at studies? <b>enough</b></li><li>teach what <b>juniors find hard</b></li><li>local coachings value real knowledge</li></ul></div>
+  <div class="sticker sky wst"><b>₹0</b><span>investment<br>needed</span></div>
+  <img class="pixy wp" src="pixy/wave.png" style="height:560px" alt="">
+  
+  <div class="next"><span>next</span>where to find your first students → video</div>
+  <div class="foot">save for later &amp; follow for more</div>
+</section><section class="s" id="s7"><div class="head"><span class="brand">DR. DRAGON’S MONEY NOTES</span><span class="tag">WAY 04 / 04</span></div>
+  <div class="wnum">04</div>
+  <h2 class="wt">freelancing</h2>
+  <div class="card wc"><ul><li>learn <b>video editing</b></li><li><b>DM</b> creators &amp; YouTubers</li><li>send samples, <b>raise your price</b></li></ul></div>
+  <div class="sticker orange wst"><b>₹3–4K</b><span>per video<br>edit</span></div>
+  <img class="pixy wp" src="pixy/hips.png" style="height:560px" alt="">
+  
+  <div class="next"><span>next</span>how to land your first client → video</div>
+  <div class="foot">save for later &amp; follow for more</div>
+</section><section class="s" id="s8"><div class="head"><span class="brand">DR. DRAGON’S MONEY NOTES</span><span class="tag">WATCH THE FULL VIDEO</span></div>
+  <h2 class="t8">the full breakdown<br>is on YouTube</h2>
+  <div class="tv"><img src="thumb.png" alt=""></div>
+  <div class="yt"><span class="play"></span>How to Earn Money as a Medical Student (4 Ways, No Investment)</div>
+  <img class="pixy p8" src="pixy/point.png" style="height:430px" alt="">
+  <div class="bio">link in bio ↗</div>
+  <div class="foot">save for later &amp; follow for more</div>
+</section>
+</body></html>
