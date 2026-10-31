@@ -25,18 +25,17 @@ html,body { width:1920px; height:1080px; overflow:hidden; background:#000; }
 #b-hair { background-color:#15131c; background-size:auto 104%; background-position:0px 30%; background-repeat:no-repeat; }
 .shade { position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,0) 28%,rgba(0,0,0,0) 62%,rgba(0,0,0,.5) 100%); }
 #flash { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; }
-/* captions */
-.capzone { position:absolute; left:0; right:0; bottom:64px; height:190px; }
-.cap { position:absolute; left:0; right:0; bottom:0; display:flex; justify-content:center; align-items:center; gap:0 20px; white-space:nowrap; opacity:0; }
-.w { display:inline-block; position:relative; font-weight:900; font-size:60px; letter-spacing:-.5px; text-transform:uppercase; line-height:1.15;
-  text-shadow:0 4px 0 rgba(0,0,0,.35),0 0 26px rgba(0,0,0,.55); opacity:0; }
-.w.big { font-size:84px; }
-.w.ky { color:var(--yel); } .w.kr { color:#ff4a4a; }
-.hlw .hl { position:absolute; left:-16px; right:-16px; top:8px; bottom:4px; border-radius:14px; background:var(--yel); box-shadow:0 10px 30px rgba(0,0,0,.35); }
-.hlw.kr .hl { background:var(--red); }
-.hlw .tx { position:relative; }
-.hlw.ky .tx { color:var(--dark); text-shadow:none; }
-.hlw.kr .tx { color:#fff; text-shadow:none; }
+/* captions: reference style (white setup, big yellow/red keyword, stacked, beside the face) */
+.capzone { position:absolute; inset:0; }
+.cap { position:absolute; display:flex; flex-direction:column; align-items:center; text-align:center; opacity:0; width:820px; }
+.cap.z-right { left:1060px; top:560px; } .cap.z-left { left:60px; top:560px; }
+.cap.z-low { left:50%; margin-left:-700px; width:1400px; bottom:60px; }
+.cap.z-menu { left:80px; width:1000px; bottom:70px; }
+.ln { display:flex; justify-content:center; flex-wrap:wrap; gap:0 18px; }
+.w { display:inline-block; font-weight:900; font-size:54px; letter-spacing:-.5px; text-transform:uppercase; line-height:1.02; color:#fff;
+  text-shadow:0 6px 18px rgba(0,0,0,.75),0 2px 4px rgba(0,0,0,.6); opacity:0; }
+.w.big { font-size:112px; line-height:.98; letter-spacing:-1.5px; }
+.w.ky { color:var(--yel); } .w.kr { color:#ff3b30; }
 /* jokes + stickers */
 .joke { position:absolute; }
 .jin { display:flex; align-items:center; gap:14px; padding:16px 26px; border-radius:20px; background:#fff; color:#15111b; box-shadow:0 16px 40px rgba(0,0,0,.45); }
@@ -49,7 +48,7 @@ html,body { width:1920px; height:1080px; overflow:hidden; background:#000; }
   border:1px solid rgba(255,255,255,.14); box-shadow:0 14px 40px rgba(0,0,0,.35); }
 .chip .t0 { font-weight:900; font-size:28px; letter-spacing:3px; color:var(--pink); }
 .chip .t1 { font-weight:900; font-size:52px; line-height:1.05; color:var(--yel); }
-#lt { position:absolute; left:72px; bottom:300px; }
+#lt { position:absolute; left:72px; top:64px; }
 #lt .tag { display:inline-block; background:var(--pink); font-weight:900; font-size:28px; letter-spacing:3px; padding:6px 14px; border-radius:8px; }
 #lt .n { font-weight:900; font-size:76px; line-height:1.05; margin-top:10px; text-shadow:0 4px 18px rgba(0,0,0,.6); }
 #lt .line { height:6px; width:540px; background:linear-gradient(90deg,var(--yel),var(--pink)); border-radius:4px; margin:12px 0 10px; transform-origin:0 50%; }
@@ -92,9 +91,7 @@ html,body { width:1920px; height:1080px; overflow:hidden; background:#000; }
     <div id="freeze" class="clip" data-start="6.6" data-duration="0.8" data-track-index="1"></div>
   </div></div>
   <video id="gift" src="assets/footage/bts-gift.mp4" muted playsinline data-start="65.0" data-duration="3.0" data-track-index="1"></video>
-<div class="bwrap" id="w-b-salon"><video id="b-salon" class="clip bvid" src="assets/broll/salon.mp4" muted playsinline data-start="36.45" data-duration="2.45" data-track-index="2"></video></div>
 <div class="bwrap" id="w-b-botox"><video id="b-botox" class="clip bvid" src="assets/broll/botox.mp4" muted playsinline data-start="39.4" data-duration="2.3" data-track-index="2"></video></div>
-<div class="bwrap" id="w-b-skin"><video id="b-skin" class="clip bvid" src="assets/broll/skincare.mp4" muted playsinline data-start="42.65" data-duration="1.85" data-track-index="2"></video></div>
 <div class="bwrap" id="w-b-hair"><div id="b-hair" class="clip bimg" data-start="51.55" data-duration="1.75" data-track-index="2" style="background-image:url(assets/img/I2.jpg)"></div></div>
 <div class="bwrap" id="w-b-laser"><video id="b-laser" class="clip bvid" src="assets/broll/laser.mp4" muted playsinline data-start="53.65" data-duration="1.75" data-track-index="2"></video></div>
 <div class="bwrap" id="w-b-slim"><video id="b-slim" class="clip bvid" src="assets/broll/waist.mp4" muted playsinline data-start="57.3" data-duration="1.75" data-track-index="2"></video></div>
@@ -112,46 +109,45 @@ html,body { width:1920px; height:1080px; overflow:hidden; background:#000; }
 <div id="j5" class="clip joke" data-start="51.6" data-duration="1.7" data-track-index="8" style="left:130px;top:190px"><div class="jin" style="transform:rotate(-3deg)"><span class="jt">she&#x27;s still going</span><span class="je">😳</span></div></div>
 <div id="s1" class="clip stick" data-start="1.5" data-duration="1.75" data-track-index="9" style="left:860px;top:110px"><span class="sin" style="transform:rotate(10deg)">🇹🇭</span></div>
 <div id="s2" class="clip stick" data-start="24.9" data-duration="0.85" data-track-index="9" style="left:880px;top:430px"><span class="sin" style="transform:rotate(-8deg)">🔥</span></div>
-<div id="s3" class="clip stick" data-start="7.55" data-duration="2.35" data-track-index="9" style="left:230px;top:520px"><span class="sin" style="transform:rotate(8deg)">🎤</span></div>
 <div id="s4" class="clip stick" data-start="59.85" data-duration="2.1" data-track-index="9" style="left:1000px;top:140px"><span class="sin" style="transform:rotate(8deg)">✨</span></div>
 <div id="s5" class="clip stick" data-start="62.8" data-duration="2.2" data-track-index="9" style="left:1540px;top:520px"><span class="sin" style="transform:rotate(0deg)">👉</span></div>
   <div id="flash"></div>
 
   <div id="captions" class="clip capzone" data-start="0" data-duration="65.0" data-track-index="7">
-<div class="cap" id="cap0"><span class="w" id="cw0_0">WE&#x27;LL CREATE A</span><span class="w ky big" id="cw0_1">MINI</span><span class="w ky big hlw" id="cw0_2"><span class="hl" id="hl0_2"></span><span class="tx">BANGKOK</span></span></div>
-<div class="cap" id="cap1"><span class="w" id="cw1_0">TREATMENT</span><span class="w ky big hlw" id="cw1_1"><span class="hl" id="hl1_1"></span><span class="tx">HERE</span></span></div>
-<div class="cap" id="cap2"><span class="w" id="cw2_0">LET&#x27;S HOPE</span><span class="w ky big hlw" id="cw2_1"><span class="hl" id="hl2_1"></span><span class="tx">FOR THE BEST</span></span></div>
-<div class="cap" id="cap3"><span class="w" id="cw3_0">WHEN YOU SEE THIS…</span><span class="w ky big hlw" id="cw3_1"><span class="hl" id="hl3_1"></span><span class="tx">MASSAGE</span></span><span class="w" id="cw3_2">FOR THE LEGS</span></div>
-<div class="cap" id="cap4"><span class="w" id="cw4_0">WHAT</span><span class="w ky big hlw" id="cw4_1"><span class="hl" id="hl4_1"></span><span class="tx">TREATMENTS</span></span></div>
-<div class="cap" id="cap5"><span class="w" id="cw5_0">DO YOU</span><span class="w ky big hlw" id="cw5_1"><span class="hl" id="hl5_1"></span><span class="tx">SPECIALIZE IN?</span></span></div>
-<div class="cap" id="cap6"><span class="w" id="cw6_0">THANK YOU SO MUCH</span><span class="w ky big hlw" id="cw6_1"><span class="hl" id="hl6_1"></span><span class="tx">FOR THE QUESTION</span></span></div>
-<div class="cap" id="cap7"><span class="w" id="cw7_0">I&#x27;M GOING TO HAVE</span><span class="w ky big hlw" id="cw7_1"><span class="hl" id="hl7_1"></span><span class="tx">MY COFFEE</span></span></div>
-<div class="cap" id="cap8"><span class="w" id="cw8_0">THANK YOU FOR</span><span class="w" id="cw8_1">THE QUESTION</span></div>
-<div class="cap" id="cap9"><span class="w" id="cw9_0">AND</span><span class="w ky big hlw" id="cw9_1"><span class="hl" id="hl9_1"></span><span class="tx">GREETINGS</span></span><span class="w" id="cw9_2">TO EVERYONE</span></div>
-<div class="cap" id="cap10"><span class="w" id="cw10_0">ANU MADAM WAS</span><span class="w ky big" id="cw10_1">EQUALLY</span><span class="w ky big hlw" id="cw10_2"><span class="hl" id="hl10_2"></span><span class="tx">PASSIONATE</span></span></div>
-<div class="cap" id="cap11"><span class="w" id="cw11_0">ABOUT OPENING A</span><span class="w ky big" id="cw11_1">COSMETIC</span><span class="w ky big hlw" id="cw11_2"><span class="hl" id="hl11_2"></span><span class="tx">CLINIC</span></span></div>
-<div class="cap" id="cap12"><span class="w" id="cw12_0">EQUAL PASSION, MAYBE</span><span class="w kr big" id="cw12_1">MORE</span><span class="w ky big hlw" id="cw12_2"><span class="hl" id="hl12_2"></span><span class="tx">PASSION</span></span></div>
-<div class="cap" id="cap13"><span class="w" id="cw13_0">NO MATTER WHAT</span><span class="w ky big hlw" id="cw13_1"><span class="hl" id="hl13_1"></span><span class="tx">THE RELATIONSHIP</span></span></div>
-<div class="cap" id="cap14"><span class="w" id="cw14_0">IF ONE</span><span class="w ky big" id="cw14_1">LOVES MORE</span><span class="w" id="cw14_2">&amp; THE OTHER</span><span class="w kr big hlw" id="cw14_3"><span class="hl" id="hl14_3"></span><span class="tx">LESS</span></span></div>
-<div class="cap" id="cap15"><span class="w" id="cw15_0">THE RELATIONSHIP IS</span><span class="w kr big hlw" id="cw15_1"><span class="hl" id="hl15_1"></span><span class="tx">USELESS</span></span></div>
-<div class="cap" id="cap16"><span class="w" id="cw16_0">WHAT</span><span class="w ky big hlw" id="cw16_1"><span class="hl" id="hl16_1"></span><span class="tx">ELSE?</span></span></div>
-<div class="cap" id="cap17"><span class="w ky big hlw" id="cw17_0"><span class="hl" id="hl17_0"></span><span class="tx">EVERYTHING</span></span><span class="w" id="cw17_1">IS THERE</span></div>
-<div class="cap" id="cap18"><span class="w" id="cw18_0">STARTING WITH</span><span class="w ky big hlw" id="cw18_1"><span class="hl" id="hl18_1"></span><span class="tx">SKIN</span></span></div>
-<div class="cap" id="cap19"><span class="w ky big" id="cw19_0">MEDICATED</span><span class="w ky big hlw" id="cw19_1"><span class="hl" id="hl19_1"></span><span class="tx">FACIALS</span></span></div>
-<div class="cap" id="cap20"><span class="w" id="cw20_0">ANTI-AGEING:</span><span class="w ky big" id="cw20_1">BOTOX</span><span class="w ky big" id="cw20_2">FILLERS</span><span class="w ky big hlw" id="cw20_3"><span class="hl" id="hl20_3"></span><span class="tx">THREADS</span></span></div>
-<div class="cap" id="cap21"><span class="w" id="cw21_0">ALL TYPES OF</span><span class="w ky big hlw" id="cw21_1"><span class="hl" id="hl21_1"></span><span class="tx">ACNE</span></span><span class="w" id="cw21_2">TREATMENTS</span></div>
-<div class="cap" id="cap22"><span class="w" id="cw22_0">NOW,</span><span class="w ky big hlw" id="cw22_1"><span class="hl" id="hl22_1"></span><span class="tx">HAIR</span></span></div>
-<div class="cap" id="cap23"><span class="w ky big" id="cw23_0">PRP</span><span class="w ky big" id="cw23_1">GFC</span><span class="w ky big hlw" id="cw23_2"><span class="hl" id="hl23_2"></span><span class="tx">EXOSOMES</span></span></div>
-<div class="cap" id="cap24"><span class="w kr big" id="cw24_0">NEW:</span><span class="w ky big" id="cw24_1">FOLLICULAR</span><span class="w ky big hlw" id="cw24_2"><span class="hl" id="hl24_2"></span><span class="tx">GRAFTING</span></span></div>
-<div class="cap" id="cap25"><span class="w ky big hlw" id="cw25_0"><span class="hl" id="hl25_0"></span><span class="tx">LASER</span></span><span class="w" id="cw25_1">HAIR REMOVAL</span></div>
-<div class="cap" id="cap26"><span class="w" id="cw26_0">SOON:</span><span class="w ky big hlw" id="cw26_1"><span class="hl" id="hl26_1"></span><span class="tx">SLIMMING</span></span><span class="w" id="cw26_2">TOO</span></div>
-<div class="cap" id="cap27"><span class="w" id="cw27_0">I CAN SEE THE</span><span class="w ky big hlw" id="cw27_1"><span class="hl" id="hl27_1"></span><span class="tx">DIFFERENCE</span></span></div>
-<div class="cap" id="cap28"><span class="w" id="cw28_0">FEELING</span><span class="w ky big hlw" id="cw28_1"><span class="hl" id="hl28_1"></span><span class="tx">GOOD</span></span><span class="w" id="cw28_2">ABOUT IT</span></div>
-<div class="cap" id="cap29"><span class="w" id="cw29_0">DEFINITELY</span><span class="w ky big" id="cw29_1">COME</span><span class="w" id="cw29_2">CHECK IT</span><span class="w ky big hlw" id="cw29_3"><span class="hl" id="hl29_3"></span><span class="tx">OUT</span></span></div>
+<div class="cap z-right" id="cap0"><div class="ln"><span class="w" id="cw0_0">WE&#x27;LL CREATE A</span></div><div class="ln lb"><span class="w ky big" id="cw0_1">MINI</span><span class="w ky big" id="cw0_2">BANGKOK</span></div></div>
+<div class="cap z-low" id="cap1"><div class="ln"><span class="w" id="cw1_0">TREATMENT</span></div><div class="ln lb"><span class="w ky big" id="cw1_1">HERE</span></div></div>
+<div class="cap z-low" id="cap2"><div class="ln"><span class="w" id="cw2_0">LET&#x27;S HOPE</span></div><div class="ln lb"><span class="w ky big" id="cw2_1">FOR THE BEST</span></div></div>
+<div class="cap z-low" id="cap3"><div class="ln"><span class="w" id="cw3_0">WHEN YOU SEE THIS…</span></div><div class="ln lb"><span class="w ky big" id="cw3_1">MASSAGE</span></div><div class="ln"><span class="w" id="cw3_2">FOR THE LEGS</span></div></div>
+<div class="cap z-left" id="cap4"><div class="ln"><span class="w" id="cw4_0">WHAT</span></div><div class="ln lb"><span class="w ky big" id="cw4_1">TREATMENTS</span></div></div>
+<div class="cap z-low" id="cap5"><div class="ln"><span class="w" id="cw5_0">DO YOU</span></div><div class="ln lb"><span class="w ky big" id="cw5_1">SPECIALIZE IN?</span></div></div>
+<div class="cap z-right" id="cap6"><div class="ln"><span class="w" id="cw6_0">THANK YOU SO MUCH</span></div><div class="ln lb"><span class="w ky big" id="cw6_1">FOR THE QUESTION</span></div></div>
+<div class="cap z-left" id="cap7"><div class="ln"><span class="w" id="cw7_0">I&#x27;M GOING TO HAVE</span></div><div class="ln lb"><span class="w ky big" id="cw7_1">MY COFFEE</span></div></div>
+<div class="cap z-low" id="cap8"><div class="ln"><span class="w" id="cw8_0">THANK YOU FOR</span><span class="w" id="cw8_1">THE QUESTION</span></div></div>
+<div class="cap z-low" id="cap9"><div class="ln"><span class="w" id="cw9_0">AND</span></div><div class="ln lb"><span class="w ky big" id="cw9_1">GREETINGS</span></div><div class="ln"><span class="w" id="cw9_2">TO EVERYONE</span></div></div>
+<div class="cap z-right" id="cap10"><div class="ln"><span class="w" id="cw10_0">ANU MADAM WAS</span></div><div class="ln lb"><span class="w ky big" id="cw10_1">EQUALLY</span><span class="w ky big" id="cw10_2">PASSIONATE</span></div></div>
+<div class="cap z-low" id="cap11"><div class="ln"><span class="w" id="cw11_0">ABOUT OPENING A</span></div><div class="ln lb"><span class="w ky big" id="cw11_1">COSMETIC</span><span class="w ky big" id="cw11_2">CLINIC</span></div></div>
+<div class="cap z-low" id="cap12"><div class="ln"><span class="w" id="cw12_0">EQUAL PASSION, MAYBE</span></div><div class="ln lb"><span class="w kr big" id="cw12_1">MORE</span><span class="w ky big" id="cw12_2">PASSION</span></div></div>
+<div class="cap z-left" id="cap13"><div class="ln"><span class="w" id="cw13_0">NO MATTER WHAT</span></div><div class="ln lb"><span class="w ky big" id="cw13_1">THE RELATIONSHIP</span></div></div>
+<div class="cap z-low" id="cap14"><div class="ln"><span class="w" id="cw14_0">IF ONE</span></div><div class="ln lb"><span class="w ky big" id="cw14_1">LOVES MORE</span></div><div class="ln"><span class="w" id="cw14_2">&amp; THE OTHER</span></div><div class="ln lb"><span class="w kr big" id="cw14_3">LESS</span></div></div>
+<div class="cap z-left" id="cap15"><div class="ln"><span class="w" id="cw15_0">THE RELATIONSHIP IS</span></div><div class="ln lb"><span class="w kr big" id="cw15_1">USELESS</span></div></div>
+<div class="cap z-low" id="cap16"><div class="ln"><span class="w" id="cw16_0">WHAT</span></div><div class="ln lb"><span class="w ky big" id="cw16_1">ELSE?</span></div></div>
+<div class="cap z-menu" id="cap17"><div class="ln lb"><span class="w ky big" id="cw17_0">EVERYTHING</span></div><div class="ln"><span class="w" id="cw17_1">IS THERE</span></div></div>
+<div class="cap z-menu" id="cap18"><div class="ln"><span class="w" id="cw18_0">STARTING WITH</span></div><div class="ln lb"><span class="w ky big" id="cw18_1">SKIN</span></div></div>
+<div class="cap z-menu" id="cap19"><div class="ln lb"><span class="w ky big" id="cw19_0">MEDICATED</span><span class="w ky big" id="cw19_1">FACIALS</span></div></div>
+<div class="cap z-low" id="cap20"><div class="ln"><span class="w" id="cw20_0">ANTI-AGEING:</span></div><div class="ln lb"><span class="w ky big" id="cw20_1">BOTOX</span><span class="w ky big" id="cw20_2">FILLERS</span><span class="w ky big" id="cw20_3">THREADS</span></div></div>
+<div class="cap z-menu" id="cap21"><div class="ln"><span class="w" id="cw21_0">ALL TYPES OF</span></div><div class="ln lb"><span class="w ky big" id="cw21_1">ACNE</span></div><div class="ln"><span class="w" id="cw21_2">TREATMENTS</span></div></div>
+<div class="cap z-menu" id="cap22"><div class="ln"><span class="w" id="cw22_0">NOW,</span></div><div class="ln lb"><span class="w ky big" id="cw22_1">HAIR</span></div></div>
+<div class="cap z-menu" id="cap23"><div class="ln lb"><span class="w ky big" id="cw23_0">PRP</span><span class="w ky big" id="cw23_1">GFC</span><span class="w ky big" id="cw23_2">EXOSOMES</span></div></div>
+<div class="cap z-low" id="cap24"><div class="ln lb"><span class="w kr big" id="cw24_0">NEW:</span><span class="w ky big" id="cw24_1">FOLLICULAR</span><span class="w ky big" id="cw24_2">GRAFTING</span></div></div>
+<div class="cap z-menu" id="cap25"><div class="ln lb"><span class="w ky big" id="cw25_0">LASER</span></div><div class="ln"><span class="w" id="cw25_1">HAIR REMOVAL</span></div></div>
+<div class="cap z-menu" id="cap26"><div class="ln"><span class="w" id="cw26_0">SOON:</span></div><div class="ln lb"><span class="w ky big" id="cw26_1">SLIMMING</span></div><div class="ln"><span class="w" id="cw26_2">TOO</span></div></div>
+<div class="cap z-left" id="cap27"><div class="ln"><span class="w" id="cw27_0">I CAN SEE THE</span></div><div class="ln lb"><span class="w ky big" id="cw27_1">DIFFERENCE</span></div></div>
+<div class="cap z-low" id="cap28"><div class="ln"><span class="w" id="cw28_0">FEELING</span></div><div class="ln lb"><span class="w ky big" id="cw28_1">GOOD</span></div><div class="ln"><span class="w" id="cw28_2">ABOUT IT</span></div></div>
+<div class="cap z-left" id="cap29"><div class="ln"><span class="w" id="cw29_0">DEFINITELY</span></div><div class="ln lb"><span class="w ky big" id="cw29_1">COME</span></div><div class="ln"><span class="w" id="cw29_2">CHECK IT</span></div><div class="ln lb"><span class="w ky big" id="cw29_3">OUT</span></div></div>
   </div>
 
   <audio id="voice" src="assets/audio/voice.wav" data-start="0" data-duration="65.0" data-track-index="10" data-volume="1"></audio>
-  <audio id="music" src="assets/audio/music.wav" data-start="0" data-duration="68.0" data-track-index="10" data-volume="1" data-automation='{"version": 1, "lanes": [{"target": "volume", "points": [{"t": 0, "v": 1}, {"t": 6.5, "v": 1}, {"t": 6.6, "v": 0}, {"t": 7.35, "v": 0}, {"t": 7.5, "v": 1}, {"t": 30.9, "v": 1}, {"t": 31.0, "v": 0.15}, {"t": 32.2, "v": 0.15}, {"t": 32.5, "v": 1}, {"t": 64.8, "v": 1}, {"t": 65.3, "v": 1.4}, {"t": 67.4, "v": 1.4}, {"t": 68.0, "v": 0}]}]}'></audio>
+  <audio id="music" src="assets/audio/music.wav" data-start="0" data-duration="68.0" data-track-index="10" data-volume="1" data-automation='{"version": 1, "lanes": [{"target": "volume", "points": [{"t": 0, "v": 1}, {"t": 6.5, "v": 1}, {"t": 6.6, "v": 0}, {"t": 7.35, "v": 0}, {"t": 7.5, "v": 1}, {"t": 30.9, "v": 1}, {"t": 31.0, "v": 0.15}, {"t": 32.2, "v": 0.15}, {"t": 32.5, "v": 1}, {"t": 64.8, "v": 1}, {"t": 65.3, "v": 1.8}, {"t": 67.4, "v": 1.8}, {"t": 68.0, "v": 0}]}]}'></audio>
 <audio id="sfx00" src="assets/sfx/impact-bass-1.mp3" data-start="1.510" data-duration="2.12" data-track-index="11" data-volume="0.55"></audio>
 <audio id="sfx01" src="assets/sfx/whoosh-short.mp3" data-start="2.100" data-duration="0.57" data-track-index="12" data-volume="0.3"></audio>
 <audio id="sfx02" src="assets/sfx/rimshot.mp3" data-start="4.420" data-duration="1.10" data-track-index="13" data-volume="0.45"></audio>
@@ -172,40 +168,37 @@ html,body { width:1920px; height:1080px; overflow:hidden; background:#000; }
 <audio id="sfx17" src="assets/sfx/sad_trombone.mp3" data-start="31.050" data-duration="3.24" data-track-index="13" data-volume="0.45"></audio>
 <audio id="sfx18" src="assets/sfx/whoosh.mp3" data-start="32.250" data-duration="0.57" data-track-index="11" data-volume="0.4"></audio>
 <audio id="sfx19" src="assets/sfx/whoosh.mp3" data-start="33.450" data-duration="0.57" data-track-index="12" data-volume="0.35"></audio>
-<audio id="sfx20" src="assets/sfx/whoosh-short.mp3" data-start="36.430" data-duration="0.57" data-track-index="13" data-volume="0.3"></audio>
-<audio id="sfx21" src="assets/sfx/pop.mp3" data-start="37.540" data-duration="0.72" data-track-index="11" data-volume="0.25"></audio>
-<audio id="sfx22" src="assets/sfx/whoosh-short.mp3" data-start="39.380" data-duration="0.57" data-track-index="12" data-volume="0.3"></audio>
-<audio id="sfx23" src="assets/sfx/pop.mp3" data-start="40.790" data-duration="0.72" data-track-index="13" data-volume="0.25"></audio>
-<audio id="sfx24" src="assets/sfx/pop.mp3" data-start="41.300" data-duration="0.72" data-track-index="11" data-volume="0.25"></audio>
-<audio id="sfx25" src="assets/sfx/pop.mp3" data-start="41.620" data-duration="0.72" data-track-index="12" data-volume="0.25"></audio>
-<audio id="sfx26" src="assets/sfx/whoosh-short.mp3" data-start="42.630" data-duration="0.57" data-track-index="13" data-volume="0.3"></audio>
-<audio id="sfx27" src="assets/sfx/pop.mp3" data-start="42.870" data-duration="0.72" data-track-index="11" data-volume="0.25"></audio>
-<audio id="sfx28" src="assets/sfx/pop.mp3" data-start="49.540" data-duration="0.72" data-track-index="12" data-volume="0.25"></audio>
-<audio id="sfx29" src="assets/sfx/pop.mp3" data-start="50.120" data-duration="0.72" data-track-index="13" data-volume="0.25"></audio>
-<audio id="sfx30" src="assets/sfx/pop.mp3" data-start="50.740" data-duration="0.72" data-track-index="11" data-volume="0.25"></audio>
-<audio id="sfx31" src="assets/sfx/whoosh-short.mp3" data-start="51.530" data-duration="0.57" data-track-index="12" data-volume="0.3"></audio>
-<audio id="sfx32" src="assets/sfx/boing.mp3" data-start="51.950" data-duration="1.22" data-track-index="13" data-volume="0.25"></audio>
-<audio id="sfx33" src="assets/sfx/sparkle.mp3" data-start="51.970" data-duration="1.80" data-track-index="11" data-volume="0.35"></audio>
-<audio id="sfx34" src="assets/sfx/pop.mp3" data-start="51.970" data-duration="0.72" data-track-index="12" data-volume="0.25"></audio>
-<audio id="sfx35" src="assets/sfx/whoosh-short.mp3" data-start="53.630" data-duration="0.57" data-track-index="13" data-volume="0.3"></audio>
-<audio id="sfx36" src="assets/sfx/pop.mp3" data-start="54.170" data-duration="0.72" data-track-index="11" data-volume="0.25"></audio>
-<audio id="sfx37" src="assets/sfx/whoosh-short.mp3" data-start="57.280" data-duration="0.57" data-track-index="12" data-volume="0.3"></audio>
-<audio id="sfx38" src="assets/sfx/pop.mp3" data-start="57.780" data-duration="0.72" data-track-index="13" data-volume="0.25"></audio>
-<audio id="sfx39" src="assets/sfx/cash_register.mp3" data-start="58.700" data-duration="1.63" data-track-index="11" data-volume="0.45"></audio>
-<audio id="sfx40" src="assets/sfx/sparkle.mp3" data-start="59.850" data-duration="1.80" data-track-index="12" data-volume="0.4"></audio>
-<audio id="sfx41" src="assets/sfx/whoosh-cinematic.mp3" data-start="64.700" data-duration="3.30" data-track-index="13" data-volume="0.35"></audio>
-<audio id="sfx42" src="assets/sfx/impact-bass-1.mp3" data-start="65.200" data-duration="2.12" data-track-index="11" data-volume="0.45"></audio>
+<audio id="sfx20" src="assets/sfx/pop.mp3" data-start="37.540" data-duration="0.72" data-track-index="13" data-volume="0.25"></audio>
+<audio id="sfx21" src="assets/sfx/whoosh-short.mp3" data-start="39.380" data-duration="0.57" data-track-index="11" data-volume="0.3"></audio>
+<audio id="sfx22" src="assets/sfx/pop.mp3" data-start="40.790" data-duration="0.72" data-track-index="12" data-volume="0.25"></audio>
+<audio id="sfx23" src="assets/sfx/pop.mp3" data-start="41.300" data-duration="0.72" data-track-index="13" data-volume="0.25"></audio>
+<audio id="sfx24" src="assets/sfx/pop.mp3" data-start="41.620" data-duration="0.72" data-track-index="11" data-volume="0.25"></audio>
+<audio id="sfx25" src="assets/sfx/pop.mp3" data-start="42.870" data-duration="0.72" data-track-index="12" data-volume="0.25"></audio>
+<audio id="sfx26" src="assets/sfx/pop.mp3" data-start="49.540" data-duration="0.72" data-track-index="13" data-volume="0.25"></audio>
+<audio id="sfx27" src="assets/sfx/pop.mp3" data-start="50.120" data-duration="0.72" data-track-index="11" data-volume="0.25"></audio>
+<audio id="sfx28" src="assets/sfx/pop.mp3" data-start="50.740" data-duration="0.72" data-track-index="12" data-volume="0.25"></audio>
+<audio id="sfx29" src="assets/sfx/whoosh-short.mp3" data-start="51.530" data-duration="0.57" data-track-index="13" data-volume="0.3"></audio>
+<audio id="sfx30" src="assets/sfx/boing.mp3" data-start="51.950" data-duration="1.22" data-track-index="11" data-volume="0.25"></audio>
+<audio id="sfx31" src="assets/sfx/sparkle.mp3" data-start="51.970" data-duration="1.80" data-track-index="12" data-volume="0.35"></audio>
+<audio id="sfx32" src="assets/sfx/pop.mp3" data-start="51.970" data-duration="0.72" data-track-index="13" data-volume="0.25"></audio>
+<audio id="sfx33" src="assets/sfx/whoosh-short.mp3" data-start="53.630" data-duration="0.57" data-track-index="11" data-volume="0.3"></audio>
+<audio id="sfx34" src="assets/sfx/pop.mp3" data-start="54.170" data-duration="0.72" data-track-index="12" data-volume="0.25"></audio>
+<audio id="sfx35" src="assets/sfx/whoosh-short.mp3" data-start="57.280" data-duration="0.57" data-track-index="13" data-volume="0.3"></audio>
+<audio id="sfx36" src="assets/sfx/pop.mp3" data-start="57.780" data-duration="0.72" data-track-index="11" data-volume="0.25"></audio>
+<audio id="sfx37" src="assets/sfx/cash_register.mp3" data-start="58.700" data-duration="1.63" data-track-index="12" data-volume="0.45"></audio>
+<audio id="sfx38" src="assets/sfx/sparkle.mp3" data-start="59.850" data-duration="1.80" data-track-index="13" data-volume="0.4"></audio>
+<audio id="sfx39" src="assets/sfx/whoosh-cinematic.mp3" data-start="64.700" data-duration="3.30" data-track-index="11" data-volume="0.35"></audio>
+<audio id="sfx40" src="assets/sfx/impact-bass-1.mp3" data-start="65.200" data-duration="2.12" data-track-index="12" data-volume="0.45"></audio>
 </div>
 <script>
 const tl = gsap.timeline({ paused: true });
 const FOOT = 65.0;
-[[0.0, 2.09, [[0.0, 0, 0], [1.27, 1, 0], [1.51, 1, 1]]], [2.13, 3.3, [[2.13, 0, 0], [2.4, 1, 1]]], [3.34, 4.67, [[3.76, 0, 0], [4.14, 1, 1]]], [4.71, 7.15, [[4.71, 0, 0], [6.01, 1, 1], [6.27, 0, 0]]], [7.4, 9.93, [[7.4, 0, 0], [8.52, 1, 1]]], [9.97, 11.21, [[9.97, 0, 0], [10.22, 1, 1]]], [11.25, 12.63, [[11.28, 0, 0], [12.28, 1, 1]]], [12.67, 14.04, [[12.81, 0, 0], [13.25, 1, 1]]], [14.08, 15.21, [[14.11, 0, 0], [14.55, 0, 0]]], [15.25, 16.76, [[15.25, 0, 0], [15.29, 1, 1], [16.01, 0, 0]]], [16.8, 20.08, [[17.34, 0, 0], [18.0, 1, 0], [18.4, 1, 1]]], [20.12, 23.91, [[21.29, 0, 0], [22.65, 1, 0], [22.97, 1, 1]]], [23.95, 25.76, [[23.97, 0, 0], [24.91, 1, 0], [25.15, 1, 1]]], [25.8, 27.81, [[25.81, 0, 0], [26.43, 1, 1]]], [27.85, 30.69, [[27.79, 0, 0], [28.16, 1, 0], [29.0, 0, 0], [29.66, 1, 1]]], [30.73, 32.23, [[30.73, 0, 0], [31.4, 1, 1]]], [32.27, 33.56, [[32.27, 0, 0], [32.72, 1, 1]]], [33.6, 34.81, [[33.67, 1, 1], [34.15, 0, 0]]], [34.85, 36.36, [[35.0, 0, 0], [35.8, 1, 1]]], [36.4, 39.31, [[37.54, 1, 0], [38.22, 1, 1]]], [39.35, 42.61, [[39.35, 0, 0], [40.79, 1, 0], [41.3, 1, 0], [41.62, 1, 1]]], [42.65, 46.0, [[42.65, 0, 0], [42.87, 1, 1], [43.55, 0, 0]]], [46.04, 47.71, [[46.04, 0, 0], [46.62, 1, 1]]], [47.75, 51.51, [[49.54, 1, 0], [50.12, 1, 0], [50.74, 1, 1]]], [51.55, 53.36, [[51.69, 1, 0], [51.97, 1, 0], [52.81, 1, 1]]], [53.4, 55.41, [[54.17, 1, 1], [54.49, 0, 0]]], [55.45, 59.09, [[55.78, 0, 0], [57.78, 1, 1], [58.62, 0, 0]]], [59.13, 60.74, [[59.13, 0, 0], [59.85, 1, 1]]], [60.78, 62.16, [[60.98, 0, 0], [61.14, 1, 1], [61.36, 0, 0]]], [62.2, 65.0, [[62.26, 0, 0], [62.8, 1, 0], [63.74, 0, 0], [64.54, 1, 1]]]].forEach(([s, e, ws], i) => {
+[[0.0, 2.09, [[0.0, 0, 0], [1.27, 1, 0], [1.51, 1, 0]]], [2.13, 3.3, [[2.13, 0, 0], [2.4, 1, 0]]], [3.34, 4.67, [[3.76, 0, 0], [4.14, 1, 0]]], [4.71, 7.15, [[4.71, 0, 0], [6.01, 1, 0], [6.27, 0, 0]]], [7.4, 9.93, [[7.4, 0, 0], [8.52, 1, 0]]], [9.97, 11.21, [[9.97, 0, 0], [10.22, 1, 0]]], [11.25, 12.63, [[11.28, 0, 0], [12.28, 1, 0]]], [12.67, 14.04, [[12.81, 0, 0], [13.25, 1, 0]]], [14.08, 15.21, [[14.11, 0, 0], [14.55, 0, 0]]], [15.25, 16.76, [[15.25, 0, 0], [15.29, 1, 0], [16.01, 0, 0]]], [16.8, 20.08, [[17.34, 0, 0], [18.0, 1, 0], [18.4, 1, 0]]], [20.12, 23.91, [[21.29, 0, 0], [22.65, 1, 0], [22.97, 1, 0]]], [23.95, 25.76, [[23.97, 0, 0], [24.91, 1, 0], [25.15, 1, 0]]], [25.8, 27.81, [[25.81, 0, 0], [26.43, 1, 0]]], [27.85, 30.69, [[27.79, 0, 0], [28.16, 1, 0], [29.0, 0, 0], [29.66, 1, 0]]], [30.73, 32.23, [[30.73, 0, 0], [31.4, 1, 0]]], [32.27, 33.56, [[32.27, 0, 0], [32.72, 1, 0]]], [33.6, 34.81, [[33.67, 1, 0], [34.15, 0, 0]]], [34.85, 36.36, [[35.0, 0, 0], [35.8, 1, 0]]], [36.4, 39.31, [[37.54, 1, 0], [38.22, 1, 0]]], [39.35, 42.61, [[39.35, 0, 0], [40.79, 1, 0], [41.3, 1, 0], [41.62, 1, 0]]], [42.65, 46.0, [[42.65, 0, 0], [42.87, 1, 0], [43.55, 0, 0]]], [46.04, 47.71, [[46.04, 0, 0], [46.62, 1, 0]]], [47.75, 51.51, [[49.54, 1, 0], [50.12, 1, 0], [50.74, 1, 0]]], [51.55, 53.36, [[51.69, 1, 0], [51.97, 1, 0], [52.81, 1, 0]]], [53.4, 55.41, [[54.17, 1, 0], [54.49, 0, 0]]], [55.45, 59.09, [[55.78, 0, 0], [57.78, 1, 0], [58.62, 0, 0]]], [59.13, 60.74, [[59.13, 0, 0], [59.85, 1, 0]]], [60.78, 62.16, [[60.98, 0, 0], [61.14, 1, 0], [61.36, 0, 0]]], [62.2, 65.0, [[62.26, 0, 0], [62.8, 1, 0], [63.74, 0, 0], [64.54, 1, 0]]]].forEach(([s, e, ws], i) => {
   tl.set("#cap" + i, { opacity: 1 }, s);
   ws.forEach(([t, big, hl], j) => {
     const el = "#cw" + i + "_" + j;
-    if (big) tl.fromTo(el, { opacity: 0, scale: 1.4, y: 12 }, { opacity: 1, scale: 1, y: 0, duration: 0.18, ease: "back.out(2.8)", immediateRender: false }, t);
+    if (big) tl.fromTo(el, { opacity: 0, scale: 1.2 }, { opacity: 1, scale: 1, duration: 0.13, ease: "power3.out", immediateRender: false }, t);
     else tl.fromTo(el, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.12, ease: "power2.out", immediateRender: false }, t);
-    if (hl) tl.fromTo("#hl" + i + "_" + j, { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.14, ease: "back.out(2.5)", immediateRender: false }, t);
   });
   tl.set("#cap" + i, { opacity: 0 }, e);
 });
@@ -230,13 +223,13 @@ tl.fromTo("#freeze", { scale: 1.0, filter: "saturate(1)" }, { scale: 1.12, filte
   tl.fromTo("#" + id + " .jin", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.25, ease: "back.out(2.6)", immediateRender: false }, s);
   tl.to("#" + id + " .jin", { scale: 0.8, opacity: 0, duration: 0.15 }, e - 0.15);
 });
-[["s1", 1.5, 3.25], ["s2", 24.9, 25.75], ["s3", 7.55, 9.9], ["s4", 59.85, 61.95], ["s5", 62.8, 65.0]].forEach(([id, s, e]) => {
+[["s1", 1.5, 3.25], ["s2", 24.9, 25.75], ["s4", 59.85, 61.95], ["s5", 62.8, 65.0]].forEach(([id, s, e]) => {
   tl.fromTo("#" + id + " .sin", { scale: 0, rotation: -40 }, { scale: 1, rotation: 0, duration: 0.35, ease: "back.out(3)", immediateRender: false }, s);
   tl.to("#" + id + " .sin", { y: -14, duration: Math.max(0.2, e - s - 0.5), ease: "sine.inOut" }, s + 0.35);
   tl.to("#" + id + " .sin", { scale: 0, duration: 0.15 }, e - 0.15);
 });
 // b-roll
-[["b-salon", 36.45, 38.9], ["b-botox", 39.4, 41.7], ["b-skin", 42.65, 44.5], ["b-hair", 51.55, 53.3], ["b-laser", 53.65, 55.4], ["b-slim", 57.3, 59.05]].forEach(([id, s, e]) => {
+[["b-botox", 39.4, 41.7], ["b-hair", 51.55, 53.3], ["b-laser", 53.65, 55.4], ["b-slim", 57.3, 59.05]].forEach(([id, s, e]) => {
   const w = "#w-" + id;
   tl.fromTo(w, { scale: 1.22, filter: "blur(14px)" }, { scale: 1.06, filter: "blur(0px)", duration: 0.24, ease: "power3.out", immediateRender: false }, s);
   tl.to(w, { scale: 1.0, duration: Math.max(0.2, e - s - 0.24), ease: "none" }, s + 0.24);

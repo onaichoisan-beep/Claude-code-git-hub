@@ -25,18 +25,17 @@ html,body { width:1920px; height:1080px; overflow:hidden; background:#000; }
 #b-hair { background-color:#15131c; background-size:auto 104%; background-position:0px 30%; background-repeat:no-repeat; }
 .shade { position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,0) 28%,rgba(0,0,0,0) 62%,rgba(0,0,0,.5) 100%); }
 #flash { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; }
-/* captions */
-.capzone { position:absolute; left:0; right:0; bottom:64px; height:190px; }
-.cap { position:absolute; left:0; right:0; bottom:0; display:flex; justify-content:center; align-items:center; gap:0 20px; white-space:nowrap; opacity:0; }
-.w { display:inline-block; position:relative; font-weight:900; font-size:60px; letter-spacing:-.5px; text-transform:uppercase; line-height:1.15;
-  text-shadow:0 4px 0 rgba(0,0,0,.35),0 0 26px rgba(0,0,0,.55); opacity:0; }
-.w.big { font-size:84px; }
-.w.ky { color:var(--yel); } .w.kr { color:#ff4a4a; }
-.hlw .hl { position:absolute; left:-16px; right:-16px; top:8px; bottom:4px; border-radius:14px; background:var(--yel); box-shadow:0 10px 30px rgba(0,0,0,.35); }
-.hlw.kr .hl { background:var(--red); }
-.hlw .tx { position:relative; }
-.hlw.ky .tx { color:var(--dark); text-shadow:none; }
-.hlw.kr .tx { color:#fff; text-shadow:none; }
+/* captions: reference style (white setup, big yellow/red keyword, stacked, beside the face) */
+.capzone { position:absolute; inset:0; }
+.cap { position:absolute; display:flex; flex-direction:column; align-items:center; text-align:center; opacity:0; width:820px; }
+.cap.z-right { left:1060px; top:560px; } .cap.z-left { left:60px; top:560px; }
+.cap.z-low { left:50%; margin-left:-700px; width:1400px; bottom:60px; }
+.cap.z-menu { left:80px; width:1000px; bottom:70px; }
+.ln { display:flex; justify-content:center; flex-wrap:wrap; gap:0 18px; }
+.w { display:inline-block; font-weight:900; font-size:54px; letter-spacing:-.5px; text-transform:uppercase; line-height:1.02; color:#fff;
+  text-shadow:0 6px 18px rgba(0,0,0,.75),0 2px 4px rgba(0,0,0,.6); opacity:0; }
+.w.big { font-size:112px; line-height:.98; letter-spacing:-1.5px; }
+.w.ky { color:var(--yel); } .w.kr { color:#ff3b30; }
 /* jokes + stickers */
 .joke { position:absolute; }
 .jin { display:flex; align-items:center; gap:14px; padding:16px 26px; border-radius:20px; background:#fff; color:#15111b; box-shadow:0 16px 40px rgba(0,0,0,.45); }
@@ -49,7 +48,7 @@ html,body { width:1920px; height:1080px; overflow:hidden; background:#000; }
   border:1px solid rgba(255,255,255,.14); box-shadow:0 14px 40px rgba(0,0,0,.35); }
 .chip .t0 { font-weight:900; font-size:28px; letter-spacing:3px; color:var(--pink); }
 .chip .t1 { font-weight:900; font-size:52px; line-height:1.05; color:var(--yel); }
-#lt { position:absolute; left:72px; bottom:300px; }
+#lt { position:absolute; left:72px; top:64px; }
 #lt .tag { display:inline-block; background:var(--pink); font-weight:900; font-size:28px; letter-spacing:3px; padding:6px 14px; border-radius:8px; }
 #lt .n { font-weight:900; font-size:76px; line-height:1.05; margin-top:10px; text-shadow:0 4px 18px rgba(0,0,0,.6); }
 #lt .line { height:6px; width:540px; background:linear-gradient(90deg,var(--yel),var(--pink)); border-radius:4px; margin:12px 0 10px; transform-origin:0 50%; }
@@ -119,9 +118,8 @@ const FOOT = %%FOOT%%;
   tl.set("#cap" + i, { opacity: 1 }, s);
   ws.forEach(([t, big, hl], j) => {
     const el = "#cw" + i + "_" + j;
-    if (big) tl.fromTo(el, { opacity: 0, scale: 1.4, y: 12 }, { opacity: 1, scale: 1, y: 0, duration: 0.18, ease: "back.out(2.8)", immediateRender: false }, t);
+    if (big) tl.fromTo(el, { opacity: 0, scale: 1.2 }, { opacity: 1, scale: 1, duration: 0.13, ease: "power3.out", immediateRender: false }, t);
     else tl.fromTo(el, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.12, ease: "power2.out", immediateRender: false }, t);
-    if (hl) tl.fromTo("#hl" + i + "_" + j, { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.14, ease: "back.out(2.5)", immediateRender: false }, t);
   });
   tl.set("#cap" + i, { opacity: 0 }, e);
 });

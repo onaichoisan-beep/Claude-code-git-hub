@@ -45,11 +45,11 @@ JOKES = [("j1",6.10,7.40,"client mode: ON","🦵",1300,190,-4),
          ("j3",15.95,16.62,"very formal","😂",160,190,-3),
          ("j4",30.75,32.25,"relationship advice??","💔",1240,190,3),
          ("j5",51.60,53.30,"she's still going","😳",130,190,-3)]
-STICK = [("s1",1.50,3.25,"🇹🇭",860,110,10),("s2",24.90,25.75,"🔥",880,430,-8),("s3",7.55,9.90,"🎤",230,520,8),
+STICK = [("s1",1.50,3.25,"🇹🇭",860,110,10),("s2",24.90,25.75,"🔥",880,430,-8),
          ("s4",59.85,61.95,"✨",1000,140,8),("s5",62.80,FOOT,"👉",1540,520,0)]
 # b-roll after 10 s only
-BROLL = [("b-salon","vid","assets/broll/salon.mp4",36.45,38.90),("b-botox","vid","assets/broll/botox.mp4",39.40,41.70),
-         ("b-skin","vid","assets/broll/skincare.mp4",42.65,44.50),("b-hair","img","assets/img/I2.jpg",51.55,53.30),
+BROLL = [("b-botox","vid","assets/broll/botox.mp4",39.40,41.70),
+         ("b-hair","img","assets/img/I2.jpg",51.55,53.30),
          ("b-laser","vid","assets/broll/laser.mp4",53.65,55.40),("b-slim","vid","assets/broll/waist.mp4",57.30,59.05)]
 ICON = {
  "skin":'<path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z"/>',
@@ -67,18 +67,26 @@ SFX = [("impact-bass-1",1.51,0.55),("whoosh-short",2.10,0.3),("rimshot",4.42,0.4
        ("ping",15.95,0.35),("rimshot",16.05,0.35),("whoosh",20.08,0.4),("whoosh-cinematic",20.10,0.25),("impact-bass-1",24.91,0.4),
        ("whoosh-short",25.75,0.3),("sad_trombone",31.05,0.45),("whoosh",32.25,0.4),("whoosh",33.45,0.35),("sparkle",51.97,0.35),
        ("boing",51.95,0.25),("cash_register",58.70,0.45),("sparkle",59.85,0.4),("whoosh-cinematic",FOOT-0.3,0.35),("impact-bass-1",FOOT+0.2,0.45)]
-SFX += [("whoosh-short",s-0.02,0.3) for _,_,_,s,_ in BROLL]
+SFX += [("whoosh-short",s0-0.02,0.3) for _,_,_,s0,_ in BROLL]
 SFX += [("pop",t,0.25) for *_,t,_ in MENU]
 DUR = {"impact-bass-1":2.12,"pop":0.72,"whoosh":0.57,"whoosh-short":0.57,"whoosh-cinematic":5.54,"ping":1.32,"sparkle":1.80,
        "record_scratch":1.13,"sad_trombone":3.24,"slurp":1.82,"cash_register":1.63,"boing":1.22,"rimshot":1.10}
 
+def zone_at(t):
+    if any(s0<=t<s1 for _,_,_,s0,s1 in BROLL): return "z-low"
+    sh=[x for x in SHOTS if x["out"]<=t+0.001][-1]["shot"]
+    if 33.5<=t<59.1: return "z-menu"          # treatment menu occupies the right side
+    return {"DOC":"z-right","HOST":"z-left","WIDE":"z-low"}[sh]
 def cap_html(i,s,e,words):
-    out=[]; last=max([j for j,w in enumerate(words) if w[3]] or [-1])
+    lines=[]; 
     for j,(w,t,c,b) in enumerate(words):
-        cls="w"+(" k"+c if c else "")+(" big" if b else "")
-        if j==last and c: out.append(f'<span class="{cls} hlw" id="cw{i}_{j}"><span class="hl" id="hl{i}_{j}"></span><span class="tx">{html.escape(w)}</span></span>')
-        else: out.append(f'<span class="{cls}" id="cw{i}_{j}">{html.escape(w)}</span>')
-    return f'<div class="cap" id="cap{i}">{"".join(out)}</div>'
+        if lines and lines[-1][0]==b: lines[-1][1].append((j,w,c,b))
+        else: lines.append([b,[(j,w,c,b)]])
+    out=[]
+    for b,ws in lines:
+        sp="".join(f'<span class="w{(" k"+c) if c else ""}{" big" if b else ""}" id="cw{i}_{j}">{html.escape(w)}</span>' for j,w,c,b in ws)
+        out.append(f'<div class="ln{" lb" if b else ""}">{sp}</div>')
+    return f'<div class="cap {zone_at(s+0.05)}" id="cap{i}">{"".join(out)}</div>'
 caps="\n".join(cap_html(i,*c) for i,c in enumerate(CAP))
 jokes="\n".join(f'<div id="{j}" class="clip joke" data-start="{s}" data-duration="{round(e-s,3)}" data-track-index="8" style="left:{x}px;top:{y}px"><div class="jin" style="transform:rotate({r}deg)"><span class="jt">{html.escape(t)}</span><span class="je">{em}</span></div></div>' for j,s,e,t,em,x,y,r in JOKES)
 stick="\n".join(f'<div id="{j}" class="clip stick" data-start="{s}" data-duration="{round(e-s,3)}" data-track-index="9" style="left:{x}px;top:{y}px"><span class="sin" style="transform:rotate({r}deg)">{em}</span></div>' for j,s,e,em,x,y,r in STICK)
@@ -90,9 +98,9 @@ for b,kind,src,s,e in BROLL:
 cards="".join(f'<div class="card" id="mc{k}"><span class="ic"><svg viewBox="0 0 24 24">{ICON[ic]}</svg></span><span class="cl"><span class="ct">{html.escape(lab)}</span><span class="cs">{sec}</span></span>{f"<span class=\"badge {bd.lower()}\">{bd}</span>" if bd else ""}</div>' for k,(ic,lab,sec,t,bd) in enumerate(MENU))
 audios="\n".join(f'<audio id="sfx{i:02d}" src="assets/sfx/{n}.mp3" data-start="{t:.3f}" data-duration="{min(DUR[n],END-t):.2f}" data-track-index="{11+i%3}" data-volume="{v}"></audio>' for i,(n,t,v) in enumerate(sorted(SFX,key=lambda x:x[1])))
 music_auto=json.dumps({"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":1},{"t":6.5,"v":1},{"t":6.6,"v":0},{"t":7.35,"v":0},{"t":7.5,"v":1},
-  {"t":30.9,"v":1},{"t":31.0,"v":0.15},{"t":32.2,"v":0.15},{"t":32.5,"v":1},{"t":FOOT-0.2,"v":1},{"t":FOOT+0.3,"v":1.4},{"t":END-0.6,"v":1.4},{"t":END,"v":0}]}]})
+  {"t":30.9,"v":1},{"t":31.0,"v":0.15},{"t":32.2,"v":0.15},{"t":32.5,"v":1},{"t":FOOT-0.2,"v":1},{"t":FOOT+0.3,"v":1.8},{"t":END-0.6,"v":1.8},{"t":END,"v":0}]}]})
 shots=[[round(s["out"],4),round(s["frames"]/30,4),s["shot"]] for s in SHOTS]
-JS=dict(JS_CAPS=json.dumps([[s,e,[[t,int(b),int(j==max([q for q,w in enumerate(ws) if w[3]] or [-1]) and bool(c))] for j,(w,t,c,b) in enumerate(ws)]] for (s,e,ws) in CAP]),
+JS=dict(JS_CAPS=json.dumps([[s,e,[[t,int(b),0] for j,(w,t,c,b) in enumerate(ws)]] for (s,e,ws) in CAP]),
         JS_MENU=json.dumps([t for *_,t,_ in MENU]), JS_BROLL=json.dumps([[b,s,e] for b,_,_,s,e in BROLL]), JS_SHOTS=json.dumps(shots),
         JS_JOKES=json.dumps([[j,s,e] for j,s,e,*_ in JOKES]), JS_STICK=json.dumps([[j,s,e] for j,s,e,*_ in STICK]))
 page=open(os.path.join(HERE,"template.html")).read()
