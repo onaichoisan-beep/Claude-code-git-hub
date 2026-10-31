@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1920, height=1080" />
+<title>Chill Breeze highlight</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+@font-face { font-family: "Montserrat"; font-weight: 600; src: url(assets/fonts/montserrat-latin-600-normal.woff2) format("woff2"); }
+@font-face { font-family: "Montserrat"; font-weight: 800; src: url(assets/fonts/montserrat-latin-800-normal.woff2) format("woff2"); }
+@font-face { font-family: "Montserrat"; font-weight: 900; src: url(assets/fonts/montserrat-latin-900-normal.woff2) format("woff2"); }
+:root { --yel:#FFE14D; --red:#FF3B30; --ink:#fff; --glass:rgba(14,12,20,.72); --pink:#E8326B; }
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { width:1920px; height:1080px; overflow:hidden; background:#000; }
+#root { position:relative; width:100%; height:100%; overflow:hidden; font-family:"Montserrat",sans-serif; color:var(--ink); }
+#cam { position:absolute; inset:0; overflow:hidden; }
+#cam .inner { position:absolute; inset:0; transform-origin:64% 40%; }
+#interview, #gift { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.broll { position:absolute; inset:0; overflow:hidden; }
+.broll .bimg { position:absolute; inset:-2%; background-size:cover; background-position:center; }
+.broll::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,0) 40%,rgba(0,0,0,.55) 100%); }
+.vignette { position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse at 50% 45%,rgba(0,0,0,0) 55%,rgba(0,0,0,.45) 100%); }
+.capzone { position:absolute; left:0; right:0; bottom:70px; height:180px; }
+.cap { position:absolute; left:0; right:0; bottom:0; display:flex; justify-content:center; align-items:baseline; gap:0 22px; flex-wrap:wrap; padding:0 160px; opacity:0; text-align:center; }
+.w { display:inline-block; font-weight:900; font-size:64px; letter-spacing:-.5px; text-transform:uppercase; line-height:1.05;
+      text-shadow:0 5px 0 rgba(0,0,0,.35),0 0 28px rgba(0,0,0,.6); opacity:0; }
+.w.big { font-size:90px; }
+.cap { white-space:nowrap; flex-wrap:nowrap; }
+#b-hair { background:#15131c; }
+#b-hair .bimg { inset:0; background-size:auto 113%; background-position:10px 22%; background-repeat:no-repeat; }
+.w.ky { color:var(--yel); } .w.kr { color:var(--red); }
+.chip { position:absolute; display:flex; align-items:center; gap:14px; padding:16px 26px 16px 20px; border-radius:18px; background:var(--glass);
+        backdrop-filter:blur(6px); box-shadow:0 10px 40px rgba(0,0,0,.35); }
+.chip .pin { width:44px; height:44px; fill:var(--pink); flex:none; }
+.chip .t1 { font-weight:900; font-size:40px; letter-spacing:.5px; line-height:1; }
+.chip .t2 { font-weight:600; font-size:28px; opacity:.85; margin-top:6px; }
+.chip .col { display:flex; flex-direction:column; }
+#hook { left:70px; top:64px; }
+#hook .tag { background:#C4122F; color:#fff; font-weight:900; font-size:28px; letter-spacing:2px; padding:8px 12px; border-radius:8px; }
+#hook .t1 { font-size:34px; }
+#title { left:70px; top:64px; }
+#title .t1 { font-size:54px; color:var(--yel); }
+#bkk { left:70px; top:64px; } #chn { left:70px; top:64px; } #loc { left:70px; top:64px; } #film { left:70px; top:64px; }
+#chn .status { font-weight:900; font-size:30px; color:var(--red); margin-top:8px; letter-spacing:1px; }
+#chn .ok { font-weight:600; font-size:28px; opacity:.85; margin-top:8px; }
+#lt { position:absolute; left:70px; bottom:300px; }
+#lt .bar { position:absolute; left:0; top:0; bottom:0; width:10px; border-radius:6px; background:var(--pink); }
+#lt .box { padding:14px 30px 16px 34px; background:var(--glass); border-radius:14px; overflow:hidden; }
+#lt .n { font-weight:900; font-size:52px; line-height:1.05; }
+#lt .r { font-weight:600; font-size:28px; opacity:.9; margin-top:6px; }
+#menu { position:absolute; right:60px; top:60px; width:640px; padding:30px 34px 26px; border-radius:26px; background:var(--glass);
+        backdrop-filter:blur(8px); box-shadow:0 20px 60px rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.12); }
+#menu .mh { font-weight:900; font-size:30px; letter-spacing:3px; color:var(--yel); margin-bottom:6px; }
+#menu .ms { font-weight:600; font-size:28px; opacity:.8; margin-bottom:10px; }
+.msec { font-weight:800; font-size:28px; letter-spacing:3px; color:rgba(255,255,255,.62); margin:10px 0 0; }
+.mrow { display:flex; align-items:center; gap:14px; height:42px; font-weight:800; font-size:31px; opacity:.22; }
+.mrow .dot { width:14px; height:14px; border-radius:50%; background:rgba(255,255,255,.5); flex:none; }
+.mrow.on .dot { background:var(--yel); }
+.badge { font-weight:900; font-size:28px; letter-spacing:1px; padding:2px 10px; border-radius:7px; margin-left:6px; }
+.badge.new { background:#C4122F; } .badge.soon { background:#fff; color:#111; }
+#endcard { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(8,6,14,.55); }
+#endcard .e1 { font-weight:900; font-size:120px; letter-spacing:-1px; line-height:1; }
+#endcard .x { color:var(--pink); padding:0 24px; }
+#endcard .e2 { font-weight:600; font-size:36px; margin-top:22px; opacity:.95; }
+#endcard .e3 { font-weight:600; font-size:28px; position:absolute; bottom:34px; opacity:.75; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="67.0" data-width="1920" data-height="1080">
+  <div id="cam" data-layout-allow-overflow><div class="inner">
+    <video id="interview" src="assets/footage/interview.mp4" muted playsinline data-start="0" data-duration="63.367" data-track-index="0"></video>
+  </div></div>
+  <video id="gift" src="assets/footage/bts-gift.mp4" muted playsinline data-start="63.367" data-duration="3.633" data-track-index="1"></video>
+<div id="b-facial" class="clip broll" data-layout-allow-overflow data-start="3.05" data-duration="1.35" data-track-index="2"><div class="bimg" style="background-image:url(assets/img/B6.jpg)"></div></div>
+<div id="b-phone" class="clip broll" data-layout-allow-overflow data-start="9.6" data-duration="1.17" data-track-index="2"><div class="bimg" style="background-image:url(assets/img/C8.jpg)"></div></div>
+<div id="b-massage" class="clip broll" data-layout-allow-overflow data-start="13.05" data-duration="1.75" data-track-index="2"><div class="bimg" style="background-image:url(assets/img/D1.jpg)"></div></div>
+<div id="b-film" class="clip broll" data-layout-allow-overflow data-start="17.86" data-duration="1.5" data-track-index="2"><div class="bimg" style="background-image:url(assets/img/E1.jpg)"></div></div>
+<div id="b-botox" class="clip broll" data-layout-allow-overflow data-start="33.45" data-duration="1.83" data-track-index="2"><div class="bimg" style="background-image:url(assets/img/G1.jpg)"></div></div>
+<div id="b-hair" class="clip broll" data-layout-allow-overflow data-start="44.22" data-duration="1.74" data-track-index="2"><div class="bimg" style="background-image:url(assets/img/I2.jpg)"></div></div>
+<div id="b-laser" class="clip broll" data-layout-allow-overflow data-start="46.62" data-duration="1.52" data-track-index="2"><div class="bimg" style="background-image:url(assets/img/J4.jpg)"></div></div>
+<div id="b-slim" class="clip broll" data-layout-allow-overflow data-start="50.25" data-duration="1.51" data-track-index="2"><div class="bimg" style="background-image:url(assets/img/K7.jpg)"></div></div>
+  <div class="vignette"></div>
+
+  <div id="hook" class="clip chip" data-start="0.1" data-duration="2.55" data-track-index="3"><span class="tag">REAL STORY</span><span class="t1">THE FACIAL NOBODY IN CHENNAI OFFERED</span></div>
+  <div id="title" class="clip chip" data-start="2.95" data-duration="2.0" data-track-index="3"><div class="col"><span class="t1">LYMPHATIC DRAINAGE FACIAL</span><span class="t2">A gentle face massage that reduces puffiness</span></div></div>
+  <div id="bkk" class="clip chip" data-start="4.95" data-duration="2.35" data-track-index="3"><svg viewBox="0 0 24 24" class="pin"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><div class="col"><span class="t1">BANGKOK, THAILAND</span><span class="t2">where she first tried it · 2 years ago</span></div></div>
+  <div id="chn" class="clip chip" data-start="7.40" data-duration="5.30" data-track-index="3"><svg viewBox="0 0 24 24" class="pin"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><div class="col"><span class="t1">BACK HOME IN CHENNAI</span><span class="ok" id="chn-ok">searching for a clinic…</span><span class="status" id="chn-no">✕ NOBODY OFFERED IT</span></div></div>
+  <div id="film" class="clip chip" data-start="17.90" data-duration="1.45" data-track-index="3"><div class="col"><span class="t1">FOR A FILM ROLE</span><span class="t2">needed to look younger</span></div></div>
+  <div id="loc" class="clip chip" data-start="21.20" data-duration="3.70" data-track-index="3"><svg viewBox="0 0 24 24" class="pin"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><div class="col"><span class="t1">CHILL BREEZE</span><span class="t2">Valluvar Kottam, Chennai · with TMCC</span></div></div>
+  <div id="lt" class="clip" data-start="26.10" data-duration="5.40" data-track-index="4"><div class="box"><div class="bar"></div><div class="n">Dr. Suman</div><div class="r">Cosmetologist · The Madras Cosmetic Clinic (TMCC)</div></div></div>
+  <div id="menu" class="clip" data-start="27.50" data-duration="24.30" data-track-index="4"><div class="mh">TREATMENT MENU</div><div class="ms">Now at Chill Breeze, Valluvar Kottam</div><div class="msec">SKIN</div><div class="mrow" id="mr0"><span class="dot"></span><span class="mlab">Medicated facials</span></div><div class="mrow" id="mr4"><span class="dot"></span><span class="mlab">Acne treatments</span></div><div class="msec">ANTI-AGEING</div><div class="mrow" id="mr1"><span class="dot"></span><span class="mlab">Botox</span></div><div class="mrow" id="mr2"><span class="dot"></span><span class="mlab">Fillers</span></div><div class="mrow" id="mr3"><span class="dot"></span><span class="mlab">Threads</span></div><div class="msec">HAIR</div><div class="mrow" id="mr5"><span class="dot"></span><span class="mlab">PRP</span></div><div class="mrow" id="mr6"><span class="dot"></span><span class="mlab">GFC</span></div><div class="mrow" id="mr7"><span class="dot"></span><span class="mlab">Exosomes</span></div><div class="mrow" id="mr8"><span class="dot"></span><span class="mlab">Follicular grafting</span><span class="badge new">NEW</span></div><div class="msec">BODY</div><div class="mrow" id="mr9"><span class="dot"></span><span class="mlab">Laser hair removal</span></div><div class="mrow" id="mr10"><span class="dot"></span><span class="mlab">Slimming</span><span class="badge soon">SOON</span></div></div>
+  <div id="endcard" class="clip" data-start="63.367" data-duration="3.633" data-track-index="5"><div class="e1">CHILL BREEZE<span class="x">×</span>TMCC</div><div class="e2">Cosmetology is now at Chill Breeze · Valluvar Kottam, Chennai</div><div class="e3">Music: “Upbeat Corporate”, Soundrider/Dope (CC BY 3.0) · Images: Wikimedia Commons</div></div>
+
+  <div id="captions" class="clip capzone" data-start="0" data-duration="63.367" data-track-index="6">
+<div class="cap" id="cap0"><span class="w" id="cw0_0">I CAN SEE</span><span class="w" id="cw0_1">THE</span><span class="w ky big" id="cw0_2">DIFFERENCE</span></div>
+<div class="cap" id="cap1"><span class="w" id="cw1_0">I&#x27;M FEELING</span><span class="w ky big" id="cw1_1">GOOD</span><span class="w" id="cw1_2">ABOUT IT</span></div>
+<div class="cap" id="cap2"><span class="w" id="cw2_0">THIS</span><span class="w ky big" id="cw2_1">LYMPHATIC</span><span class="w ky big" id="cw2_2">DRAINAGE</span></div>
+<div class="cap" id="cap3"><span class="w" id="cw3_0">I DID IT IN</span><span class="w ky big" id="cw3_1">BANGKOK</span><span class="w" id="cw3_2">ONCE</span></div>
+<div class="cap" id="cap4"><span class="w" id="cw4_0">TWO YEARS</span><span class="w" id="cw4_1">AGO</span></div>
+<div class="cap" id="cap5"><span class="w" id="cw5_0">HERE</span><span class="w ky big" id="cw5_1">LOCALLY</span></div>
+<div class="cap" id="cap6"><span class="w" id="cw6_0">I ASKED</span><span class="w ky big" id="cw6_1">MANY PEOPLE</span></div>
+<div class="cap" id="cap7"><span class="w" id="cw7_0">PUT IT</span><span class="w ky big" id="cw7_1">ONLINE</span></div>
+<div class="cap" id="cap8"><span class="w kr big" id="cw8_0">NOBODY</span><span class="w kr big" id="cw8_1">OFFERED IT</span></div>
+<div class="cap" id="cap9"><span class="w" id="cw9_0">THEY DID</span><span class="w ky big" id="cw9_1">BODY MASSAGE</span></div>
+<div class="cap" id="cap10"><span class="w ky big" id="cw10_0">FIRST TIME</span><span class="w" id="cw10_1">I ASKED</span></div>
+<div class="cap" id="cap11"><span class="w" id="cw11_0">CAN YOU</span><span class="w ky big" id="cw11_1">DO THAT?</span></div>
+<div class="cap" id="cap12"><span class="w" id="cw12_0">A</span><span class="w ky big" id="cw12_1">SHOOT</span><span class="w" id="cw12_2">IS STARTING</span></div>
+<div class="cap" id="cap13"><span class="w" id="cw13_0">I NEED TO LOOK</span><span class="w ky big" id="cw13_1">VERY</span><span class="w ky big" id="cw13_2">YOUNG</span></div>
+<div class="cap" id="cap14"><span class="w" id="cw14_0">SHE DID A</span><span class="w ky big" id="cw14_1">VERY NICE</span></div>
+<div class="cap" id="cap15"><span class="w ky big" id="cw15_0">LYMPHATIC</span><span class="w ky big" id="cw15_1">DRAINAGE</span></div>
+<div class="cap" id="cap16"><span class="w" id="cw16_0">WHAT</span><span class="w ky big" id="cw16_1">ELSE?</span></div>
+<div class="cap" id="cap17"><span class="w ky big" id="cw17_0">EVERYTHING</span><span class="w" id="cw17_1">IS THERE</span></div>
+<div class="cap" id="cap18"><span class="w" id="cw18_0">STARTING WITH</span><span class="w ky big" id="cw18_1">SKIN</span></div>
+<div class="cap" id="cap19"><span class="w ky big" id="cw19_0">MEDICATED</span><span class="w ky big" id="cw19_1">FACIALS</span></div>
+<div class="cap" id="cap20"><span class="w ky big" id="cw20_0">ANTI-AGEING</span><span class="w" id="cw20_1">PROCEDURES</span></div>
+<div class="cap" id="cap21"><span class="w ky big" id="cw21_0">BOTOX</span><span class="w ky big" id="cw21_1">FILLERS</span><span class="w ky big" id="cw21_2">THREADS</span></div>
+<div class="cap" id="cap22"><span class="w ky big" id="cw22_0">ACNE</span><span class="w" id="cw22_1">TREATMENTS</span></div>
+<div class="cap" id="cap23"><span class="w" id="cw23_0">ALL TYPES OF</span><span class="w ky big" id="cw23_1">ACNE</span></div>
+<div class="cap" id="cap24"><span class="w" id="cw24_0">NOW,</span><span class="w ky big" id="cw24_1">HAIR</span></div>
+<div class="cap" id="cap25"><span class="w ky big" id="cw25_0">PRP</span><span class="w ky big" id="cw25_1">GFC</span><span class="w ky big" id="cw25_2">EXOSOMES</span></div>
+<div class="cap" id="cap26"><span class="w kr big" id="cw26_0">NEW:</span><span class="w ky big" id="cw26_1">FOLLICULAR</span><span class="w ky big" id="cw26_2">GRAFTING</span></div>
+<div class="cap" id="cap27"><span class="w ky big" id="cw27_0">LASER</span><span class="w" id="cw27_1">HAIR REMOVAL</span></div>
+<div class="cap" id="cap28"><span class="w" id="cw28_0">SOON:</span><span class="w ky big" id="cw28_1">SLIMMING</span><span class="w" id="cw28_2">TOO</span></div>
+<div class="cap" id="cap29"><span class="w" id="cw29_0">IT&#x27;S ACTUALLY</span><span class="w" id="cw29_1">VERY</span><span class="w ky big" id="cw29_2">SIMPLE</span></div>
+<div class="cap" id="cap30"><span class="w" id="cw30_0">WHEN YOU HEAR</span><span class="w" id="cw30_1">THE TERMS</span></div>
+<div class="cap" id="cap31"><span class="w" id="cw31_0">IT SOUNDS LIKE A</span><span class="w kr big" id="cw31_1">BIG PROCEDURE</span></div>
+<div class="cap" id="cap32"><span class="w" id="cw32_0">YOU HAVE A</span><span class="w ky big" id="cw32_1">PROFESSIONAL</span></div>
+<div class="cap" id="cap33"><span class="w ky big" id="cw33_0">DOCTOR</span><span class="w" id="cw33_1">AROUND</span></div>
+<div class="cap" id="cap34"><span class="w" id="cw34_0">DEFINITELY</span><span class="w ky big" id="cw34_1">COME</span></div>
+<div class="cap" id="cap35"><span class="w" id="cw35_0">CHECK THIS</span><span class="w" id="cw35_1">PLACE</span><span class="w ky big" id="cw35_2">OUT</span></div>
+  </div>
+
+  <audio id="voice" src="assets/audio/voice.wav" data-start="0" data-duration="63.367" data-track-index="9" data-volume="1"></audio>
+  <audio id="music" src="assets/audio/music.wav" data-start="0" data-duration="67.0" data-track-index="10" data-volume="1" data-automation='{"version": 1, "lanes": [{"target": "volume", "points": [{"t": 0, "v": 1}, {"t": 51.6, "v": 1}, {"t": 51.9, "v": 0.35}, {"t": 53.1, "v": 0.35}, {"t": 53.5, "v": 1}, {"t": 63.3, "v": 1}, {"t": 63.8, "v": 1.4}, {"t": 66.4, "v": 1.4}, {"t": 67, "v": 0}]}]}'></audio>
+<audio id="sfx00" src="assets/sfx/impact-bass-1.mp3" data-start="0.0" data-duration="2.12" data-track-index="11" data-volume="0.55"></audio>
+<audio id="sfx01" src="assets/sfx/pop.mp3" data-start="0.72" data-duration="0.72" data-track-index="12" data-volume="0.3"></audio>
+<audio id="sfx02" src="assets/sfx/whoosh.mp3" data-start="2.98" data-duration="0.57" data-track-index="13" data-volume="0.45"></audio>
+<audio id="sfx03" src="assets/sfx/pop.mp3" data-start="4.92" data-duration="0.72" data-track-index="11" data-volume="0.35"></audio>
+<audio id="sfx04" src="assets/sfx/whoosh-short.mp3" data-start="7.4" data-duration="0.57" data-track-index="12" data-volume="0.4"></audio>
+<audio id="sfx05" src="assets/sfx/whoosh-short.mp3" data-start="9.58" data-duration="0.57" data-track-index="13" data-volume="0.4"></audio>
+<audio id="sfx06" src="assets/sfx/error.mp3" data-start="10.77" data-duration="1.62" data-track-index="11" data-volume="0.3"></audio>
+<audio id="sfx07" src="assets/sfx/whoosh-short.mp3" data-start="13.02" data-duration="0.57" data-track-index="12" data-volume="0.4"></audio>
+<audio id="sfx08" src="assets/sfx/click-soft.mp3" data-start="17.86" data-duration="0.37" data-track-index="13" data-volume="0.6"></audio>
+<audio id="sfx09" src="assets/sfx/whoosh.mp3" data-start="19.98" data-duration="0.57" data-track-index="11" data-volume="0.35"></audio>
+<audio id="sfx10" src="assets/sfx/whoosh-short.mp3" data-start="21.2" data-duration="0.57" data-track-index="12" data-volume="0.35"></audio>
+<audio id="sfx11" src="assets/sfx/whoosh.mp3" data-start="24.96" data-duration="0.57" data-track-index="13" data-volume="0.4"></audio>
+<audio id="sfx12" src="assets/sfx/whoosh.mp3" data-start="26.1" data-duration="0.57" data-track-index="11" data-volume="0.35"></audio>
+<audio id="sfx13" src="assets/sfx/whoosh.mp3" data-start="27.5" data-duration="0.57" data-track-index="12" data-volume="0.4"></audio>
+<audio id="sfx14" src="assets/sfx/pop.mp3" data-start="30.16" data-duration="0.72" data-track-index="13" data-volume="0.22"></audio>
+<audio id="sfx15" src="assets/sfx/pop.mp3" data-start="33.51" data-duration="0.72" data-track-index="11" data-volume="0.22"></audio>
+<audio id="sfx16" src="assets/sfx/pop.mp3" data-start="34.13" data-duration="0.72" data-track-index="12" data-volume="0.22"></audio>
+<audio id="sfx17" src="assets/sfx/pop.mp3" data-start="34.55" data-duration="0.72" data-track-index="13" data-volume="0.22"></audio>
+<audio id="sfx18" src="assets/sfx/pop.mp3" data-start="35.56" data-duration="0.72" data-track-index="11" data-volume="0.22"></audio>
+<audio id="sfx19" src="assets/sfx/pop.mp3" data-start="42.26" data-duration="0.72" data-track-index="12" data-volume="0.22"></audio>
+<audio id="sfx20" src="assets/sfx/pop.mp3" data-start="42.84" data-duration="0.72" data-track-index="13" data-volume="0.22"></audio>
+<audio id="sfx21" src="assets/sfx/pop.mp3" data-start="43.46" data-duration="0.72" data-track-index="11" data-volume="0.22"></audio>
+<audio id="sfx22" src="assets/sfx/sparkle.mp3" data-start="44.6" data-duration="1.8" data-track-index="12" data-volume="0.35"></audio>
+<audio id="sfx23" src="assets/sfx/pop.mp3" data-start="44.6" data-duration="0.72" data-track-index="13" data-volume="0.22"></audio>
+<audio id="sfx24" src="assets/sfx/pop.mp3" data-start="46.92" data-duration="0.72" data-track-index="11" data-volume="0.22"></audio>
+<audio id="sfx25" src="assets/sfx/chime.mp3" data-start="50.41" data-duration="2.54" data-track-index="12" data-volume="0.25"></audio>
+<audio id="sfx26" src="assets/sfx/pop.mp3" data-start="50.41" data-duration="0.72" data-track-index="13" data-volume="0.22"></audio>
+<audio id="sfx27" src="assets/sfx/whoosh.mp3" data-start="51.78" data-duration="0.57" data-track-index="11" data-volume="0.4"></audio>
+<audio id="sfx28" src="assets/sfx/impact-bass-1.mp3" data-start="56.46" data-duration="2.12" data-track-index="12" data-volume="0.35"></audio>
+<audio id="sfx29" src="assets/sfx/whoosh.mp3" data-start="63.45" data-duration="0.57" data-track-index="13" data-volume="0.5"></audio>
+<audio id="sfx30" src="assets/sfx/impact-bass-1.mp3" data-start="63.8" data-duration="2.12" data-track-index="11" data-volume="0.45"></audio>
+</div>
+<script>
+const tl = gsap.timeline({ paused: true });
+const CAPS = [[0.0, 1.5, [[0.0, 0], [0.36, 0], [0.72, 1]]], [1.54, 2.72, [[1.6, 0], [1.89, 1], [2.11, 0]]], [2.76, 4.32, [[2.76, 0], [3.26, 1], [3.76, 1]]], [4.36, 6.44, [[4.36, 0], [5.08, 1], [5.4, 0]]], [6.48, 7.36, [[6.48, 0], [6.96, 0]]], [7.4, 8.77, [[7.93, 0], [8.25, 1]]], [8.81, 9.95, [[8.81, 0], [9.17, 1]]], [9.99, 10.73, [[9.99, 0], [10.28, 1]]], [10.77, 12.71, [[10.77, 1], [11.2, 1]]], [12.75, 15.36, [[12.75, 0], [13.48, 1]]], [15.4, 16.73, [[15.59, 1], [15.99, 0]]], [16.77, 17.82, [[16.77, 0], [17.39, 1]]], [17.86, 19.35, [[18.1, 0], [18.39, 1], [18.79, 0]]], [19.39, 21.12, [[19.39, 0], [20.12, 1], [20.42, 1]]], [21.16, 23.66, [[21.16, 0], [22.26, 1]]], [23.7, 24.94, [[23.7, 1], [24.18, 1]]], [24.98, 26.21, [[24.98, 0], [25.25, 1]]], [26.25, 27.51, [[26.25, 1], [26.73, 0]]], [27.55, 29.04, [[27.55, 0], [28.3, 1]]], [29.08, 31.88, [[30.16, 1], [30.84, 1]]], [31.92, 33.47, [[31.92, 1], [32.45, 0]]], [33.51, 35.26, [[33.51, 1], [34.13, 1], [34.55, 1]]], [35.3, 37.22, [[35.56, 1], [36.24, 0]]], [37.26, 38.95, [[37.3, 0], [37.9, 1]]], [38.99, 40.56, [[38.99, 0], [39.56, 1]]], [40.6, 44.18, [[42.26, 1], [42.84, 1], [43.46, 1]]], [44.22, 45.95, [[44.3, 1], [44.6, 1], [45.3, 1]]], [45.99, 48.14, [[46.92, 1], [47.24, 0]]], [48.18, 51.76, [[48.51, 0], [50.41, 1], [51.2, 0]]], [51.8, 53.76, [[51.8, 0], [52.61, 0], [53.05, 1]]], [53.8, 55.58, [[53.8, 0], [54.9, 0]]], [55.62, 57.58, [[55.62, 0], [56.46, 1]]], [57.62, 58.84, [[57.62, 0], [58.29, 1]]], [58.88, 60.28, [[58.88, 1], [59.52, 0]]], [60.32, 61.69, [[60.57, 0], [61.11, 1]]], [61.73, 63.4, [[62.0, 0], [62.4, 0], [62.85, 1]]]];
+CAPS.forEach(([s, e, ws], i) => {
+  tl.set("#cap" + i, { opacity: 1 }, s);
+  ws.forEach(([t, big], j) => {
+    const el = "#cw" + i + "_" + j;
+    if (big) tl.fromTo(el, { opacity: 0, scale: 1.35, y: 10 }, { opacity: 1, scale: 1, y: 0, duration: 0.16, ease: "back.out(2.6)" }, t);
+    else tl.fromTo(el, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, t);
+  });
+  tl.set("#cap" + i, { opacity: 0 }, e);
+});
+// camera: slow push on hook / outro, punch-ins on key words
+tl.fromTo("#cam .inner", { scale: 1.0 }, { scale: 1.07, duration: 2.73, ease: "none" }, 0);
+tl.set("#cam .inner", { scale: 1.0 }, 2.73);
+tl.set("#cam .inner", { transformOrigin: "74% 42%" }, 19.95);
+tl.to("#cam .inner", { scale: 1.28, duration: 0.14, ease: "power3.out" }, 20.10);
+tl.set("#cam .inner", { scale: 1.0, transformOrigin: "64% 40%" }, 21.13);
+tl.to("#cam .inner", { scale: 1.14, duration: 0.14, ease: "power3.out" }, 56.44);
+tl.set("#cam .inner", { scale: 1.0 }, 57.43);
+tl.set("#cam .inner", { transformOrigin: "60% 42%" }, 60.29);
+tl.fromTo("#cam .inner", { scale: 1.0 }, { scale: 1.08, duration: 3.07, ease: "none", immediateRender: false }, 60.29);
+// stock cutaways: pop in + Ken Burns
+[["b-facial", 3.05, 4.4], ["b-phone", 9.6, 10.77], ["b-massage", 13.05, 14.8], ["b-film", 17.86, 19.36], ["b-botox", 33.45, 35.28], ["b-hair", 44.22, 45.96], ["b-laser", 46.62, 48.14], ["b-slim", 50.25, 51.76]].forEach(([id, s, e]) => {
+  tl.fromTo("#" + id + " .bimg", { scale: 1.18, opacity: 0 }, { scale: 1.06, opacity: 1, duration: 0.22, ease: "power3.out" }, s);
+  tl.to("#" + id + " .bimg", { scale: 1.0, xPercent: -1.5, duration: e - s - 0.22, ease: "none" }, s + 0.22);
+});
+// chips
+const chipIn = (id, t) => tl.fromTo(id, { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.32, ease: "back.out(1.8)" }, t);
+const chipOut = (id, t) => tl.to(id, { x: -40, opacity: 0, duration: 0.2, ease: "power2.in" }, t);
+chipIn("#hook", 0.1); chipOut("#hook", 2.45);
+chipIn("#title", 2.95); chipOut("#title", 4.78);
+chipIn("#bkk", 4.95); tl.fromTo("#bkk .pin", { y: -30 }, { y: 0, duration: 0.4, ease: "bounce.out" }, 5.0); chipOut("#bkk", 7.1);
+chipIn("#chn", 7.40); tl.set("#chn-no", { display: "none" }, 7.40);
+tl.set("#chn-ok", { display: "none" }, 10.77); tl.set("#chn-no", { display: "block" }, 10.77);
+tl.fromTo("#chn-no", { scale: 1.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.18, ease: "back.out(3)", transformOrigin: "0% 50%" }, 10.77);
+tl.fromTo("#chn", { x: -8 }, { x: 8, duration: 0.05, repeat: 5, yoyo: true }, 10.80); tl.set("#chn", { x: 0 }, 11.10);
+chipOut("#chn", 12.5);
+chipIn("#film", 17.90); chipOut("#film", 19.15);
+chipIn("#loc", 21.2); chipOut("#loc", 24.7);
+// lower third
+tl.fromTo("#lt .box", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.45, ease: "power3.out" }, 26.12);
+tl.fromTo("#lt .n", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3 }, 26.3);
+tl.fromTo("#lt .r", { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3 }, 26.45);
+tl.to("#lt .box", { clipPath: "inset(0 100% 0 0)", duration: 0.3, ease: "power2.in" }, 31.15);
+// treatment menu
+tl.fromTo("#menu", { x: 700, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 27.5);
+[30.16, 33.51, 34.13, 34.55, 35.56, 42.26, 42.84, 43.46, 44.6, 46.92, 50.41].forEach((t, k) => {
+  tl.to("#mr" + k, { opacity: 1, duration: 0.12 }, t);
+  tl.set("#mr" + k, { className: "mrow on" }, t);
+  tl.fromTo("#mr" + k + " .mlab", { x: -14 }, { x: 0, duration: 0.25, ease: "back.out(2)" }, t);
+});
+tl.to("#menu", { x: 700, opacity: 0, duration: 0.35, ease: "power2.in" }, 51.45);
+// end card
+tl.fromTo("#gift", { scale: 1.08 }, { scale: 1.0, duration: 3.633, ease: "none" }, 63.367);
+tl.fromTo("#endcard .e1", { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.7)" }, 63.367+0.25);
+tl.fromTo("#endcard .e2", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4 }, 63.367+0.6);
+tl.fromTo("#endcard .e3", { opacity: 0 }, { opacity: 0.75, duration: 0.3 }, 63.367+0.35);
+window.__timelines["main"] = tl;
+</script>
+</body>
+</html>
