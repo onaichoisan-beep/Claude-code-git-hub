@@ -27,4 +27,13 @@ Video clips (Pexels, free to use, credit not required but appreciated):
 - Skincare: https://www.pexels.com/video/young-woman-applying-makeup-in-front-of-mirror-6604745/
 - Laser hair removal: https://www.pexels.com/video/laser-epilation-lazer-epilasyon-16032412/
 - Waist measuring: https://www.pexels.com/video/woman-measuring-her-waistline-8670903/
+
+Sound effects (Freesound, CC0 — no credit required):
+- "Record Scratch #2" by musicvision31 — CC0 — https://freesound.org/people/musicvision31/sounds/431773
+- "wah wah sad trombone.wav" by kirbydx — CC0 — https://freesound.org/people/kirbydx/sounds/175409
+- "Boing!" by oganesson — CC0 — https://freesound.org/people/oganesson/sounds/555014
+- "Rimshot (sweet)" by Sajmund — CC0 — https://freesound.org/people/Sajmund/sounds/132418
+- "Ridicule (laughter men).wav" by the_yura — CC0 — https://freesound.org/people/the_yura/sounds/278858
+- "Cash Register Sound Effect.mp3" by kayliebenson — CC0 — https://freesound.org/people/kayliebenson/sounds/474239
+- "slurp OWI.wav" by miekyj — CC0 — https://freesound.org/people/miekyj/sounds/326467
 ```
