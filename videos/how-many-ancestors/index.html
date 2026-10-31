@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>How Many People Did It Take to Make You?</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "How many people did it take to make you?" — sharp HD pixel art, narrated (narrator / YOU / the ancestor),
+      engagement rules (STYLE_GUIDE.md section 6): YOU is the character at the root of a family tree that doubles upward,
+      a live ANCESTORS counter at the top the whole time, one continuous camera pull-back, @SCROLL2STUDY.IN on every frame,
+      the doubling pluck as the signature sound, a CTA, tape-stop + rewind into frame 1.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="46.0" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="46.0" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="46.0" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = window.DUR || 46.0;
+      var MOUTH = window.MOUTH || {}, BB = window.BEATS || {};
+      var T = {};
+      [["G1", 2.2], ["G2", 3.2], ["G3", 4.3], ["EASY", 5.7], ["DOUBLE", 7.0], ["G6", 9.3], ["G10", 10.2], ["G20", 11.1],
+       ["WAIT", 11.7], ["Y1036", 15.0], ["PEAK", 17.7], ["BREAK", 17.4], ["MORE", 20.1], ["FEW", 21.9], ["WHERE", 25.3],
+       ["FOLD", 27.1], ["ONE", 31.1], ["ALL", 33.7], ["SHARE", 35.6], ["ANC", 38.9], ["EIGHTB", 40.7], ["CTA", 42.5],
+       ["STOP", 44.8], ["REWIND", 45.6]].forEach(function (k) { T[k[0]] = BB[k[0]] !== undefined ? BB[k[0]] : k[1]; });
+      var GENK = BB.GENK || [[0, 0], [2.2, 1], [3.2, 2], [4.3, 3], [7.3, 3], [9.3, 6], [10.2, 10], [11.1, 20], [15.0, 30], [17.7, 33]];
+
+      var C = {
+        sky1: "#0a0820", sky2: "#1a1240", sky3: "#3a1e4a", star: "#fff6d8",
+        gold: "#ffc83a", goldL: "#fff0a0", goldD: "#c8841a", amber: "#ff9a2a", red: "#ff3a4a", pink: "#ff5ab8",
+        green: "#3ae86a", cyan: "#4ae0ff",
+        skin: "#f0b88a", skinD: "#c88a5a", skinL: "#ffd8b0", hair: "#2a1a14", hairL: "#5a3a28",
+        hoodie: "#ff6a3a", hoodieD: "#c8401a", jeans: "#3a5ab8", jeansD: "#24387a", shoe: "#f4f4f4", shoeD: "#a8a8b8",
+        c_skin: "#9a603a", c_skinD: "#6a3e22", c_skinL: "#c08458", c_hair: "#1a1010", c_hairL: "#3a2a20",
+        c_hoodie: "#3ac8a0", c_hoodieD: "#1a8a6a",
+        robe: "#e8e0c8", robeD: "#b8a888", sash: "#c83a3a", beard: "#f4f4f4", beardD: "#c8c8d8", staff: "#8a5a2a",
+        white: "#ffffff", ink: "#0a0614", paper: "#f1eef4", dim: "#6a5a7a",
+      };
+      DISSOLVE = 0.12;
+      var KIDPAL = { skin: C.skin, skinD: C.skinD, skinL: C.skinL, hair: C.hair, hairL: C.hairL, hoodie: C.hoodie, hoodieD: C.hoodieD };
+      var COUSIN = { skin: C.c_skin, skinD: C.c_skinD, skinL: C.c_skinL, hair: C.c_hair, hairL: C.c_hairL, hoodie: C.c_hoodie, hoodieD: C.c_hoodieD };
+      var SKINS = [["#f0b88a", "#c88a5a"], ["#c88a5a", "#9a603a"], ["#9a603a", "#6a3e22"], ["#ffd8b0", "#d8a880"], ["#7a4a2a", "#4a2a18"], ["#e0a070", "#b07040"]];
+      var HAIRS = ["#2a1a14", "#5a3a28", "#1a1010", "#c8a050", "#8a2a1a", "#d8d8e0", "#3a2a20"];
+
+      function talk(who, t) { var s = MOUTH[who] || "", f = Math.floor(t * 30); return f >= 0 && f < s.length ? +s[f] / 9 : 0; }
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function uiText(str, x, y, S, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) { var gl = FONT[str[i]] || FONT[" "]; for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * S + (p % 5) * S, y + Math.floor(p / 5) * S, S, S); }
+      }
+      function uiCentre(str, y, S, col) { var w = str.length * 6 * S - S; uiText(str, Math.round(180 - w / 2) + S, y + S, S, C.ink); uiText(str, Math.round(180 - w / 2), y, S, col); }
+      function bubble(x, y, str, col) { var w = str.length * 6 + 5; rrect(x - w / 2, y - 6, w, 11, 2, C.white); poly([[x - 3, y + 5], [x + 2, y + 5], [x - 5, y + 10]], C.white); worldText(str, x, y - 3.5, 1, col || C.ink); }
+      function commas(n) { var s = String(n), o = ""; while (s.length > 3) { o = "," + s.slice(-3) + o; s = s.slice(0, -3); } return s + o; }
+
+      // the generation counter (same curve as scripts/synth_audio.py)
+      function gen(t) {
+        if (t < GENK[0][0]) return 0;
+        for (var i = 0; i < GENK.length - 1; i++) {
+          var a = GENK[i], b = GENK[i + 1];
+          if (t < b[0]) return b[1] - a[1] <= 1 ? a[1] : a[1] + (b[1] - a[1]) * (t - a[0]) / (b[0] - a[0]);
+        }
+        return 33;
+      }
+
+      // ============================================================ characters (character() adds the dark outline)
+      function limb(x1, y1, x2, y2, x3, y3, w, col, colD) {
+        line(x1, y1, x2, y2, w, colD); line(x2, y2, x3, y3, w, colD);
+        line(x1 - 0.4, y1 - 0.4, x2 - 0.4, y2 - 0.4, w - 1, col); line(x2 - 0.4, y2 - 0.4, x3 - 0.4, y3 - 0.4, w - 1, col);
+      }
+      // a kid: feet at (x, y), about 74*s tall. o: { t, talk, wave, look, pal, puzzled, shrug, bun }
+      function kid(x, y, s, o) {
+        var t = o.t || 0, P = o.pal || KIDPAL, bob = Math.sin(t * 2.4 + (o.seed || 0)) * 0.5;
+        g.save(); g.translate(x, y - bob); g.scale(s * (o.look || 1), s);
+        limb(-3.5, -24, -3.5, -12, -3.5, -2, 5.5, C.jeans, C.jeansD);
+        limb(3.5, -24, 3.5, -12, 3.5, -2, 5.5, C.jeans, C.jeansD);
+        ell(-3, -1.5, 4.2, 2.2, 0, C.shoeD); ell(-3.4, -2, 3.8, 1.8, 0, C.shoe);
+        ell(4, -1.5, 4.2, 2.2, 0, C.shoeD); ell(3.6, -2, 3.8, 1.8, 0, C.shoe);
+        var sh = o.shrug ? 4 : 0;
+        if (o.shrug) { limb(-8, -42, -14, -38, -15, -46, 4.5, P.hoodie, P.hoodieD); disc(-15, -47, 2.2, P.skin); }
+        else { limb(-8, -42, -10, -32, -9, -23, 4.5, P.hoodie, P.hoodieD); disc(-9, -22.5, 2.2, P.skinD); }
+        rrect(-10, -46, 20, 24, 6, P.hoodieD); rrect(-9.5, -46, 18.5, 22.5, 6, P.hoodie);
+        rrect(-5.5, -34, 11, 6, 2, P.hoodieD); rect(-1.5, -45, 0.6, 8, C.white); rect(1, -45, 0.6, 7, C.white);
+        rect(-10, -25, 20, 2.5, P.hoodieD);
+        if (o.wave) { var wa = Math.sin(t * 14) * 0.35; limb(8, -42, 14, -50, 15 + wa * 8, -60, 4.5, P.hoodie, P.hoodieD); disc(15.5 + wa * 8, -61, 2.4, P.skin); }
+        else if (o.shrug) { limb(8, -42, 14, -38, 15, -46, 4.5, P.hoodie, P.hoodieD); disc(15, -47, 2.2, P.skin); }
+        else { limb(8, -42, 10, -32, 9, -23, 4.5, P.hoodie, P.hoodieD); disc(9, -22.5, 2.2, P.skin); }
+        g.translate(0, -sh * 0.3);
+        rect(-2.5, -50, 5, 5, P.skinD);
+        disc(0, -58, 10.5, P.skin); ell(-2.5, -61, 4, 3, -0.4, P.skinL);
+        disc(0, -63, 9.5, P.hair); disc(-6, -60, 5, P.hair); disc(7, -61, 4.5, P.hair);
+        if (o.bun !== false) { disc(5, -72, 4.6, P.hair); disc(4.4, -72.6, 2, P.hairL); }
+        else { disc(-4, -69, 4, P.hair); disc(3, -70, 4.5, P.hair); }
+        poly([[-9, -60], [-4, -66], [2, -62], [6, -66], [9, -59], [9, -64], [-9, -64]], P.hair);
+        var blink = Math.sin(t * 1.7 + (o.seed || 0)) > 0.985, big = o.puzzled ? 1.25 : 1;
+        if (blink) { line(-5.5, -56.5, -2.5, -56.5, 1, C.ink); line(2.5, -56.5, 5.5, -56.5, 1, C.ink); }
+        else {
+          ell(-4, -56.5, 2.2 * big, 2.8 * big, 0, C.white); ell(4, -56.5, 2.2 * big, 2.8 * big, 0, C.white);
+          ell(-3.6, -56.2, 1.4, 2, 0, C.ink); ell(4.4, -56.2, 1.4, 2, 0, C.ink);
+          rect(-4.4, -57.8, 0.8, 0.8, C.white); rect(3.6, -57.8, 0.8, 0.8, C.white);
+        }
+        if (o.puzzled) { line(-6, -62, -2.5, -61, 0.8, P.hair); line(2.5, -62.5, 6, -63.5, 0.8, P.hair); }
+        else { line(-6, -60.5, -2.5, -61, 0.8, P.hair); line(2.5, -61, 6, -60.5, 0.8, P.hair); }
+        disc(-7, -53.5, 1.6, C.pink); disc(7, -53.5, 1.6, C.pink);
+        var k = o.talk || 0;
+        if (k > 0.12) { ell(0.5, -51.8, 2.2, 0.6 + 1.8 * k, 0, P.hoodieD); rect(-1, -52.6 - 0.9 * k, 3, 0.7, C.white); }
+        else if (o.puzzled) { ell(0.5, -52, 1.2, 1.2, 0, P.skinD); }
+        else { g.strokeStyle = P.skinD; g.lineWidth = 0.8; g.beginPath(); g.arc(0.5, -53, 2.2, 0.3, Math.PI - 0.3); g.stroke(); }
+        g.restore();
+      }
+
+      // an ancestor's head (a node of the tree): centre (x, y), radius r; looks vary by seed
+      function head(x, y, r, seed) {
+        var sk = SKINS[Math.floor(hash1(seed * 3.1) * SKINS.length)], hr = HAIRS[Math.floor(hash1(seed * 7.7) * HAIRS.length)];
+        var style = Math.floor(hash1(seed * 1.9) * 4);
+        disc(x, y, r, sk[0]);
+        if (style === 0) { disc(x, y - r * 0.45, r * 0.85, hr); rect(x - r, y - r * 0.4, r * 2, r * 0.25, hr); }
+        else if (style === 1) { disc(x, y - r * 0.4, r * 0.9, hr); disc(x - r * 0.8, y + r * 0.2, r * 0.45, hr); disc(x + r * 0.8, y + r * 0.2, r * 0.45, hr); }
+        else if (style === 2) { ell(x, y - r * 0.55, r * 0.95, r * 0.55, 0, hr); disc(x, y - r * 1.05, r * 0.35, hr); }
+        else { ell(x, y - r * 0.5, r * 1.05, r * 0.6, 0, hr); ell(x, y + r * 0.55, r * 0.6, r * 0.45, 0, hr); }
+        disc(x, y + r * 0.05, r * 0.72, sk[0]);
+        if (style === 3) ell(x, y + r * 0.62, r * 0.55, r * 0.35, 0, hr);
+        disc(x - r * 0.32, y, r * 0.16, C.ink); disc(x + r * 0.32, y, r * 0.16, C.ink);
+        disc(x - r * 0.5, y + r * 0.3, r * 0.14, C.pink); disc(x + r * 0.5, y + r * 0.3, r * 0.14, C.pink);
+        if (style !== 3) { g.strokeStyle = sk[1]; g.lineWidth = Math.max(0.3, r * 0.1); g.beginPath(); g.arc(x, y + r * 0.25, r * 0.25, 0.3, Math.PI - 0.3); g.stroke(); }
+      }
+
+      // the Bronze-Age ancestor: feet at (x, y), about 110*s tall
+      function elder(x, y, s, t, k) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        line(16, -2, 18, -96, 2.6, C.staff); disc(18, -97, 3, C.goldL);
+        ell(0, -2, 13, 3, 0, C.robeD);
+        poly([[-12, -2], [12, -2], [8, -60], [-8, -60]], C.robeD); poly([[-11, -3], [10, -3], [7, -59], [-7, -59]], C.robe);
+        rect(-8, -40, 16, 4, C.sash);
+        limb(-8, -56, -12, -40, -6, -32, 5, C.robe, C.robeD); disc(-6, -31.5, 2.4, C.skin);
+        var wv = Math.sin(t * 2) * 0.1;
+        limb(8, -56, 14, -46, 17 + wv * 6, -52, 5, C.robe, C.robeD); disc(17 + wv * 6, -53, 2.6, C.skin);
+        rect(-3, -64, 6, 6, C.skinD);
+        // white hair + long beard below a clearly visible face
+        disc(0, -73, 11.5, C.beard); ell(0, -82, 10, 4, 0, C.beard);
+        poly([[-10.5, -68], [10.5, -68], [8, -54], [0, -46], [-8, -54]], C.beard); poly([[-5, -56], [5, -56], [0, -48]], C.beardD);
+        ell(0, -72.5, 8.6, 9, 0, C.skin); ell(-2.5, -76, 3.5, 2.6, -0.3, C.skinL);
+        line(-7, -78.5, -2, -77.8, 1.4, C.beard); line(2, -77.8, 7, -78.5, 1.4, C.beard);
+        ell(-3.6, -74, 1.5, 1.8, 0, C.ink); ell(3.6, -74, 1.5, 1.8, 0, C.ink); rect(-4.2, -75.2, 0.7, 0.7, C.white); rect(3, -75.2, 0.7, 0.7, C.white);
+        disc(-6.2, -70.5, 1.6, C.pink); disc(6.2, -70.5, 1.6, C.pink);
+        ell(0, -71.5, 1.2, 1.6, 0, C.skinD);
+        if (k > 0.12) { ell(0, -66, 2.6, 0.6 + 1.8 * k, 0, C.ink); } else { g.strokeStyle = C.skinD; g.lineWidth = 0.8; g.beginPath(); g.arc(0, -67.5, 2.4, 0.3, Math.PI - 0.3); g.stroke(); }
+        ell(-2.6, -68.6, 3, 1.3, 0.15, C.beard); ell(2.6, -68.6, 3, 1.3, -0.15, C.beard);
+        rect(-10, -82.5, 20, 2.6, C.gold); disc(0, -81.5, 1.8, C.red);
+        g.restore();
+      }
+
+      // ============================================================ the background: night sky, twinkling stars
+      function night(t, f) {
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.sky1], [0.65, C.sky2], [1, C.sky3]]); g.fillRect(0, 0, W, H);
+        for (var i = 0; i < 70; i++) {
+          var x = hash1(i * 3.3) * 180, y = hash1(i * 5.1 + 2) * 320, tw = 0.35 + 0.65 * Math.abs(Math.sin(t * (1 + hash1(i)) + i));
+          g.globalAlpha = tw * (f === undefined ? 1 : f); rect(Math.round(x), Math.round(y), i % 7 ? 0.5 : 1, i % 7 ? 0.5 : 1, C.star);
+        }
+        g.globalAlpha = 1;
+      }
+
+      // ============================================================ the family tree
+      // tree space: origin = YOU's feet, y up. Row g sits at ty = 46 + Y(g) and spans w(g) (shaped by fold/pinch).
+      function Y(gg) { return 16 * gg + 0.3 * gg * gg; }
+      function Wd(gg) { return 34 * gg / (1 + gg / 45); }
+      var ROOT_X = 90, ROOT_Y = 300, KID_H = 46;
+      function scaleAt(t) {
+        var gc = Math.max(gen(t), 0), s;
+        var h = lerp(112, 238, clamp01((gc - 3) / 11));
+        s = Math.min(2.3, h / (KID_H + Y(Math.max(gc, 0.6)) + 8));
+        if (t < T.G1) s = 2.3 * (1 - 0.04 * clamp01(t / T.G1));
+        if (t > T.FOLD) s *= 1 - 0.04 * ramp(t, T.FOLD, T.ALL);
+        if (t > T.ALL) s *= Math.exp(Math.log(0.62) * ramp(t, T.ALL + 0.1, T.ALL + 2.6));
+        return s;
+      }
+      function foldAt(t) { return ramp(t, T.FOLD + 1.3, T.FOLD + 4.2); }
+      function topGen(t) { return 33 + 13 * ramp(t, T.ALL + 0.1, T.SHARE + 0.8); }
+      // width of row gg after the fold: a diamond that narrows to one ancestor at the top
+      function rowW(gg, t) {
+        var w = Wd(Math.min(gg, 33)), fd = foldAt(t);
+        if (fd <= 0) return w;
+        var tg = topGen(t), p = clamp01((gg - 14) / (tg - 14));
+        var pinch = Math.pow(p, 1.6);
+        if (gg > 33) w = Wd(33);
+        return w * (1 - fd * pinch * 0.985);
+      }
+
+      function scene_tree(t) {
+        var s = scaleAt(t), gc = gen(t), fd = foldAt(t);
+        // camera drift: a slow push so the picture is never still
+        var drift = Math.sin(t * 0.6) * 1.2;
+        night(t);
+        function X(tx) { return ROOT_X + tx * s + drift; }
+        function Yy(ty) { return ROOT_Y - ty * s; }
+        // the warm glow around YOU
+        lighter(); glow(X(0), Yy(KID_H * 0.6), 60 * Math.max(s, 0.5), C.amber, 0.35); normalBlend();
+
+        // year ruler on the left (like a timeline), one tick per visible generation
+        for (var r = 1; r <= Math.min(Math.floor(gc), 33); r++) {
+          var yy = Yy(KID_H + Y(r));
+          if (yy < 48 || (Y(r) - Y(r - 1)) * s < 7 || X(-rowW(r, t) / 2) < 34) continue;
+          g.globalAlpha = 0.55 * (1 - fd); worldText(String(2026 - 30 * r), 12, yy - 3, 1, C.dim); rect(22, yy, 3, 0.5, C.dim); g.globalAlpha = 1;
+        }
+
+        var maxRow = Math.min(Math.ceil(gc + 0.001), 33);
+        var lw = Math.max(0.35, Math.min(1.2, 0.9 * s));
+        // ---- individual nodes + branches for the first rows
+        var NIND = 8;
+        for (var gg = 1; gg <= Math.min(maxRow, NIND); gg++) {
+          var a = gg <= 3 ? clamp01((t - [0, T.G1, T.G2, T.G3][gg]) / 0.25) : clamp01(gc - gg + 1);
+          if (a <= 0) continue;
+          var n = 1 << gg, w = rowW(gg, t), wp = rowW(gg - 1, t), ty = KID_H + Y(gg), typ = gg === 1 ? KID_H - 6 : KID_H + Y(gg - 1);
+          g.globalAlpha = a * (gg > 6 ? 0.7 : 1);
+          for (var i = 0; i < n; i++) {
+            var x = (i + 0.5) / n * w - w / 2, px = gg === 1 ? 0 : ((i >> 1) + 0.5) / (n / 2) * wp - wp / 2;
+            var gy = lerp(typ, ty, gg <= 3 ? easeOut(a) : 1);
+            line(X(px), Yy(typ), X(x), Yy(gy), lw, gg > 5 ? C.goldD : C.gold);
+          }
+          g.globalAlpha = 1;
+        }
+        // faces for rows 1-4 (they are people: outlined), glowing dots for rows 5-8
+        character(function () {
+          for (var gg = 1; gg <= Math.min(maxRow, 4); gg++) {
+            var t0 = [0, T.G1, T.G2, T.G3, GENK[4] ? GENK[4][0] : 7.3][gg];
+            var a = gg <= 3 ? clamp01((t - t0) / 0.25) : clamp01(gc - gg + 1);
+            if (a <= 0) continue;
+            var n = 1 << gg, w = rowW(gg, t), spacing = w / n * s, r = Math.min(9, spacing * 0.36) * (gg <= 3 ? Math.min(1.15, pop(t, t0)) : a);
+            if (r < 1.4) continue;
+            for (var i = 0; i < n; i++) { var x = (i + 0.5) / n * w - w / 2; head(X(x), Yy(KID_H + Y(gg)) - r * 0.2, r, gg * 97 + i); }
+          }
+        });
+        for (var g2 = 5; g2 <= Math.min(maxRow, NIND); g2++) {
+          var a2 = clamp01(gc - g2 + 1), n2 = 1 << g2, w2 = rowW(g2, t);
+          for (var i2 = 0; i2 < n2; i2++) { var x2 = (i2 + 0.5) / n2 * w2 - w2 / 2; g.globalAlpha = a2; disc(X(x2), Yy(KID_H + Y(g2)), Math.max(0.5, Math.min(1.6, 0.9 * s)), C.goldL); }
+          g.globalAlpha = 1;
+        }
+        // ---- deeper rows: a woven fan of golden strands
+        var top = fd > 0 ? Math.floor(topGen(t)) : maxRow;
+        for (var g3 = NIND + 1; g3 <= top; g3++) {
+          var a3 = g3 <= 33 ? clamp01(gc - g3 + 1) : clamp01(topGen(t) - g3 + 1);
+          if (a3 <= 0) continue;
+          var w3 = rowW(g3, t), w3p = rowW(g3 - 1, t), ty3 = KID_H + Y(g3), ty3p = KID_H + Y(g3 - 1);
+          var M = 46;
+          g.globalAlpha = a3 * 0.55;
+          for (var m = 0; m < M; m++) {
+            var h1 = hash1(g3 * 131 + m * 7.3), h2 = h1 + (hash1(g3 * 17 + m) - 0.5) * 0.08;
+            line(X((h2 - 0.5) * w3p), Yy(ty3p), X((h1 - 0.5) * w3), Yy(ty3), Math.max(0.3, lw * 0.6), m % 3 ? C.goldD : C.gold);
+          }
+          g.globalAlpha = a3 * 0.4;
+          line(X(-w3 / 2), Yy(ty3), X(w3 / 2), Yy(ty3), Math.max(0.3, lw * 0.5), C.goldD);
+          g.globalAlpha = 1;
+        }
+        // the frontier: the row being added glows bright
+        if (gc >= 3.5 && t < T.FOLD + 1.5) {
+          var fr = Math.min(gc, 33), wf = rowW(fr, t), yf = Yy(KID_H + Y(fr));
+          g.globalAlpha = 1 - foldAt(t);
+          lighter(); glow(X(0), yf, wf * s * 0.55, C.amber, 0.25); normalBlend();
+          line(X(-wf / 2), yf, X(wf / 2), yf, 1.1, C.goldL);
+          // the 300-million reveal: only a sliver of the 1036 row were real people
+          if (t > T.FEW && t < T.FOLD + 1.5) {
+            var k = ramp(t, T.FEW + 0.2, T.FEW + 1.4), real = wf * lerp(1, 0.035, k);
+            line(X(-wf / 2), yf, X(wf / 2), yf, 1.1, C.dim);
+            line(X(-real / 2), yf, X(real / 2), yf, 2.2, C.red);
+            if (k > 0.9) { worldText("REAL PEOPLE", X(0), yf - 10, 1, C.red); poly([[X(0) - 2, yf - 3], [X(0) + 2, yf - 3], [X(0), yf - 1]], C.red); }
+          }
+          g.globalAlpha = 1;
+        }
+        // the shared ancestor: one glowing node at the top of the diamond, lines from many spots meet in them
+        if (t > T.ONE - 0.3) {
+          var ga = clamp01((t - T.ONE + 0.3) / 0.4), tg = topGen(t), ya = Yy(KID_H + Y(tg)) - 2;
+          lighter(); glow(X(0), ya, 26, C.goldL, 0.8 * ga); normalBlend();
+          character(function () { head(X(0), ya, 3.4 * Math.min(1.2, pop(t, T.ONE - 0.1)), 7); });
+          if (t < T.ALL) {
+            for (var q = 0; q < 10; q++) {
+              var gq = 16 + q * 1.6, wq = rowW(gq, t), side = q % 2 ? 1 : -1;
+              g.globalAlpha = ga * (0.6 + 0.4 * Math.sin(t * 6 + q));
+              line(X(side * wq * 0.42 * hash1(q + 3)), Yy(KID_H + Y(gq)), X(0), ya, 0.6, C.goldL);
+            }
+            g.globalAlpha = 1;
+          }
+        }
+        // everyone alive today: a row of people spreading out beside YOU
+        var ev = ramp(t, T.SHARE - 0.4, T.SHARE + 1.6);
+        if (ev > 0) {
+          var nP = 26, wP = 560 * ev;
+          for (var pp = 0; pp < nP; pp++) {
+            if (pp === nP / 2) continue;
+            var xp = (pp + 0.5) / nP * wP - wP / 2, ta = hash1(pp * 5.3);
+            g.globalAlpha = ev * 0.6; line(X(xp), Yy(KID_H - 8), X(xp * 0.25 + (ta - 0.5) * 30), Yy(KID_H + Y(10)), 0.4, C.goldD); g.globalAlpha = 1;
+          }
+          character(function () {
+            for (var pp = 0; pp < nP; pp++) {
+              if (pp === nP / 2) continue;
+              var xp = (pp + 0.5) / nP * wP - wP / 2;
+              kid(X(xp), ROOT_Y + 2, s * 0.62, { t: t, seed: pp, pal: { skin: SKINS[pp % 6][0], skinD: SKINS[pp % 6][1], skinL: SKINS[pp % 6][0], hair: HAIRS[pp % 7], hairL: HAIRS[(pp + 1) % 7], hoodie: [C.cyan, C.pink, C.green, C.gold, C.red][pp % 5], hoodieD: C.goldD }, bun: pp % 2 === 0 });
+            }
+          });
+        }
+        // YOU at the root
+        var puzzled = t > T.WAIT - 0.1 && t < T.Y1036 || t > T.WHERE - 0.1 && t < T.FOLD + 0.8;
+        character(function () {
+          kid(X(0), ROOT_Y + 2, s * 0.62, { t: t, talk: talk("you", t), puzzled: puzzled, shrug: t > T.EASY && t < T.DOUBLE - 0.2 || t > T.WHERE && t < T.FOLD });
+        });
+        if (t > T.EASY + 0.15 && t < T.DOUBLE - 0.1) bubble(X(0) + 22, Yy(KID_H) - 18, "EASY.", C.ink);
+        if (t > T.WAIT + 0.1 && t < T.Y1036 - 0.6) bubble(X(0) + 26, Yy(KID_H) - 14, "WAIT...", C.red);
+        if (t > T.WHERE + 0.1 && t < T.FOLD + 0.2) bubble(X(0) + 26, Yy(KID_H) - 14, "WHERE?", C.red);
+        if (s < 0.8) { worldText("YOU", X(0), ROOT_Y + 6, 1, C.goldL); }
+        vignette(0.35, "rgba(10,6,30,");
+      }
+
+      // ============================================================ the shared ancestor speaks
+      function scene_anc(t) {
+        var cam = camAt([[T.ANC - 0.2, 90, 176, 1.0], [T.CTA, 90, 182, 1.12]], t);
+        night(t);
+        setCam(cam, 1);
+        // the diamond's lines pour down from their feet into today's billions
+        for (var m = 0; m < 70; m++) {
+          var h1 = hash1(m * 3.7), xb = -40 + h1 * 260, sway = Math.sin(t * 1.5 + m) * 2;
+          g.globalAlpha = 0.35 + 0.3 * hash1(m + 9); line(90, 300, xb + sway, 420, 0.6, m % 3 ? C.goldD : C.gold); g.globalAlpha = 1;
+        }
+        lighter(); glow(90, 250, 90, C.goldL, 0.45); glow(90, 300, 40, C.amber, 0.6); normalBlend();
+        // light rays
+        for (var r = 0; r < 9; r++) { var a = -Math.PI / 2 + (r - 4) * 0.22 + Math.sin(t * 0.5) * 0.04; g.globalAlpha = 0.07; poly([[90, 200], [90 + Math.cos(a - 0.05) * 200, 200 + Math.sin(a - 0.05) * 200], [90 + Math.cos(a + 0.05) * 200, 200 + Math.sin(a + 0.05) * 200]], C.goldL); }
+        g.globalAlpha = 1;
+        ell(90, 302, 30, 5, 0, C.goldD); ell(90, 301, 26, 3.5, 0, C.gold);
+        var pp = Math.min(1, pop(t, T.ANC - 0.1));
+        character(function () { elder(90, 300, 1.0 * pp, t, talk("ancestor", t)); });
+        // the little dots of 8 billion descendants twinkle in at "all 8 billion"
+        if (t > T.EIGHTB) {
+          var e = clamp01((t - T.EIGHTB) / 1.2);
+          for (var d = 0; d < 120 * e; d++) { var dx = hash1(d * 1.3) * 180, dy = 310 + hash1(d * 2.9) * 12; g.globalAlpha = 0.6 + 0.4 * Math.sin(t * 5 + d); rect(dx, dy, 1, 1, d % 4 ? C.goldL : C.white); }
+          g.globalAlpha = 1;
+        }
+        vignette(0.35, "rgba(10,6,30,");
+      }
+
+      // ============================================================ CTA: YOU meets a long-lost cousin
+      function scene_cta(t) {
+        var tt = t; if (t > T.STOP) { var tau = t - T.STOP, TT = T.REWIND - T.STOP; tt = T.STOP + tau - tau * tau / (2 * TT); }
+        var cam = camAt([[T.CTA - 0.2, 90, 172, 1.0], [T.STOP, 90, 178, 1.1]], tt);
+        night(tt);
+        setCam(cam, 1);
+        // a golden thread from a tiny ancestor up top, splitting down to both kids
+        lighter(); glow(90, 70, 26, C.goldL, 0.7); normalBlend();
+        var dr = ramp(tt, T.CTA + 0.2, T.CTA + 1.0);
+        line(90, 74, 90, lerp(74, 200, dr), 1, C.gold);
+        if (dr >= 1) { var d2 = ramp(tt, T.CTA + 1.0, T.CTA + 1.5); line(90, 200, lerp(90, 56, d2), lerp(200, 222, d2), 1, C.gold); line(90, 200, lerp(90, 124, d2), lerp(200, 222, d2), 1, C.gold); }
+        character(function () { head(90, 68, 4, 7); });
+        var meet = ease(clamp01((tt - T.CTA) / 0.8));
+        character(function () {
+          kid(lerp(30, 56, meet), 302, 1.15, { t: tt, wave: tt > T.CTA + 0.6, seed: 1 });
+          kid(lerp(150, 124, meet), 302, 1.15, { t: tt, wave: tt > T.CTA + 0.6, look: -1, pal: COUSIN, bun: false, seed: 4 });
+        });
+        if (tt > T.CTA + 0.7) { bubble(146, 206, "COUSIN!", C.goldD); }
+        for (var c = 0; c < 26; c++) { var y = ((tt - T.CTA) * (30 + hash1(c) * 30) + hash1(c + 7) * 320) % 340 - 10, x = hash1(c + 3) * 180; poly([[x, y], [x + 2, y + 1], [x, y + 3]], [C.gold, C.pink, C.cyan, C.green][c % 4]); }
+        vignette(0.3, "rgba(10,6,30,");
+      }
+
+      function sceneAt(t) { return t < T.ANC ? "tree" : t < T.CTA ? "anc" : t < T.REWIND ? "cta" : "tree"; }
+
+      // ============================================================ the counter at the top, the whole time
+      function drawUI(t) {
+        var gc = gen(t), gi = Math.floor(gc + 1e-6), l0 = "ANCESTORS", l1, l2 = "", c1 = C.gold, S1 = 3;
+        if (t >= T.REWIND) gi = 0;
+        if (t < T.BREAK || t >= T.REWIND) {
+          l1 = gi === 0 ? "0" : commas(Math.pow(2, gi));
+          c1 = gi >= 30 ? C.amber : C.gold;
+          l2 = gi === 0 ? "YEAR 2026" : "YEAR " + (2026 - 30 * gi) + "  -  GEN " + gi;
+        } else if (t < T.PEAK) { l1 = ""; }
+        else if (t < T.FEW) {
+          l1 = "8,589,934,592"; c1 = Math.floor(t * 8) % 2 ? C.red : C.white;
+          l2 = t > T.MORE ? "ALIVE TODAY: ~8.2 BILLION" : "YEAR 1036  -  GEN 33";
+        } else if (t < T.FOLD) {
+          l0 = "ALIVE IN 1036"; l1 = "~300,000,000"; c1 = C.red; l2 = "NEEDED: 8,589,934,592";
+        } else if (t < T.ALL) {
+          l0 = "SAME PEOPLE,"; l1 = "MANY SPOTS"; S1 = 3; c1 = C.gold;
+          l2 = t > T.ONE ? "1 ANCESTOR = 1000S OF SPOTS" : "THE TREE FOLDS IN";
+        } else if (t < T.ANC) {
+          l0 = "YEARS AGO"; var ya = Math.round(990 + 2000 * ramp(t, T.ALL + 0.1, T.SHARE + 0.8));
+          l1 = (ya >= 2990 ? "3,000+" : commas(ya)); c1 = C.gold; l2 = t > T.SHARE ? "EVERYONE: SAME ANCESTORS" : "";
+        } else if (t < T.CTA) {
+          l0 = "THEIR DESCENDANTS"; var dsc = t > T.EIGHTB ? Math.round(8e9 * ramp(t, T.EIGHTB, T.EIGHTB + 1.2)) : 0;
+          l1 = commas(dsc); c1 = C.gold; l2 = "INCLUDING YOU";
+        } else {
+          l0 = "YOUR COUSINS"; l1 = "~8 BILLION"; c1 = Math.floor(t * 4) % 2 ? C.gold : C.pink; l2 = "";
+        }
+        uiCentre(l0, 22, 2, C.paper);
+        if (l1) uiCentre(l1, 42, S1, c1);
+        if (l2) uiCentre(l2, 42 + 7 * S1 + 9, 2, C.white);
+      }
+
+      PX.setup(C, {
+        scenes: { tree: scene_tree, anc: scene_anc, cta: scene_cta },
+        sceneAt: sceneAt,
+        cuts: [[T.ANC, "tree", "anc"], [T.CTA, "anc", "cta"]],
+        post: function (t, img) {
+          if (t > T.BREAK && t < T.PEAK) tintImg(img, C.ink, 0.5);
+          if (t >= T.PEAK && t < T.PEAK + 0.15) tintImg(img, C.white, 0.9 * (1 - (t - T.PEAK) / 0.15));
+          if (t >= T.ONE - 0.05 && t < T.ONE + 0.12) tintImg(img, C.goldL, 0.4 * (1 - (t - T.ONE + 0.05) / 0.17));
+          if (t > T.STOP && t < T.REWIND) tintImg(img, C.ink, 0.7 * (t - T.STOP) / (T.REWIND - T.STOP));
+        },
+        ui: drawUI,
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: c.segs.map(function (ln) { return ln.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; }); }) };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      // the loop: after the tape-stop, a short rewind glitch lands exactly on frame 1
+      function renderLoop(t) {
+        if (t < T.REWIND) { PX.render(t); return; }
+        PX.render(0);
+        var img0 = wctx.getImageData(0, 0, PW, PH);
+        var k = 1 - clamp01((t - T.REWIND) / 0.35);
+        if (k > 0) { glitchRows(img0, 12 * k, Math.floor(t * 30)); wctx.putImageData(img0, 0, 0); }
+      }
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { renderLoop(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
