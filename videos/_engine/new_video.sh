@@ -15,7 +15,7 @@ dest="$V/$slug"
 mkdir -p "$dest/scripts" "$dest/assets/audio" "$dest/assets/sfx" "$dest/renders"
 cp "$V/_template/.gitignore" "$V/_template/index.html" "$V/_template/BRIEF.md" "$V/_template/CAPTION.md" "$dest/"
 cp "$V/_template/scripts/lines.json" "$V/_template/scripts/voices.json" "$V/_template/scripts/synth_audio.py" "$dest/scripts/"
-cp "$V/_engine/pixel-engine.js" "$dest/"
+cp "$V/_engine/pixel-engine.js" "$V/_engine/short-kit.js" "$dest/"
 cp "$V/_engine/sfxlib.py" "$V/_engine/chiptune.py" "$V/_engine/foley.py" "$V/_engine/voicelib.py" "$V/_engine/osfx.py" \
    "$V/_engine/fetch_sfx.py" "$V/_engine/make_voices.py" "$dest/scripts/"
 cat <<MSG

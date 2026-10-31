@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Bird That Copies a Chainsaw</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "The bird that copies a chainsaw" (superb lyrebird) — engagement rules (STYLE_GUIDE.md section 6), no narration, no
+      cold-open hook. The sound IS the story: every copied sound plays exactly when the beak opens (window.BEATS.MIMIC),
+      and the SOUNDS COPIED counter ticks with each one.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var B = window.BEATS || {};
+      var T = B;
+      // the mimic events: [time, kind, duration] (from synth_audio.py so picture and sound match)
+      var MIM = B.MIMIC || [];
+      var C = {
+        sky1: "#1a3a2a", sky2: "#2a5a3a", sky3: "#4a7a3a", fern: "#3a8a3a", fernD: "#1e5a2a", fernL: "#6ac04a", trunk: "#5a3a2a", trunkD: "#3a2418",
+        ground: "#4a3020", groundD: "#2e1e12", light: "#d8f0a0",
+        bird: "#8a5a3a", birdD: "#5a3a24", birdL: "#b8865a", tail: "#c8b8a8", tailD: "#8a7a6a", tailW: "#f0e8e0", beak: "#2a1a14", leg: "#4a4a5a",
+        fem: "#7a5a40", saw: "#ff7a1a", sawD: "#c84a0a", metal: "#c8c8d8", metalD: "#6a6a7a", cam: "#2a2a3a", red: "#ff3a4a", blue: "#3a8aff",
+        kook: "#c8a878", kookD: "#6a5a4a", whip: "#3a6a3a", heart: "#ff5ab8",
+        green: "#3ae86a", gold: "#ffc83a", pink: "#ff5ab8", white: "#ffffff", ink: "#0a0614", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      function mimAt(t) { for (var i = MIM.length - 1; i >= 0; i--) if (t >= MIM[i][0] && t < MIM[i][0] + MIM[i][2]) return MIM[i]; return null; }
+
+      // ============================================================ the lyrebird (feet at x, y; ~60*s tall), facing left. o: beak 0..1, fan 0..1
+      function lyrebird(x, y, s, t, o) {
+        o = o || {};
+        var fan = o.fan || 0, bk = o.beak || 0;
+        g.save(); g.translate(x, y); g.scale(s, s);
+        // the tail: trails behind (fan=0) or arches up over the head like a lyre (fan=1)
+        var swing = Math.sin(t * 8) * 0.06 * fan;
+        for (var k = 0; k < 9; k++) {
+          var j = k - 4, outer = k === 0 || k === 8;
+          var cx = lerp(30, 6 + j * 5, fan), cy = lerp(-22, -96, fan) + swing * 40;
+          var ex = lerp(56, -30 + j * 7.5, fan), ey = lerp(-18 + j * 1.2, -46 + Math.abs(j) * 3, fan);
+          g.strokeStyle = outer ? C.tailD : C.tailW; g.lineWidth = outer ? 3 : 1.2;
+          g.beginPath(); g.moveTo(8, -24); g.quadraticCurveTo(cx, cy, ex, ey); g.stroke();
+          if (outer) disc(ex, ey, 2.2, C.tailD);
+        }
+        // legs
+        line(-2, -10, -4, 0, 1.6, C.leg); line(4, -10, 5, 0, 1.6, C.leg); line(-7, 0, -1, 0, 1.2, C.leg); line(2, 0, 8, 0, 1.2, C.leg);
+        // body
+        ell(2, -22, 14, 12, -0.2, C.birdD); ell(1.5, -22.5, 13, 11, -0.2, C.bird); ell(-3, -26, 6, 4, -0.4, C.birdL);
+        // neck + head
+        poly([[-8, -28], [-4, -32], [-12, -46], [-16, -42]], C.bird);
+        disc(-16, -46, 6.5, C.birdD); disc(-16.4, -46.4, 6, C.bird);
+        disc(-18.5, -47.5, 1.8, C.white); disc(-19, -47.4, 1, C.ink);
+        // beak: opens on every copied sound
+        poly([[-21, -46], [-29, -45 - bk * 3], [-21.5, -44.5]], C.beak);
+        poly([[-21, -44.5], [-28, -43 + bk * 3], [-21.5, -43]], C.beak);
+        g.restore();
+      }
+      // icons of what it copies (centre x, y)
+      function icon(kind, x, y, s, t) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        if (kind === "saw") { rrect(-14, -7, 16, 14, 3, C.sawD); rrect(-13, -7, 14, 12.5, 3, C.saw); rrect(2, -3, 18, 6, 3, C.metalD); for (var k = 0; k < 6; k++) rect(3 + k * 3 + (t * 30 % 3), -4, 1.4, 1.2, C.metal); rect(-9, -10, 8, 3, C.ink); }
+        else if (kind === "cam") { rrect(-12, -7, 24, 15, 3, C.cam); disc(0, 1, 5.5, C.metalD); disc(0, 1, 3.6, C.blue); rect(-9, -10, 7, 3, C.cam); disc(8, -3, 1.4, C.red); }
+        else if (kind === "alarm") { rrect(-14, -2, 28, 9, 3, C.red); rrect(-8, -8, 16, 7, 3, C.red); disc(-8, 8, 3, C.ink); disc(8, 8, 3, C.ink); var on = Math.floor(t * 8) % 2; disc(-12, 1, 2, on ? C.gold : C.white); disc(12, 1, 2, on ? C.white : C.gold); }
+        else if (kind === "kook") { ell(0, 0, 9, 7, 0, C.kook); disc(-7, -5, 5.5, C.kook); rect(-15, -6, 6, 2.6, C.kookD); disc(-8, -6, 1.2, C.ink); ell(5, 2, 7, 4, 0.3, C.kookD); }
+        else if (kind === "whip") { ell(0, 0, 8, 6, 0, C.whip); disc(-7, -4, 4.5, C.whip); rect(-11, -6, 4, 1.6, C.ink); disc(-7, -5, 1, C.white); line(6, 2, 18, 8, 2, C.whip); }
+        else if (kind === "bird") { ell(0, 0, 7, 5, 0, C.gold); disc(-6, -3, 4, C.gold); poly([[-10, -3], [-13, -2], [-10, -1]], C.ink); disc(-7, -4, 0.9, C.ink); }
+        g.restore();
+      }
+      function forest(cam, t) {
+        sky([[0, C.sky1], [0.6, C.sky2], [1, C.sky3]]);
+        setCam(cam, 0.3);
+        lighter(); for (var r = 0; r < 4; r++) { g.globalAlpha = 0.12; poly([[30 + r * 40, -40], [44 + r * 40, -40], [20 + r * 46, 360], [4 + r * 46, 360]], C.light); } g.globalAlpha = 1; normalBlend();
+        setCam(cam, 0.6);
+        rect(10, -60, 16, 400, C.trunkD); rect(150, -60, 20, 400, C.trunkD);
+        for (var f = 0; f < 10; f++) { var fx = f * 22 - 20; for (var l = 0; l < 6; l++) { var a = -0.4 - l * 0.25; line(fx, 300, fx + Math.cos(a) * 30 * (f % 2 ? 1 : -1), 300 + Math.sin(a) * 30, 2, C.fernD); } }
+        setCam(cam, 1);
+        g.fillStyle = vgrad(292, 340, [[0, C.ground], [1, C.groundD]]); g.fillRect(-60, 292, 300, 60);
+        ell(100, 294, 50, 8, 0, C.groundD);
+        for (var gI = 0; gI < 26; gI++) { var gx = -40 + hash1(gI) * 260; line(gx, 294, gx + 1, 288, 1, C.fernL); }
+      }
+      function rings(x, y, t, t0, col) { for (var k = 0; k < 3; k++) { var u0 = (t - t0) * 2 - k * 0.25; if (u0 < 0 || u0 > 1) continue; g.globalAlpha = 1 - u0; g.strokeStyle = col; g.lineWidth = 1.4; g.beginPath(); g.arc(x, y, 6 + u0 * 34, Math.PI * 0.7, Math.PI * 1.3); g.stroke(); g.globalAlpha = 1; } }
+
+      function scene_forest(t) {
+        var tt = tapeT(t, T);
+        var cam = camAt([[0, 92, 214, 1.5], [T.MEET, 92, 210, 1.2], [T.KOOK, 92, 206, 1.0], [T.CAMERA, 92, 214, 1.25], [T.BREAK, 96, 218, 1.45],
+          [T.HIT, 96, 212, 1.15], [T.DANCE, 96, 214, 1.15], [T.FEMALE, 90, 216, 1.1], [T.STOP, 92, 218, 1.15]], tt);
+        var m = mimAt(tt);
+        if (m && (m[1] === "saw" || m[1] === "alarm")) shake(cam, tt, m[0], 3, m[2]);
+        shake(cam, tt, T.HIT, 8, 0.5);
+        forest(cam, tt);
+        var bx = 104, by = 294;
+        var beak = m ? 0.6 + 0.4 * Math.abs(Math.sin(tt * 30)) : 0;
+        var fan = tt > T.HIT ? ease(clamp01((tt - T.HIT) / 0.6)) : 0;
+        var dance = tt > T.DANCE ? Math.sin(tt * 8.4) : 0;
+        character(function () { lyrebird(bx + dance * 3, by - Math.abs(dance) * 2, 1.25, tt, { beak: beak, fan: fan }); });
+        if (m) { rings(bx - 36, by - 58, tt, m[0], C.white); }
+        // the thought cloud with what it is copying (above the text)
+        if (m) {
+          var p = Math.min(pop(tt, m[0]), 1.1);
+          screen();
+          g.save(); g.translate(78, 88); g.scale(p, p);
+          disc(-18, 4, 16, C.white); disc(4, -4, 20, C.white); disc(22, 6, 14, C.white); rect(-18, 4, 40, 16, C.white);
+          icon(m[1], 2, 6, 1.4, tt);
+          g.restore();
+          disc(84, 124, 4, C.white); disc(90, 134, 2.6, C.white);
+          setCam(cam, 1);
+        }
+        // the female watches from the left
+        if (tt > T.FEMALE - 0.6) {
+          var fu = easeOut(clamp01((tt - T.FEMALE + 0.6) / 0.8)), fx = lerp(-30, 34, fu);
+          character(function () { g.save(); g.translate(fx, by); g.scale(-1, 1); lyrebird(0, 0, 0.95, tt, { beak: 0 }); g.restore(); });
+          if (tt > T.FEMALE + 0.8) { var hp = (tt * 0.8) % 1; g.globalAlpha = 1 - hp; worldText("?", fx + 4, by - 76 - hp * 10, 2, C.white); g.globalAlpha = 1; }
+          if (tt > T.CTA) { for (var h = 0; h < 3; h++) { var ph = (tt * 0.7 + h / 3) % 1; g.globalAlpha = 1 - ph; poly([[fx - 6 + h * 6, by - 70 - ph * 30], [fx - 9 + h * 6, by - 74 - ph * 30], [fx - 3 + h * 6, by - 74 - ph * 30]], C.heart); g.globalAlpha = 1; } }
+        }
+        vignette(0.35, "rgba(0,20,10,");
+      }
+
+      function drawUI(t) {
+        var tt = tapeT(t, T), n = 0;
+        MIM.forEach(function (m) { if (m[0] <= tt) n += m[3] || 1; });
+        if (tt < T.HIT) counterLines("SOUNDS COPIED: " + n, mimAt(tt) ? C.pink : C.gold, 2);
+        else if (tt < T.DANCE) counterLines("SHOWTIME", Math.floor(tt * 8) % 2 ? C.pink : C.white, 3);
+        else if (tt < T.FEMALE) counterLines("SOUNDS COPIED: " + n + (n >= 20 ? "+" : ""), C.gold, 2, "DANCE MODE: ON", C.pink);
+        else counterLines("IMPRESSED? " + (tt > T.CTA ? "YES" : "LOADING..."), tt > T.CTA ? C.green : C.white, 2);
+      }
+
+      KIT.start(C, T, { scenes: { forest: scene_forest }, sceneAt: function () { return "forest"; }, ui: drawUI });
+    </script>
+  </body>
+</html>

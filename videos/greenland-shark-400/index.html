@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The 400-Year-Old Shark</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "The 400-year-old shark" (Greenland shark) — engagement rules (STYLE_GUIDE.md section 6), no narration, no cold-open
+      hook. Counter: AGE ??? -> WATER -> GROWTH -> DATING % -> AGE 392 -> YEAR 1624..2016 (+ SHARK AGE) -> ADULT AT 150.
+      The sound follows it: a tick per decade that speeds up with the YEAR counter, a chime per milestone.
+      Fact: Nielsen et al. (2016), Science 353: 702-704.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        sea1: "#0a2a3a", sea2: "#06182a", sea3: "#030c18", ice: "#e8f4ff", iceD: "#a8c8e8", iceL: "#ffffff", snow: "#c8e0f0",
+        gs: "#6a6a72", gsD: "#3e3e48", gsL: "#8a8a94", gsB: "#b0aab0", spot: "#4a4a54", cope: "#f0f0e0", eye: "#a8e0ff",
+        lab1: "#10102a", lab2: "#20204a", lens: "#c8e8ff", lensD: "#6a9ac8", beam: "#3ae8ff", ruler: "#f0e0b0",
+        flagR: "#ff3a4a", flagB: "#2a4ab8", apple: "#ff3a4a", leaf: "#3ac85a", plane: "#e8e8f0", moon: "#d8d8e8", boat: "#ff8a2a",
+        cake: "#ffb8d0", cakeD: "#c87a9a", candle: "#ffe07a", hat: "#3ae8ff", hatD: "#1aa8c8",
+        red: "#ff3a4a", green: "#3ae86a", gold: "#ffc83a", pink: "#ff5ab8", white: "#ffffff", ink: "#0a0614", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      function yearAt(t) { return Math.round(1624 + 392 * Math.pow(clamp01((t - T.TIMELINE) / (T.TEEN - T.TIMELINE - 0.4)), 1.6)); }
+      var MILESTONES = [[1624, "BORN"], [1687, "NEWTON"], [1776, "USA"], [1903, "PLANE"], [1969, "MOON"], [2016, "FOUND"]];
+
+      // ============================================================ the Greenland shark (centre x, y; ~80*s long), facing right
+      function gshark(x, y, s, t, o) {
+        o = o || {};
+        var sw = Math.sin(t * 1.6) * 0.1;
+        g.save(); g.translate(x, y); g.scale(s, s);
+        g.save(); g.translate(-36, 2); g.rotate(sw); poly([[0, 0], [-12, -12], [-8, 0], [-11, 8]], C.gsD); g.restore();
+        ell(0, 0, 38, 11, 0, C.gsD); ell(-0.5, -1, 37, 10, 0, C.gs); ell(4, 5, 30, 4, 0, C.gsB);
+        for (var k = 0; k < 12; k++) disc(-26 + k * 4.6 + (k % 2) * 2, -4 + (k % 3) * 2.4, 0.9, C.spot);
+        // small dorsal fins set far back, pectoral fin
+        poly([[-6, -10], [-2, -16], [2, -10]], C.gsD); poly([[-20, -8], [-17, -13], [-14, -8]], C.gsD); poly([[12, 6], [6, 14], [16, 7]], C.gsD);
+        // rounded snout, tiny eye with the copepod dangling
+        disc(34, -1, 6, C.gs); line(28, 4, 37, 3, 0.8, C.gsD);
+        disc(30, -3, 1.4, C.eye); disc(30.3, -3, 0.6, C.ink);
+        g.strokeStyle = C.cope; g.lineWidth = 0.8; g.beginPath(); g.moveTo(30, -2); g.quadraticCurveTo(31 + Math.sin(t * 2) * 2, 2, 29, 5); g.stroke();
+        if (o.hat) { poly([[24, -8], [30, -24], [34, -7]], C.hat); disc(30, -24, 1.6, C.gold); line(25, -10, 33, -9, 1, C.hatD); }
+        if (o.crown) { poly([[22, -8], [24, -16], [27, -11], [30, -18], [33, -11], [36, -16], [37, -8]], C.gold); }
+        g.restore();
+      }
+      function arctic(cam, t) {
+        sky([[0, C.sea1], [0.6, C.sea2], [1, C.sea3]]);
+        setCam(cam, 0.4);
+        poly([[-80, -60], [260, -60], [260, 40], [180, 52], [120, 40], [60, 56], [0, 44], [-80, 52]], C.iceD);
+        poly([[-80, -60], [260, -60], [260, 36], [180, 48], [120, 36], [60, 52], [0, 40], [-80, 48]], C.ice);
+        for (var c = 0; c < 6; c++) line(10 + c * 30, 20, 20 + c * 30, 40, 0.8, C.iceD);
+        setCam(cam, 1);
+        for (var k = 0; k < 40; k++) { var y = (hash1(k) * 360 + t * (4 + hash1(k + 2) * 6)) % 360 - 20; rect(hash1(k + 9) * 200 - 10, y, 1, 1, C.snow); }
+      }
+
+      function scene_deep(t) {
+        var tt = tapeT(t, T);
+        var cam = tt < T.LENS ? camAt([[0, 96, 216, 1.3], [T.SLOW, 92, 210, 1.0], [T.GROW, 92, 214, 1.05], [T.LENS, 92, 216, 1.15]], tt)
+          : camAt([[T.TEEN - 0.2, 92, 214, 1.1], [T.CTA, 92, 216, 1.15], [T.STOP, 92, 220, 1.22]], tt);
+        arctic(cam, tt);
+        var sx = 80 + Math.sin(tt * 0.3) * 8, sy = 252 + Math.sin(tt * 0.7) * 3;
+        character(function () { gshark(sx, sy, 1.35, tt, { hat: tt > T.TEEN && tt < T.LONG, crown: tt > T.LONG }); });
+        // the growth ruler: barely moves
+        if (tt > T.GROW && tt < T.LENS) {
+          var ru = clamp01((tt - T.GROW) / (T.LENS - T.GROW));
+          rect(20, 296, 140, 6, C.ruler); for (var k = 0; k <= 14; k++) rect(20 + k * 10, 296, 0.8, k % 5 ? 3 : 6, C.ink);
+          rect(20, 293, 120 + ru * 1.2, 2, C.green);
+          worldText("+1 CM", 142, 284, 1, C.green);
+        }
+        // the birthday cake (adult at ~150)
+        if (tt > T.TEEN && tt < T.LONG) {
+          var cp = Math.min(pop(tt, T.TEEN + 0.2), 1.1);
+          g.save(); g.translate(150, 286); g.scale(cp, cp);
+          rrect(-16, -10, 32, 14, 3, C.cakeD); rrect(-16, -11, 32, 12, 3, C.cake);
+          for (var c = 0; c < 7; c++) { rect(-13 + c * 4.3, -18, 1.4, 7, C.candle); disc(-12.3 + c * 4.3, -19.5 + Math.sin(tt * 12 + c) * 0.4, 1.2, C.gold); }
+          worldText("150", 0, -7, 1, C.ink);
+          g.restore();
+        }
+        vignette(0.45, "rgba(0,0,10,");
+      }
+
+      // ============================================================ the lab: dating the eye lens (layers like tree rings)
+      function scene_lab(t) {
+        var cam = camAt([[T.LENS - 0.2, 90, 206, 1.0], [T.HIT, 90, 210, 1.15], [T.TIMELINE, 90, 206, 1.0]], t);
+        shake(cam, t, T.HIT, 8, 0.5);
+        sky([[0, C.lab1], [1, C.lab2]]);
+        setCam(cam, 1);
+        var cx = 90, cy = 246;
+        for (var r = 9; r >= 0; r--) disc(cx, cy, 6 + r * 5, r % 2 ? C.lensD : C.lens);
+        var sc = clamp01((t - T.LENS - 0.3) / (T.BREAK - T.LENS - 0.4));
+        if (t < T.HIT) { var by = cy - 50 + sc * 100; lighter(); rect(cx - 60, by - 1, 120, 2, C.beam); glow(cx, by, 30, C.beam, 0.3); normalBlend(); }
+        else {
+          var p = Math.min(pop(t, T.HIT), 1.2);
+          g.save(); g.translate(cx, cy - 4); g.scale(p, p); rrect(-34, -12, 68, 22, 4, C.ink); worldText("392", 0, -8, 2, C.gold); g.restore();
+          worldText("YEARS (+/-120)", cx, cy + 22, 1, C.white);
+        }
+        worldText("EYE LENS", cx, cy + 62, 1, C.lens);
+        vignette(0.4, "rgba(0,0,20,");
+      }
+
+      // ============================================================ the timeline: history races past, the shark keeps swimming
+      function icon(kind, x, y, t) {
+        if (kind === "BORN") { disc(x, y, 6, C.gsB); worldText("0", x, y - 3, 1, C.ink); }
+        else if (kind === "NEWTON") { disc(x, y + 2, 6, C.apple); rect(x - 0.5, y - 6, 1.5, 4, C.gsD); ell(x + 3, y - 5, 3, 1.5, -0.4, C.leaf); }
+        else if (kind === "USA") { rect(x - 9, y - 6, 18, 12, C.white); for (var k = 0; k < 6; k += 2) rect(x - 9, y - 6 + k * 2, 18, 2, C.flagR); rect(x - 9, y - 6, 7, 6, C.flagB); }
+        else if (kind === "PLANE") { rect(x - 10, y - 1, 20, 3, C.plane); rect(x - 2, y - 7, 3, 14, C.plane); rect(x + 8, y - 4, 2, 7, C.plane); }
+        else if (kind === "MOON") { disc(x, y, 7, C.moon); disc(x - 2, y - 2, 1.5, C.gsL); rect(x + 4, y - 12, 1, 8, C.white); rect(x + 5, y - 12, 5, 3, C.flagR); }
+        else if (kind === "FOUND") { poly([[x - 10, y], [x + 10, y], [x + 7, y + 5], [x - 7, y + 5]], C.boat); rect(x - 1, y - 9, 1.5, 9, C.white); poly([[x + 0.5, y - 9], [x + 7, y - 3], [x + 0.5, y - 3]], C.white); }
+      }
+      function scene_timeline(t) {
+        var cam = camAt([[T.TIMELINE - 0.2, 90, 206, 1.0], [T.TEEN, 90, 210, 1.05]], t);
+        arctic(cam, t);
+        var yr = yearAt(t);
+        screen();
+        // the track (above the text): 1 world px per 1.6 years, centred on the current year
+        rect(0, 118, 180, 2, C.white);
+        MILESTONES.forEach(function (m, mi) {
+          var x = 90 + (m[0] - yr) / 1.6; if (x < -30 || x > 210) return;
+          var near = Math.abs(m[0] - yr) < 12;
+          rect(x - 0.5, 112, 1.5, 12, near ? C.gold : C.white);
+          icon(m[1], x, 94, t);
+          worldText("" + m[0], x, 126, 1, near ? C.gold : C.white);
+          worldText(m[1], x, mi % 2 ? 62 : 74, 1, near ? C.gold : C.snow);
+        });
+        poly([[88, 104], [92, 104], [90, 110]], C.gold);
+        setCam(cam, 1);
+        var sx = 84 + Math.sin(t * 0.4) * 10, sy = 256 + Math.sin(t * 0.7) * 3;
+        character(function () { gshark(sx, sy, 1.3, t, {}); });
+        vignette(0.45, "rgba(0,0,10,");
+      }
+
+      function sceneAt(t) { var tt = tapeT(t, T); return tt < T.LENS ? "deep" : tt < T.TIMELINE ? "lab" : tt < T.TEEN ? "timeline" : "deep"; }
+      function drawUI(t) {
+        var tt = tapeT(t, T);
+        if (tt < T.SLOW) counterLines("AGE: ???", C.gold, 3);
+        else if (tt < T.GROW) counterLines("WATER: ABOUT 1°C", C.snow, 2, "SPEED: ~1 KM/H", C.white);
+        else if (tt < T.LENS) counterLines("GROWTH: UNDER 1 CM/YEAR", C.green, 2);
+        else if (tt < T.HIT) counterLines("CARBON DATING " + Math.round(100 * clamp01((tt - T.LENS - 0.3) / (T.BREAK - T.LENS - 0.4))) + "%", C.white, 2);
+        else if (tt < T.TIMELINE) counterLines("AGE: ~392", Math.floor(tt * 8) % 2 ? C.gold : C.white, 4);
+        else if (tt < T.TEEN) { var y = yearAt(tt); counterLines("YEAR " + y, C.gold, 3, "SHARK AGE " + (y - 1624), C.white); }
+        else if (tt < T.LONG) counterLines("ADULT AT ~150", C.pink, 3);
+        else if (tt < T.CTA) counterLines("OLDEST VERTEBRATE", C.gold, 2, "KNOWN TO SCIENCE", C.white);
+        else counterLines("COMMENT BELOW", C.gold, 3);
+      }
+
+      KIT.start(C, T, {
+        scenes: { deep: scene_deep, lab: scene_lab, timeline: scene_timeline }, sceneAt: sceneAt, ui: drawUI,
+        cuts: [[T.LENS, "deep", "lab"], [T.TIMELINE, "lab", "timeline"], [T.TEEN, "timeline", "deep"]],
+      });
+    </script>
+  </body>
+</html>

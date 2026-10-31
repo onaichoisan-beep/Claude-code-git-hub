@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Zombie Ant</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "The zombie ant" (Ophiocordyceps) — engagement rules (STYLE_GUIDE.md section 6), no narration, no cold-open hook.
+      Counter: INFECTION % -> HEIGHT 0..25 CM -> TIME to 12:00 -> JAW LOCKED -> STALK % -> NEXT VICTIM. The sound follows it
+      (fungus crackle density = infection, footstep pitch = height, clock ticks to noon, a heartbeat that stops).
+      Facts: Hughes et al. (2011) BMC Ecology 11:13; Andersen et al. (2009) Am. Nat. 174:424; Fredericksen et al. (2017) PNAS 114:12590.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        j1: "#0e2a1a", j2: "#1a4a2a", j3: "#2a6a3a", leaf: "#3aa84a", leafD: "#1e6a2a", leafL: "#7ad86a", stem: "#5a8a3a", stemD: "#3a5a24",
+        soil: "#3a2818", soilD: "#22160c", log: "#6a4a2a", logD: "#4a3018",
+        ant: "#2a1a1a", antL: "#5a3a3a", antD: "#140a0a", fung: "#f0ead0", fungD: "#c8b890", stalk: "#d8c08a", stalkD: "#a8885a", spore: "#fff4c8",
+        xr1: "#06123a", xr2: "#0e2a6a", xrL: "#2a5ab8", muscle: "#ff6a8a", brain: "#8ad8ff",
+        sun: "#fff4a0", sunG: "#ffd860", ruler: "#f0e0b0", rulerD: "#8a7a5a",
+        red: "#ff3a4a", green: "#3ae86a", gold: "#ffc83a", pink: "#ff5ab8", white: "#ffffff", ink: "#0a0614", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      function infection(t) { return clamp01((t - T.INFECT) / (T.LEAVE - T.INFECT)); }
+      var GROUND = 300, LEAF_Y = 112, STEM_X = 104;
+      function height(t) { return t < T.CLIMB ? 0 : 25 * ease(clamp01((t - T.CLIMB) / (T.NOON - T.CLIMB - 0.2))); }
+
+      // ============================================================ an ant, side view facing right (centre x, y; ~24*s long). o: eyes normal|zombie|dead, walk, rot
+      function ant(x, y, s, t, o) {
+        o = o || {};
+        var wk = o.walk ? Math.sin(t * 18 + (o.ph || 0)) : 0;
+        g.save(); g.translate(x, y); g.rotate(o.rot || 0); g.scale(s * (o.dir || 1), s);
+        for (var l = 0; l < 3; l++) { var lx = -3 + l * 4, sw = (l % 2 ? wk : -wk) * 2.5; line(lx, 1, lx - 2 + sw, 6, 0.9, C.antD); line(lx - 2 + sw, 6, lx - 4 + sw * 1.4, 9 - (o.stiff ? 2 : 0), 0.9, C.antD); }
+        ell(-10, 0, 7, 5, -0.2, C.antD); ell(-10.4, -0.6, 6.2, 4.2, -0.2, C.ant); ell(-12, -2, 2.4, 1.4, -0.3, C.antL);
+        ell(-1, -0.5, 4.2, 2.6, 0, C.antD); ell(-1.2, -0.8, 3.6, 2.1, 0, C.ant);
+        disc(6.5, -2, 4.4, C.antD); disc(6.3, -2.4, 3.9, C.ant);
+        // mandibles (clamped when bitten)
+        if (o.bite) { poly([[9.5, 0], [12, -1], [12.5, 1.5]], C.antD); } else { poly([[9.5, 0], [13, 1.5], [10, 1.8]], C.antD); }
+        line(7, -6, 10, -11 + wk, 0.7, C.antD); line(10, -11 + wk, 13, -9, 0.7, C.antD);
+        var e = o.eyes || "normal";
+        if (e === "dead") { line(6.2, -4.2, 8.6, -1.8, 0.7, C.white); line(8.6, -4.2, 6.2, -1.8, 0.7, C.white); }
+        else { disc(7.6, -3, 1.6, C.white); if (e === "zombie") { g.strokeStyle = C.pink; g.lineWidth = 0.4; g.beginPath(); for (var a = 0; a < 9; a++) { var r = a * 0.16; g.lineTo(7.6 + Math.cos(a + t * 6) * r, -3 + Math.sin(a + t * 6) * r); } g.stroke(); } else { disc(8.1, -3, 0.8, C.ink); } }
+        if (o.fungus) { g.globalAlpha = o.fungus; for (var f = 0; f < 6; f++) { var fx = -14 + f * 4.4; line(fx, -2, fx + 1.5, 3, 0.6, C.fung); } ell(-10, 3.5, 6, 1, 0, C.fung); g.globalAlpha = 1; }
+        g.restore();
+      }
+
+      function jungle(cam, t) {
+        sky([[0, C.j1], [0.6, C.j2], [1, C.j3]]);
+        setCam(cam, 0.4);
+        for (var k = 0; k < 7; k++) { var x = k * 30 - 10; ell(x, 80 + (k % 2) * 40, 22, 60, 0.5 * (k % 2 ? 1 : -1), C.leafD); }
+        lighter(); for (var r = 0; r < 4; r++) { g.globalAlpha = 0.1; poly([[30 + r * 40, -80], [42 + r * 40, -80], [16 + r * 46, 400], [2 + r * 46, 400]], C.sunG); } g.globalAlpha = 1; normalBlend();
+        setCam(cam, 1);
+        g.fillStyle = vgrad(GROUND, GROUND + 60, [[0, C.soil], [1, C.soilD]]); g.fillRect(-120, GROUND, 420, 80);
+      }
+
+      // ============================================================ the trail: a spore lands on one ant (frame 1), and at the end lands again
+      function scene_trail(t) {
+        var tt = tapeT(t, T), again = tt > T.AGAIN - 0.3;
+        var cam = again ? camAt([[T.AGAIN - 0.3, 90, 226, 1.4], [T.STOP, 90, 230, 1.55]], tt) : camAt([[0, 90, 230, 1.5], [T.XRAY, 90, 234, 1.8]], tt);
+        jungle(cam, tt);
+        // a fallen log the ants march along
+        rrect(-40, 282, 260, 18, 8, C.logD); rrect(-40, 280, 260, 15, 8, C.log);
+        var t0 = again ? tt - T.AGAIN + 0.6 : tt;
+        character(function () {
+          for (var k = 0; k < 7; k++) {
+            var x = ((k * 30 + tt * 14) % 210) - 20;
+            var me = k === 3, inf = me && t0 > 0.6;
+            ant(x, 274, 1.1, tt, { walk: true, ph: k, eyes: "normal", fungus: 0 });
+          }
+        });
+        // the spore drifting down onto ant #4
+        var tx = ((3 * 30 + tt * 14) % 210) - 20;
+        var sp = clamp01(t0 / 0.6);
+        if (t0 < 1.4) { var sx = lerp(tx + 30, tx - 6, sp), sy = lerp(150, 268, sp); lighter(); glow(sx, sy, 8, C.spore, 0.6); normalBlend(); disc(sx, sy, 1.8, C.spore); }
+        if (t0 > 0.6 && t0 < 1.4) { g.globalAlpha = 1 - (t0 - 0.6) / 0.8; g.strokeStyle = C.pink; g.lineWidth = 1; g.beginPath(); g.arc(tx - 6, 268, 4 + (t0 - 0.6) * 20, 0, 6.28); g.stroke(); g.globalAlpha = 1; }
+        // spores raining (the end)
+        if (again) { for (var r = 0; r < 26; r++) { var y = ((tt - T.SPORES) * 40 + hash1(r) * 160) % 200 + 90; disc(hash1(r + 4) * 180, y, 1.2, C.spore); } }
+        vignette(0.45, "rgba(0,10,0,");
+      }
+
+      // ============================================================ x-ray: the fungus grows through the body and takes over the muscles
+      function scene_xray(t) {
+        var cam = camAt([[T.XRAY - 0.2, 90, 200, 1.0], [T.LEAVE, 90, 204, 1.08]], t);
+        sky([[0, C.xr1], [1, C.xr2]]);
+        setCam(cam, 1);
+        for (var gx = -40; gx < 240; gx += 20) rect(gx, -60, 0.6, 440, C.xrL);
+        for (var gy = -60; gy < 400; gy += 20) rect(-40, gy, 280, 0.6, C.xrL);
+        var inf = infection(t);
+        // the ant outline (big)
+        g.globalAlpha = 0.85; character(function () { ant(92, 250, 5.4, t, { eyes: inf > 0.6 ? "zombie" : "normal" }); }); g.globalAlpha = 1;
+        // muscles (pink) in legs/thorax light up as they get taken over
+        g.globalAlpha = 0.5 + 0.5 * inf; ell(86, 246, 16, 9, 0, C.muscle); ell(40, 248, 20, 14, -0.2, C.muscle); g.globalAlpha = 1;
+        // fungal threads branching out from the spore point
+        var n = Math.floor(70 * inf);
+        g.strokeStyle = C.fung; g.lineWidth = 0.8; g.beginPath();
+        for (var k = 0; k < n; k++) { var a = hash1(k) * 6.28, r0 = 4 + hash1(k + 3) * 46, x0 = 60 + Math.cos(a) * r0 * 1.2, y0 = 250 + Math.sin(a) * r0 * 0.45; g.moveTo(x0, y0); g.lineTo(x0 + Math.cos(a + 1) * 8, y0 + Math.sin(a + 1) * 4); }
+        g.stroke();
+        // the brain is left alone
+        ell(132, 236, 7, 5, 0, C.brain);
+        worldText("BRAIN: UNTOUCHED", 132, 270, 1, C.brain);
+        if (inf > 0.3) { worldText("MUSCLES", 60, 220, 1, C.muscle); }
+        worldText("X-RAY", 154, 310, 1, C.xrL);
+      }
+
+      // ============================================================ the climb, the noon bite, death, the stalk, the spores
+      function scene_climb(t) {
+        var tt = tapeT(t, T);
+        var h = height(tt), ay = GROUND - 8 - (h / 25) * (GROUND - 8 - LEAF_Y - 10);
+        var ax, rot = 0, onLeaf = tt > T.NOON - 0.2;
+        if (tt < T.CLIMB) { var lu = clamp01((tt - T.LEAVE) / (T.CLIMB - T.LEAVE)); ax = lerp(20, STEM_X - 6, lu); ay = GROUND - 6; }
+        else { ax = STEM_X - 5; rot = -Math.PI / 2; }
+        if (onLeaf) { ax = STEM_X + 14; ay = LEAF_Y + 9; rot = Math.PI; }
+        var camY = Math.min(ay - 56, 214), stalkP = clamp01((tt - T.STALK) / (T.SPORES - T.STALK));
+        var cam = camAt([[T.LEAVE - 0.2, 90, 236, 1.3], [T.CLIMB, 96, 236, 1.3]], tt);
+        if (tt >= T.CLIMB) cam = { x: 98, y: camY, z: 1.3 };
+        if (tt > T.HIT - 0.4) cam = camAt([[T.HIT - 0.4, 104, LEAF_Y + 58, 1.6], [T.DEATH, 104, LEAF_Y + 56, 1.7], [T.STALK, 104, LEAF_Y + 64, 1.4], [T.SPORES, 100, LEAF_Y + 70, 1.15]], tt);
+        shake(cam, tt, T.HIT, 8, 0.4);
+        jungle(cam, tt);
+        // the plant: stem + leaf
+        line(STEM_X, GROUND, STEM_X, LEAF_Y, 4, C.stemD); line(STEM_X - 0.6, GROUND, STEM_X - 0.6, LEAF_Y, 2.6, C.stem);
+        poly([[STEM_X - 4, LEAF_Y], [STEM_X + 20, LEAF_Y - 14], [STEM_X + 60, LEAF_Y - 6], [STEM_X + 76, LEAF_Y + 2], [STEM_X + 40, LEAF_Y + 6]], C.leafD);
+        poly([[STEM_X - 4, LEAF_Y - 1], [STEM_X + 20, LEAF_Y - 15], [STEM_X + 60, LEAF_Y - 7], [STEM_X + 74, LEAF_Y], [STEM_X + 40, LEAF_Y + 4]], C.leaf);
+        line(STEM_X - 2, LEAF_Y, STEM_X + 72, LEAF_Y - 1, 1, C.leafL);
+        // the ruler (height counter in the world)
+        rect(STEM_X - 34, LEAF_Y, 7, GROUND - LEAF_Y, C.rulerD); rect(STEM_X - 34, LEAF_Y, 6, GROUND - LEAF_Y, C.ruler);
+        for (var c = 0; c <= 25; c++) { var yy = GROUND - c / 25 * (GROUND - LEAF_Y); rect(STEM_X - 34, yy, c % 5 ? 2 : 4, 0.8, C.ink); if (c % 5 === 0) worldText("" + c, STEM_X - 42, yy - 3, 1, C.ruler); }
+        // the noon sun overhead
+        if (tt > T.NOON - 0.6) { var su = ease(clamp01((tt - T.NOON + 0.6) / 1.4)); lighter(); glow(STEM_X + 30, lerp(30, LEAF_Y - 50, su), 30, C.sunG, 0.6); normalBlend(); disc(STEM_X + 30, lerp(30, LEAF_Y - 50, su), 9, C.sun); }
+        // the ant
+        var eyes = tt > T.DEATH ? "dead" : "zombie";
+        character(function () { ant(ax, ay, 1.4, tt, { walk: tt < T.NOON - 0.2, rot: rot, eyes: eyes, bite: tt > T.HIT, stiff: tt > T.DEATH, fungus: tt > T.DEATH ? 0.6 : 0, dir: 1 }); });
+        if (tt > T.HIT && tt < T.HIT + 0.4) { g.globalAlpha = 1 - (tt - T.HIT) / 0.4; worldText("CHOMP!", ax + 20, LEAF_Y + 26, 1, C.white); g.globalAlpha = 1; }
+        // the stalk grows out of its head, then spores rain down
+        if (stalkP > 0) {
+          var hx = ax - 8, hy = ay + 4, len = 34 * stalkP;
+          g.strokeStyle = C.stalkD; g.lineWidth = 2.4; g.beginPath(); g.moveTo(hx, hy); g.quadraticCurveTo(hx - 6, hy + len * 0.6, hx - 2, hy + len); g.stroke();
+          g.strokeStyle = C.stalk; g.lineWidth = 1.4; g.stroke();
+          if (stalkP > 0.95) disc(hx - 2, hy + len, 3, C.stalk);
+        }
+        if (tt > T.SPORES) { for (var r = 0; r < 30; r++) { var py = LEAF_Y + 40 + ((tt - T.SPORES) * 36 + hash1(r) * 140) % 170; disc(ax - 10 + (hash1(r + 2) - 0.5) * 60 + Math.sin(tt + r) * 3, py, 1.1, C.spore); } }
+        vignette(0.45, "rgba(0,10,0,");
+      }
+
+      function sceneAt(t) { var tt = tapeT(t, T); return tt < T.XRAY ? "trail" : tt < T.LEAVE ? "xray" : tt < T.AGAIN - 0.3 ? "climb" : "trail"; }
+      function drawUI(t) {
+        var tt = tapeT(t, T);
+        if (tt < T.LEAVE) counterLines("INFECTION " + Math.round(100 * infection(tt)) + "%", infection(tt) > 0.6 ? C.pink : C.gold, 3);
+        else if (tt < T.CLIMB) counterLines("STATUS: LEAVING", C.pink, 3);
+        else if (tt < T.NOON) counterLines("HEIGHT " + Math.round(height(tt)) + " CM", C.gold, 3);
+        else if (tt < T.HIT) { var m = Math.min(60, Math.round(57 + 3 * clamp01((tt - T.NOON) / (T.BREAK - T.NOON)))); counterLines((m >= 60 ? "12:00" : "11:" + m), C.gold, 4); }
+        else if (tt < T.DEATH) counterLines("JAW: LOCKED", C.red, 3);
+        else if (tt < T.STALK) counterLines("ANT: GONE", C.white, 3);
+        else if (tt < T.AGAIN) counterLines("FUNGUS STALK " + Math.round(100 * clamp01((tt - T.STALK) / (T.SPORES - T.STALK))) + "%", C.fung, 2, tt > T.SPORES ? "SPORES: RELEASED" : "", C.pink);
+        else counterLines("NEXT VICTIM: ?", C.pink, 3);
+      }
+
+      KIT.start(C, T, {
+        scenes: { trail: scene_trail, xray: scene_xray, climb: scene_climb }, sceneAt: sceneAt, ui: drawUI, hitCol: "#ffffff",
+        cuts: [[T.XRAY, "trail", "xray"], [T.LEAVE, "xray", "climb"], [T.AGAIN - 0.3, "climb", "trail"]],
+      });
+    </script>
+  </body>
+</html>
