@@ -1,0 +1,122 @@
+<!doctype html><html><head><meta charset="utf-8"><style>@font-face { font-family: 'Fraunces'; font-weight: 900; src: url('fonts/Fraunces-900.woff2'); }
+@font-face { font-family: 'DM Sans'; font-weight: 100 1000; src: url('fonts/DMSans-800.woff2'); }
+:root { --paper: #f6f3ec; --ink: #141414; --soft: #8a857c; --hair: #ddd7cb; --accent: #2f55ff; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #bbb; display: flex; flex-direction: column; gap: 40px; padding: 40px; }
+.s { position: relative; width: 1080px; height: 1350px; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'DM Sans'; padding: 120px 100px 0; }
+
+.kick { font-size: 24px; font-weight: 700; letter-spacing: 6px; text-transform: uppercase; color: var(--soft); }
+h1, h2 { font-family: 'Fraunces'; font-weight: 900; letter-spacing: -4px; line-height: .92; margin-top: 34px; }
+h1 { font-size: 150px; }
+h2 { font-size: 112px; }
+em { font-style: normal; color: var(--accent); }
+.rule { width: 90px; height: 6px; background: var(--ink); margin: 56px 0 46px; }
+.lines p { font-size: 40px; line-height: 1.3; font-weight: 500; }
+.lines p + p { margin-top: 14px; }
+.sub { margin-top: 46px; font-size: 38px; line-height: 1.35; font-weight: 500; color: #3b3935; }
+
+.next { position: absolute; left: 100px; right: 100px; bottom: 150px; padding-top: 30px; border-top: 2px solid var(--hair);
+  font-size: 34px; font-weight: 700; color: var(--accent); }
+.next b { font-weight: 800; }
+.foot { position: absolute; left: 100px; right: 100px; bottom: 70px; display: flex; justify-content: space-between;
+  font-size: 22px; font-weight: 700; letter-spacing: 5px; text-transform: uppercase; color: var(--soft); }
+
+/* faces */
+.face { position: absolute; }
+.f1 { right: 90px; bottom: 210px; width: 330px; }
+.f2 { right: 90px; top: 760px; width: 250px; }
+.swipe { position: absolute; left: 100px; bottom: 170px; font-size: 34px; font-weight: 700; padding: 18px 36px; border: 3px solid var(--ink); border-radius: 60px; }
+
+/* slide 2 */
+.bignum { margin-top: 40px; font-family: 'Fraunces'; font-weight: 900; font-size: 200px; line-height: .9; letter-spacing: -6px; color: var(--accent); }
+.bignum span { display: block; margin-top: 18px; font-family: 'DM Sans'; font-size: 40px; letter-spacing: 0; font-weight: 500; color: var(--ink); }
+
+/* slide 3 */
+.ladder p { font-size: 44px; font-weight: 600; padding: 30px 0; border-bottom: 2px solid var(--hair); }
+.ladder p:first-child { padding-top: 0; }
+.ladder i { font-style: normal; display: inline-block; width: 100px; font-weight: 800; color: var(--accent); }
+
+/* way slides */
+.ghost { position: absolute; right: 70px; top: 700px; font-family: 'Fraunces'; font-weight: 900; font-size: 380px; line-height: 1;
+  letter-spacing: -14px; color: transparent; -webkit-text-stroke: 3px var(--hair); }
+.stat { position: absolute; left: 100px; bottom: 270px; display: flex; align-items: baseline; gap: 26px; }
+.stat b { font-family: 'Fraunces'; font-weight: 900; font-size: 140px; letter-spacing: -5px; color: var(--accent); line-height: 1; }
+.stat span { max-width: 360px; font-size: 32px; font-weight: 600; line-height: 1.2; color: #3b3935; }
+
+/* end */
+.tv { margin-top: 64px; border-radius: 22px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,.14); }
+.tv img { display: block; width: 100%; }
+.title { margin-top: 40px; font-size: 36px; font-weight: 700; line-height: 1.3; }
+.bio { position: absolute; left: 100px; bottom: 160px; padding: 20px 44px; border-radius: 60px; background: var(--ink); color: var(--paper);
+  font-size: 36px; font-weight: 700; }
+
+.sym { font-family: 'DM Sans'; font-style: normal; font-weight: 800; letter-spacing: 0; }
+</style></head><body>
+<section class="s" id="s1">
+  <div class="kick">1st year MBBS · real numbers</div>
+  <h1>why you need<br>your <em>own</em><br>money.</h1>
+  <p class="sub">and the 4 ways I made ₹80,000<br>in my first year of college.</p>
+  <img class="face f1" src="face_sly.png" alt="">
+  <div class="swipe">swipe <b>→</b></div>
+  <div class="foot"><span>01 / 08</span><span>save for later</span></div>
+</section><section class="s" id="s2">
+  <div class="kick">the problem</div>
+  <h2>ghar se paise?<br>ajeeb lagta hai.</h2>
+  <div class="rule"></div>
+  <div class="lines"><p>every ₹500 comes with a question.</p><p>meanwhile, most of us spend</p></div>
+  <div class="bignum">7<i class="sym">+</i> hrs<span>a day on our phones.</span></div>
+  <img class="face f2" src="face_shock.png" alt="">
+  <div class="next">what if those hours paid you? <b>→</b></div>
+  <div class="foot"><span>02 / 08</span><span>save for later</span></div>
+</section><section class="s" id="s3">
+  <div class="kick">the mindset</div>
+  <h2>your skills are<br>your salary.</h2>
+  <div class="rule"></div>
+  <div class="ladder">
+    <p><i>01</i>more skill = more money</p>
+    <p><i>02</i>better skill = more money</p>
+    <p><i>03</i>₹0 investment. just start.</p>
+  </div>
+  <div class="next">here are the 4 ways I tested <b>→</b></div>
+  <div class="foot"><span>03 / 08</span><span>save for later</span></div>
+</section><section class="s" id="s4">
+  <div class="kick">way 01</div>
+  <h2>UGC content<br>creation</h2>
+  <div class="rule"></div>
+  <div class="lines"><p>short videos for brands.</p><p>paid in money + products.</p><p>can be 100% faceless.</p></div>
+  <div class="stat"><b>₹60K<i class="sym">+</i></b><span>earned from this alone</span></div>
+  <div class="next">the forms brands use to find you? in the video <b>→</b></div>
+  <div class="foot"><span>04 / 08</span><span>save for later</span></div>
+</section><section class="s" id="s5">
+  <div class="kick">way 02</div>
+  <h2>content<br>creation</h2>
+  <div class="rule"></div>
+  <div class="lines"><p>start a page. stay consistent.</p><p>one viral video changes everything.</p><p>brands send free books &amp; courses.</p></div>
+  <div class="stat"><b>800</b><span>subs when I got my first paid collab</span></div>
+  <div class="next">how I pitched brands at 800 subs <b>→</b></div>
+  <div class="foot"><span>05 / 08</span><span>save for later</span></div>
+</section><section class="s" id="s6">
+  <div class="kick">way 03</div>
+  <h2>online<br>tutoring</h2>
+  <div class="rule"></div>
+  <div class="lines"><p>only good at studies? enough.</p><p>teach what juniors find hard.</p><p>local coachings value real knowledge.</p></div>
+  <div class="stat"><b>₹0</b><span>investment needed</span></div>
+  <div class="next">where to find your first students <b>→</b></div>
+  <div class="foot"><span>06 / 08</span><span>save for later</span></div>
+</section><section class="s" id="s7">
+  <div class="kick">way 04</div>
+  <h2>freelancing</h2>
+  <div class="rule"></div>
+  <div class="lines"><p>learn video editing.</p><p>DM creators &amp; YouTubers.</p><p>send samples, raise your price.</p></div>
+  <div class="stat"><b>₹3<i class="sym">–</i>4K</b><span>per video edit</span></div>
+  <div class="next">how to land your first client <b>→</b></div>
+  <div class="foot"><span>07 / 08</span><span>save for later</span></div>
+</section><section class="s" id="s8">
+  <div class="kick">watch the full video</div>
+  <h2>the full breakdown<br>is on YouTube.</h2>
+  <div class="tv"><img src="thumb.png" alt=""></div>
+  <p class="title">How to Earn Money as a Medical Student<br>(4 Ways, No Investment)</p>
+  <div class="bio">link in bio <b>↗</b></div>
+  <div class="foot"><span>08 / 08</span><span>save for later</span></div>
+</section>
+</body></html>
