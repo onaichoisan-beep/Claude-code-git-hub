@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Beetle That Escapes a Toad</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "The bombardier beetle that escapes from inside a toad" — engagement rules (STYLE_GUIDE.md section 6): beetle + toad
+      characters, a live counter at the top (DISTANCE -> TIME INSIDE + BLASTS -> STATUS -> SCORE), cards every ~2 s, no
+      narration, @SCROLL2STUDY.IN on every frame, sound that follows the story (the spray blasts speed up inside the toad).
+      Fact: Sugiura & Sato (2018), Biology Letters 14: 20170647; Dean et al. (1990), Science 248: 1219.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = window.DUR || 30;
+      var B = window.BEATS || {};
+      var T = {};
+      [["GLITCH", 1.6], ["MEET", 2.0], ["GULP", 5.0], ["INSIDE", 7.6], ["SPRAY", 9.8], ["BREAK", 19.25], ["BLEURGH", 19.5],
+       ["ALIVE", 21.5], ["SCIENCE", 25.0], ["CTA", 27.6], ["STOP", 30.5], ["REWIND", 31.3]].forEach(function (k) { T[k[0]] = B[k[0]] !== undefined ? B[k[0]] : k[1]; });
+      var C = {
+        sky1: "#0e2a2a", sky2: "#1e4a3a", sky3: "#3a6a3a", grass: "#3a8a3a", grassD: "#1e5a2a", grassL: "#6ac04a", leaf: "#4aa84a", leafD: "#2a6a2a", soil: "#4a3020", soilD: "#2e1e12",
+        // beetle
+        bk: "#1a1420", bkL: "#3a3048", spot: "#ffd03a", head: "#ff9a2a", headD: "#c8641a",
+        // toad
+        toad: "#8a7a3a", toadD: "#5a4e22", toadL: "#b8a85a", belly: "#e8dca8", wart: "#6a5a2a", eye: "#ffc83a", sick: "#7ac84a", sickD: "#4a8a2a",
+        tongue: "#ff6a8a", mouth: "#5a1a2a",
+        // stomach
+        st1: "#7a1a3a", st2: "#c83a5a", stL: "#ff8aa0", acid: "#9ae83a", acidD: "#5aa82a", spray: "#fff4a0", sprayL: "#ffffff", steam: "#f0f0ff",
+        slime: "#b8f06a", red: "#ff3a4a", green: "#3ae86a", gold: "#ffc83a", pink: "#ff5ab8", blush: "#ff8ab0", sweat: "#8ad8ff",
+        white: "#ffffff", ink: "#0a0614", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function sky(stops) { screen(); g.fillStyle = vgrad(0, H, stops); g.fillRect(0, 0, W, H); }
+      function uiText(str, x, y, S, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) { var gl = FONT[str[i]] || FONT[" "]; for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * S + (p % 5) * S, y + Math.floor(p / 5) * S, S, S); }
+      }
+      function uiCentre(str, y, S, col) { var w = str.length * 6 * S - S; uiText(str, Math.round(180 - w / 2) + 1, y + 1, S, C.ink); uiText(str, Math.round(180 - w / 2), y, S, col); }
+      function bubble(x, y, str, col) { var w = str.length * 6 + 5; rrect(x - w / 2, y - 6, w, 11, 2, C.white); poly([[x - 3, y + 5], [x + 2, y + 5], [x - 5, y + 10]], C.white); worldText(str, x, y - 3.5, 1, col || C.ink); }
+      // blast times inside the toad: every blast is a spray burst; the rate climbs from 1/s to 5/s (the audio uses the same list)
+      var BLASTS = (function () { var a = [], t = T.SPRAY; while (t < T.BREAK - 0.1) { a.push(t); var u0 = (t - T.SPRAY) / (T.BREAK - T.SPRAY); t += 1 / (1 + 4 * u0 * u0); } return a; })();
+      function lastBlast(t) { var l = -9; for (var i = 0; i < BLASTS.length; i++) if (BLASTS[i] <= t) l = BLASTS[i]; return l; }
+
+      // ============================================================ the bombardier beetle (centre x, y; ~28*s long), facing right
+      function beetle(x, y, s, t, o) {
+        o = o || {};
+        var wk = o.walk ? Math.sin(t * 16) : 0;
+        g.save(); g.translate(x, y); g.rotate(o.rot || 0); g.scale(s * (o.dir || 1), s);
+        for (var l = 0; l < 3; l++) { var lx = -6 + l * 6, sw = (l % 2 ? wk : -wk) * 2; line(lx, 3, lx - 3 + sw, 9, 1.2, C.bk); line(lx - 3 + sw, 9, lx - 5 + sw, 10, 1.2, C.bk); }
+        // wing covers (black, yellow spots), thorax + head (orange)
+        ell(-4, 0, 11, 6.5, 0, C.bk); ell(-4.5, -1, 10, 5.2, 0, C.bkL);
+        line(-14, -0.5, 6, -0.5, 0.6, C.bk);
+        ell(-8, -2.5, 2.6, 1.8, 0, C.spot); ell(-1, -2.5, 2.4, 1.6, 0, C.spot); ell(-6, 2.6, 2, 1.3, 0, C.spot);
+        ell(8.5, -0.5, 4.5, 4, 0, C.headD); ell(8.3, -0.9, 4, 3.6, 0, C.head);
+        disc(14, -0.5, 4, C.headD); disc(13.8, -0.9, 3.6, C.head);
+        // big cartoon eye
+        disc(15.2, -2, 1.8, C.white); disc(15.7, -1.8, (o.wow ? 0.7 : 1), C.ink);
+        if (o.cool) { rect(13, -3.4, 5.4, 1.8, C.ink); line(13, -2.5, 10.5, -2.5, 0.6, C.ink); }
+        line(16, -3.5, 21, -8, 0.6, C.bk); line(15, -3.8, 18, -9.5, 0.6, C.bk);
+        // the nozzle at the rear
+        poly([[-15, -0.5], [-18, -1.5], [-18, 1.5]], C.headD);
+        if (o.slime) { g.globalAlpha = 0.75; ell(-3, -3, 12, 3, 0, C.slime); disc(-8, 5, 1.6, C.slime); disc(4, 6, 1.2, C.slime); g.globalAlpha = 1; }
+        g.restore();
+      }
+      // a spray blast out of the rear (world coords): hot droplets + a steam puff + a ring
+      function blast(x, y, dir, u0, big) {
+        if (u0 < 0 || u0 > 0.5) return;
+        var k = u0 / 0.5;
+        g.globalAlpha = 1 - k;
+        for (var i = 0; i < 10; i++) { var a = (i / 10 - 0.5) * 1.2 + Math.PI * (dir > 0 ? 1 : 0), d = 4 + k * (28 + i % 3 * 8) * big; disc(x + Math.cos(a) * d, y + Math.sin(a) * d, 1.4 + (1 - k) * 1.5, i % 2 ? C.spray : C.sprayL); }
+        disc(x - dir * 10 * k * big, y - 4 * k, (4 + 14 * k) * big, C.steam);
+        g.strokeStyle = C.spray; g.lineWidth = 1.2; g.beginPath(); g.arc(x, y, 6 + 30 * k * big, 0, 6.28); g.stroke();
+        g.globalAlpha = 1;
+      }
+
+      // ============================================================ the toad, side view facing left (feet at x, y; ~50*s tall). o: open, gulp, sick, puff, sad
+      function toad(x, y, s, t, o) {
+        o = o || {};
+        var sk = o.sick || 0, br = Math.sin(t * 3) * 0.6;
+        var body = sk > 0.5 ? C.sick : C.toad, bodyD = sk > 0.5 ? C.sickD : C.toadD;
+        g.save(); g.translate(x, y); g.scale(s, s);
+        // back leg + body
+        ell(16, -8, 14, 9, -0.3, bodyD); ell(4, -20 - br, 30, 20 + br, 0, bodyD); ell(3.5, -21 - br, 29, 19 + br, 0, body);
+        ell(-4, -10, 20, 9, 0, C.belly);
+        for (var w = 0; w < 9; w++) disc(-4 + (w % 3) * 11 + (w > 2 ? 4 : 0), -34 + Math.floor(w / 3) * 8, 2 + (w % 2), C.wart);
+        // throat (gulp bulge / cheeks puffed)
+        var gb = o.gulp || 0, pf = o.puff || 0;
+        ell(-18, -14, 10 + gb * 5 + pf * 6, 7 + gb * 6 + pf * 6, 0, C.belly);
+        // head
+        ell(-20, -28, 15 + pf * 3, 12 + pf * 2, 0, body);
+        // mouth
+        var op = o.open || 0;
+        if (op > 0) { poly([[-34, -26], [-8, -24], [-34, -26 + op * 14]], C.mouth); line(-34, -26, -8, -24, 1, bodyD); }
+        else line(-35, -24, -10, -21, 1.4, bodyD);
+        // eye on top
+        disc(-18, -40, 6.5, bodyD); disc(-18, -40.5, 5.8, C.eye); rect(-21.5, -41.5, 7, 2, C.ink);
+        if (o.wow) { disc(-18, -40.5, 5.8, C.white); disc(-18, -40.5, 2, C.ink); }
+        if (o.sad || sk > 0.5) { line(-23, -46, -13, -48, 1, bodyD); }
+        disc(-27, -31, 2, C.blush);
+        // front leg
+        line(-14, -12, -20, 0, 4, bodyD); line(-14.4, -12, -20.4, 0, 3, body); ell(-23, 0, 5, 1.6, 0, bodyD);
+        if (sk > 0.3) { for (var k2 = 0; k2 < 2; k2++) { var ph = (t * 1.5 + k2 * 0.5) % 1; g.globalAlpha = 1 - ph; ell(-6 + k2 * 10, -42 + ph * 10, 1.2, 1.8, 0, C.sweat); g.globalAlpha = 1; } }
+        g.restore();
+      }
+
+      // ============================================================ the forest floor (hook, meet + gulp, alive + cta, loop)
+      function ground(cam) {
+        sky([[0, C.sky1], [0.6, C.sky2], [1, C.sky3]]);
+        setCam(cam, 0.5);
+        for (var k = 0; k < 8; k++) { ell(k * 28 - 10, 150 + (k % 2) * 16, 26, 60, 0.3 * (k % 2 ? 1 : -1), C.leafD); }
+        setCam(cam, 1);
+        g.fillStyle = vgrad(290, 340, [[0, C.soil], [1, C.soilD]]); g.fillRect(-60, 290, 300, 60);
+        for (var gI = 0; gI < 30; gI++) { var gx = -40 + hash1(gI) * 260; line(gx, 292, gx + 1, 284 - hash1(gI + 3) * 6, 1, gI % 2 ? C.grass : C.grassL); }
+        poly([[-10, 300], [30, 282], [70, 298]], C.leaf);
+      }
+      function scene_floor(t) {
+        var hookT = t >= T.REWIND ? t - T.REWIND : t < T.MEET ? t : null;
+        var cam;
+        if (hookT !== null) cam = camAt([[0, 100, 226, 1.6], [1.6, 100, 228, 1.7]], hookT);
+        else if (t < T.INSIDE + 0.2) cam = camAt([[T.MEET, 92, 222, 1.4], [T.GULP, 100, 224, 1.5], [T.INSIDE, 118, 218, 1.8]], t);
+        else cam = camAt([[T.ALIVE - 0.2, 90, 196, 1.0], [T.SCIENCE, 90, 200, 1.1], [T.CTA - 0.2, 90, 196, 1.0], [T.STOP, 92, 204, 1.15]], t);
+        if (hookT !== null) shake(cam, hookT, 0.25, 7, 0.4);
+        shake(cam, t, T.GULP + 0.55, 6, 0.4);
+        ground(cam);
+        var TX = 138, TY = 298;
+        if (hookT !== null) {
+          // the gulp: tongue snaps out, beetle gets yanked in
+          var tu = hookT;
+          var grab = clamp01((tu - 0.1) / 0.15), back = clamp01((tu - 0.3) / 0.2);
+          var bx = lerp(70, TX - 30, back), by = 290 - 4;
+          character(function () { toad(TX, TY, 1.2, tu, { open: tu < 0.6 ? 1 : 0, gulp: tu > 0.55 ? 1 - clamp01((tu - 0.55) / 0.8) : 0, wow: tu > 0.6 }); });
+          if (tu < 0.55) { line(TX - 34, TY - 30, lerp(TX - 34, bx, Math.min(grab, 1 - back * 0.98)), lerp(TY - 30, by, Math.min(grab, 1 - back * 0.98)), 3, C.tongue); }
+          if (tu < 0.5) character(function () { beetle(bx, by, 1.2, tu, { wow: tu > 0.1 }); });
+          if (tu > 0.7) worldText("GULP!", TX - 18, TY - 78, 2, C.white);
+        } else if (t < T.INSIDE + 0.2) {
+          // the beetle wanders in; the toad's tongue strikes at GULP
+          var walkU = clamp01((t - T.MEET) / 4.6), bx2 = lerp(44, 74, walkU), gt = t - T.GULP;
+          var grabbed = gt > 0.15, yank = clamp01((gt - 0.25) / 0.25);
+          var bx3 = grabbed ? lerp(bx2, TX - 30, yank) : bx2;
+          character(function () { toad(TX, TY, 1.2, t, { open: gt > 0 && gt < 0.6 ? 1 : 0, gulp: gt > 0.5 ? Math.max(0, 1 - (gt - 0.5) / 1.5) : 0, wow: gt > 0.6 }); });
+          if (gt > 0 && gt < 0.55) { var reach = Math.min(clamp01(gt / 0.15), 1 - yank * 0.98); line(TX - 34, TY - 30, lerp(TX - 34, bx3, reach), lerp(TY - 30, 286, reach), 3, C.tongue); }
+          if (gt < 0.5) character(function () { beetle(bx3, 286, 1.2, t, { walk: walkU < 1 && !grabbed, wow: grabbed }); });
+        } else {
+          // after: slimy beetle walks away, the sick toad sulks; then the beetle poses (CTA)
+          var tt = t; if (t > T.STOP) { var tau = t - T.STOP, TT = T.REWIND - T.STOP; tt = T.STOP + tau - tau * tau / (2 * TT); }
+          character(function () { toad(TX + 6, TY, 1.2, tt, { sick: tt < T.CTA ? 1 : 0.4, sad: true }); });
+          var wx = tt < T.CTA ? lerp(96, 40, clamp01((tt - T.ALIVE) / 3.2)) : 60;
+          character(function () { beetle(wx, 286 - (tt > T.CTA ? Math.abs(Math.sin(tt * 6)) * 4 : 0), tt > T.CTA ? 1.6 : 1.2, tt, { dir: tt < T.CTA ? -1 : 1, walk: tt < T.CTA, slime: tt < T.CTA, cool: tt > T.CTA }); });
+          if (tt > T.ALIVE + 1.9 && tt < T.SCIENCE) bubble(wx + 6, 262, "STILL ALIVE.", C.green);
+          if (tt > T.CTA) { bubble(TX - 22, 232, "UGH.", C.sickD); for (var c = 0; c < 18; c++) { var y = ((tt - T.CTA) * (50 + hash1(c) * 30) + hash1(c + 9) * 300) % 330 - 10; rect(hash1(c + 2) * 180, y, 2, 1.4, [C.spot, C.head, C.green, C.pink][c % 4]); } }
+        }
+        vignette(0.3, "rgba(0,20,10,");
+      }
+
+      // ============================================================ inside the toad's stomach: blast after blast
+      function scene_stomach(t) {
+        var cam = camAt([[T.INSIDE - 0.2, 90, 200, 1.4], [T.SPRAY, 90, 196, 1.0], [T.BREAK, 90, 204, 1.15]], t);
+        var lb = lastBlast(t);
+        shake(cam, t, lb, 5, 0.25);
+        sky([[0, C.st1], [1, C.st2]]);
+        setCam(cam, 1);
+        // fleshy walls that flinch on every blast
+        var fl = lb > 0 ? Math.max(0, 1 - (t - lb) / 0.25) : 0;
+        g.fillStyle = C.st2; g.beginPath(); g.moveTo(-40, 196);
+        for (var x = -40; x <= 220; x += 8) g.lineTo(x, 200 + Math.sin(x * 0.08 + t * 2) * 6 - fl * 5);
+        g.lineTo(220, 360); g.lineTo(-40, 360); g.closePath(); g.fill();
+        for (var r = 0; r < 14; r++) { var rx = -30 + r * 17; ell(rx, 214 + (r % 2) * 6 - fl * 4, 6, 3, 0.4, C.stL); }
+        // acid pool
+        ell(90, 296, 96, 22, 0, C.acidD); ell(90, 294, 92, 18, 0, C.acid);
+        for (var b = 0; b < 8; b++) { var ph = (t * 1.1 + b / 8) % 1; g.globalAlpha = 1 - ph; disc(20 + b * 20, 290 - ph * 14, 1.5 + ph * 2, C.acid); g.globalAlpha = 1; }
+        // the beetle, standing its ground, blasting from its rear
+        var bx = 104, by = 266;
+        character(function () { beetle(bx, by, 2.0, t, { wow: t < T.SPRAY, rot: -0.15 + Math.sin(t * 2) * 0.05 }); });
+        BLASTS.forEach(function (bt) { blast(bx - 38, by + 4, -1, t - bt, 1.0); });
+        if (lb > 0 && t - lb < 0.3) worldText("POP!", bx - 52 + (hash1(Math.floor(lb * 10)) - 0.5) * 20, 226 - (t - lb) * 30, 1, C.spray);
+        worldText("INSIDE THE TOAD", 90, 312, 1, C.stL);
+        // above the text: the toad's face getting sicker
+        var sk = ramp(t, T.SPRAY + 2, T.BREAK);
+        character(function () { toad(116, 134, 0.95, t, { sick: sk, puff: sk > 0.85 ? (sk - 0.85) / 0.15 : 0 }); });
+        vignette(0.35, "rgba(40,0,20,");
+      }
+
+      // ============================================================ BLEURGH: the toad throws the beetle back up
+      function scene_bleurgh(t) {
+        var cam = camAt([[T.BREAK - 0.2, 96, 214, 1.6], [T.BLEURGH, 96, 214, 1.6], [T.ALIVE, 90, 200, 1.05]], t);
+        shake(cam, t, T.BLEURGH, 12, 0.6);
+        ground(cam);
+        var u0 = t - T.BLEURGH;
+        character(function () { toad(140, 298, 1.3, t, { sick: 1, puff: u0 < 0 ? 1 : 0, open: u0 > 0 ? Math.min(1, u0 * 6) * (u0 < 1.2 ? 1 : 0.3) : 0 }); });
+        if (u0 > 0) {
+          var k = clamp01(u0 / 0.7), bx = lerp(104, 44, k), by = lerp(266, 280, k) - Math.sin(k * Math.PI) * 40;
+          g.globalAlpha = 0.85; for (var s = 0; s < 10; s++) { var f = s / 10 * k; disc(lerp(104, 44, f), lerp(266, 280, f) - Math.sin(f * Math.PI) * 40, 3 + s * 0.3, C.slime); } g.globalAlpha = 1;
+          character(function () { beetle(bx, by, 1.4, t, { rot: k * 6.28 * (1 - k), slime: true, wow: true }); });
+        }
+        vignette(0.3, "rgba(0,20,10,");
+      }
+
+      // ============================================================ the study: 43% of toads threw it up
+      function scene_science(t) {
+        var cam = camAt([[T.SCIENCE - 0.2, 90, 196, 1.0], [T.CTA, 90, 200, 1.05]], t);
+        sky([[0, C.sky1], [1, C.sky2]]);
+        setCam(cam, 1);
+        for (var k = 0; k < 10; k++) {
+          var x = 20 + (k % 5) * 32, y = 236 + Math.floor(k / 5) * 46, on = k < 4 && t > T.SCIENCE + 0.4 + k * 0.25;
+          character(function () { toad(x + 8, y + 18, 0.5, t + k, { sick: on ? 1 : 0, open: on ? 1 : 0 }); });
+          if (on) { disc(x - 12, y + 6, 2.2, C.slime); disc(x - 16, y + 9, 1.4, C.slime); }
+        }
+        worldText("2018 STUDY", 90, 96, 2, C.white);
+        worldText("TOADS THAT THREW IT UP", 90, 118, 1, C.slime);
+        vignette(0.3, "rgba(0,20,10,");
+      }
+
+      function sceneAt(t) {
+        return t < T.INSIDE ? "floor" : t < T.BREAK ? "stomach" : t < T.ALIVE ? "bleurgh" : t < T.SCIENCE ? "floor" : t < T.CTA ? "science" : "floor";
+      }
+      function hms(min) { var h = Math.floor(min / 60), m = Math.floor(min % 60), s = Math.floor((min * 60) % 60); return h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s; }
+      function drawUI(t) {
+        var l1 = "", l2 = "", c1 = C.gold, S1 = 2;
+        if (t < T.GLITCH || t >= T.REWIND) { l1 = "BEETLE: EATEN"; c1 = Math.floor(t * 6) % 2 ? C.red : C.white; }
+        else if (t < T.MEET) { l1 = "BEETLE: " + ["EATEN", "ALIVE", "??", "EATEN"][Math.floor(t * 15) % 4]; c1 = C.white; }
+        else if (t < T.GULP) { var d = Math.round(50 * (1 - clamp01((t - T.MEET) / 3))); l1 = "TOAD " + d + " CM AWAY"; c1 = d < 15 ? C.red : C.gold; }
+        else if (t < T.INSIDE) { l1 = "BEETLE: SWALLOWED"; c1 = C.red; }
+        else if (t < T.BLEURGH) {
+          var min = 107 * Math.pow(clamp01((t - T.INSIDE) / (T.BLEURGH - T.INSIDE)), 1.3);
+          l1 = "TIME INSIDE " + hms(min); c1 = C.gold; S1 = 2;
+          var n = 0; BLASTS.forEach(function (bt) { if (bt <= t) n++; });
+          if (t > T.SPRAY) l2 = "BLASTS: " + (n * 500).toLocaleString("en-US");
+        }
+        else if (t < T.ALIVE) { l1 = "BLEURGH!"; c1 = Math.floor(t * 10) % 2 ? C.slime : C.white; S1 = 3; }
+        else if (t < T.SCIENCE) { l1 = "BEETLE: ALIVE"; c1 = C.green; S1 = 3; }
+        else if (t < T.CTA) { l1 = "TOADS THAT THREW UP: " + Math.round(43 * clamp01((t - T.SCIENCE - 0.3) / 1.2)) + "%"; c1 = C.slime; }
+        else { l1 = "BEETLE 1 : TOAD 0"; c1 = C.gold; }
+        uiCentre(l1, 18, S1, c1);
+        if (l2) uiCentre(l2, 18 + 7 * S1 + 8, 2, C.white);
+      }
+
+      PX.setup(C, {
+        scenes: { floor: scene_floor, stomach: scene_stomach, bleurgh: scene_bleurgh, science: scene_science },
+        sceneAt: sceneAt,
+        cuts: [[T.INSIDE, "floor", "stomach"], [T.ALIVE, "bleurgh", "floor"], [T.SCIENCE, "floor", "science"], [T.CTA, "science", "floor"]],
+        post: function (t, img) {
+          if (t > T.GLITCH - 0.05 && t < T.MEET) glitchRows(img, 12 * Math.sin(clamp01((t - T.GLITCH + 0.05) / (T.MEET - T.GLITCH + 0.05)) * Math.PI), Math.floor(t * 30));
+          var lb = lastBlast(t); if (t > T.SPRAY && t < T.BREAK && t - lb < 0.06) tintImg(img, C.spray, 0.35);
+          if (t > T.BREAK && t < T.BLEURGH) tintImg(img, C.ink, 0.45);
+          if (t >= T.BLEURGH && t < T.BLEURGH + 0.15) tintImg(img, C.slime, 0.8 * (1 - (t - T.BLEURGH) / 0.15));
+          if (t > T.STOP && t < T.REWIND) tintImg(img, C.ink, 0.7 * (t - T.STOP) / (T.REWIND - T.STOP));
+          if (t >= T.REWIND && t < T.REWIND + 0.3) glitchRows(img, 12 * (1 - (t - T.REWIND) / 0.3), Math.floor(t * 30));
+        },
+        ui: drawUI,
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: c.segs.map(function (ln) { return ln.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; }); }) };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      // the loop: after the tape-stop, a short rewind glitch lands exactly on frame 1 (no cold-open hook at the start)
+      function renderLoop(t) {
+        if (t < T.REWIND) { PX.render(t); return; }
+        PX.render(0);
+        var k = 1 - clamp01((t - T.REWIND) / 0.35);
+        if (k > 0) { var img = wctx.getImageData(0, 0, PW, PH); glitchRows(img, 12 * k, Math.floor(t * 30)); wctx.putImageData(img, 0, 0); }
+      }
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { renderLoop(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

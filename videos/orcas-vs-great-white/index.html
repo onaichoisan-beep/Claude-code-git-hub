@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Orcas vs Great White Sharks</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "Orcas vs great white sharks" — engagement rules (STYLE_GUIDE.md section 6): shark + orca characters, a live counter at
+      the top (DISTANCE -> STATUS -> SIGHTINGS -> SCORE), cards every ~2 s, no narration, no cold-open hook (starts in the
+      flow), @SCROLL2STUDY.IN on every frame, sound that follows the story (sonar pings speed up as the orcas close in).
+      No gore: the kill is a white flash and an x-ray diagram.
+      Fact: Towner et al. (2022), African Journal of Marine Science 44: 139-152; Engelbrecht et al. (2019).
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = window.DUR || 30;
+      var B = window.BEATS || {};
+      var T = {};
+      [["PINGS", 3.0], ["ORCAS", 5.5], ["FLIP", 9.5], ["FREEZE", 11.5], ["BREAK", 14.25], ["CHOMP", 14.5], ["MAP", 18.5],
+       ["APEX", 23.5], ["CTA", 26.0], ["STOP", 28.5], ["REWIND", 29.3]].forEach(function (k) { T[k[0]] = B[k[0]] !== undefined ? B[k[0]] : k[1]; });
+      var C = {
+        sea1: "#0a3a6a", sea2: "#06264a", sea3: "#041428", ray: "#3a8ac8", bub: "#a8e0ff", sand: "#c8a86a", sandD: "#8a7040", kelp: "#2a6a3a", kelpD: "#1a4a2a", rock: "#3a4a5a",
+        shark: "#7a8aa0", sharkD: "#4a5a70", sharkL: "#a8b8c8", belly: "#f0f4f8", gum: "#ff6a8a", tooth: "#ffffff",
+        orca: "#141420", orcaL: "#2a2a3a", patch: "#ffffff", grey: "#c8ccd8",
+        xr1: "#06123a", xr2: "#0e2a6a", xrL: "#2a5ab8", liver: "#ffb83a", liverD: "#c87a1a",
+        land: "#c8b070", landD: "#8a7a4a", map: "#1a5aa8", mapL: "#3a8ad8",
+        crown: "#ffc83a", red: "#ff3a4a", green: "#3ae86a", gold: "#ffc83a", pink: "#ff5ab8", sweat: "#8ad8ff",
+        white: "#ffffff", ink: "#0a0614", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function sky(stops) { screen(); g.fillStyle = vgrad(0, H, stops); g.fillRect(0, 0, W, H); }
+      function uiText(str, x, y, S, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) { var gl = FONT[str[i]] || FONT[" "]; for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * S + (p % 5) * S, y + Math.floor(p / 5) * S, S, S); }
+      }
+      function uiCentre(str, y, S, col) { var w = str.length * 6 * S - S; uiText(str, Math.round(180 - w / 2) + 1, y + 1, S, C.ink); uiText(str, Math.round(180 - w / 2), y, S, col); }
+      function bubble(x, y, str, col) { var w = str.length * 6 + 5; rrect(x - w / 2, y - 6, w, 11, 2, C.white); poly([[x - 3, y + 5], [x + 2, y + 5], [x - 5, y + 10]], C.white); worldText(str, x, y - 3.5, 1, col || C.ink); }
+      // ping times: one ping per beat of the approach, faster and faster (the audio uses the same list)
+      var PINGS = (function () { var a = [], t = T.PINGS; while (t < T.FLIP) { a.push(t); var u0 = (t - T.PINGS) / (T.FLIP - T.PINGS); t += 1 / (0.7 + 6 * u0 * u0); } return a; })();
+
+      // ============================================================ the great white (centre x, y; ~70*s long), facing dir
+      function shark(x, y, s, t, o) {
+        o = o || {};
+        var sw = Math.sin(t * (o.frozen ? 0 : 5)) * 0.12;
+        g.save(); g.translate(x, y); g.scale(s * (o.dir || 1), s); g.rotate(o.rot || 0);
+        // tail
+        g.save(); g.translate(-30, 0); g.rotate(sw); poly([[0, 0], [-14, -16], [-9, 0], [-14, 12]], C.sharkD); g.restore();
+        // body: grey top, white belly
+        poly([[-32, 0], [-10, -11], [16, -10], [34, -2], [36, 2], [18, 8], [-10, 8]], C.sharkD);
+        poly([[-31, -0.5], [-10, -10], [16, -9], [33, -2], [16, 1], [-10, 1]], C.shark);
+        poly([[-28, 2], [-10, 2], [16, 2], [34, 2], [18, 7.5], [-10, 7.5]], C.belly);
+        // fins
+        poly([[-4, -10], [4, -24], [8, -10]], C.sharkD); poly([[2, 6], [-6, 16], [8, 7]], C.sharkD);
+        for (var gi = 0; gi < 4; gi++) line(16 + gi * 2.4, -5, 15 + gi * 2.4, 2, 0.7, C.sharkD);
+        // mouth + teeth
+        var op = o.open || 0;
+        if (op > 0) { poly([[24, 3], [36, 1], [34, 3 + op * 7]], C.gum); for (var k = 0; k < 4; k++) poly([[25 + k * 2.6, 3], [27 + k * 2.6, 3], [26 + k * 2.6, 5]], C.tooth); }
+        else line(24, 4, 34, 2.5, 0.8, C.sharkD);
+        // eye
+        if (o.scared) { disc(26, -3.5, 2.6, C.white); disc(26.4, -3.2, 1, C.ink); }
+        else if (o.frozen) { line(24, -3.5, 28, -3.5, 1, C.ink); }
+        else { disc(26.5, -3.6, 1.7, C.ink); rect(26, -4.4, 0.7, 0.7, C.white); line(23.5, -6.5, 28.5, -5.5, 0.9, C.sharkD); }
+        if (o.sweat) { var ph = (t * 1.7) % 1; g.globalAlpha = 1 - ph; ell(20, -12 + ph * 8, 1, 1.6, 0, C.sweat); g.globalAlpha = 1; }
+        g.restore();
+      }
+
+      // ============================================================ an orca (centre x, y; ~90*s long), facing dir; collapsed dorsal fin like Port & Starboard
+      function orca(x, y, s, t, o) {
+        o = o || {};
+        var sw = Math.sin(t * 4 + (o.ph || 0)) * 0.15;
+        g.save(); g.translate(x, y); g.scale(s * (o.dir || 1), s); g.rotate(o.rot || 0);
+        g.save(); g.translate(-40, 0); g.rotate(sw); poly([[0, -2], [-14, -12], [-10, 0], [-14, 10], [0, 2]], C.orca); g.restore();
+        ell(0, 0, 42, 14, 0, C.orca); ell(-2, -3, 38, 9, 0, C.orcaL);
+        ell(6, 7, 30, 6, 0, C.patch);
+        ell(28, -6, 7, 3, 0.2, C.patch);
+        ell(-8, -9, 9, 3, -0.3, C.grey);
+        // the collapsed (bent) dorsal fin
+        poly([[-6, -12], [0, -28], [10, -32], [4, -24], [6, -12]], C.orca);
+        poly([[8, 10], [2, 22], [16, 12]], C.orca);
+        disc(32, -4, 1.4, C.ink); rect(31.6, -4.6, 0.6, 0.6, C.white);
+        g.strokeStyle = C.ink; g.lineWidth = 0.9; g.beginPath(); g.arc(36, 0, 5, 0.3, Math.PI * 0.7); g.stroke();
+        if (o.crown) { poly([[-2, -30], [2, -38], [5, -32], [8, -39], [11, -32], [14, -38], [16, -30]], C.crown); }
+        g.restore();
+        if (o.name) worldText(o.name, x, y - 36 * s, 1, C.white);
+      }
+
+      // ============================================================ the open ocean (shark cruises, orcas arrive, flip, freeze)
+      function ocean(cam, t) {
+        sky([[0, C.sea1], [0.6, C.sea2], [1, C.sea3]]);
+        setCam(cam, 0.3);
+        lighter(); for (var r = 0; r < 5; r++) { g.globalAlpha = 0.12 + 0.05 * Math.sin(t + r); poly([[20 + r * 36, -40], [36 + r * 36, -40], [10 + r * 40, 360], [-10 + r * 40, 360]], C.ray); } g.globalAlpha = 1; normalBlend();
+        setCam(cam, 0.6);
+        for (var k = 0; k < 9; k++) { var kx = k * 26 - 20, sw = Math.sin(t * 1.2 + k) * 4; line(kx, 330, kx + sw, 250 - (k % 3) * 12, 4, C.kelpD); }
+        setCam(cam, 1);
+        g.fillStyle = vgrad(300, 340, [[0, C.sand], [1, C.sandD]]); g.fillRect(-80, 300, 340, 60);
+        ell(30, 300, 26, 10, 0, C.rock); ell(150, 304, 30, 12, 0, C.rock);
+        for (var b = 0; b < 14; b++) { var ph = (t * 0.3 + hash1(b)) % 1; disc(hash1(b + 3) * 200 - 10, 320 - ph * 340, 1 + hash1(b + 7) * 1.5, C.bub); }
+      }
+      function scene_ocean(t) {
+        var cam = camAt([[0, 90, 222, 1.15], [T.PINGS, 90, 222, 1.1], [T.ORCAS, 90, 220, 0.95], [T.FLIP, 92, 222, 0.95], [T.FREEZE, 92, 226, 1.05], [T.CHOMP, 92, 230, 1.25]], t);
+        PINGS.forEach(function (p) { shake(cam, t, p, 1.5, 0.12); });
+        shake(cam, t, T.FLIP, 10, 0.5);
+        ocean(cam, t);
+        // the shark: cruises left -> right, gets nervous, gets flipped, freezes
+        var sx = 90 + Math.sin(t * 0.6) * 10, sy = 262 + Math.sin(t * 1.3) * 3;
+        var flipU = ease(clamp01((t - T.FLIP) / 0.8));
+        var mood = t < T.PINGS + 1.5 ? {} : t < T.FLIP ? { scared: true, sweat: true } : t < T.FREEZE ? { scared: true } : { frozen: true };
+        mood.open = t < T.PINGS ? 0.4 + 0.4 * Math.sin(t * 2) : 0; mood.rot = flipU * Math.PI;
+        character(function () { shark(sx, sy, 1.2, t, mood); });
+        if (t < T.PINGS) bubble(sx - 6, sy + 30, "I'M THE BOSS.", C.ink);
+        if (t > T.FREEZE + 0.4 && t < T.CHOMP) { for (var z = 0; z < 3; z++) { var ph = ((t - T.FREEZE) * 0.8 + z / 3) % 1; g.globalAlpha = Math.sin(ph * Math.PI); worldText("Z", sx + 10 + ph * 16, sy - 20 - ph * 22, 1, C.white); g.globalAlpha = 1; } }
+        // the orcas: sonar rings, then they close in from both sides
+        if (t > T.PINGS) {
+          PINGS.forEach(function (p) { var u0 = t - p; if (u0 < 0 || u0 > 0.8) return; g.globalAlpha = 1 - u0 / 0.8; g.strokeStyle = C.white; g.lineWidth = 1; g.beginPath(); g.arc(-30 + (p - T.PINGS) * 10, 210, 10 + u0 * 120, -0.8, 0.8); g.stroke(); g.globalAlpha = 1; });
+        }
+        if (t > T.ORCAS - 0.5) {
+          var a = ease(clamp01((t - T.ORCAS + 0.5) / (T.FLIP - T.ORCAS + 0.5)));
+          var o1x = lerp(-80, sx - 50, a), o1y = lerp(300, sy + 22, a), o2x = lerp(270, sx + 52, a), o2y = lerp(300, sy + 26, a);
+          if (t > T.FLIP) { o1x = sx - 50 + Math.sin(t * 3) * 3; o2x = sx + 52 - Math.sin(t * 3) * 3; }
+          character(function () { orca(o1x, o1y, 0.8, t, { dir: 1, name: t < T.FLIP + 1 ? "PORT" : "" }); });
+          character(function () { orca(o2x, o2y, 0.8, t, { dir: -1, ph: 1.5, name: t < T.FLIP + 1 ? "STARBOARD" : "" }); });
+        }
+        vignette(0.45, "rgba(0,0,20,");
+      }
+
+      // ============================================================ x-ray: they only take the liver
+      function scene_liver(t) {
+        var cam = camAt([[T.CHOMP - 0.2, 90, 196, 1.0], [T.MAP, 90, 198, 1.04]], t);
+        sky([[0, C.xr1], [1, C.xr2]]);
+        setCam(cam, 1);
+        for (var gx = -40; gx < 240; gx += 20) rect(gx, -60, 0.6, 440, C.xrL);
+        for (var gy = -60; gy < 400; gy += 20) rect(-40, gy, 280, 0.6, C.xrL);
+        g.save(); g.globalAlpha = 0.55; shark(90, 246, 2.0, t, { frozen: true }); g.restore();
+        var lp = clamp01((t - T.CHOMP - 0.6) / 0.6), glowK = 0.6 + 0.4 * Math.sin(t * 6);
+        lighter(); glow(98, 248, 40, C.liver, 0.4 * lp * glowK); normalBlend();
+        g.globalAlpha = lp; ell(98, 250, 26, 9, 0.05, C.liverD); ell(97, 249, 24, 7.5, 0.05, C.liver); g.globalAlpha = 1;
+        if (lp > 0.9) { line(118, 242, 140, 214, 1, C.liver); worldText("LIVER", 148, 206, 1, C.liver); }
+        worldText("X-RAY", 154, 310, 1, C.xrL);
+      }
+
+      // ============================================================ the map: every other shark leaves the bay
+      function scene_map(t) {
+        var cam = camAt([[T.MAP - 0.2, 90, 186, 1.0], [T.APEX, 90, 190, 1.06]], t);
+        sky([[0, C.map], [1, C.sea2]]);
+        setCam(cam, 1);
+        // coast of the bay
+        poly([[-40, -60], [220, -60], [220, 60], [150, 80], [120, 130], [80, 120], [50, 150], [20, 140], [-40, 160]], C.landD);
+        poly([[-40, -60], [220, -60], [220, 56], [150, 76], [120, 126], [80, 116], [50, 146], [20, 136], [-40, 156]], C.land);
+        worldText("GANSBAAI", 60, 84, 1, C.ink); worldText("SOUTH AFRICA", 60, 94, 1, C.ink);
+        for (var w = 0; w < 10; w++) line(10 + w * 18, 200 + (w % 3) * 30, 18 + w * 18, 200 + (w % 3) * 30, 1, C.mapL);
+        // shark icons swim out to open sea, one after another
+        var leave = ramp(t, T.MAP + 0.4, T.APEX - 0.6);
+        for (var k = 0; k < 12; k++) {
+          var hx = 30 + (k % 4) * 36, hy = 190 + Math.floor(k / 4) * 22, kk = clamp01(leave * 1.4 - k / 12 * 0.4);
+          var x = lerp(hx, hx + 60 + k * 6, kk), y = lerp(hy, 340, kk * kk);
+          g.save(); g.translate(x, y); g.rotate(kk * 1.0); poly([[-6, 0], [6, -3], [8, 0], [6, 3]], C.sharkL); poly([[-6, 0], [-10, -3], [-10, 3]], C.sharkL); g.restore();
+        }
+        // the orcas' mark
+        character(function () { orca(70, 200, 0.45, t, { dir: 1 }); });
+        vignette(0.3, "rgba(0,0,20,");
+      }
+
+      // ============================================================ the new apex predator (and the CTA)
+      function scene_apex(t) {
+        var tt = t; if (t > T.STOP) { var tau = t - T.STOP, TT = T.REWIND - T.STOP; tt = T.STOP + tau - tau * tau / (2 * TT); }
+        var cam = camAt([[T.APEX - 0.2, 90, 214, 1.0], [T.STOP, 90, 218, 1.12]], tt);
+        ocean(cam, tt);
+        character(function () { orca(80 + Math.sin(tt * 0.8) * 8, 252 + Math.sin(tt * 1.5) * 3, 1.0, tt, { dir: 1, crown: true }); });
+        // sharks peeking from behind the rock
+        character(function () { shark(160, 288, 0.55, tt, { dir: -1, scared: true, sweat: true }); });
+        character(function () { shark(22, 290, 0.5, tt, { dir: 1, scared: true }); });
+        if (tt > T.CTA) { bubble(126, 270, "NOT AGAIN.", C.ink); }
+        vignette(0.4, "rgba(0,0,20,");
+      }
+
+      function sceneAt(t) { return t < T.CHOMP ? "ocean" : t < T.MAP ? "liver" : t < T.APEX ? "map" : "apex"; }
+      function drawUI(t) {
+        var l1 = "", l2 = "", c1 = C.gold, S1 = 2;
+        if (t < T.PINGS) { l1 = "GREAT WHITE: TOP PREDATOR"; c1 = C.white; }
+        else if (t < T.FLIP) { var d = Math.round(500 * (1 - ease(clamp01((t - T.PINGS) / (T.FLIP - T.PINGS))))); l1 = "ORCAS " + d + " M AWAY"; c1 = d < 100 ? C.red : C.gold; S1 = 3; }
+        else if (t < T.FREEZE) { l1 = "SHARK: UPSIDE DOWN"; c1 = C.red; }
+        else if (t < T.CHOMP) { l1 = "SHARK: FROZEN"; c1 = Math.floor(t * 4) % 2 ? C.white : C.pink; l2 = "TONIC IMMOBILITY"; }
+        else if (t < T.MAP) { l1 = "LIVER: ~25% OF WEIGHT"; c1 = C.gold; }
+        else if (t < T.APEX) { l1 = "SHARK SIGHTINGS " + Math.round(100 * (1 - ramp(t, T.MAP + 0.4, T.APEX - 0.6))) + "%"; c1 = C.white; }
+        else { l1 = "ORCA 1 : SHARK 0"; c1 = C.gold; S1 = 3; }
+        uiCentre(l1, 18, S1, c1);
+        if (l2) uiCentre(l2, 18 + 7 * S1 + 8, 2, C.white);
+      }
+
+      PX.setup(C, {
+        scenes: { ocean: scene_ocean, liver: scene_liver, map: scene_map, apex: scene_apex },
+        sceneAt: sceneAt,
+        cuts: [[T.MAP, "liver", "map"], [T.APEX, "map", "apex"]],
+        post: function (t, img) {
+          if (t > T.BREAK && t < T.CHOMP) tintImg(img, C.ink, 0.5);
+          if (t >= T.CHOMP && t < T.CHOMP + 0.5) tintImg(img, C.white, 1 - (t - T.CHOMP) / 0.5);
+          if (t > T.STOP && t < T.REWIND) tintImg(img, C.ink, 0.7 * (t - T.STOP) / (T.REWIND - T.STOP));
+        },
+        ui: drawUI,
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: c.segs.map(function (ln) { return ln.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; }); }) };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      // the loop: after the tape-stop, a short rewind glitch lands exactly on frame 1 (no cold-open hook at the start)
+      function renderLoop(t) {
+        if (t < T.REWIND) { PX.render(t); return; }
+        PX.render(0);
+        var k = 1 - clamp01((t - T.REWIND) / 0.35);
+        if (k > 0) { var img = wctx.getImageData(0, 0, PW, PH); glitchRows(img, 12 * k, Math.floor(t * 30)); wctx.putImageData(img, 0, 0); }
+      }
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { renderLoop(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

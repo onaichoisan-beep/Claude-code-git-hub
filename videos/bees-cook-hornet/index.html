@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Bees Cook a Giant Hornet</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "Japanese honeybees cook a giant hornet alive" — engagement rules (STYLE_GUIDE.md section 6): bee + hornet characters,
+      a live counter at the top the whole time (DISTANCE -> BEES -> TEMP -> SCORE), cards every ~2 s, no narration,
+      @SCROLL2STUDY.IN on every frame, sound that follows the counter (the swarm buzz rises in pitch with TEMP).
+      Fact: Ono et al. (1995), Nature 377: 334-336.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script>
+      var DUR = window.DUR || 30;
+      var B = window.BEATS || {};
+      var T = {};
+      [["GLITCH", 1.6], ["APPROACH", 2.0], ["ARMOR", 6.0], ["SWARM", 9.0], ["HEAT", 12.0], ["BREAK", 20.25], ["KO", 20.5],
+       ["THERMO", 22.5], ["CHEER", 27.0], ["STOP", 30.5], ["REWIND", 31.3]].forEach(function (k) { T[k[0]] = B[k[0]] !== undefined ? B[k[0]] : k[1]; });
+      var C = {
+        sky1: "#1a2a5a", sky2: "#4a6ab8", sky3: "#ff9a6a", leaf: "#2a7a4a", leafD: "#1a4a30", leafL: "#4aa86a",
+        bark: "#6a4a2a", barkD: "#4a3018", barkL: "#8a6a3a", hole: "#1a0e08",
+        comb: "#e8a020", combD: "#b8700a", combL: "#ffd060", honey: "#ffb81a", wax: "#fff0a0",
+        bee: "#ffd43a", beeD: "#c8961a", beeK: "#2a1a10", wing: "#d8f0ff", wingD: "#a8c8e8",
+        hor: "#ff9a1a", horD: "#c8640a", horK: "#3a2010", horW: "#ffc87a", horY: "#ffe04a",
+        heat: "#ff3a1a", heatL: "#ffb03a", red: "#ff3a4a", green: "#3ae86a", gold: "#ffc83a", pink: "#ff5ab8",
+        glass: "#d8e8ff", blush: "#ff8ab0", sweat: "#8ad8ff",
+        white: "#ffffff", ink: "#0a0614", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+
+      function pop(t, t0) { var p = clamp01((t - t0) / 0.22); return p <= 0 ? 0 : 0.6 + 0.4 * easeOut(p) + 0.2 * Math.sin(p * Math.PI); }
+      function sky(stops) { screen(); g.fillStyle = vgrad(0, H, stops); g.fillRect(0, 0, W, H); }
+      function uiText(str, x, y, S, col) {
+        u.fillStyle = col;
+        for (var i = 0; i < str.length; i++) { var gl = FONT[str[i]] || FONT[" "]; for (var p = 0; p < 35; p++) if (gl[p] === "1") u.fillRect(x + i * 6 * S + (p % 5) * S, y + Math.floor(p / 5) * S, S, S); }
+      }
+      function uiCentre(str, y, S, col) { var w = str.length * 6 * S - S; uiText(str, Math.round(180 - w / 2) + 1, y + 1, S, C.ink); uiText(str, Math.round(180 - w / 2), y, S, col); }
+      function bubble(x, y, str, col) { var w = str.length * 6 + 5; rrect(x - w / 2, y - 6, w, 11, 2, C.white); poly([[x - 3, y + 5], [x + 2, y + 5], [x - 5, y + 10]], C.white); worldText(str, x, y - 3.5, 1, col || C.ink); }
+      function temp(t) { return t < T.HEAT ? 35 : 35 + 11 * ramp(t, T.HEAT + 0.3, T.BREAK - 0.3); }
+
+      // ============================================================ a Japanese honeybee (centre x, y; ~16*s long), facing dir
+      function bee(x, y, s, t, o) {
+        o = o || {};
+        var fl = Math.sin(t * 60 + (o.seed || 0)) > 0;
+        g.save(); g.translate(x, y); g.rotate(o.rot || 0); g.scale(s * (o.dir || 1), s);
+        g.globalAlpha = 0.85; ell(-1, -6 - (fl ? 1 : 0), 4, fl ? 2.4 : 3.4, -0.5, C.wing); ell(2, -6 - (fl ? 0 : 1), 3.4, fl ? 3 : 2, 0.5, C.wing); g.globalAlpha = 1;
+        ell(-2, 0, 6.5, 4.6, 0, C.beeD); ell(-2.2, -0.3, 6, 4.1, 0, C.bee);
+        rect(-4.6, -4, 1.6, 8, C.beeK); rect(-1.4, -4.2, 1.6, 8.4, C.beeK); poly([[-8.5, 0], [-11, 0.4], [-8.5, 1.2]], C.beeK);
+        disc(5, -0.6, 3.6, C.beeK);
+        disc(6, -1.4, 1.5, C.white); disc(6.4, -1.2, 0.8, C.ink);
+        if (o.angry) line(4.5, -3.4, 7.5, -2.6, 0.6, C.white);
+        line(6, -3.4, 8, -6.5, 0.5, C.beeK); line(4.5, -3.6, 5.5, -6.8, 0.5, C.beeK);
+        g.restore();
+      }
+
+      // ============================================================ the giant hornet (centre x, y; ~40*s long), facing dir. o: mood angry|scared|ko
+      function hornet(x, y, s, t, o) {
+        o = o || {};
+        var fl = Math.sin(t * 40) > 0, mood = o.mood || "angry";
+        g.save(); g.translate(x, y); g.rotate(o.rot || 0); g.scale(s * (o.dir || 1), s);
+        if (mood !== "ko") { g.globalAlpha = 0.8; ell(-6, -13 - (fl ? 2 : 0), 12, fl ? 4 : 6, -0.4, C.horW); ell(2, -13 - (fl ? 0 : 2), 10, fl ? 5 : 3.5, 0.3, C.horW); g.globalAlpha = 1; }
+        // abdomen with bands
+        ell(-12, 2, 13, 9, 0.1, C.horK); ell(-12.5, 1.4, 12, 8.2, 0.1, C.hor);
+        for (var b = 0; b < 3; b++) rect(-20 + b * 6, -6, 2.6, 15, C.horK);
+        poly([[-24, 3], [-29, 4], [-24, 6]], C.horK);
+        // thorax
+        ell(1, -1, 7, 7, 0, C.horK); ell(0.5, -1.6, 6, 6, 0, C.horD);
+        // legs
+        for (var l = 0; l < 3; l++) { line(-2 + l * 4, 4, -5 + l * 5, 12, 1.2, C.horK); }
+        // big orange head
+        disc(11, -3, 8.5, C.horD); disc(10.6, -3.4, 8, C.horY);
+        // eyes
+        if (mood === "ko") { line(10, -7, 14, -3, 1, C.ink); line(14, -7, 10, -3, 1, C.ink); ell(15, 2, 1.6, 2.4, 0, C.pink); }
+        else {
+          ell(13, -5, 3, 3.6, 0, C.white); disc(13.8 + (mood === "scared" ? -0.5 : 0.6), -4.6, mood === "scared" ? 1 : 1.7, C.ink);
+          if (mood === "angry") line(9.5, -9.5, 15.5, -7.5, 1.2, C.horK); else line(9.5, -8, 15.5, -9.5, 1, C.horK);
+        }
+        // mandibles
+        poly([[16, 1], [21, 3], [16, 4]], C.horK); poly([[15, 3], [19, 6.5], [14.5, 5]], C.horK);
+        line(12, -10, 16, -16, 0.8, C.horK); line(9, -10, 10, -17, 0.8, C.horK);
+        if (o.sweat) { for (var k = 0; k < 2; k++) { var ph = (t * 1.8 + k * 0.5) % 1; g.globalAlpha = 1 - ph; ell(6 + k * 10, -12 + ph * 10, 1, 1.6, 0, C.sweat); g.globalAlpha = 1; } }
+        g.restore();
+      }
+
+      // ============================================================ outside: the hive in a tree, the hornet flies in (hook + approach + armor)
+      var HOLE_X = 82, HOLE_Y = 236;
+      function scene_hive(t) {
+        var hookT = t >= T.REWIND ? t - T.REWIND : t < T.APPROACH ? t : null;
+        var cam = hookT !== null ? camAt([[0, 92, 216, 1.5], [1.6, 92, 218, 1.55]], hookT)
+          : camAt([[T.APPROACH, 90, 186, 1.0], [T.ARMOR, 96, 218, 1.35], [T.SWARM, 92, 226, 1.6]], t);
+        if (hookT !== null) shake(cam, hookT, 0, 6, 0.5);
+        for (var s2 = 0; s2 < 6; s2++) shake(cam, t, T.ARMOR + 0.3 + s2 * 0.42, 2.5, 0.15);
+        sky([[0, C.sky1], [0.6, C.sky2], [1, C.sky3]]);
+        setCam(cam, 0.4);
+        for (var f = 0; f < 6; f++) disc(10 + f * 34, 70 + (f % 2) * 20, 30, C.leafD);
+        setCam(cam, 1);
+        // the tree trunk with the nest hole
+        rect(50, -60, 70, 420, C.barkD); rect(54, -60, 62, 420, C.bark);
+        for (var k = 0; k < 12; k++) line(58 + (k % 4) * 15, -40 + k * 34, 60 + (k % 4) * 15, -20 + k * 34, 1.5, C.barkL);
+        ell(HOLE_X, HOLE_Y, 14, 18, 0, C.barkD); ell(HOLE_X, HOLE_Y, 11, 15, 0, C.hole);
+        for (var c = 0; c < 4; c++) { g.save(); g.beginPath(); g.ellipse(HOLE_X, HOLE_Y, 11, 15, 0, 0, 6.28); g.clip(); rect(HOLE_X - 12 + c * 7, HOLE_Y - 4, 5, 12, C.combD); g.restore(); }
+        rect(0, 300, 180, 40, C.leafD);
+        // guard bees at the entrance (flee in the hook)
+        var nb = 9;
+        character(function () {
+          for (var b = 0; b < nb; b++) {
+            var a0 = b / nb * 6.28, bx = HOLE_X + Math.cos(a0) * 18, by = HOLE_Y + Math.sin(a0) * 22 + Math.sin(t * 5 + b) * 1.2;
+            if (hookT !== null) { var fu = clamp01((hookT - 0.2) / 1.0); bx += Math.cos(a0) * fu * 60; by += Math.sin(a0) * fu * 60 - fu * 20; }
+            bee(bx, by, 0.9, t, { dir: Math.cos(a0) > 0 ? -1 : 1, seed: b, angry: t > T.ARMOR });
+          }
+        });
+        // the hornet
+        var hx, hy, hs = 1.25, mood = "angry";
+        if (hookT !== null) { hx = 120 - hookT * 6; hy = 262 + Math.sin(hookT * 6) * 3; }
+        else { var u0 = ease(clamp01((t - T.APPROACH) / (T.ARMOR - T.APPROACH))); hx = lerp(176, 126, u0); hy = lerp(150, 256, u0) + Math.sin(t * 5) * 3; }
+        character(function () { hornet(hx, hy, hs, t, { dir: -1, mood: mood }); });
+        if (hookT !== null && hookT > 0.5) bubble(hx - 4, hy + 36, "SNACK TIME.", C.red);
+        if (hookT === null && t > T.APPROACH + 2.3 && t < T.ARMOR) bubble(hx - 18, hy + 36, "SNACK TIME.", C.red);
+        // stings bounce off its armour
+        if (hookT === null && t > T.ARMOR && t < T.SWARM) {
+          for (var st = 0; st < 6; st++) {
+            var tt = t - T.ARMOR - 0.3 - st * 0.42; if (tt < 0 || tt > 0.5) continue;
+            var sx = hx - 10 + (st % 3) * 8, sy = hy - 6 + (st % 2) * 10;
+            g.globalAlpha = 1 - tt * 2; for (var r = 0; r < 5; r++) { var a = r / 5 * 6.28; line(sx + Math.cos(a) * 3, sy + Math.sin(a) * 3, sx + Math.cos(a) * (5 + tt * 14), sy + Math.sin(a) * (5 + tt * 14), 1, C.white); } g.globalAlpha = 1;
+            character(function () { bee(sx - 10 - tt * 30, sy + tt * 20, 0.9, t, { dir: 1, rot: tt * 8, seed: st }); });
+          }
+          if (t > T.ARMOR + 1.6) worldText("TINK!", hx, hy - 36, 1, C.white);
+        }
+        vignette(0.3, "rgba(10,10,40,");
+      }
+
+      // ============================================================ inside: the hot defensive bee ball
+      function combBg(cam) {
+        sky([[0, C.combD], [1, C.horK]]);
+        setCam(cam, 0.7);
+        for (var r = -2; r < 22; r++) for (var c = -2; c < 12; c++) {
+          var x = c * 16 + (r % 2) * 8, y = r * 14;
+          poly([[x, y - 8], [x + 7, y - 4], [x + 7, y + 4], [x, y + 8], [x - 7, y + 4], [x - 7, y - 4]], C.combD);
+          poly([[x, y - 6.5], [x + 5.6, y - 3.2], [x + 5.6, y + 3.2], [x, y + 6.5], [x - 5.6, y + 3.2], [x - 5.6, y - 3.2]], (r * 3 + c) % 5 ? C.comb : C.honey);
+        }
+        setCam(cam, 1);
+      }
+      var BX = 90, BY = 258;
+      function scene_ball(t) {
+        var cam = camAt([[T.SWARM - 0.2, 90, 196, 1.0], [T.HEAT, 90, 200, 1.12], [T.BREAK, 90, 206, 1.45], [T.KO, 90, 206, 1.45], [T.THERMO, 90, 200, 1.2]], t);
+        var heat = clamp01((temp(t) - 35) / 11);
+        if (t > T.HEAT && t < T.KO) { cam.x += (hash1(Math.floor(t * 30)) - 0.5) * heat * 2; cam.y += (hash1(Math.floor(t * 30) + 3) - 0.5) * heat * 2; }
+        shake(cam, t, T.KO, 10, 0.5);
+        combBg(cam);
+        var ko = t >= T.KO;
+        // heat glow
+        if (heat > 0) { lighter(); glow(BX, BY, 50 + 30 * heat, C.heat, 0.25 + 0.45 * heat); normalBlend(); }
+        // the hornet in the middle
+        character(function () { hornet(BX + (ko ? 6 : 0), BY + (ko ? 6 : 0), 1.15, t, { dir: -1, mood: ko ? "ko" : t > T.HEAT + 2 ? "scared" : "angry", sweat: !ko && t > T.HEAT + 1, rot: ko ? Math.PI * 0.9 : 0 }); });
+        // the bees pile on: count follows the BEES counter, vibration follows TEMP
+        var nB = Math.round(60 * ramp(t, T.SWARM, T.HEAT - 0.2));
+        var open = ko ? ease(clamp01((t - T.KO) / 0.6)) : 0;
+        character(function () {
+          for (var k = 0; k < nB; k++) {
+            var ring = Math.floor(k / 20), a = (k % 20) / 20 * 6.28 + ring * 0.3, rr = 22 + ring * 9 + open * 30;
+            var arr = clamp01((t - T.SWARM - k * 0.045) / 0.5);
+            var jx = (hash1(Math.floor(t * 30) * 3 + k) - 0.5) * heat * 2.4, jy = (hash1(Math.floor(t * 30) * 5 + k) - 0.5) * heat * 2.4;
+            var bx = lerp(BX + Math.cos(a) * 140, BX + Math.cos(a) * rr, ease(arr)) + jx, by = lerp(BY + Math.sin(a) * 140, BY + Math.sin(a) * rr * 0.9, ease(arr)) + jy;
+            bee(bx, by, 0.95, t, { dir: Math.cos(a) > 0 ? -1 : 1, rot: Math.sin(a) * 0.5, seed: k, angry: true });
+          }
+        });
+        // heat shimmer
+        for (var w = 0; w < 6; w++) { var ph = (t * 1.2 + w / 6) % 1; g.globalAlpha = heat * 0.6 * Math.sin(ph * Math.PI); line(BX - 30 + w * 12, BY - 46 - ph * 40, BX - 28 + w * 12 + Math.sin(t * 8 + w) * 2, BY - 54 - ph * 40, 1.2, C.heatL); g.globalAlpha = 1; }
+        vignette(0.35, "rgba(30,10,0,");
+      }
+
+      // ============================================================ the thermometer: they win by a few degrees
+      function scene_thermo(t) {
+        var cam = camAt([[T.THERMO - 0.2, 90, 186, 1.0], [T.CHEER, 90, 190, 1.05]], t);
+        combBg(cam);
+        screen(); g.globalAlpha = 0.55; rect(0, 0, 180, 320, C.horK); g.globalAlpha = 1;
+        setCam(cam, 1);
+        var x = 90, top = 198, bot = 296;
+        function yOf(c) { return lerp(bot, top, (c - 35) / 17); }
+        rrect(x - 7, top - 6, 14, bot - top + 12, 7, C.glass); disc(x, bot + 8, 11, C.glass); disc(x, bot + 8, 8.5, C.heat);
+        var lvl = lerp(35, 46, ease(clamp01((t - T.THERMO - 0.2) / 1.2)));
+        rect(x - 3, yOf(lvl), 6, bot + 4 - yOf(lvl), C.heat);
+        for (var c = 36; c <= 52; c += 2) { rect(x + 7, yOf(c) - 0.4, 4, 0.8, C.ink); }
+        // the zones
+        var pz = clamp01((t - T.THERMO - 1.4) / 0.4);
+        g.globalAlpha = pz;
+        rect(x - 30, yOf(46), 22, yOf(44) - yOf(46), C.red); worldText("HORNET", x - 54, yOf(45) - 3, 1, C.red); worldText("DIES", x - 54, yOf(45) + 6, 1, C.red);
+        rect(x + 12, yOf(50), 22, yOf(48) - yOf(50), C.green); worldText("BEES", x + 46, yOf(49) - 3, 1, C.green); worldText("OK", x + 46, yOf(49) + 6, 1, C.green);
+        g.globalAlpha = 1;
+        worldText(Math.round(lvl) + "°C", x, yOf(lvl) - 12, 1, C.white);
+        // above the text: the KO'd hornet and a flexing bee
+        var pp = Math.min(pop(t, T.THERMO + 2.4), 1);
+        character(function () { hornet(56, 96, 1.0, t, { mood: "ko", rot: Math.PI }); });
+        character(function () { bee(126, 92 - Math.abs(Math.sin(t * 6)) * 4, 2.2 * Math.max(0.01, pp), t, { dir: -1, angry: true }); });
+        vignette(0.3, "rgba(30,10,0,");
+      }
+
+      // ============================================================ victory dance (CTA), then tape-stop
+      function scene_cheer(t) {
+        var tt = t; if (t > T.STOP) { var tau = t - T.STOP, TT = T.REWIND - T.STOP; tt = T.STOP + tau - tau * tau / (2 * TT); }
+        var cam = camAt([[T.CHEER - 0.2, 90, 190, 1.0], [T.STOP, 90, 196, 1.1]], tt);
+        combBg(cam);
+        character(function () {
+          for (var k = 0; k < 16; k++) {
+            var a = k / 16 * 6.28 + tt * 1.5, bx = 90 + Math.cos(a) * (30 + (k % 3) * 14), by = 258 + Math.sin(a) * (18 + (k % 3) * 8) - Math.abs(Math.sin(tt * 8 + k)) * 4;
+            bee(bx, by, 1.2, tt, { dir: Math.sin(a) > 0 ? 1 : -1, seed: k, rot: Math.sin(tt * 6 + k) * 0.3 });
+          }
+        });
+        character(function () { bee(90, 256 - Math.abs(Math.sin(tt * 6)) * 6, 2.6, tt, { dir: 1 }); });
+        for (var c = 0; c < 30; c++) { var y = ((tt - T.CHEER) * (40 + hash1(c) * 30) + hash1(c + 7) * 320) % 340 - 10; poly([[hash1(c + 3) * 180, y], [hash1(c + 3) * 180 + 2, y + 1], [hash1(c + 3) * 180, y + 3]], c % 2 ? C.honey : C.wax); }
+        vignette(0.3, "rgba(30,10,0,");
+      }
+
+      function sceneAt(t) { return t < T.SWARM ? "hive" : t < T.THERMO ? "ball" : t < T.CHEER ? "thermo" : t < T.REWIND ? "cheer" : "hive"; }
+
+      function drawUI(t) {
+        var l1 = "", l2 = "", c1 = C.gold, S1 = 3;
+        if (t < T.GLITCH || t >= T.REWIND) { l1 = "KILLS 40 BEES/MIN"; c1 = Math.floor(t * 6) % 2 ? C.red : C.white; S1 = 2; }
+        else if (t < T.APPROACH) { l1 = "KILLS " + Math.floor(hash1(Math.floor(t * 30)) * 99) + " BEES/MIN"; c1 = C.white; S1 = 2; }
+        else if (t < T.SWARM) { var d = Math.max(0, 3 * (1 - ease(clamp01((t - T.APPROACH) / (T.ARMOR - T.APPROACH))))); l1 = "HORNET " + d.toFixed(1) + " M AWAY"; c1 = d < 0.5 ? C.red : C.gold; S1 = 2; if (t > T.ARMOR) l2 = "STINGS: USELESS"; }
+        else if (t < T.KO) {
+          var nb = Math.round(500 * ramp(t, T.SWARM, T.HEAT - 0.2)), tp = Math.round(temp(t));
+          if (t < T.HEAT) { l1 = "BEES " + nb; c1 = C.gold; }
+          else { l1 = "TEMP " + tp + "°C"; c1 = tp < 42 ? C.gold : C.red; l2 = "BEES 500"; }
+        }
+        else if (t < T.THERMO) { l1 = "HORNET: K.O."; c1 = Math.floor(t * 8) % 2 ? C.pink : C.white; }
+        else if (t < T.CHEER) { l1 = "WINNING MARGIN"; S1 = 2; c1 = C.white; l2 = "~3°C"; }
+        else { l1 = "BEES 1 : HORNET 0"; S1 = 2; c1 = C.gold; }
+        uiCentre(l1, 18, S1, c1);
+        if (l2) uiCentre(l2, 18 + 7 * S1 + 8, 2, C.white);
+      }
+
+      PX.setup(C, {
+        scenes: { hive: scene_hive, ball: scene_ball, thermo: scene_thermo, cheer: scene_cheer },
+        sceneAt: sceneAt,
+        cuts: [[T.SWARM, "hive", "ball"], [T.THERMO, "ball", "thermo"], [T.CHEER, "thermo", "cheer"]],
+        post: function (t, img) {
+          if (t > T.GLITCH - 0.05 && t < T.APPROACH) glitchRows(img, 12 * Math.sin(clamp01((t - T.GLITCH + 0.05) / (T.APPROACH - T.GLITCH + 0.05)) * Math.PI), Math.floor(t * 30));
+          if (t > T.HEAT && t < T.BREAK) tintImg(img, C.heat, 0.18 * ramp(t, T.HEAT, T.BREAK));
+          if (t > T.BREAK && t < T.KO) tintImg(img, C.ink, 0.45);
+          if (t >= T.KO && t < T.KO + 0.15) tintImg(img, C.white, 1 - (t - T.KO) / 0.15);
+          if (t > T.STOP && t < T.REWIND) tintImg(img, C.ink, 0.7 * (t - T.STOP) / (T.REWIND - T.STOP));
+          if (t >= T.REWIND && t < T.REWIND + 0.3) glitchRows(img, 12 * (1 - (t - T.REWIND) / 0.3), Math.floor(t * 30));
+        },
+        ui: drawUI,
+        captions: (window.CAPS || []).map(function (c) {
+          return { a: c.a, b: c.b, lines: c.segs.map(function (ln) { return ln.map(function (s) { return [s[0], s[1] === "g" ? C.gold : C.paper]; }); }) };
+        }),
+      });
+
+      var proxy = { t: 0 };
+      var tl = gsap.timeline({ paused: true });
+      // the loop: after the tape-stop, a short rewind glitch lands exactly on frame 1 (no cold-open hook at the start)
+      function renderLoop(t) {
+        if (t < T.REWIND) { PX.render(t); return; }
+        PX.render(0);
+        var k = 1 - clamp01((t - T.REWIND) / 0.35);
+        if (k > 0) { var img = wctx.getImageData(0, 0, PW, PH); glitchRows(img, 12 * k, Math.floor(t * 30)); wctx.putImageData(img, 0, 0); }
+      }
+      tl.to(proxy, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { renderLoop(proxy.t); } }, 0);
+      PX.render(0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
