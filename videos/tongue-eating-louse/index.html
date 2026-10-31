@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Parasite That Becomes a Fish's Tongue</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "The parasite that becomes a fish's tongue" (Cymothoa exigua) — engagement rules (STYLE_GUIDE.md section 6), text only
+      (no narration), no cold-open hook: frame 1 is the louse staring out of the fish's mouth.
+      Counter: TONGUE STATUS -> DISTANCE TO GILLS -> LOUSE MALE/FEMALE -> TONGUE 100% -> 0% -> MEALS -> FISH 0 : LOUSE 1.
+      Sound: one wet slurp per blood sip, speeding up as the TONGUE % falls; a crunch per chew on the MEALS counter.
+      Facts: Brusca & Gilligan (1983), Copeia 1983(3): 813-816.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var PULSES = T.PULSES || [], CHEWS = T.CHEWS || [];
+      var C = {
+        w1: "#06203a", w2: "#0a3a5a", w3: "#126a8a", ray: "#5ad8e8", sand: "#c8a86a", sandD: "#8a6a3a", weed: "#2a8a4a", weedD: "#1a5a30",
+        fish: "#ff6a5a", fishD: "#c83a3a", fishL: "#ff9a8a", belly: "#ffd0c0", fin: "#ff8a4a", finD: "#d8582a",
+        eye: "#ffd84a", eyeD: "#c89a1a", lip: "#e84a5a", lipD: "#a82a3a",
+        m1: "#3a0612", m2: "#6a1424", m3: "#8a2434", gill: "#d83a4a",
+        lou: "#eadcb4", louD: "#b89e6a", louL: "#fff4d8", louK: "#7a6040", male: "#b8b8c8", maleD: "#7a7a8a",
+        tongue: "#ff8aa8", tongueD: "#d85a7a", blood: "#e8183a", shrimp: "#ff9a6a", shrimpD: "#d8683a",
+        gold: "#ffc83a", red: "#ff3a4a", pink: "#ff5ab8", green: "#3ae86a", white: "#ffffff", ink: "#0a0614", paper: "#f1eef4", cyan: "#4ae0ff",
+      };
+      DISSOLVE = 0.12;
+
+      function tongueLeft(t) { if (t < T.GRAB + 0.5) return 1; var n = countOf(PULSES, t); return 1 - 0.75 * Math.min(1, n / PULSES.length); }
+      function water(t, cam) {
+        sky([[0, C.w1], [0.55, C.w2], [1, C.w3]]);
+        // light rays + drifting specks
+        for (var r = 0; r < 5; r++) { var x = 20 + r * 38 + Math.sin(t * 0.4 + r) * 8; g.globalAlpha = 0.07; poly([[x, 0], [x + 14, 0], [x + 40, 320], [x + 10, 320]], C.ray); }
+        g.globalAlpha = 1;
+        for (var p = 0; p < 30; p++) { var y = (hash1(p * 2.1) * 340 - t * (4 + hash1(p) * 6)) % 340; if (y < 0) y += 340; g.globalAlpha = 0.5; rect(hash1(p * 7.7) * 180, y - 10, 0.5, 0.5, C.white); }
+        g.globalAlpha = 1;
+      }
+      function bubbles(t, x0, y0) {
+        for (var b = 0; b < 6; b++) { var ph = (t * 0.5 + b / 6) % 1; g.globalAlpha = 0.7 * (1 - ph); disc(x0 + Math.sin(t * 3 + b) * 4, y0 - ph * 90, 1 + (b % 3) * 0.6, C.ray); g.globalAlpha = 1; disc(x0 + Math.sin(t * 3 + b) * 4 - 0.4, y0 - ph * 90 - 0.4, 0.4, C.white); }
+      }
+
+      // ============================================================ the louse, front view (centre x, y; ~34*s wide). o: talk, wave, look
+      function louseFront(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s, s);
+        // hooked legs gripping the floor of the mouth
+        for (var l = 0; l < 4; l++) {
+          var tw = Math.sin(t * 9 + l * 1.7) * 0.8, lx = 11 + l * 2.5;
+          line(-lx, 2 + l * 2.5, -lx - 5, 6 + l * 2.5 + tw, 1.4, C.louD); line(-lx - 5, 6 + l * 2.5 + tw, -lx - 4, 9 + l * 2.5, 1.2, C.louK);
+          line(lx, 2 + l * 2.5, lx + 5, 6 + l * 2.5 - tw, 1.4, C.louD); line(lx + 5, 6 + l * 2.5 - tw, lx + 4, 9 + l * 2.5, 1.2, C.louK);
+        }
+        if (o.wave) { var wv = Math.sin(t * 12) * 3; line(12, -2, 20, -10 + wv, 1.6, C.louD); line(20, -10 + wv, 23, -15 + wv, 1.3, C.louK); }
+        // body: overlapping plates
+        ell(0, 6, 17, 13, 0, C.louD); ell(0, 5, 16, 12, 0, C.lou);
+        for (var k = 0; k < 4; k++) { g.strokeStyle = C.louD; g.lineWidth = 0.8; g.beginPath(); g.ellipse(0, -2 + k * 4.5, 15 - k * 0.8, 5, 0, 0.15, Math.PI - 0.15); g.stroke(); }
+        ell(-5, 1, 5, 2.4, -0.2, C.louL);
+        // head
+        ell(0, -9, 11, 7, 0, C.louD); ell(0, -9.6, 10, 6.2, 0, C.lou); ell(-3, -12, 4, 2, 0, C.louL);
+        line(-4, -15, -8, -21, 0.8, C.louK); line(4, -15, 8, -21, 0.8, C.louK);
+        // the stare: big black eyes with tiny glints, looking at YOU
+        var lk = o.look || 0;
+        ell(-5, -10, 3.4, 3.8, 0, C.ink); ell(5, -10, 3.4, 3.8, 0, C.ink);
+        rect(-6 + lk, -12, 1, 1, C.white); rect(4 + lk, -12, 1, 1, C.white); rect(-4.4 + lk, -9.6, 0.5, 0.5, C.white); rect(5.6 + lk, -9.6, 0.5, 0.5, C.white);
+        // mandibles
+        var m = o.talk || 0;
+        line(-2.2, -4.5, -1 - m, -2 + m * 1.5, 1, C.louK); line(2.2, -4.5, 1 + m, -2 + m * 1.5, 1, C.louK);
+        g.restore();
+      }
+
+      // ============================================================ the fish, front view: head centre (x, y), ~150*s wide. o: open (0..1), eyes
+      function fishFront(x, y, s, t, o) {
+        o = o || {};
+        var op = o.open === undefined ? 1 : o.open;
+        g.save(); g.translate(x, y); g.scale(s, s);
+        // fins behind
+        poly([[-70, 10], [-88, -6], [-84, 26]], C.finD); poly([[70, 10], [88, -6], [84, 26]], C.finD);
+        poly([[0, -66], [-14, -50], [14, -50]], C.finD);
+        // head
+        ell(0, 0, 74, 62, 0, C.fishD); ell(0, -3, 71, 58, 0, C.fish);
+        ell(0, 22, 52, 30, 0, C.belly); ell(-22, -30, 24, 12, -0.3, C.fishL);
+        for (var sc = 0; sc < 7; sc++) { g.strokeStyle = C.fishD; g.lineWidth = 0.8; g.beginPath(); g.arc(-48 + sc * 16, -18 + (sc % 2) * 6, 6, 0.2, Math.PI - 0.2); g.stroke(); }
+        // eyes on the sides
+        var ey = o.eyes || "calm";
+        [-1, 1].forEach(function (sd) {
+          disc(sd * 50, -16, 16, C.eyeD); disc(sd * 50, -16, 14, C.eye);
+          var pr = ey === "shock" ? 4.5 : 8;
+          disc(sd * 50 - sd * 2, -15, pr, C.ink); disc(sd * 50 - sd * 2 - 2.5, -18.5, 2.2, C.white);
+          if (ey === "worried") line(sd * 38, -34, sd * 60, -28, 2, C.fishD);
+          if (ey === "happy") { g.strokeStyle = C.fishD; g.lineWidth = 2; g.beginPath(); g.arc(sd * 50, -4, 9, 0.4, Math.PI - 0.4); g.stroke(); }
+        });
+        // the mouth: thick lips, dark inside
+        var ry = 4 + 24 * op;
+        ell(0, 26, 38, ry + 7, 0, C.lipD); ell(0, 25, 36, ry + 5, 0, C.lip);
+        ell(0, 26, 30, ry, 0, C.m1);
+        if (op > 0.3) { ell(0, 28, 26, ry * 0.75, 0, C.m2); ell(0, 34, 22, ry * 0.45, 0, C.m3); }
+        g.restore();
+      }
+
+      // ============================================================ scene: the stare (frame 1) / eating / CTA
+      function scene_mouth(t) {
+        var tt = tapeT(t, T), late = tt >= T.EAT;
+        var cam = late ? camAt([[T.EAT - 0.2, 90, 210, 1.15], [T.CTA, 90, 214, 1.25], [T.STOP, 90, 214, 1.32]], tt)
+          : camAt([[0, 90, 226, 2.0], [1.9, 90, 224, 1.7], [T.SWIM, 90, 212, 1.3]], tt);
+        if (!late) shake(cam, tt, 2.05, 4, 0.4);
+        water(tt, cam);
+        setCam(cam, 1);
+        rect(-60, 296, 300, 60, C.sandD); rect(-60, 298, 300, 60, C.sand);
+        for (var wd = 0; wd < 7; wd++) { var wx = -20 + wd * 34, sw = Math.sin(tt * 1.6 + wd) * 5; poly([[wx, 300], [wx + 4 + sw, 240 + (wd % 3) * 14], [wx + 8, 300]], wd % 2 ? C.weed : C.weedD); }
+        bubbles(tt, 150, 200);
+        // chewing: the mouth snaps shut on every chew
+        var op = 1;
+        if (late && tt < T.CTA) { var lc = lastOf(CHEWS, tt), ph = tt - lc; op = ph < 0.3 ? 0.35 + 0.65 * Math.abs(Math.cos(ph / 0.3 * Math.PI)) : 1; }
+        var FX = 90, FY = 232;
+        character(function () { fishFront(FX, FY, 1.0, tt, { open: op, eyes: late ? (tt > T.CTA ? "happy" : "calm") : "worried" }); });
+        // the louse in the mouth, staring
+        var ly = FY + 30 + (1 - op) * 4;
+        g.save(); g.beginPath(); g.ellipse(FX, FY + 26, 30, 4 + 24 * op, 0, 0, 6.2832); g.clip();
+        character(function () {
+          var bub = !late && tt > 0.5 && tt < 2.0 || late && tt > 22.55 && tt < 24.2;
+          louseFront(FX, ly, 0.85, tt, { talk: bub ? Math.abs(Math.sin(tt * 14)) * 1.5 : 0, wave: late && tt > T.CTA, look: Math.sin(tt * 0.8) * 0.6 });
+        });
+        g.restore();
+        // food: shrimp bits flying in on each chew
+        if (late && tt < T.CTA) {
+          for (var c = 0; c < CHEWS.length; c++) { var u = (tt - CHEWS[c] + 0.45) / 0.45; if (u < 0 || u > 1) continue; var sx = lerp(c % 2 ? 190 : -10, FX, u), sy = lerp(200 + (c % 3) * 12, FY + 26, u); ell(sx, sy, 5, 2.4, u * 3, C.shrimpD); ell(sx, sy - 0.5, 4.2, 1.8, u * 3, C.shrimp); }
+        }
+        if (!late && tt > 0.5 && tt < 2.0) bubble(FX + 18, FY + 60, "HIIII.", C.red);
+        if (late && tt > 22.6 && tt < 24.2) bubble(FX + 30, FY + 64, "WE SHARE.", C.red);
+        vignette(0.4, "rgba(0,10,30,");
+      }
+
+      // ============================================================ the fish, side view (facing left): centre (x, y), ~150*s long
+      function fishSide(x, y, s, t, o) {
+        o = o || {};
+        var sw = Math.sin(t * 5) * 0.12;
+        g.save(); g.translate(x, y); g.scale(s, s);
+        g.save(); g.translate(62, 0); g.rotate(sw); poly([[0, 0], [26, -24], [20, 0], [26, 24]], C.finD); g.restore();
+        poly([[-10, -30], [10, -44], [40, -30]], C.finD); poly([[0, 28], [14, 40], [30, 26]], C.finD);
+        ell(0, 0, 66, 32, 0, C.fishD); ell(-1, -1.5, 64, 30, 0, C.fish);
+        ell(0, 12, 54, 14, 0, C.belly); ell(-10, -16, 34, 7, -0.05, C.fishL);
+        for (var sc = 0; sc < 6; sc++) { g.strokeStyle = C.fishD; g.lineWidth = 0.7; g.beginPath(); g.arc(-4 + sc * 10, -2 + (sc % 2) * 6, 4, -1.2, 1.2); g.stroke(); }
+        // gill cover edge
+        g.strokeStyle = C.fishD; g.lineWidth = 1.6; g.beginPath(); g.arc(-26, 0, 22, -1.2, 1.2); g.stroke();
+        if (o.gillOpen) { g.strokeStyle = C.gill; g.lineWidth = 1.2; g.beginPath(); g.arc(-24, 0, 21, -0.9, 0.9); g.stroke(); }
+        disc(-46, -8, 8.5, C.eyeD); disc(-46, -8, 7.5, C.eye); disc(-47, -7.5, 4, C.ink); disc(-48.4, -9.4, 1.3, C.white);
+        ell(-62, 6, 6, 3.4 + (o.mouth || 0) * 2, 0, C.lipD); ell(-62, 6, 4.5, 1.4 + (o.mouth || 0) * 2, 0, C.m1);
+        poly([[-24, 4], [-10, 12], [-16, 16]], C.finD);
+        g.restore();
+      }
+      // a small male louse, side view
+      function louseSide(x, y, s, t, col, colD) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        for (var l = 0; l < 4; l++) { var tw = Math.sin(t * 16 + l) * 1.2; line(-4 + l * 3, 3, -5 + l * 3 + tw, 7, 1, colD); }
+        ell(0, 0, 8, 4.5, 0, colD); ell(0, -0.6, 7.4, 3.8, 0, col);
+        for (var k = 0; k < 4; k++) line(-4 + k * 2.6, -4, -4.6 + k * 2.6, 3, 0.5, colD);
+        disc(-7, -1.4, 1.2, C.ink);
+        g.restore();
+      }
+
+      // ============================================================ scene: the male swims in through the gills
+      function scene_swim(t) {
+        var cam = camAt([[T.SWIM - 0.2, 90, 214, 1.0], [T.GILL - 0.4, 82, 236, 1.9], [T.INSIDE, 80, 238, 2.6]], t);
+        water(t, cam);
+        setCam(cam, 1);
+        rect(-60, 300, 300, 60, C.sand);
+        var fx = 96 + Math.sin(t * 0.8) * 3, fy = 240 + Math.sin(t * 1.3) * 2;
+        bubbles(t, fx - 72, fy - 4);
+        character(function () { fishSide(fx, fy, 1.0, t, { gillOpen: t > T.GILL - 0.5 && t < T.GILL + 0.4 }); });
+        // the louse: zig-zags in from the lower right, slips under the gill cover
+        var u = clamp01((t - T.SWIM - 0.2) / (T.GILL - T.SWIM - 0.2));
+        if (u < 1) {
+          var lx = lerp(150, fx - 4, ease(u)), ly = lerp(296, fy + 4, ease(u)) + Math.sin(u * 20) * 4;
+          character(function () { louseSide(lx, ly, 0.9, t, C.male, C.maleD); });
+          if (u < 0.9) { g.globalAlpha = 0.8; worldText("MALE", lx, ly + 8, 1, C.cyan); g.globalAlpha = 1; poly([[lx - 2, ly + 6], [lx + 2, ly + 6], [lx, ly + 4]], C.cyan); }
+        }
+        vignette(0.35, "rgba(0,10,30,");
+      }
+
+      // ============================================================ scene: x-ray inside the mouth (the tongue gets eaten)
+      function scene_inside(t) {
+        var cam = camAt([[T.INSIDE - 0.2, 90, 194, 1.0], [T.DRINK, 90, 200, 1.15], [T.BREAK, 88, 210, 1.45], [T.HIT + 0.6, 90, 200, 1.15], [T.EAT, 90, 198, 1.1]], t);
+        shake(cam, t, T.HIT, 8, 0.5);
+        if (t > T.DRINK && t < T.BREAK) { var pl = lastOf(PULSES, t); shake(cam, t, pl, 2, 0.15); }
+        water(t, cam);
+        setCam(cam, 1);
+        // a huge cut-away fish head facing left
+        var HX = 100, HY = 236;
+        character(function () {
+          ell(HX + 50, HY, 120, 70, 0, C.fishD); ell(HX + 50, HY - 2, 117, 67, 0, C.fish);
+          ell(HX + 40, HY + 34, 100, 26, 0, C.belly);
+          // the eye on top
+          var shock = t > T.HIT + 0.3 && t < T.CLAMP;
+          disc(HX + 14, HY - 56, 11, C.eyeD); disc(HX + 14, HY - 56, 10, C.eye); disc(HX + 12.5, HY - 55.5, shock ? 2.6 : 5.2, C.ink); disc(HX + 10.5, HY - 58, 1.5, C.white);
+          if (shock) { line(HX + 2, HY - 70, HX + 24, HY - 69, 2, C.fishD); }
+        });
+        // the x-ray window: mouth cavity
+        var MX = HX - 6, MY = HY + 6;
+        g.save(); g.beginPath(); g.ellipse(MX + 10, MY, 70, 34, 0, 0, 6.2832); g.clip();
+        rect(MX - 70, MY - 40, 160, 80, C.m2); ell(MX + 10, MY + 6, 66, 26, 0, C.m3);
+        // gill arches at the back
+        for (var a = 0; a < 4; a++) { g.strokeStyle = C.gill; g.lineWidth = 2; g.beginPath(); g.arc(MX + 62 + a * 6, MY, 20 - a * 2, -1.1, 1.1); g.stroke(); }
+        // the tongue (shrinks with every sip, then falls)
+        var tl = tongueLeft(t), fall = t >= T.HIT ? clamp01((t - T.HIT) / 1.6) : 0;
+        var tx = MX - 8 - fall * 70, ty = MY + 14 + fall * 30 - Math.sin(fall * Math.PI) * 14;
+        if (fall < 1) { g.save(); g.translate(tx, ty); g.rotate(-fall * 2.5); var tw = 30 * Math.max(0.15, tl), th = 9 * Math.max(0.25, tl); ell(0, 0, tw, th, 0, C.tongueD); ell(-1, -1, tw - 1.5, th - 1.5, 0, t > T.DRINK ? mix(C.tongue, C.tongueD, 1 - tl) : C.tongue); if (t > T.DRINK) ell(-tw * 0.3, -th * 0.3, tw * 0.3, th * 0.25, 0, C.white); g.restore(); }
+        // the stump
+        ell(MX + 26, MY + 18, 6, 4, 0, C.tongueD);
+        // the louse: a small grey male at the back -> grows into the female -> on the tongue -> onto the stump
+        var fem = ease(clamp01((t - T.FEMALE) / 0.6)), sc = lerp(0.9, 1.7, fem);
+        var px = MX + 44, py = MY + 4;
+        if (t > T.GRAB) { var gu = ease(clamp01((t - T.GRAB) / 0.5)); px = lerp(px, MX + 4, gu); py = lerp(py, MY + 4, gu); }
+        if (t > T.HIT) { px = MX + 4; py = MY + 6; }
+        if (t > T.CLAMP) { var cu = ease(clamp01((t - T.CLAMP) / 0.5)); px = lerp(MX + 4, MX + 14, cu); py = lerp(MY + 6, MY + 9, cu); }
+        var swell = t > T.DRINK && t < T.HIT + 1 ? 1 + 0.25 * (1 - tongueLeft(t)) : t >= T.HIT + 1 ? 1.2 : 1;
+        var col = fem > 0.5 ? (t > T.DRINK ? mix(C.lou, C.blood, 0.35 * (1 - tongueLeft(t))) : C.lou) : C.male;
+        // blood sips: red drops run up into the louse
+        if (t > T.DRINK && t < T.BREAK) {
+          for (var p = 0; p < PULSES.length; p++) { var pu = (t - PULSES[p]) / 0.35; if (pu < 0 || pu > 1) continue; disc(lerp(tx - 6, px, pu), lerp(ty, py, pu), 1.8 * (1 - pu * 0.5), C.blood); }
+        }
+        character(function () { louseSide(px, py, sc * (t > T.HIT + 0.4 ? 1.08 : 1) * Math.sqrt(swell), t, col, fem > 0.5 ? C.louD : C.maleD); });
+        g.restore();
+        // window rim
+        g.strokeStyle = C.ink; g.lineWidth = 1.5; g.beginPath(); g.ellipse(MX + 10, MY, 70, 34, 0, 0, 6.2832); g.stroke();
+        g.strokeStyle = C.cyan; g.lineWidth = 0.6; g.beginPath(); g.ellipse(MX + 10, MY, 71.5, 35.5, 0, 0, 6.2832); g.stroke();
+        worldText("X-RAY", MX + 54, MY - 44, 1, C.cyan);
+        // the new-tongue glow
+        if (t > T.NEWT) { var ng = clamp01((t - T.NEWT) / 0.3); lighter(); glow(MX + 14, MY + 9, 26, C.gold, 0.5 * ng); normalBlend(); worldText("NEW TONGUE", MX + 14, MY + 34 + 8, 1, C.gold); poly([[MX + 12, MY + 38], [MX + 16, MY + 38], [MX + 14, MY + 34]], C.gold); }
+        if (t > T.HIT + 0.45 && t < T.CLAMP - 0.1) bubble(HX + 8, HY - 86, "WHERE'S MY TONGUE?", C.red);
+        bubbles(t, HX - 62, HY);
+        vignette(0.35, "rgba(0,10,30,");
+      }
+
+      function sceneAt(t) { return t < T.SWIM ? "mouth" : t < T.INSIDE ? "swim" : t < T.EAT ? "inside" : "mouth"; }
+
+      function drawUI(t) {
+        var l1, c1 = C.gold, S1 = 3, l2 = "";
+        if (t < T.SWIM || t >= T.REWIND) { l1 = "TONGUE: PARASITE"; S1 = 2; c1 = Math.floor(t * 4) % 2 ? C.red : C.white; l2 = "STATUS: STARING"; }
+        else if (t < T.INSIDE) { var d = Math.max(0, 10 * (1 - clamp01((t - T.SWIM - 0.2) / (T.GILL - T.SWIM - 0.2)))); l1 = "GILLS IN " + d.toFixed(1) + " CM"; S1 = 2; c1 = d < 1 ? C.red : C.gold; l2 = t > T.GILL ? "LOUSE: INSIDE" : "LOUSE: MALE"; }
+        else if (t < T.GRAB) { l1 = t > T.FEMALE ? "LOUSE: FEMALE" : "LOUSE: MALE"; S1 = 2; c1 = t > T.FEMALE ? C.pink : C.cyan; l2 = "TONGUE 100%"; }
+        else if (t < T.BREAK) { var pc = Math.round(100 * tongueLeft(t)); l1 = "TONGUE " + pc + "%"; c1 = pc < 40 ? C.red : C.gold; l2 = "BLOOD SIPS: " + countOf(PULSES, t); }
+        else if (t < T.HIT) { l1 = ""; }
+        else if (t < T.CLAMP) { l1 = "TONGUE 0%"; c1 = Math.floor(t * 8) % 2 ? C.red : C.white; }
+        else if (t < T.EAT) { l1 = "NEW TONGUE:"; S1 = 2; c1 = C.white; l2 = t > T.NEWT ? "1 LOUSE" : ""; }
+        else if (t < T.CTA) { l1 = "MEALS EATEN: " + countOf(CHEWS, t); S1 = 2; c1 = C.gold; l2 = "TONGUE: STILL LOUSE"; }
+        else { l1 = "FISH 0 : LOUSE 1"; S1 = 2; c1 = C.gold; }
+        if (l1) counterLines(l1, c1, S1, l2, C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { mouth: scene_mouth, swim: scene_swim, inside: scene_inside }, sceneAt: sceneAt, ui: drawUI, hitCol: "#ffffff",
+        cuts: [[T.SWIM, "mouth", "swim"], [T.INSIDE, "swim", "inside"], [T.EAT, "inside", "mouth"]],
+        post: function (t, img) { if (t > T.DRINK && t < T.BREAK) tintImg(img, C.blood, 0.12 * ramp(t, T.DRINK, T.BREAK)); },
+      });
+    </script>
+  </body>
+</html>

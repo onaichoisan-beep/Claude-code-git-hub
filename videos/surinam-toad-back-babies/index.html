@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Babies Hatch Out of Her Back</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "Babies hatch out of their mother's back" (Surinam toad, Pipa pipa) — engagement rules (STYLE_GUIDE.md section 6),
+      text only (no narration), no cold-open hook: frame 1 is her back full of holes with a baby peeking from each.
+      Counter: HOLES / BABIES -> FLATNESS -> EGGS 0 -> 100 -> DAY 1 -> 100 -> BABIES OUT 0 -> 72 -> SKIN SHED.
+      Sound: one wet pop per baby, speeding up into a fizz; a tick per DAY that blurs into a buzz.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var OPENS = T.OPENS || [], FLIPS = T.FLIPS || [], DAYS = T.DAYS || [];
+      var C = {
+        r1: "#1a2a1a", r2: "#2a3a22", r3: "#4a5a2a", mud: "#5a4a2a", mudD: "#3a2e1a", leafB: "#8a5a2a", leafBD: "#5a3a1a", ray: "#c8d88a",
+        toad: "#9a7a52", toadD: "#6a5034", toadL: "#c0a070", toadS: "#7a5e3e", belly: "#d8c8a0",
+        hole: "#1a0e08", rim: "#5a3e24", rimL: "#b8956a", egg: "#f4e8b0", eggL: "#fffbe0", eggD: "#c8b070", lid: "#a8885e",
+        baby: "#6a7a3a", babyD: "#4a5424", babyL: "#9aaa5a",
+        gold: "#ffc83a", red: "#ff3a4a", pink: "#ff5ab8", green: "#3ae86a", cyan: "#4ae0ff", white: "#ffffff", ink: "#0a0614", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+
+      // ============================================================ the pockets on her back (hex grid inside an ellipse)
+      var BX = 90, BY = 256, POCK = [];
+      (function () {
+        var all = [];
+        for (var r = -6; r <= 6; r++) for (var c = -6; c <= 6; c++) {
+          var x = BX + c * 11 + (r % 2 ? 5.5 : 0), y = BY + r * 9.5, dx = (x - BX) / 52, dy = (y - BY) / 48;
+          if (dx * dx + dy * dy <= 1) all.push({ x: x, y: y, d: dx * dx + dy * dy });
+        }
+        all.sort(function (a, b) { return a.d - b.d; });
+        POCK = all.slice(0, Math.min(72, all.length));
+        // the order they open: shuffled deterministically
+        var ord = POCK.map(function (p, i) { return { i: i, h: hash1(i * 13.7) }; }).sort(function (a, b) { return a.h - b.h; });
+        ord.forEach(function (o, k) { POCK[o.i].open = OPENS[k] !== undefined ? OPENS[k] : 99; POCK[o.i].k = k; });
+      })();
+
+      // a baby toad seen from above (centre x, y; ~10*s long), facing angle a
+      function toadlet(x, y, s, a, t, seed) {
+        g.save(); g.translate(x, y); g.rotate(a); g.scale(s, s);
+        var kick = Math.sin(t * 10 + seed) * 0.6;
+        line(-2.5, 2, -5, 5 + kick, 1.2, C.babyD); line(2.5, 2, 5, 5 - kick, 1.2, C.babyD);
+        line(-2.5, -1.5, -4.5, -3.5, 1, C.babyD); line(2.5, -1.5, 4.5, -3.5, 1, C.babyD);
+        ell(0, 0.5, 3.2, 4.2, 0, C.baby); poly([[-3, -2], [3, -2], [0, -6]], C.baby); ell(-0.8, -0.5, 1.2, 2, 0, C.babyL);
+        disc(-1.5, -3.2, 0.9, C.ink); disc(1.5, -3.2, 0.9, C.ink); rect(-1.8, -3.6, 0.4, 0.4, C.white); rect(1.2, -3.6, 0.4, 0.4, C.white);
+        g.restore();
+      }
+      // a baby's head peeking from its hole (the hook): wobbles, eyes look around
+      function peek(x, y, s, t, seed) {
+        var bob = Math.sin(t * 4 + seed * 1.7) * 0.7;
+        g.save(); g.translate(x, y - bob); g.scale(s, s);
+        ell(0, 0.6, 3.4, 2.8, 0, C.baby); poly([[-3, 0], [3, 0], [0, -3.4]], C.baby); ell(-1, -0.4, 1.2, 0.9, 0, C.babyL);
+        var lk = Math.sin(t * 1.3 + seed) * 0.4;
+        disc(-1.5, -0.6, 1.1, C.white); disc(1.5, -0.6, 1.1, C.white); disc(-1.5 + lk, -0.5, 0.6, C.ink); disc(1.5 + lk, -0.5, 0.6, C.ink);
+        g.restore();
+      }
+
+      // the mother toad from above: back centre (BX, BY). mode: "peek" | "eggs" | "open" | "smooth"
+      function motherTop(t, mode, o) {
+        o = o || {};
+        // limbs: long thin fingers with star tips, big webbed feet
+        [-1, 1].forEach(function (sd) {
+          line(BX + sd * 44, BY - 30, BX + sd * 70, BY - 52, 4, C.toadD); line(BX + sd * 70, BY - 52, BX + sd * 66, BY - 80, 3.4, C.toadD);
+          for (var f = 0; f < 4; f++) { var fx = BX + sd * (60 + f * 4), fy = BY - 92 + f * 2; line(BX + sd * 66, BY - 80, fx, fy, 1.2, C.toadD); for (var st = 0; st < 4; st++) { var aa = st * 1.57 + 0.78; line(fx, fy, fx + Math.cos(aa) * 1.6, fy + Math.sin(aa) * 1.6, 0.6, C.toadL); } }
+          line(BX + sd * 46, BY + 34, BX + sd * 76, BY + 46, 6, C.toadD); line(BX + sd * 76, BY + 46, BX + sd * 64, BY + 82, 5, C.toadD);
+          poly([[BX + sd * 64, BY + 80], [BX + sd * 88, BY + 104], [BX + sd * 74, BY + 112], [BX + sd * 56, BY + 108], [BX + sd * 50, BY + 96]], C.toadS);
+        });
+        // flat body + triangular head
+        ell(BX, BY + 2, 66, 62, 0, C.toadD); ell(BX, BY, 64, 60, 0, C.toad);
+        poly([[BX - 40, BY - 46], [BX + 40, BY - 46], [BX, BY - 86]], C.toadD); poly([[BX - 37, BY - 47], [BX + 37, BY - 47], [BX, BY - 83]], C.toad);
+        disc(BX - 11, BY - 66, 1.8, C.ink); disc(BX + 11, BY - 66, 1.8, C.ink); rect(BX - 11.6, BY - 66.8, 0.6, 0.6, C.white); rect(BX + 10.4, BY - 66.8, 0.6, 0.6, C.white);
+        if (o.mouth) { line(BX - 14, BY - 56, BX + 14, BY - 56, 0.8, C.ink); }
+        if (o.tired) { line(BX - 14, BY - 69, BX - 8, BY - 68, 0.8, C.toadD); line(BX + 8, BY - 68, BX + 14, BY - 69, 0.8, C.toadD); }
+        for (var sp = 0; sp < 14; sp++) { var a = hash1(sp * 3.3) * 6.28, r = 20 + hash1(sp * 5.1) * 38; ell(BX + Math.cos(a) * r, BY + Math.sin(a) * r * 0.9, 3, 2, a, C.toadS); }
+        ell(BX - 18, BY - 22, 22, 9, -0.4, C.toadL);
+      }
+
+      function pocketsDraw(t, mode) {
+        var sw = ramp(t, T.SWALLOW + 0.2, T.SWALLOW + 2.6), grow = clamp01(countOf(DAYS, t) / 100);
+        for (var i = 0; i < POCK.length; i++) {
+          var p = POCK[i];
+          if (mode === "peek") {
+            disc(p.x, p.y + 0.4, 4.7, C.rim); disc(p.x, p.y, 4.4, C.rimL); disc(p.x, p.y, 3.6, C.hole);
+            continue;
+          }
+          if (mode === "eggs") {
+            // eggs sit on the back; the skin rises around each one and closes over it
+            if (sw > 0) { disc(p.x, p.y + 0.5, 4.6 + sw * 0.4, C.rim); disc(p.x, p.y, 4.3 + sw * 0.4, C.rimL); }
+            disc(p.x, p.y, 3.3, C.eggD); disc(p.x - 0.3, p.y - 0.3, 3, C.egg); disc(p.x - 1, p.y - 1, 0.9, C.eggL);
+            if (sw > 0.3) { g.globalAlpha = clamp01((sw - 0.3) / 0.7) * 0.92; disc(p.x, p.y - 0.2, 4.2, C.lid); disc(p.x - 1, p.y - 1.2, 1.4, C.toadL); g.globalAlpha = 1; }
+            continue;
+          }
+          if (mode === "grow") {
+            disc(p.x, p.y + 0.6, 4.9, C.rim); disc(p.x, p.y, 4.6, C.lid); disc(p.x - 1, p.y - 1.4, 1.5, C.toadL);
+            if (grow > 0.1) { g.globalAlpha = 0.25 + 0.4 * grow; ell(p.x, p.y + 0.4, 1.5 + 1.6 * grow, 2 + 1.6 * grow, 0, C.babyD); g.globalAlpha = 1; }
+            // squirming lids (the babies move inside)
+            if (grow > 0.5 && Math.sin(t * 7 + i * 2.1) > 0.85) disc(p.x + 0.8, p.y - 0.6, 1.2, C.toadL);
+            continue;
+          }
+          if (mode === "open") {
+            if (t < p.open) { disc(p.x, p.y + 0.6, 4.9, C.rim); disc(p.x, p.y, 4.6, C.lid); disc(p.x - 1, p.y - 1.4, 1.5, C.toadL); var sq = Math.sin(t * 9 + i) > 0.6 ? 0.6 : 0; disc(p.x, p.y - sq, 3.2, mix(C.lid, C.babyD, 0.25)); }
+            else { disc(p.x, p.y + 0.4, 4.9, C.rim); disc(p.x, p.y, 4.6, C.rimL); disc(p.x, p.y, 3.8, C.hole); }
+          }
+        }
+      }
+
+      // ============================================================ scene: her back (the hook, the swallowing, the wait, the pops, the shedding)
+      function scene_back(t) {
+        var tt = tapeT(t, T), hook = tt < T.RIVER;
+        var cam = hook ? camAt([[0, 92, 240, 2.6], [1.9, 90, 236, 2.15], [T.RIVER, 90, 226, 1.4]], tt)
+          : camAt([[T.SWALLOW - 0.2, 90, 214, 1.15], [T.WAIT, 90, 220, 1.45], [T.BREAK, 90, 232, 1.9], [T.HIT + 0.8, 90, 222, 1.35], [T.SHED, 90, 210, 1.05], [T.CTA, 90, 206, 1.0], [T.STOP, 90, 210, 1.1]], tt);
+        if (!hook) { shake(cam, tt, T.HIT, 8, 0.5); if (tt > T.HIT && tt < T.SHED) shake(cam, tt, lastOf(OPENS, tt), 1.5, 0.1); }
+        else shake(cam, tt, 2.05, 4, 0.4);
+        sky([[0, C.r1], [0.6, C.r2], [1, C.r3]]);
+        setCam(cam, 1);
+        rect(-80, 60, 340, 340, C.mud);
+        for (var lf = 0; lf < 12; lf++) { var lx = hash1(lf * 4.1) * 220 - 20, ly = 120 + hash1(lf * 2.7) * 230; ell(lx, ly, 12, 6, hash1(lf) * 3, lf % 2 ? C.leafB : C.leafBD); }
+        var mode = hook ? "peek" : tt < T.WAIT ? "eggs" : tt < T.HIT ? "grow" : "open";
+        var shed = tt >= T.SHED ? ease(clamp01((tt - T.SHED - 0.1) / 1.1)) : 0;
+        character(function () { motherTop(tt, mode, { tired: tt > T.WAIT && tt < T.HIT, mouth: tt > T.CTA }); });
+        // the pockets (on the old skin, which slides away during the shed)
+        g.save(); g.translate(shed * 70, shed * 150); g.globalAlpha = 1 - shed * 0.6;
+        if (shed > 0) { ell(BX, BY, 56, 52, 0, C.toadL); g.globalAlpha = (1 - shed) * 0.9; }
+        pocketsDraw(tt, mode);
+        g.restore(); g.globalAlpha = 1;
+        if (shed > 0.6) { lighter(); glow(BX, BY, 60, C.gold, 0.25 * Math.sin(clamp01((tt - T.SHED - 0.7) / 1.2) * Math.PI)); normalBlend(); }
+        // the hook: a baby peeks out of every hole; the big one in the middle says hi
+        if (hook) {
+          character(function () {
+            for (var i = 0; i < POCK.length; i++) { var p = POCK[i]; if (hash1(i * 7.1) < 0.18) continue; peek(p.x, p.y - 0.4, 0.95, tt, i); }
+          });
+          var m = POCK[0];
+          character(function () { peek(m.x, m.y - 1.4 - 1.2 * Math.min(1, pop(tt, 0.45)), 1.5, tt * 1.4, 0); });
+          if (tt > 0.55 && tt < 2.0) bubble(m.x + 10, m.y + 17, "HI MOM!", C.red);
+        }
+        // the pops: each toadlet climbs out and hops away
+        if (mode === "open" && tt < T.SHED + 1.2) {
+          character(function () {
+            for (var i = 0; i < POCK.length; i++) {
+              var p = POCK[i], u = (tt - p.open) / 1.1;
+              if (u < 0 || u > 1) continue;
+              var a = Math.atan2(p.y - BY, p.x - BX + 0.01) + (hash1(i) - 0.5) * 0.6, dist = ease(clamp01((u - 0.25) / 0.75)) * 130;
+              var hop = Math.abs(Math.sin(u * Math.PI * 3)) * 5 * (u > 0.25 ? 1 : 0);
+              var sc = u < 0.25 ? 0.5 + 0.5 * (u / 0.25) : 1;
+              toadlet(p.x + Math.cos(a) * dist, p.y + Math.sin(a) * dist - hop, 1.1 * sc, a + Math.PI / 2, tt, i);
+            }
+          });
+          if (tt > T.HIT && tt < T.HIT + 0.35) { var p0 = POCK.filter(function (p) { return p.k === 0; })[0]; if (p0) { worldText("POP!", p0.x, p0.y - 16, 1, C.gold); } }
+        }
+        // CTA: babies hop around their mum
+        if (tt > T.CTA - 0.3) {
+          var ca = clamp01((tt - T.CTA + 0.3) / 0.5);
+          character(function () {
+            for (var b = 0; b < 12; b++) { var a = b / 12 * 6.28 + tt * 0.6, r = 92 + (b % 2) * 8, hop = Math.abs(Math.sin(tt * 5 + b)) * 4; toadlet(BX + Math.cos(a) * r * 0.9, BY + Math.sin(a) * r * 0.75 - hop, 1.5 * ca, a + Math.PI, tt, b); }
+          });
+          if (tt > T.CTA + 0.4) bubble(BX + 30, BY - 96, "FINALLY.", C.ink);
+        }
+        if (mode === "grow" && tt > T.WAIT + 0.6 && tt < T.BREAK) bubble(BX, BY - 64, "ANY DAY...", C.ink);
+        vignette(0.4, "rgba(10,20,5,");
+      }
+
+      // ============================================================ the side view in the river: flat as a leaf, the flips
+      function toadSide(x, y, s, t, o) {
+        o = o || {};
+        var kk = Math.sin(t * 3 + (o.seed || 0)) * 0.15;
+        g.save(); g.translate(x, y); g.rotate(o.rot || 0); g.scale(s * (o.dir || 1), s);
+        // big webbed hind leg (folded) + foot
+        poly([[14, 0], [30, -3], [34, 4], [20, 6]], C.toadD);
+        g.save(); g.translate(32, 3); g.rotate(kk); poly([[0, 0], [16, -6], [18, 2], [14, 8], [2, 5]], C.toadS); g.restore();
+        // thin front arm with star fingertips
+        line(-16, 3, -22, 9, 1.6, C.toadD); line(-22, 9, -30, 9, 1.2, C.toadD);
+        for (var st = 0; st < 4; st++) { var aa = st * 1.57; line(-30, 9, -30 + Math.cos(aa) * 2, 9 + Math.sin(aa) * 2, 0.7, C.toadL); }
+        // the flat body + wedge head
+        ell(0, 0, 28, 6, 0, C.toadD); ell(-0.5, -0.6, 27, 5.2, 0, C.toad);
+        poly([[-24, -3.5], [-40, 1.5], [-24, 5]], C.toadD); poly([[-24, -2.8], [-38.5, 1.4], [-24, 4.2]], C.toad);
+        ell(0, 3, 22, 2, 0, C.belly);
+        ell(-6, -3.4, 14, 1.6, 0, C.toadL);
+        for (var sp = 0; sp < 5; sp++) ell(-14 + sp * 7, -2, 2, 1, 0, C.toadS);
+        // eye
+        disc(-29, -1.5, 2.2, C.toadD); disc(-29, -1.8, 1.6, C.ink); rect(-29.6, -2.6, 0.6, 0.6, C.white);
+        if (o.eggs) for (var e = 0; e < o.eggs; e++) { var ex = -16 + (e % 12) * 3, ey = -6.2 - Math.floor(e / 12) * 2.4; disc(ex, ey, 1.5, C.eggD); disc(ex - 0.3, ey - 0.3, 1.2, C.egg); }
+        g.restore();
+      }
+      function scene_river(t) {
+        var cam = camAt([[T.RIVER - 0.2, 70, 270, 2.2], [T.FLIP - 0.6, 90, 236, 1.2], [T.FLIP + 0.5, 90, 192, 1.0], [T.SWALLOW, 90, 200, 1.1]], t);
+        sky([[0, C.r1], [0.5, C.r2], [1, C.r3]]);
+        for (var r = 0; r < 5; r++) { var x = r * 44 + Math.sin(t * 0.3 + r) * 6; g.globalAlpha = 0.06; poly([[x, 0], [x + 16, 0], [x + 40, 320], [x + 6, 320]], C.ray); }
+        g.globalAlpha = 1;
+        setCam(cam, 1);
+        rect(-120, 290, 420, 120, C.mudD); rect(-120, 288, 420, 4, C.mud);
+        for (var lf = 0; lf < 14; lf++) { var lx = -60 + lf * 22 + hash1(lf) * 10, ly = 287 - hash1(lf * 3) * 3; poly([[lx - 9, ly], [lx, ly - 2.4], [lx + 9, ly], [lx, ly + 1.4]], lf % 2 ? C.leafB : C.leafBD); }
+        for (var p = 0; p < 24; p++) { var y = (hash1(p * 2.1) * 320 - t * 5) % 320; if (y < 0) y += 320; g.globalAlpha = 0.4; rect(hash1(p * 7.7) * 220 - 20, y, 0.6, 0.6, C.ray); }
+        g.globalAlpha = 1;
+        var eggs = Math.round(24 * clamp01((t - FLIPS[0] - 0.3) / (T.SWALLOW - FLIPS[0] - 0.8)));
+        if (t < T.FLIP) {
+          // flat as a leaf on the riverbed
+          character(function () { toadSide(78, 282, 1.6, t, {}); });
+          if (t > T.RIVER + 2) { g.globalAlpha = 0.85; worldText("TOAD", 70, 258, 1, C.gold); poly([[68, 266], [72, 266], [70, 270]], C.gold); worldText("LEAF", 136, 270, 1, C.paper); poly([[134, 278], [138, 278], [136, 282]], C.paper); g.globalAlpha = 1; }
+          var mu = clamp01((t - (T.FLIP - 1.4)) / 1.4);
+          if (mu > 0) character(function () { toadSide(lerp(220, 96, ease(mu)), lerp(190, 266, ease(mu)), 1.1, t, { dir: 1, seed: 2 }); });
+        } else {
+          // the pair loops through the water; eggs come out at the top of each loop and settle on her back
+          var cx = 90, cy = 238, R = 34, k = 0;
+          while (k < FLIPS.length - 1 && t > FLIPS[k] + 0.6) k++;
+          var u = clamp01((t - (FLIPS[k] - 0.6)) / 1.25), ang = Math.PI / 2 - u * Math.PI * 2;
+          var px = cx + Math.cos(ang) * R * 0.6, py = cy + Math.sin(ang) * R;
+          if (t > FLIPS[FLIPS.length - 1] + 0.65) { var du = ease(clamp01((t - FLIPS[FLIPS.length - 1] - 0.65) / 1.2)); px = lerp(cx, 92, du); py = lerp(cy + R, 278, du); ang = Math.PI / 2; }
+          var rot = ang - Math.PI / 2 + Math.PI;
+          character(function () {
+            toadSide(px, py, 1.3, t, { rot: rot, dir: 1, eggs: eggs });
+            g.save(); g.translate(px, py); g.rotate(rot); toadSide(3, -10, 0.95, t, { seed: 2 }); g.restore();
+          });
+          for (var f = 0; f < FLIPS.length; f++) {
+            var eu = (t - FLIPS[f]) / 0.6; if (eu < 0 || eu > 1) continue;
+            for (var e = 0; e < 7; e++) { var ex = lerp(cx + (e - 3) * 4, px + (e - 3) * 3, ease(eu)), ey = lerp(cy - R - 6 + (e % 2) * 3, py - 8, ease(eu)); disc(ex, ey, 1.8, C.eggD); disc(ex - 0.3, ey - 0.3, 1.4, C.egg); }
+          }
+        }
+        vignette(0.4, "rgba(10,20,5,");
+      }
+
+      function sceneAt(t) { return t < T.RIVER ? "back" : t < T.SWALLOW ? "river" : "back"; }
+
+      function drawUI(t) {
+        var l1, c1 = C.gold, S1 = 3, l2 = "";
+        if (t < T.RIVER || t >= T.REWIND) { l1 = "HOLES: " + POCK.length; c1 = Math.floor(t * 4) % 2 ? C.red : C.white; l2 = "BABIES INSIDE: " + POCK.length; }
+        else if (t < T.FLIP) { l1 = "THICKNESS: ~1 LEAF"; S1 = 2; c1 = C.gold; l2 = "CAMOUFLAGE: ON"; }
+        else if (t < T.SWALLOW) { var e = Math.round(100 * clamp01((t - FLIPS[0] - 0.3) / (T.SWALLOW - FLIPS[0] - 0.8))); l1 = "EGGS ON BACK: " + e; S1 = 2; c1 = C.gold; l2 = "FLIPS: " + countOf(FLIPS, t); }
+        else if (t < T.WAIT) { l1 = "EGGS SWALLOWED"; S1 = 2; c1 = C.white; l2 = Math.round(100 * ramp(t, T.SWALLOW + 0.2, T.SWALLOW + 2.6)) + "%"; }
+        else if (t < T.BREAK) { var d = Math.max(1, countOf(DAYS, t)); l1 = "DAY " + d; c1 = d > 90 ? C.red : C.gold; l2 = "~3-4 MONTHS"; }
+        else if (t < T.HIT) { l1 = ""; }
+        else if (t < T.SHED) { var n = countOf(OPENS, t); l1 = "BABIES OUT: " + Math.min(n, POCK.length); S1 = 2; c1 = Math.floor(t * 6) % 2 ? C.gold : C.white; l2 = "HOLES LEFT: " + Math.max(0, POCK.length - n); }
+        else if (t < T.CTA) { l1 = "SKIN: SHED"; S1 = 2; c1 = C.green; l2 = "BACK: SMOOTH AGAIN"; }
+        else { l1 = "MOM 1 : HOLES 0"; S1 = 2; c1 = C.gold; }
+        if (l1) counterLines(l1, c1, S1, l2, C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { back: scene_back, river: scene_river }, sceneAt: sceneAt, ui: drawUI, hitCol: "#ffffff",
+        cuts: [[T.RIVER, "back", "river"], [T.SWALLOW, "river", "back"]],
+      });
+    </script>
+  </body>
+</html>

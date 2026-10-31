@@ -3,7 +3,7 @@
 This repo (Pixel HD) makes vertical, sharp HD pixel-art Reels/Shorts (science, Indian mythology, fiction fables) with HyperFrames.
 
 **House style (STYLE_GUIDE.md): SHARP HD pixel art (360×640 render, light dither), a dark outline on every
-living character, narration on every video with a voice that fits each character, and open-source sound
+living character, NO narration (owner's rule, Oct 31 2026: text cards + speech bubbles + sound only), and open-source sound
 effects (CC0 packs, Openverse, jsfxr, the repo's synth kits).**
 
 **For any video request, use the `pixel-short` skill** (`.claude/skills/pixel-short/SKILL.md`): it holds

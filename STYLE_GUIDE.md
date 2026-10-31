@@ -23,7 +23,11 @@ and older projects; finished videos made before this date keep their original lo
 The engine (`videos/_engine/pixel-engine.js`) does all of this by default. `PX_RES = 1` and `PX_DITHER = 22`
 bring back the old chunky look only if the owner asks for it.
 
-## 2. Voice: narrate everything, with voices that fit
+## 2. Voice: NO narration (owner's rule, Oct 31 2026)
+
+**Don't add narration.** Videos are text cards + speech bubbles + sound effects only (the section 6 format). The notes
+below apply only if the owner explicitly asks for a narrated video.
+
 
 - **Every video is narrated.** Narration drives the story; captions follow the words.
 - **Every character gets their own voice**, matched to who they are: age, gender, culture/accent,

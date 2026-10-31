@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Fish That Lives in a Sea Cucumber's Butt</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "The fish that lives in a sea cucumber's butt" (pearlfish, Carapidae) — engagement rules (STYLE_GUIDE.md section 6),
+      text only (no narration), no cold-open hook: frame 1 is a pearlfish sliding tail-first into the butt.
+      Counter: TENANTS IN BUTT -> BUTT BREATHS -> BUTT OPEN/CLOSED -> SNACKS TAKEN -> BUTT TEETH -> CRAB DISTANCE -> GUTS %.
+      Sound: the butt-breathing pump (in/out) on every breath, calm -> panic as the crab closes in.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="30" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var BR = T.BREATHS || [], NIB = T.NIBBLES || [], CLK = T.CLANKS || [];
+      var C = {
+        w1: "#081a3a", w2: "#0e3a6a", w3: "#2a7a9a", ray: "#8ae8f0", sand: "#e8c88a", sandD: "#b8985a", coral: "#ff6a9a", coralD: "#c83a6a", weed: "#3ab86a",
+        cuc: "#b8503a", cucD: "#7a2a20", cucL: "#e88a5a", pap: "#d86a4a", feet: "#f0c0a0", tent: "#f0d070", tentD: "#b89a3a", hole: "#2a0a0a", holeR: "#5a1a14",
+        pearl: "#e8eef8", pearlD: "#a8b8d0", pearlP: "#f4c8dc",
+        gut: "#ff9ab0", gutD: "#d86a88", gutW: "#fff0e0", tree: "#ffd8a0", gonad: "#ff6a8a", tooth: "#ffffff", toothD: "#c8c8d8",
+        crab: "#ff5a2a", crabD: "#b83a14", crabL: "#ff9a6a",
+        xr: "#0a1e4a", xrL: "#2a6ab8", gold: "#ffc83a", red: "#ff3a4a", pink: "#ff5ab8", green: "#3ae86a", cyan: "#4ae0ff", white: "#ffffff", ink: "#0a0614", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+
+      // how open the butt is: each breath opens it (in), holds, closes (out)
+      function openAt(t) {
+        var lb = lastOf(BR, t); if (lb < 0) return 0.2;
+        var k = BR.indexOf(lb), nxt = k + 1 < BR.length ? BR[k + 1] : lb + 1.5, half = Math.min(0.6, (nxt - lb) / 2 * 0.9), u = t - lb;
+        return u < half ? Math.sin(u / half * Math.PI / 2) : u < 2 * half ? Math.cos((u - half) / half * Math.PI / 2) : 0;
+      }
+      function inhaling(t) { var lb = lastOf(BR, t); if (lb < 0) return 0; var k = BR.indexOf(lb), nxt = k + 1 < BR.length ? BR[k + 1] : lb + 1.5, half = Math.min(0.6, (nxt - lb) / 2 * 0.9), u = t - lb; return u < half ? 1 : u < 2 * half ? -1 : 0; }
+
+      function sea(t) {
+        sky([[0, C.w1], [0.55, C.w2], [1, C.w3]]);
+        for (var r = 0; r < 5; r++) { var x = 10 + r * 40 + Math.sin(t * 0.4 + r) * 8; g.globalAlpha = 0.07; poly([[x, 0], [x + 14, 0], [x + 44, 320], [x + 12, 320]], C.ray); }
+        g.globalAlpha = 1;
+      }
+      function floor(t) {
+        rect(-100, 292, 400, 120, C.sandD); rect(-100, 290, 400, 120, C.sand);
+        for (var c = 0; c < 6; c++) { var cx = -40 + c * 56, sw = Math.sin(t * 1.4 + c) * 3; line(cx, 292, cx + sw, 262, 3, C.coralD); line(cx + sw, 262, cx - 8 + sw, 248, 2.4, C.coral); line(cx + sw, 268, cx + 9 + sw, 254, 2.4, C.coral); }
+        for (var w = 0; w < 5; w++) { var wx = -20 + w * 50 + 25, s2 = Math.sin(t * 1.7 + w) * 4; poly([[wx, 292], [wx + 3 + s2, 250], [wx + 6, 292]], C.weed); }
+      }
+
+      // ============================================================ the sea cucumber, side view: tail end (butt) at x1, mouth at x0
+      function cucumber(x0, x1, y, ry, t, o) {
+        o = o || {};
+        var n = 9, op = o.open === undefined ? 0 : o.open;
+        // tube feet underneath
+        for (var f = 0; f < 14; f++) { var fx = lerp(x0 + 6, x1 - 6, f / 13), wig = Math.sin(t * 3 + f) * 0.8; line(fx, y + ry * 0.75, fx + wig, y + ry + 3, 1.6, C.feet); }
+        // body: a warty sausage
+        for (var i = 0; i < n; i++) { var bx = lerp(x0 + ry * 0.6, x1 - ry * 0.6, i / (n - 1)), br = ry * (1 + 0.06 * Math.sin(i * 1.7 + t * 1.2)); ell(bx, y, ry * 1.1, br, 0, C.cucD); }
+        for (var i2 = 0; i2 < n; i2++) { var bx2 = lerp(x0 + ry * 0.6, x1 - ry * 0.6, i2 / (n - 1)), br2 = ry * (1 + 0.06 * Math.sin(i2 * 1.7 + t * 1.2)); ell(bx2, y - 0.6, ry * 1.04, br2 * 0.94, 0, C.cuc); }
+        ell(lerp(x0, x1, 0.45), y - ry * 0.45, (x1 - x0) * 0.32, ry * 0.22, 0, C.cucL);
+        for (var p = 0; p < 9; p++) { var px = lerp(x0 + 10, x1 - 10, p / 8), py = y - ry * 0.92; poly([[px - 2.4, py + 1.5], [px, py - 3.5], [px + 2.4, py + 1.5]], C.pap); }
+        for (var sp = 0; sp < 12; sp++) disc(lerp(x0 + 8, x1 - 8, hash1(sp * 3.1)), y + (hash1(sp * 5.3) - 0.5) * ry, 1.1, C.cucD);
+        // feeding tentacles at the mouth (left)
+        for (var k = 0; k < 6; k++) { var a = Math.PI + (k - 2.5) * 0.35 + Math.sin(t * 2 + k) * 0.1, L = ry * 0.9; var tx = x0 + Math.cos(a) * L, ty = y + Math.sin(a) * L; line(x0 + 2, y, tx, ty, 1.4, C.tentD); disc(tx, ty, 1.8, C.tent); }
+        // face (cartoon licence: real sea cucumbers have no eyes)
+        var ex = x0 + ry * 0.9, ey = y - ry * 0.25;
+        if (o.mood === "tired") { line(ex - 2.5, ey, ex + 2.5, ey, 1, C.ink); line(ex + 5.5, ey, ex + 10.5, ey, 1, C.ink); }
+        else { disc(ex, ey, 2.6, C.white); disc(ex + 8, ey, 2.6, C.white); disc(ex - 0.5 + (o.look || 0), ey + 0.4, 1.4, C.ink); disc(ex + 7.5 + (o.look || 0), ey + 0.4, 1.4, C.ink); }
+        if (o.mood === "grumpy") { line(ex - 3, ey - 4, ex + 2, ey - 2.6, 1, C.cucD); line(ex + 6, ey - 2.6, ex + 11, ey - 4, 1, C.cucD); }
+        if (o.mood === "shock") { disc(ex + 4, ey + 6, 1.6, C.ink); }
+        else { g.strokeStyle = C.cucD; g.lineWidth = 0.9; g.beginPath(); if (o.mood === "grumpy" || o.mood === "tired") g.arc(ex + 4, ey + 8, 2.5, Math.PI + 0.4, -0.4); else g.arc(ex + 4, ey + 4.5, 2.5, 0.4, Math.PI - 0.4); g.stroke(); }
+        // the butt (right end): a puckered ring that opens on every breath
+        var bxx = x1 - 1, rr = 2 + op * ry * 0.45;
+        for (var q = 0; q < 8; q++) { var aq = q / 8 * 6.28; line(bxx + Math.cos(aq) * (rr + 1), y + Math.sin(aq) * (rr + 1), bxx + Math.cos(aq) * (rr + 4), y + Math.sin(aq) * (rr + 4), 0.8, C.cucD); }
+        ell(bxx, y, rr * 0.55 + 1, rr + 1, 0, C.holeR); ell(bxx, y, rr * 0.5, rr, 0, C.hole);
+      }
+
+      // the pearlfish: head at (x, y), body trailing at angle a, length L (shorter = more of it inside). o: grin, wave
+      function pearlfish(x, y, L, a, t, o) {
+        o = o || {};
+        var pts = [], N = 10;
+        for (var i = 0; i <= N; i++) { var u = i / N, wv = Math.sin(t * 8 - u * 6) * 2.2 * u; pts.push([x - Math.cos(a) * L * u - Math.sin(a) * wv, y - Math.sin(a) * L * u + Math.cos(a) * wv, 4.2 * (1 - u * 0.85)]); }
+        for (var j = 0; j < N; j++) { line(pts[j][0], pts[j][1], pts[j + 1][0], pts[j + 1][1], pts[j][2] * 2, C.pearlD); }
+        for (var j2 = 0; j2 < N; j2++) { line(pts[j2][0], pts[j2][1] - 0.4, pts[j2 + 1][0], pts[j2 + 1][1] - 0.4, pts[j2][2] * 1.6, j2 % 3 === 1 ? C.pearlP : C.pearl); }
+        disc(x, y, 4.8, C.pearlD); disc(x - 0.2, y - 0.3, 4.3, C.pearl);
+        disc(x + Math.cos(a) * 1.5 - 0.5, y - 1.6, 2, C.white); disc(x + Math.cos(a) * 2, y - 1.4, 1.2, C.ink); rect(x + Math.cos(a) * 1.6, y - 2.2, 0.5, 0.5, C.white);
+        g.strokeStyle = C.ink; g.lineWidth = 0.7; g.beginPath();
+        if (o.grin) g.arc(x + Math.cos(a) * 2, y + 1.5, 1.8, 0.2, Math.PI - 0.2); else if (o.ow) g.arc(x + Math.cos(a) * 2, y + 2.6, 1, 0, 6.28); else { g.moveTo(x + Math.cos(a) * 1, y + 2); g.lineTo(x + Math.cos(a) * 3.4, y + 2); }
+        g.stroke();
+        if (o.wave) { var wv2 = Math.sin(t * 12) * 2; line(x - 3, y + 2, x - 8, y - 3 + wv2, 1.2, C.pearlD); }
+      }
+
+      // ============================================================ the butt close-up (hook, teeth)
+      function scene_butt(t) {
+        var tt = tapeT(t, T), hook = tt < T.BREATHE;
+        var cam = hook ? camAt([[0, 92, 203, 1.5], [1.9, 92, 204, 1.4], [T.BREATHE, 92, 206, 1.3]], tt) : camAt([[T.TEETH - 0.2, 90, 204, 1.3], [T.CRAB, 90, 208, 1.45]], tt);
+        if (hook) shake(cam, tt, 2.05, 4, 0.4);
+        if (!hook) for (var c = 0; c < CLK.length; c++) shake(cam, tt, CLK[c], 5, 0.25);
+        sea(tt);
+        setCam(cam, 1);
+        floor(tt);
+        // the rear end, facing us: a big warty dome with the pucker in the middle
+        var BX = 92, BY = 250;
+        var op = hook ? (tt < 0.7 ? 0.9 : 0.55) : (tt > T.TEETH + 0.5 ? 0.85 : 0.3);
+        character(function () {
+          ell(BX, BY + 8, 70, 52, 0, C.cucD); ell(BX, BY + 6, 67, 49, 0, C.cuc); ell(BX - 20, BY - 20, 30, 12, -0.3, C.cucL);
+          for (var p = 0; p < 16; p++) { var a = p / 16 * 6.28, r = 40 + (p % 3) * 6; var px = BX + Math.cos(a) * r, py = BY + 6 + Math.sin(a) * r * 0.72; poly([[px - 3, py + 2], [px, py - 4], [px + 3, py + 2]], C.pap); }
+          for (var q = 0; q < 12; q++) { var aq = q / 12 * 6.28, rr0 = 13 + op * 6; line(BX + Math.cos(aq) * rr0, BY + Math.sin(aq) * rr0, BX + Math.cos(aq) * (rr0 + 8), BY + Math.sin(aq) * (rr0 + 8), 1.4, C.cucD); }
+          disc(BX, BY, 6 + op * 14, C.holeR); disc(BX, BY, 4 + op * 12, C.hole);
+          // the butt teeth (5 calcified teeth around the opening)
+          if (!hook) { var tk = clamp01((tt - T.TEETH - 0.3) / 0.4); for (var k = 0; k < 5; k++) { var at = -Math.PI / 2 + k / 5 * 6.28, r1 = 4 + op * 12, chomp = CLK.some(function (c0) { return tt > c0 && tt < c0 + 0.15; }) ? -3 : 0; var tx = BX + Math.cos(at) * (r1 + chomp), ty = BY + Math.sin(at) * (r1 + chomp); g.globalAlpha = tk; poly([[tx + Math.cos(at + 1.57) * 3.4, ty + Math.sin(at + 1.57) * 3.4], [tx - Math.cos(at + 1.57) * 3.4, ty - Math.sin(at + 1.57) * 3.4], [tx - Math.cos(at) * 7, ty - Math.sin(at) * 7]], C.toothD); poly([[tx + Math.cos(at + 1.57) * 2.8, ty + Math.sin(at + 1.57) * 2.8], [tx - Math.cos(at + 1.57) * 2.8, ty - Math.sin(at + 1.57) * 2.8], [tx - Math.cos(at) * 6, ty - Math.sin(at) * 6]], C.tooth); g.globalAlpha = 1; } }
+        });
+        if (hook) {
+          // tail first: the body slides in until only the head pokes out, grinning at you
+          var L = lerp(70, 6, ease(clamp01(tt / 0.7))), a = -2.4;
+          var hx = BX + Math.cos(a) * -L * 0.0, hy = BY;
+          g.save(); g.beginPath(); g.rect(0, 0, 400, 400); g.arc(BX, BY, 4 + op * 12, 0, 6.2832, true); g.clip();
+          character(function () { pearlfish(BX + 2 - Math.cos(a) * (L - 6), BY - 2 - Math.sin(a) * (L - 6), L, a + Math.PI, tt, { grin: tt > 0.7 }); });
+          g.restore();
+          if (tt > 0.7) character(function () { pearlfish(BX, BY - 1, 6, Math.PI / 2, tt, { grin: true }); });
+          if (tt > 0.75 && tt < 2.0) bubble(BX, BY + 40, "HOME SWEET HOME", C.ink);
+        } else {
+          // a pearlfish tries to get in: CLANK x3
+          var nb = countOf(CLK, tt), lc = lastOf(CLK, tt), bounce = tt - lc < 0.3 ? Math.sin((tt - lc) / 0.3 * Math.PI) * 14 : 0;
+          var fx = BX + 40 - bounce * 0.8, fy = BY - 26 - bounce * 0.6, app = clamp01((tt - T.TEETH - 0.2) / 0.6);
+          fx = lerp(BX + 90, fx, app); fy = lerp(BY - 70, fy, app);
+          character(function () { pearlfish(fx, fy, 50, Math.atan2(fy - BY, fx - BX) + Math.PI, tt, { ow: nb >= 3 }); });
+          if (tt - lc < 0.3 && lc > 0) worldText("CLANK!", BX + 30, BY - 50, 1, C.white);
+          if (nb >= 3) bubble(fx + 6, fy + 16, "OW.", C.red);
+        }
+        vignette(0.35, "rgba(0,10,30,");
+      }
+
+      // ============================================================ the reef: breathing, waiting, sliding in
+      function scene_reef(t) {
+        var cam = camAt([[T.BREATHE - 0.2, 90, 212, 1.0], [T.WAIT, 96, 220, 1.15], [T.SLIDE, 116, 236, 1.6], [T.INSIDE, 118, 240, 1.8]], t);
+        sea(t);
+        setCam(cam, 1);
+        floor(t);
+        var Y = 270, X0 = 26, X1 = 140, op = openAt(t), inh = inhaling(t);
+        // water flowing in / out of the butt
+        if (op > 0.05) for (var w = 0; w < 10; w++) { var ph = (t * 1.6 + w / 10) % 1, d = inh > 0 ? (1 - ph) : ph, wy = Y + (hash1(w) - 0.5) * 10; g.globalAlpha = op * 0.8; disc(X1 + 2 + d * 34, wy + (hash1(w + 5) - 0.5) * d * 14, 1, C.ray); }
+        g.globalAlpha = 1;
+        if (t < T.WAIT && op > 0.3) worldText(inh > 0 ? "IN" : "OUT", X1 + 22, Y - 22, 1, C.cyan);
+        character(function () { cucumber(X0, X1, Y, 15 * (1 + 0.06 * op * (inh > 0 ? 1 : -0.5)), t, { open: op, mood: t > T.SLIDE + 0.6 ? "grumpy" : "calm" }); });
+        // the pearlfish: hovers near the butt, then slides in tail first when it opens
+        if (t > T.WAIT - 0.6) {
+          var arr = ease(clamp01((t - T.WAIT + 0.6) / 1.2)), sl = ease(clamp01((t - T.SLIDE - 0.3) / 1.0));
+          var hx = lerp(200, X1 + 34, arr), hy = Y - 10 + Math.sin(t * 2) * 2;
+          var a = lerp(Math.PI * 0.95, 0, clamp01((t - T.SLIDE) / 0.3));    // turns its tail toward the butt
+          var L = 34;
+          if (sl > 0) { L = lerp(34, 4, sl); hx = lerp(X1 + 34, X1 + 6, sl); hy = lerp(hy, Y - 1, sl); }
+          g.save(); g.beginPath(); g.rect(X1 - 1, -100, 400, 600); g.clip();
+          character(function () { pearlfish(hx, hy, L, a + Math.PI, t, { grin: t > T.SLIDE }); });
+          g.restore();
+          if (t > T.WAIT + 0.8 && t < T.SLIDE) { worldText(op > 0.4 ? "OPEN?" : "...", hx - 8, hy - 16, 1, C.white); }
+        }
+        vignette(0.35, "rgba(0,10,30,");
+      }
+
+      // ============================================================ x-ray: the tenant snacks on the insides
+      function scene_xray(t) {
+        var cam = camAt([[T.INSIDE - 0.2, 92, 198, 1.0], [T.TEETH, 92, 202, 1.1]], t);
+        sea(t);
+        setCam(cam, 1);
+        floor(t);
+        var Y = 262, X0 = 10, X1 = 170, RY = 28;
+        character(function () { cucumber(X0, X1, Y, RY, t, { open: openAt(t) * 0.6, mood: t > 13.9 ? "grumpy" : "shock" }); });
+        // the x-ray window over the body
+        var WX = 104, WY = Y, WR = 50;
+        g.save(); g.beginPath(); g.ellipse(WX, WY, WR + 8, RY - 3, 0, 0, 6.2832); g.clip();
+        rect(0, 0, 200, 400, C.xr);
+        // the gut + the respiratory tree branching from the butt
+        g.strokeStyle = C.gut; g.lineWidth = 3; g.beginPath(); g.moveTo(30, Y + 8); g.bezierCurveTo(70, Y - 14, 110, Y + 18, 170, Y + 2); g.stroke();
+        function branch(x, y, a, len, d) { if (d === 0) return; var x2 = x + Math.cos(a) * len, y2 = y + Math.sin(a) * len; line(x, y, x2, y2, d * 0.5, C.tree); branch(x2, y2, a - 0.45, len * 0.72, d - 1); branch(x2, y2, a + 0.45, len * 0.72, d - 1); }
+        branch(X1 - 4, Y, Math.PI - 0.25, 18, 4); branch(X1 - 4, Y, Math.PI + 0.25, 18, 4);
+        // the gonads (pink blobs) get nibbled away
+        var eaten = countOf(NIB, t);
+        for (var b = 0; b < 8; b++) { if (b < eaten) continue; disc(82 + (b % 4) * 9, Y - 8 + Math.floor(b / 4) * 14, 3.4, C.gonad); disc(81 + (b % 4) * 9, Y - 9 + Math.floor(b / 4) * 14, 1.2, C.white); }
+        // the pearlfish inside, lunging at a blob on every nibble
+        var ln = lastOf(NIB, t), lu = t - ln < 0.3 ? Math.sin((t - ln) / 0.3 * Math.PI) : 0, tg = Math.min(eaten, 7);
+        var fx = lerp(146, 82 + (tg % 4) * 9 + 6, 0.3 + 0.5 * lu), fy = lerp(Y + 2, Y - 8 + Math.floor(tg / 4) * 14, 0.3 + 0.5 * lu);
+        character(function () { pearlfish(fx, fy, 40, Math.atan2(fy - Y, fx - (X1 - 4)) + Math.PI, t, { grin: true }); });
+        if (t - ln < 0.25 && ln > 0) worldText("NOM", fx, fy - 14, 1, C.gold);
+        g.restore();
+        g.strokeStyle = C.cyan; g.lineWidth = 0.8; g.beginPath(); g.ellipse(WX, WY, WR + 8, RY - 3, 0, 0, 6.2832); g.stroke();
+        worldText("X-RAY", WX + 34, Y - RY - 12, 1, C.cyan);
+        if (t > T.INSIDE + 0.3 && t < T.TEETH) bubble(X0 + 40, Y + RY + 16, "NOT AGAIN.", C.ink);
+        vignette(0.35, "rgba(0,10,30,");
+      }
+
+      // ============================================================ the crab attack: guts out, regrow, the tenant returns
+      function crab(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s, s);
+        for (var l = 0; l < 3; l++) { var wk = Math.sin(t * 14 + l) * (o.walk ? 2 : 0); line(-6 + l * 6, 4, -10 + l * 6 + wk, 12, 1.6, C.crabD); line(-6 + l * 6, 4, -2 + l * 6 - wk, 12, 1.6, C.crabD); }
+        ell(0, 0, 16, 9, 0, C.crabD); ell(0, -1, 15, 8, 0, C.crab); ell(-4, -4, 6, 2, 0, C.crabL);
+        var sn = o.snap ? Math.abs(Math.sin(t * 16)) * 0.5 : 0;
+        [-1, 1].forEach(function (sd) { line(sd * 12, -2, sd * 20, -10, 2.4, C.crabD); g.save(); g.translate(sd * 22, -13); poly([[0, 0], [sd * 8, -4 - sn * 6], [sd * 10, 0]], C.crab); poly([[0, 0], [sd * 8, 4 + sn * 6], [sd * 10, 1]], C.crabD); g.restore(); });
+        line(-4, -8, -5, -14, 1, C.crabD); line(4, -8, 5, -14, 1, C.crabD); disc(-5, -15, 2, C.white); disc(5, -15, 2, C.white); disc(-5 + (o.look || 0), -15, 1.1, C.ink); disc(5 + (o.look || 0), -15, 1.1, C.ink);
+        if (o.happy) { g.strokeStyle = C.ink; g.lineWidth = 0.8; g.beginPath(); g.arc(0, 1, 3, 0.3, Math.PI - 0.3); g.stroke(); }
+        g.restore();
+      }
+      function scene_attack(t) {
+        var tt = tapeT(t, T);
+        var cam = camAt([[T.CRAB - 0.2, 92, 210, 1.0], [T.BREAK, 100, 226, 1.35], [T.HIT + 0.6, 96, 214, 1.1], [T.REGROW, 90, 210, 1.05], [T.STOP, 90, 214, 1.15]], tt);
+        shake(cam, tt, T.HIT, 10, 0.6);
+        sea(tt);
+        setCam(cam, 1);
+        floor(tt);
+        var Y = 270, X0 = 28, X1 = 120;
+        // GUTS %: 100 -> 0 at the hit -> regrows
+        var guts = tt < T.HIT ? 1 : tt < T.REGROW ? 0 : clamp01((tt - T.REGROW - 0.3) / 2.8);
+        var deflate = tt < T.HIT ? 0 : 1 - guts;
+        var slide = tt > T.HIT ? -10 * ease(clamp01((tt - T.HIT - 1) / 2)) : 0;
+        var op = tt < T.HIT ? openAt(tt) : tt < T.HIT + 0.5 ? 1 : openAt(tt) * 0.6;
+        character(function () { cucumber(X0 + slide, X1 + slide, Y + deflate * 4, 15 * (1 - 0.4 * deflate), tt, { open: op, mood: tt < T.HIT ? "shock" : tt < T.REGROW ? "tired" : "calm", look: 1 }); });
+        // the crab: scuttles in, snaps... eats the decoy guts, wanders off
+        var cx = tt < T.HIT ? lerp(220, 160, ease(clamp01((tt - T.CRAB) / 1.2))) : tt < T.REGROW ? 160 : lerp(160, 240, ease(clamp01((tt - T.REGROW) / 1.6)));
+        // the guts: a tangled pile shot out of the butt onto the sand in front of the crab
+        if (tt >= T.HIT && tt < T.REGROW + 1.6) {
+          var go = easeOut(clamp01((tt - T.HIT) / 0.4)), eatn = clamp01((tt - T.HIT - 2.2) / 2.0);
+          var gx0 = X1 + slide, gx1 = lerp(gx0, 146, go); go *= 1 - 0.7 * eatn;
+          for (var s2 = 0; s2 < 9; s2++) {
+            g.strokeStyle = s2 % 3 ? C.gut : C.gutW; g.lineWidth = s2 % 3 ? 3.4 : 2; g.beginPath(); g.moveTo(gx0, Y);
+            for (var k = 1; k <= 10; k++) { var u = k / 10, xx = lerp(gx0, gx1, u) + Math.sin(u * 9 + s2 * 2.3) * 10 * go, yy = Y + (284 - Y) * u * go + Math.cos(u * 7 + s2) * 9 * go - Math.sin(u * Math.PI) * 24 * go; g.lineTo(xx, yy); }
+            g.stroke();
+          }
+                    if (tt < T.HIT + 0.2) { lighter(); glow(gx0, Y, 40, C.white, 0.7 * (1 - (tt - T.HIT) / 0.2)); normalBlend(); }
+        }
+        character(function () { crab(cx, 280, 1.15, tt, { walk: tt < T.HIT || tt > T.REGROW, snap: tt > T.CRAB + 0.8 && tt < T.HIT, happy: tt > T.HIT + 1.8 && tt < T.REGROW + 1.6, look: -1 }); });
+        if (tt > T.HIT + 2.2 && tt < T.REGROW) bubble(cx + 4, 254, "YUM!", C.red);
+        if (tt > T.REGROW + 0.4 && tt < T.CTA - 0.1) bubble(X0 + 30 + slide, Y - 30, "I'M FINE.", C.ink);
+        // the tenant comes back home
+        if (tt > T.CTA) { var pk = clamp01((tt - T.CTA - 0.4) / 0.4); g.save(); g.beginPath(); g.rect(X1 + slide - 1, -100, 400, 600); g.clip(); character(function () { pearlfish(X1 + slide + 2 + pk * 4, Y - 1, 4 + pk * 4, Math.PI, tt, { grin: true, wave: true }); }); g.restore(); if (pk >= 1) bubble(X1 + slide + 28, Y - 22, "I'M BACK!", C.ink); }
+        vignette(0.35, "rgba(0,10,30,");
+      }
+
+      function sceneAt(t) { return t < T.BREATHE ? "butt" : t < T.INSIDE ? "reef" : t < T.TEETH ? "xray" : t < T.CRAB ? "butt" : t < T.REWIND ? "attack" : "butt"; }
+
+      function drawUI(t) {
+        var l1, c1 = C.gold, S1 = 3, l2 = "";
+        if (t < T.BREATHE || t >= T.REWIND) { l1 = "TENANTS IN BUTT: 1"; S1 = 2; c1 = Math.floor(t * 4) % 2 ? C.pink : C.white; l2 = "RENT PAID: 0"; }
+        else if (t < T.WAIT) { l1 = "BUTT BREATHS: " + countOf(BR, t); S1 = 2; c1 = C.gold; l2 = inhaling(t) > 0 ? "WATER: IN" : inhaling(t) < 0 ? "WATER: OUT" : ""; }
+        else if (t < T.INSIDE) { var o = openAt(t) > 0.3; l1 = o ? "BUTT: OPEN" : "BUTT: CLOSED"; S1 = 2; c1 = o ? C.green : C.red; l2 = t > T.SLIDE + 0.4 ? "PEARLFISH: INSIDE" : "PEARLFISH: WAITING"; }
+        else if (t < T.TEETH) { l1 = "SNACKS TAKEN: " + countOf(NIB, t); S1 = 2; c1 = C.pink; l2 = "TENANTS: 1"; }
+        else if (t < T.CRAB) { l1 = "BUTT TEETH: 5"; S1 = 2; c1 = C.white; l2 = "BREAK-INS: " + countOf(CLK, t) + " FAILED"; }
+        else if (t < T.BREAK) { var d = Math.max(0, 50 * (1 - ease(clamp01((t - T.CRAB) / 1.2)))); l1 = "CRAB: " + Math.round(d) + " CM"; S1 = 2; c1 = d < 10 ? C.red : C.gold; l2 = "BREATHS/SEC: " + (1 / Math.max(0.2, (BR[countOf(BR, t)] || t + 1) - lastOf(BR, t))).toFixed(1); }
+        else if (t < T.HIT) { l1 = ""; }
+        else { var gu = t < T.REGROW ? 0 : Math.round(100 * clamp01((t - T.REGROW - 0.3) / 2.8)); l1 = "GUTS: " + gu + "%"; c1 = gu < 50 ? C.red : C.green; l2 = t > T.CTA ? "TENANT: BACK HOME" : t > T.REGROW ? "WEEKS LATER..." : "CRAB: FED"; }
+        if (l1) counterLines(l1, c1, S1, l2, C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { butt: scene_butt, reef: scene_reef, xray: scene_xray, attack: scene_attack }, sceneAt: sceneAt, ui: drawUI, hitCol: "#ffffff",
+        cuts: [[T.BREATHE, "butt", "reef"], [T.INSIDE, "reef", "xray"], [T.TEETH, "xray", "butt"], [T.CRAB, "butt", "attack"]],
+      });
+    </script>
+  </body>
+</html>

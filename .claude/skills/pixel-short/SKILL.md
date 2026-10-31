@@ -1,6 +1,6 @@
 ---
 name: pixel-short
-description: Make a viral vertical pixel-art science, mythology or fiction short in the owner's house style (SHARP HD pixel art, dark outlines on every living character, narration with character-matched voices, open-source sound effects, cold-open hook, small centred captions, loop ending), built with the shared engine in videos/_engine. Use for any "make a video about X" request in this repo, and for writing the matching Instagram caption.
+description: Make a viral vertical pixel-art science, mythology or fiction short in the owner's house style (SHARP HD pixel art, dark outlines on every living character, NO narration (text cards + speech bubbles + sound only), open-source sound effects, cold-open hook, small centred captions, loop ending), built with the shared engine in videos/_engine. Use for any "make a video about X" request in this repo, and for writing the matching Instagram caption.
 ---
 
 # Pixel HD — the owner's house style
@@ -24,8 +24,7 @@ current look). The one-page rules are in `/STYLE_GUIDE.md`. Follow them without 
 
 Handle `@SCROLL2STUDY.IN` on every frame (engine does it), an 8-bit beat bed that never stops, a sound on every text card /
 counter tick / cut (3+ hits per second), the main object as a character with a face, a live counter on screen the whole time,
-one continuous camera journey, a call to action inside the video, and a perfect loop. Text-only (no narration) is fine when
-the owner asks for it.
+one continuous camera journey, a call to action inside the video, and a perfect loop. Text-only (no narration) is the default.
 
 ## The look: SHARP HD pixel art (owner's rule, Oct 2026; full rules in /STYLE_GUIDE.md)
 
@@ -46,6 +45,9 @@ the owner asks for it.
 
 ## The pacing (viral format)
 
+0. **Pick topics whose FIRST FRAME is the weird/disgusting fact itself** (owner, Oct 31 2026): a louse staring out of a
+   fish's mouth, babies peeking out of holes in a toad's back, a fish sliding into a sea cucumber's butt. The first 2 s must
+   make people stop; then the story explains how it got that way.
 1. **No cold-open hook, no rewind glitch at the start** (owner's rule, Oct 31 2026): start straight in the story's flow;
    the first text card is the hook line.
 2. (removed: the old 1.6 s rewind glitch)
@@ -53,7 +55,13 @@ the owner asks for it.
 4. Twist near the end ("Hanu means jaw", "Blue is the hardest to make", "Don't try this").
 5. **Loop**: the last frame returns to the hook so replays are seamless.
 
-## Voice: narrate everything (owner's rule)
+## Voice: NO narration (owner's rule, Oct 31 2026: "don't add narration")
+
+**Never add narration unless the owner explicitly asks for it.** Every video is text cards (3-6 words, gold keyword, a new
+one every ~2 s) + speech bubbles for the characters + the 8-bit bed and sound effects (see `videos/zombie-ant-fungus`,
+`videos/tongue-eating-louse`: `CT.write_captions` + `short-kit.js`). The rest of this section applies only when narration
+is requested.
+
 
 - **Every video is narrated**, and **every character speaks with their own voice that fits them** (age,
   gender, culture/accent, personality, size). The narrator fits the story's mood and setting. Never reuse a
@@ -141,3 +149,9 @@ Ideas not yet made: Samudra Manthan, Ganesha's head, Ganesha's broken tusk, Gang
 lifts Govardhan, Vishnu's avatars, Shiva's third eye, Brahma's few temples, drowning doesn't look like
 drowning, hot car in 10 minutes, tired driving = drunk driving, stabbed by a knife, tattoo needle,
 ice water, mosquito bite, heart attack, hottest pepper, broken bone, choking, 3I/ATLAS, Mars canyon.
+
+## Render audio check
+
+The renderer sometimes lowers the audio (seen: −6 dB). After rendering, compare `ffmpeg -i renders/video.mp4 -af volumedetect`
+with `assets/audio/mix.wav`; if it's quieter, re-mux the mix: `ffmpeg -i renders/video.mp4 -i assets/audio/mix.wav -map 0:v
+-map 1:a -c:v copy -af volume=-1.2dB -c:a aac -b:a 192k -shortest out.mp4`.
