@@ -84,3 +84,17 @@ Measured: about 3.3 sound hits per second, a sound bed that never goes quiet (on
 - **Text cards: 3-6 words, one gold keyword, a new one every ~2 s,** the question/answer rhythm ("WHY A CUBE?" -> "ATOMS!").
 - **Topic shape:** one everyday thing + one surprising mechanism + one myth-bust or record + a call to action inside the video
   ("SEND THIS TO YOUR KNUCKLE CRACKER"), then the last frame is the first frame. 30-38 s.
+
+### Sound follows the story (from the bat-sonar reference, @pixel_art_explains)
+
+- **The sound IS the number on screen.** The counter reads 10 -> 20 -> 50 -> 200 -> 4500 CLICKS/SEC and the click sound
+  plays at that same rate: separate ticks speed up until they blur into a continuous "BUZZ!". When the picture speeds
+  up, the sound speeds up with it (rate, pitch and density), never swapped for a different sound.
+- **One sound idea per video, evolving.** Pick the story's signature sound (clicks, sizzle, heartbeat, ticking, pops) and
+  keep it running the whole time, changing its tempo/pitch/density with the counter. Supporting hits sit on top.
+- **The rhythm accelerates too:** the kick/bass pattern tightens (gaps every 1 s -> every 0.5 s) as tension builds.
+- **A slow crescendo:** about -20 dBFS at the start rising to about -16 dBFS at the climax; nothing drops out abruptly.
+  The music bed plays under the whole video (no silent gaps, no swapping to unrelated noise beds).
+- **The ending:** a tape-stop (everything pitches down and slows to a halt), then a rewind sweep up into the opening frame
+  for the loop.
+- **Counter at the very top, big:** "0 LIGHT", "10 CLICKS/SEC", "MOTH 1 : BAT 0"; it changes colour at the twist (green -> pink).
