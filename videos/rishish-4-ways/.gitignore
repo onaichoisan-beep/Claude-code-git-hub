@@ -11,3 +11,6 @@ thumbs/cut/
 thumbs/frames/
 thumbs/*.png
 thumbs/*.jpg
+carousel/*.png
+carousel/*.jpg
+carousel/img/thumb.png

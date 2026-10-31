@@ -1,0 +1,351 @@
+<!doctype html><html><head><meta charset="utf-8"><style>@font-face { font-family: 'Serif'; src: url('fonts/InstrumentSerif-normal.woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 100 900; src: url('fonts/Inter.woff2'); }
+:root { --navy: #1f3a8f; --maroon: #8b1a1a; --cream: #fcfaf5; --ink: #1d2433; --pill: #3d9be0; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #ddd; display: flex; flex-direction: column; gap: 40px; padding: 40px; }
+.s { position: relative; width: 1080px; height: 1350px; overflow: hidden; background: var(--cream); font-family: Inter; color: var(--ink); }
+.pg { display: none; position: absolute; right: 34px; top: 30px; z-index: 5; padding: 6px 18px; border-radius: 30px; background: rgba(40,40,40,.55);
+  color: #fff; font-weight: 600; font-size: 26px; }
+
+.band { position: absolute; left: 60px; right: 60px; background-size: cover; background-position: center; }
+.band.top { top: 60px; height: 150px; border-radius: 26px 26px 0 0; }
+.band.bot { bottom: 150px; height: 110px; border-radius: 0 0 26px 26px; }
+.page { position: absolute; left: 60px; right: 60px; top: 210px; bottom: 260px; background: #fff;
+  padding: 56px 64px 40px; display: flex; flex-direction: column; }
+.page::after { content: ""; position: absolute; inset: -150px 0 -110px; border-radius: 26px; box-shadow: 0 0 0 2px rgba(0,0,0,.08), 0 30px 60px rgba(0,0,0,.08); pointer-events: none; }
+
+.num { text-align: center; font-weight: 800; font-size: 26px; letter-spacing: 8px; text-transform: uppercase; color: var(--maroon); margin-bottom: 6px; }
+h2 { font-family: Serif; font-weight: 400; text-align: center; font-size: 112px; line-height: .86; letter-spacing: -3px; color: var(--navy); }
+.row { display: flex; align-items: center; gap: 10px; margin-top: 44px; flex: 1; }
+.body { flex: 1; font-size: 33px; line-height: 1.38; font-weight: 450; }
+.body p + p { margin-top: 26px; }
+.body b { font-weight: 800; color: var(--navy); }
+.body .r b { color: var(--maroon); }
+.body ul { list-style: none; margin-top: 22px; }
+.body li { position: relative; padding-left: 40px; margin-top: 12px; }
+.body li::before { content: "→"; position: absolute; left: 0; color: var(--maroon); font-weight: 800; }
+.dr { flex: none; width: 300px; display: flex; justify-content: center; }
+.dragon { filter: drop-shadow(0 18px 18px rgba(0,0,0,.18)); }
+.teaser { margin-top: 10px; text-align: center; font-size: 32px; font-weight: 800; color: var(--maroon);
+  padding-top: 24px; border-top: 2px dashed rgba(139,26,26,.3); }
+.pill { position: absolute; left: 50%; bottom: 58px; transform: translateX(-50%); white-space: nowrap; padding: 14px 34px; border-radius: 14px;
+  background: var(--pill); color: #fff; font-size: 30px; font-weight: 500; }
+
+/* cover */
+.cover .full { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(.85) brightness(.95); }
+.cover .note { position: absolute; left: 90px; top: 260px; width: 800px; padding: 64px 56px 50px; background: #fffdf6;
+  box-shadow: 0 30px 70px rgba(0,0,0,.35); border-radius: 6px; }
+.cover .tape { position: absolute; left: 50%; top: -26px; width: 210px; height: 52px; margin-left: -105px; background:
+  repeating-linear-gradient(90deg, rgba(160,205,255,.85) 0 18px, rgba(255,255,255,.85) 18px 36px); }
+.cover .kick { font-size: 28px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--maroon); }
+.cover h1 { font-family: Serif; font-weight: 400; font-size: 118px; line-height: .88; letter-spacing: -3px; color: var(--navy); margin-top: 18px; }
+.cover .sub { margin-top: 26px; font-size: 36px; font-weight: 700; color: var(--ink); }
+.cover .swipe { margin-top: 30px; display: inline-block; padding: 10px 24px; border-radius: 30px; background: var(--navy); color: #fff; font-size: 28px; font-weight: 700; }
+.dr.cov { position: absolute; right: 60px; bottom: 120px; width: auto; }
+
+/* end */
+.page.end { align-items: center; }
+.page.end h2 { font-size: 92px; }
+.tv { flex-shrink: 0; margin-top: 30px; width: 760px; border-radius: 22px; overflow: hidden; box-shadow: 0 24px 50px rgba(0,0,0,.25), 0 0 0 6px #fff, 0 0 0 8px rgba(0,0,0,.08); }
+.tv img { display: block; width: 100%; }
+.yt { margin-top: 24px; display: flex; align-items: center; gap: 18px; width: 820px; padding-right: 170px; font-size: 31px; font-weight: 800; line-height: 1.2; color: var(--ink); }
+.yt .play { flex: none; width: 64px; height: 46px; border-radius: 12px; background: #ff0000; position: relative; }
+.yt .play::after { content: ""; position: absolute; left: 25px; top: 12px; border-left: 20px solid #fff; border-top: 11px solid transparent; border-bottom: 11px solid transparent; }
+.cta { margin-top: 16px; font-size: 32px; color: var(--maroon); align-self: flex-start; margin-left: 78px; }
+.dr.endr { position: absolute; right: 10px; bottom: 6px; width: auto; }
+</style></head><body>
+<section class="s cover" id="s1">
+  <img class="full" src="img/desk.jpg" alt="">
+  <div class="note">
+    <div class="tape"></div>
+    <div class="kick">a 1st year MBBS student’s</div>
+    <h1>why you need<br>your own money<br>in college</h1>
+    <div class="sub">(+ the 4 ways I made ₹80,000)</div>
+    <div class="swipe">swipe →</div>
+  </div>
+  <div class="dr cov"><svg class="dragon" viewBox="0 0 200 230" width="300" height="345"><g>
+  <ellipse cx="100" cy="222" rx="62" ry="7" fill="rgba(0,0,0,.12)"/>
+  <path d="M40 170 C 4 176, 6 140, 20 132 C 18 150, 30 156, 48 150 Z" fill="#5fae5b"/>
+  <path d="M46 92 C 18 70, 10 104, 30 112 Z M154 92 C 182 70, 190 104, 170 112 Z" fill="#9c86d8"/>
+  <ellipse cx="100" cy="160" rx="56" ry="58" fill="#77c372"/>
+  <ellipse cx="100" cy="170" rx="36" ry="42" fill="#f8ecc6"/>
+  <path d="M72 136 C 64 160, 66 196, 76 214 L 124 214 C 134 196, 136 160, 128 136 C 120 150, 80 150, 72 136 Z" fill="#fff" opacity=".96"/>
+  <path d="M100 150 V214" stroke="#e5e5ea" stroke-width="2"/>
+  <ellipse cx="78" cy="214" rx="16" ry="9" fill="#5fae5b"/><ellipse cx="122" cy="214" rx="16" ry="9" fill="#5fae5b"/>
+  <path d="M60 128 C 46 136, 46 150, 54 158" stroke="#77c372" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <path d="M140 128 C 152 134, 156 140, 152 150" stroke="#77c372" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <path d="M74 128 C 70 160, 92 170, 100 160 C 108 170, 130 160, 126 128" stroke="#4b5563" stroke-width="4" fill="none"/>
+  <circle cx="100" cy="166" r="7" fill="#c9cdd4" stroke="#6b7280" stroke-width="3"/>
+  <path d="M70 34 L64 8 L84 28 Z M130 34 L136 8 L116 28 Z" fill="#fff1c9"/>
+  <ellipse cx="100" cy="74" rx="58" ry="52" fill="#77c372"/>
+  <path d="M100 22 C 106 30, 106 38, 100 44 C 94 38, 94 30, 100 22 Z" fill="#9c86d8"/>
+  <ellipse cx="100" cy="98" rx="30" ry="18" fill="#a9db97"/>
+  <circle cx="91" cy="96" r="2.6" fill="#3e7a3a"/><circle cx="109" cy="96" r="2.6" fill="#3e7a3a"/>
+  <path d="M92 108 Q100 114 108 108" stroke="#2f4f2c" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="78" cy="72" rx="11" ry="13" fill="#1f2a1f"/><ellipse cx="122" cy="72" rx="11" ry="13" fill="#1f2a1f"/>
+  <circle cx="82" cy="67" r="4" fill="#fff"/><circle cx="126" cy="67" r="4" fill="#fff"/>
+  <circle cx="78" cy="72" r="17" fill="none" stroke="#3b3b44" stroke-width="3.5"/><circle cx="122" cy="72" r="17" fill="none" stroke="#3b3b44" stroke-width="3.5"/>
+  <path d="M95 72 H105" stroke="#3b3b44" stroke-width="3.5"/>
+  <ellipse cx="64" cy="92" rx="8" ry="5" fill="#ff9aa8" opacity=".8"/><ellipse cx="136" cy="92" rx="8" ry="5" fill="#ff9aa8" opacity=".8"/>
+  <g transform="translate(150 132)"><circle r="24" fill="#f2b632"/><circle r="18" fill="#ffd45c"/><text y="9" text-anchor="middle" font-family="Inter" font-weight="900" font-size="24" fill="#a26b00">₹</text></g>
+</g></svg></div>
+</section><section class="s" id="s2"><div class="pg">2/8</div>
+  <div class="band top" style="background-image:url(img/phone.jpg)"></div>
+  <div class="page">
+    <h2>ghar se paise?<br>ajeeb lagta hai.</h2>
+    <div class="row">
+      <div class="body"><p>Every ₹500 you ask for comes with a question. <b>Earning your own money isn’t about greed. It’s about freedom.</b></p><p class="r">And you already have the time: most students spend <b>7+ hours a day</b> on their phone.</p></div>
+      <div class="dr"><svg class="dragon" viewBox="0 0 200 230" width="300" height="345"><g>
+  <ellipse cx="100" cy="222" rx="62" ry="7" fill="rgba(0,0,0,.12)"/>
+  <path d="M40 170 C 4 176, 6 140, 20 132 C 18 150, 30 156, 48 150 Z" fill="#5fae5b"/>
+  <path d="M46 92 C 18 70, 10 104, 30 112 Z M154 92 C 182 70, 190 104, 170 112 Z" fill="#9c86d8"/>
+  <ellipse cx="100" cy="160" rx="56" ry="58" fill="#77c372"/>
+  <ellipse cx="100" cy="170" rx="36" ry="42" fill="#f8ecc6"/>
+  <path d="M72 136 C 64 160, 66 196, 76 214 L 124 214 C 134 196, 136 160, 128 136 C 120 150, 80 150, 72 136 Z" fill="#fff" opacity=".96"/>
+  <path d="M100 150 V214" stroke="#e5e5ea" stroke-width="2"/>
+  <ellipse cx="78" cy="214" rx="16" ry="9" fill="#5fae5b"/><ellipse cx="122" cy="214" rx="16" ry="9" fill="#5fae5b"/>
+  <path d="M60 128 C 46 136, 46 150, 54 158" stroke="#77c372" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <path d="M140 128 C 152 134, 156 140, 152 150" stroke="#77c372" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <path d="M74 128 C 70 160, 92 170, 100 160 C 108 170, 130 160, 126 128" stroke="#4b5563" stroke-width="4" fill="none"/>
+  <circle cx="100" cy="166" r="7" fill="#c9cdd4" stroke="#6b7280" stroke-width="3"/>
+  <path d="M70 34 L64 8 L84 28 Z M130 34 L136 8 L116 28 Z" fill="#fff1c9"/>
+  <ellipse cx="100" cy="74" rx="58" ry="52" fill="#77c372"/>
+  <path d="M100 22 C 106 30, 106 38, 100 44 C 94 38, 94 30, 100 22 Z" fill="#9c86d8"/>
+  <ellipse cx="100" cy="98" rx="30" ry="18" fill="#a9db97"/>
+  <circle cx="91" cy="96" r="2.6" fill="#3e7a3a"/><circle cx="109" cy="96" r="2.6" fill="#3e7a3a"/>
+  <path d="M92 108 Q100 114 108 108" stroke="#2f4f2c" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="78" cy="72" rx="11" ry="13" fill="#1f2a1f"/><ellipse cx="122" cy="72" rx="11" ry="13" fill="#1f2a1f"/>
+  <circle cx="82" cy="67" r="4" fill="#fff"/><circle cx="126" cy="67" r="4" fill="#fff"/>
+  <circle cx="78" cy="72" r="17" fill="none" stroke="#3b3b44" stroke-width="3.5"/><circle cx="122" cy="72" r="17" fill="none" stroke="#3b3b44" stroke-width="3.5"/>
+  <path d="M95 72 H105" stroke="#3b3b44" stroke-width="3.5"/>
+  <ellipse cx="64" cy="92" rx="8" ry="5" fill="#ff9aa8" opacity=".8"/><ellipse cx="136" cy="92" rx="8" ry="5" fill="#ff9aa8" opacity=".8"/>
+  <g transform="translate(140 104) rotate(12)"><rect width="30" height="54" rx="6" fill="#2b2b33"/><rect x="3" y="5" width="24" height="42" rx="3" fill="#8fd0ff"/><rect x="7" y="12" width="16" height="4" rx="2" fill="#fff"/><rect x="7" y="20" width="12" height="4" rx="2" fill="#fff"/></g>
+</g></svg></div>
+    </div>
+    <div class="teaser">so what if those 7 hours paid you? →</div>
+  </div>
+  <div class="band bot" style="background-image:url(img/desk.jpg)"></div>
+  <div class="pill">save for later and follow for more</div>
+</section><section class="s" id="s3"><div class="pg">3/8</div>
+  <div class="band top" style="background-image:url(img/desk.jpg)"></div>
+  <div class="page">
+    <h2>your skills<br>are your salary.</h2>
+    <div class="row">
+      <div class="body"><p><b>More skill, more money. Better skill, more money.</b> That’s the whole game.</p><p class="r">You don’t need an investment. You need <b>one skill</b> and the stubbornness to start, even in 1st year.</p></div>
+      <div class="dr"><svg class="dragon" viewBox="0 0 200 230" width="300" height="345"><g>
+  <ellipse cx="100" cy="222" rx="62" ry="7" fill="rgba(0,0,0,.12)"/>
+  <path d="M40 170 C 4 176, 6 140, 20 132 C 18 150, 30 156, 48 150 Z" fill="#5fae5b"/>
+  <path d="M46 92 C 18 70, 10 104, 30 112 Z M154 92 C 182 70, 190 104, 170 112 Z" fill="#9c86d8"/>
+  <ellipse cx="100" cy="160" rx="56" ry="58" fill="#77c372"/>
+  <ellipse cx="100" cy="170" rx="36" ry="42" fill="#f8ecc6"/>
+  <path d="M72 136 C 64 160, 66 196, 76 214 L 124 214 C 134 196, 136 160, 128 136 C 120 150, 80 150, 72 136 Z" fill="#fff" opacity=".96"/>
+  <path d="M100 150 V214" stroke="#e5e5ea" stroke-width="2"/>
+  <ellipse cx="78" cy="214" rx="16" ry="9" fill="#5fae5b"/><ellipse cx="122" cy="214" rx="16" ry="9" fill="#5fae5b"/>
+  <path d="M60 128 C 46 136, 46 150, 54 158" stroke="#77c372" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <path d="M140 128 C 152 134, 156 140, 152 150" stroke="#77c372" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <path d="M74 128 C 70 160, 92 170, 100 160 C 108 170, 130 160, 126 128" stroke="#4b5563" stroke-width="4" fill="none"/>
+  <circle cx="100" cy="166" r="7" fill="#c9cdd4" stroke="#6b7280" stroke-width="3"/>
+  <path d="M70 34 L64 8 L84 28 Z M130 34 L136 8 L116 28 Z" fill="#fff1c9"/>
+  <ellipse cx="100" cy="74" rx="58" ry="52" fill="#77c372"/>
+  <path d="M100 22 C 106 30, 106 38, 100 44 C 94 38, 94 30, 100 22 Z" fill="#9c86d8"/>
+  <ellipse cx="100" cy="98" rx="30" ry="18" fill="#a9db97"/>
+  <circle cx="91" cy="96" r="2.6" fill="#3e7a3a"/><circle cx="109" cy="96" r="2.6" fill="#3e7a3a"/>
+  <path d="M92 108 Q100 114 108 108" stroke="#2f4f2c" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="78" cy="72" rx="11" ry="13" fill="#1f2a1f"/><ellipse cx="122" cy="72" rx="11" ry="13" fill="#1f2a1f"/>
+  <circle cx="82" cy="67" r="4" fill="#fff"/><circle cx="126" cy="67" r="4" fill="#fff"/>
+  <circle cx="78" cy="72" r="17" fill="none" stroke="#3b3b44" stroke-width="3.5"/><circle cx="122" cy="72" r="17" fill="none" stroke="#3b3b44" stroke-width="3.5"/>
+  <path d="M95 72 H105" stroke="#3b3b44" stroke-width="3.5"/>
+  <ellipse cx="64" cy="92" rx="8" ry="5" fill="#ff9aa8" opacity=".8"/><ellipse cx="136" cy="92" rx="8" ry="5" fill="#ff9aa8" opacity=".8"/>
+  <g transform="translate(128 118) rotate(-8)"><rect width="56" height="40" rx="3" fill="#c0392b"/><rect x="4" y="4" width="48" height="32" rx="2" fill="#fff6e3"/><path d="M28 4 V36" stroke="#c0392b" stroke-width="3"/><path d="M9 13 H23 M9 20 H23 M33 13 H47 M33 20 H47" stroke="#b9a98a" stroke-width="2.5"/></g>
+</g></svg></div>
+    </div>
+    <div class="teaser">here are the 4 ways I tested →</div>
+  </div>
+  <div class="band bot" style="background-image:url(img/steth.jpg)"></div>
+  <div class="pill">save for later and follow for more</div>
+</section><section class="s" id="s4"><div class="pg">4/8</div>
+  <div class="band top" style="background-image:url(img/unboxing.jpg)"></div>
+  <div class="page">
+    <div class="num">way 01</div><h2>UGC content<br>creation</h2>
+    <div class="row">
+      <div class="body"><p>Make short videos for brands. <b>They pay you in money and products.</b></p><ul><li>can be completely <b>faceless</b></li><li>tech · brand · affiliate UGC</li><li>this alone earned me <b>₹60K+</b></li></ul></div>
+      <div class="dr"><svg class="dragon" viewBox="0 0 200 230" width="300" height="345"><g>
+  <ellipse cx="100" cy="222" rx="62" ry="7" fill="rgba(0,0,0,.12)"/>
+  <path d="M40 170 C 4 176, 6 140, 20 132 C 18 150, 30 156, 48 150 Z" fill="#5fae5b"/>
+  <path d="M46 92 C 18 70, 10 104, 30 112 Z M154 92 C 182 70, 190 104, 170 112 Z" fill="#9c86d8"/>
+  <ellipse cx="100" cy="160" rx="56" ry="58" fill="#77c372"/>
+  <ellipse cx="100" cy="170" rx="36" ry="42" fill="#f8ecc6"/>
+  <path d="M72 136 C 64 160, 66 196, 76 214 L 124 214 C 134 196, 136 160, 128 136 C 120 150, 80 150, 72 136 Z" fill="#fff" opacity=".96"/>
+  <path d="M100 150 V214" stroke="#e5e5ea" stroke-width="2"/>
+  <ellipse cx="78" cy="214" rx="16" ry="9" fill="#5fae5b"/><ellipse cx="122" cy="214" rx="16" ry="9" fill="#5fae5b"/>
+  <path d="M60 128 C 46 136, 46 150, 54 158" stroke="#77c372" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <path d="M140 128 C 152 134, 156 140, 152 150" stroke="#77c372" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <path d="M74 128 C 70 160, 92 170, 100 160 C 108 170, 130 160, 126 128" stroke="#4b5563" stroke-width="4" fill="none"/>
+  <circle cx="100" cy="166" r="7" fill="#c9cdd4" stroke="#6b7280" stroke-width="3"/>
+  <path d="M70 34 L64 8 L84 28 Z M130 34 L136 8 L116 28 Z" fill="#fff1c9"/>
+  <ellipse cx="100" cy="74" rx="58" ry="52" fill="#77c372"/>
+  <path d="M100 22 C 106 30, 106 38, 100 44 C 94 38, 94 30, 100 22 Z" fill="#9c86d8"/>
+  <ellipse cx="100" cy="98" rx="30" ry="18" fill="#a9db97"/>
+  <circle cx="91" cy="96" r="2.6" fill="#3e7a3a"/><circle cx="109" cy="96" r="2.6" fill="#3e7a3a"/>
+  <path d="M92 108 Q100 114 108 108" stroke="#2f4f2c" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="78" cy="72" rx="11" ry="13" fill="#1f2a1f"/><ellipse cx="122" cy="72" rx="11" ry="13" fill="#1f2a1f"/>
+  <circle cx="82" cy="67" r="4" fill="#fff"/><circle cx="126" cy="67" r="4" fill="#fff"/>
+  <circle cx="78" cy="72" r="17" fill="none" stroke="#3b3b44" stroke-width="3.5"/><circle cx="122" cy="72" r="17" fill="none" stroke="#3b3b44" stroke-width="3.5"/>
+  <path d="M95 72 H105" stroke="#3b3b44" stroke-width="3.5"/>
+  <ellipse cx="64" cy="92" rx="8" ry="5" fill="#ff9aa8" opacity=".8"/><ellipse cx="136" cy="92" rx="8" ry="5" fill="#ff9aa8" opacity=".8"/>
+  <g transform="translate(132 112)"><rect width="50" height="36" rx="7" fill="#33333d"/><rect x="12" y="-6" width="16" height="8" rx="2" fill="#33333d"/><circle cx="25" cy="18" r="11" fill="#9fb4c8"/><circle cx="25" cy="18" r="6" fill="#2b2b33"/><circle cx="42" cy="8" r="3" fill="#ff5a5a"/></g>
+</g></svg></div>
+    </div>
+    <div class="teaser">the forms brands use to find you? they’re in the video ↗</div>
+  </div>
+  <div class="band bot" style="background-image:url(img/phone.jpg)"></div>
+  <div class="pill">save for later and follow for more</div>
+</section><section class="s" id="s5"><div class="pg">5/8</div>
+  <div class="band top" style="background-image:url(img/rupees.jpg)"></div>
+  <div class="page">
+    <div class="num">way 02</div><h2>content<br>creation</h2>
+    <div class="row">
+      <div class="body"><p>Start a page. <b>One viral video can change everything.</b></p><ul><li>first paid collab at just <b>800 subscribers</b></li><li>before my page was even monetized</li><li>free courses &amp; books to resell or give away</li></ul></div>
+      <div class="dr"><svg class="dragon" viewBox="0 0 200 230" width="300" height="345"><g>
+  <ellipse cx="100" cy="222" rx="62" ry="7" fill="rgba(0,0,0,.12)"/>
+  <path d="M40 170 C 4 176, 6 140, 20 132 C 18 150, 30 156, 48 150 Z" fill="#5fae5b"/>
+  <path d="M46 92 C 18 70, 10 104, 30 112 Z M154 92 C 182 70, 190 104, 170 112 Z" fill="#9c86d8"/>
+  <ellipse cx="100" cy="160" rx="56" ry="58" fill="#77c372"/>
+  <ellipse cx="100" cy="170" rx="36" ry="42" fill="#f8ecc6"/>
+  <path d="M72 136 C 64 160, 66 196, 76 214 L 124 214 C 134 196, 136 160, 128 136 C 120 150, 80 150, 72 136 Z" fill="#fff" opacity=".96"/>
+  <path d="M100 150 V214" stroke="#e5e5ea" stroke-width="2"/>
+  <ellipse cx="78" cy="214" rx="16" ry="9" fill="#5fae5b"/><ellipse cx="122" cy="214" rx="16" ry="9" fill="#5fae5b"/>
+  <path d="M60 128 C 46 136, 46 150, 54 158" stroke="#77c372" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <path d="M140 128 C 152 134, 156 140, 152 150" stroke="#77c372" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <path d="M74 128 C 70 160, 92 170, 100 160 C 108 170, 130 160, 126 128" stroke="#4b5563" stroke-width="4" fill="none"/>
+  <circle cx="100" cy="166" r="7" fill="#c9cdd4" stroke="#6b7280" stroke-width="3"/>
+  <path d="M70 34 L64 8 L84 28 Z M130 34 L136 8 L116 28 Z" fill="#fff1c9"/>
+  <ellipse cx="100" cy="74" rx="58" ry="52" fill="#77c372"/>
+  <path d="M100 22 C 106 30, 106 38, 100 44 C 94 38, 94 30, 100 22 Z" fill="#9c86d8"/>
+  <ellipse cx="100" cy="98" rx="30" ry="18" fill="#a9db97"/>
+  <circle cx="91" cy="96" r="2.6" fill="#3e7a3a"/><circle cx="109" cy="96" r="2.6" fill="#3e7a3a"/>
+  <path d="M92 108 Q100 114 108 108" stroke="#2f4f2c" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="78" cy="72" rx="11" ry="13" fill="#1f2a1f"/><ellipse cx="122" cy="72" rx="11" ry="13" fill="#1f2a1f"/>
+  <circle cx="82" cy="67" r="4" fill="#fff"/><circle cx="126" cy="67" r="4" fill="#fff"/>
+  <circle cx="78" cy="72" r="17" fill="none" stroke="#3b3b44" stroke-width="3.5"/><circle cx="122" cy="72" r="17" fill="none" stroke="#3b3b44" stroke-width="3.5"/>
+  <path d="M95 72 H105" stroke="#3b3b44" stroke-width="3.5"/>
+  <ellipse cx="64" cy="92" rx="8" ry="5" fill="#ff9aa8" opacity=".8"/><ellipse cx="136" cy="92" rx="8" ry="5" fill="#ff9aa8" opacity=".8"/>
+  <g transform="translate(130 112)"><rect width="56" height="40" rx="11" fill="#ff2a2a"/><path d="M22 11 L37 20 L22 29 Z" fill="#fff"/></g>
+</g></svg></div>
+    </div>
+    <div class="teaser">how I pitched brands at 800 subs → full video ↗</div>
+  </div>
+  <div class="band bot" style="background-image:url(img/desk.jpg)"></div>
+  <div class="pill">save for later and follow for more</div>
+</section><section class="s" id="s6"><div class="pg">6/8</div>
+  <div class="band top" style="background-image:url(img/teacher.jpg)"></div>
+  <div class="page">
+    <div class="num">way 03</div><h2>online<br>tutoring</h2>
+    <div class="row">
+      <div class="body"><p>Only good at studies? <b>That’s enough.</b></p><ul><li>teach topics your juniors find hard</li><li><b>zero investment</b>: you sell what you already know</li><li>local coachings value real knowledge</li></ul></div>
+      <div class="dr"><svg class="dragon" viewBox="0 0 200 230" width="300" height="345"><g>
+  <ellipse cx="100" cy="222" rx="62" ry="7" fill="rgba(0,0,0,.12)"/>
+  <path d="M40 170 C 4 176, 6 140, 20 132 C 18 150, 30 156, 48 150 Z" fill="#5fae5b"/>
+  <path d="M46 92 C 18 70, 10 104, 30 112 Z M154 92 C 182 70, 190 104, 170 112 Z" fill="#9c86d8"/>
+  <ellipse cx="100" cy="160" rx="56" ry="58" fill="#77c372"/>
+  <ellipse cx="100" cy="170" rx="36" ry="42" fill="#f8ecc6"/>
+  <path d="M72 136 C 64 160, 66 196, 76 214 L 124 214 C 134 196, 136 160, 128 136 C 120 150, 80 150, 72 136 Z" fill="#fff" opacity=".96"/>
+  <path d="M100 150 V214" stroke="#e5e5ea" stroke-width="2"/>
+  <ellipse cx="78" cy="214" rx="16" ry="9" fill="#5fae5b"/><ellipse cx="122" cy="214" rx="16" ry="9" fill="#5fae5b"/>
+  <path d="M60 128 C 46 136, 46 150, 54 158" stroke="#77c372" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <path d="M140 128 C 152 134, 156 140, 152 150" stroke="#77c372" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <path d="M74 128 C 70 160, 92 170, 100 160 C 108 170, 130 160, 126 128" stroke="#4b5563" stroke-width="4" fill="none"/>
+  <circle cx="100" cy="166" r="7" fill="#c9cdd4" stroke="#6b7280" stroke-width="3"/>
+  <path d="M70 34 L64 8 L84 28 Z M130 34 L136 8 L116 28 Z" fill="#fff1c9"/>
+  <ellipse cx="100" cy="74" rx="58" ry="52" fill="#77c372"/>
+  <path d="M100 22 C 106 30, 106 38, 100 44 C 94 38, 94 30, 100 22 Z" fill="#9c86d8"/>
+  <ellipse cx="100" cy="98" rx="30" ry="18" fill="#a9db97"/>
+  <circle cx="91" cy="96" r="2.6" fill="#3e7a3a"/><circle cx="109" cy="96" r="2.6" fill="#3e7a3a"/>
+  <path d="M92 108 Q100 114 108 108" stroke="#2f4f2c" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="78" cy="72" rx="11" ry="13" fill="#1f2a1f"/><ellipse cx="122" cy="72" rx="11" ry="13" fill="#1f2a1f"/>
+  <circle cx="82" cy="67" r="4" fill="#fff"/><circle cx="126" cy="67" r="4" fill="#fff"/>
+  <circle cx="78" cy="72" r="17" fill="none" stroke="#3b3b44" stroke-width="3.5"/><circle cx="122" cy="72" r="17" fill="none" stroke="#3b3b44" stroke-width="3.5"/>
+  <path d="M95 72 H105" stroke="#3b3b44" stroke-width="3.5"/>
+  <ellipse cx="64" cy="92" rx="8" ry="5" fill="#ff9aa8" opacity=".8"/><ellipse cx="136" cy="92" rx="8" ry="5" fill="#ff9aa8" opacity=".8"/>
+  <g transform="translate(124 96)"><rect width="64" height="46" rx="4" fill="#2f5d46" stroke="#a0754a" stroke-width="5"/><text x="32" y="30" text-anchor="middle" font-family="Inter" font-weight="900" font-size="15" fill="#fff">A+B</text></g>
+</g></svg></div>
+    </div>
+    <div class="teaser">where to find your first students → in the video ↗</div>
+  </div>
+  <div class="band bot" style="background-image:url(img/steth.jpg)"></div>
+  <div class="pill">save for later and follow for more</div>
+</section><section class="s" id="s7"><div class="pg">7/8</div>
+  <div class="band top" style="background-image:url(img/steth.jpg)"></div>
+  <div class="page">
+    <div class="num">way 04</div><h2>freelancing</h2>
+    <div class="row">
+      <div class="body"><p>Video editing pays <b>₹3–4K per video</b> and grows with your skill.</p><ul><li>DM creators &amp; YouTubers</li><li>send samples, start small</li><li>practice → better edits → higher price</li></ul></div>
+      <div class="dr"><svg class="dragon" viewBox="0 0 200 230" width="300" height="345"><g>
+  <ellipse cx="100" cy="222" rx="62" ry="7" fill="rgba(0,0,0,.12)"/>
+  <path d="M40 170 C 4 176, 6 140, 20 132 C 18 150, 30 156, 48 150 Z" fill="#5fae5b"/>
+  <path d="M46 92 C 18 70, 10 104, 30 112 Z M154 92 C 182 70, 190 104, 170 112 Z" fill="#9c86d8"/>
+  <ellipse cx="100" cy="160" rx="56" ry="58" fill="#77c372"/>
+  <ellipse cx="100" cy="170" rx="36" ry="42" fill="#f8ecc6"/>
+  <path d="M72 136 C 64 160, 66 196, 76 214 L 124 214 C 134 196, 136 160, 128 136 C 120 150, 80 150, 72 136 Z" fill="#fff" opacity=".96"/>
+  <path d="M100 150 V214" stroke="#e5e5ea" stroke-width="2"/>
+  <ellipse cx="78" cy="214" rx="16" ry="9" fill="#5fae5b"/><ellipse cx="122" cy="214" rx="16" ry="9" fill="#5fae5b"/>
+  <path d="M60 128 C 46 136, 46 150, 54 158" stroke="#77c372" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <path d="M140 128 C 152 134, 156 140, 152 150" stroke="#77c372" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <path d="M74 128 C 70 160, 92 170, 100 160 C 108 170, 130 160, 126 128" stroke="#4b5563" stroke-width="4" fill="none"/>
+  <circle cx="100" cy="166" r="7" fill="#c9cdd4" stroke="#6b7280" stroke-width="3"/>
+  <path d="M70 34 L64 8 L84 28 Z M130 34 L136 8 L116 28 Z" fill="#fff1c9"/>
+  <ellipse cx="100" cy="74" rx="58" ry="52" fill="#77c372"/>
+  <path d="M100 22 C 106 30, 106 38, 100 44 C 94 38, 94 30, 100 22 Z" fill="#9c86d8"/>
+  <ellipse cx="100" cy="98" rx="30" ry="18" fill="#a9db97"/>
+  <circle cx="91" cy="96" r="2.6" fill="#3e7a3a"/><circle cx="109" cy="96" r="2.6" fill="#3e7a3a"/>
+  <path d="M92 108 Q100 114 108 108" stroke="#2f4f2c" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="78" cy="72" rx="11" ry="13" fill="#1f2a1f"/><ellipse cx="122" cy="72" rx="11" ry="13" fill="#1f2a1f"/>
+  <circle cx="82" cy="67" r="4" fill="#fff"/><circle cx="126" cy="67" r="4" fill="#fff"/>
+  <circle cx="78" cy="72" r="17" fill="none" stroke="#3b3b44" stroke-width="3.5"/><circle cx="122" cy="72" r="17" fill="none" stroke="#3b3b44" stroke-width="3.5"/>
+  <path d="M95 72 H105" stroke="#3b3b44" stroke-width="3.5"/>
+  <ellipse cx="64" cy="92" rx="8" ry="5" fill="#ff9aa8" opacity=".8"/><ellipse cx="136" cy="92" rx="8" ry="5" fill="#ff9aa8" opacity=".8"/>
+  <g transform="translate(120 116)"><rect x="6" width="60" height="38" rx="4" fill="#a8d672"/><rect x="11" y="5" width="50" height="28" rx="2" fill="#e9f7d6"/><path d="M17 24 L27 14 L35 20 L47 10" stroke="#3b8f2e" stroke-width="3" fill="none"/><rect y="38" width="72" height="7" rx="3" fill="#7fb24a"/></g>
+</g></svg></div>
+    </div>
+    <div class="teaser">the editor behind my video + how to get clients ↗</div>
+  </div>
+  <div class="band bot" style="background-image:url(img/rupees.jpg)"></div>
+  <div class="pill">save for later and follow for more</div>
+</section><section class="s" id="s8"><div class="pg">8/8</div>
+  <div class="band top" style="background-image:url(img/rupees.jpg)"></div>
+  <div class="page end">
+    <h2>the full breakdown<br>is on YouTube</h2>
+    <div class="tv"><img src="img/thumb.png" alt=""></div>
+    <div class="yt"><span class="play"></span>How to Earn Money as a Medical Student (4 Ways, No Investment)</div>
+    <div class="cta">watch now · <b>link in bio</b></div>
+    <div class="dr endr"><svg class="dragon" viewBox="0 0 200 230" width="210" height="241"><g transform="translate(200 0) scale(-1 1)">
+  <ellipse cx="100" cy="222" rx="62" ry="7" fill="rgba(0,0,0,.12)"/>
+  <path d="M40 170 C 4 176, 6 140, 20 132 C 18 150, 30 156, 48 150 Z" fill="#5fae5b"/>
+  <path d="M46 92 C 18 70, 10 104, 30 112 Z M154 92 C 182 70, 190 104, 170 112 Z" fill="#9c86d8"/>
+  <ellipse cx="100" cy="160" rx="56" ry="58" fill="#77c372"/>
+  <ellipse cx="100" cy="170" rx="36" ry="42" fill="#f8ecc6"/>
+  <path d="M72 136 C 64 160, 66 196, 76 214 L 124 214 C 134 196, 136 160, 128 136 C 120 150, 80 150, 72 136 Z" fill="#fff" opacity=".96"/>
+  <path d="M100 150 V214" stroke="#e5e5ea" stroke-width="2"/>
+  <ellipse cx="78" cy="214" rx="16" ry="9" fill="#5fae5b"/><ellipse cx="122" cy="214" rx="16" ry="9" fill="#5fae5b"/>
+  <path d="M60 128 C 46 136, 46 150, 54 158" stroke="#77c372" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <path d="M140 128 C 152 134, 156 140, 152 150" stroke="#77c372" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <path d="M74 128 C 70 160, 92 170, 100 160 C 108 170, 130 160, 126 128" stroke="#4b5563" stroke-width="4" fill="none"/>
+  <circle cx="100" cy="166" r="7" fill="#c9cdd4" stroke="#6b7280" stroke-width="3"/>
+  <path d="M70 34 L64 8 L84 28 Z M130 34 L136 8 L116 28 Z" fill="#fff1c9"/>
+  <ellipse cx="100" cy="74" rx="58" ry="52" fill="#77c372"/>
+  <path d="M100 22 C 106 30, 106 38, 100 44 C 94 38, 94 30, 100 22 Z" fill="#9c86d8"/>
+  <ellipse cx="100" cy="98" rx="30" ry="18" fill="#a9db97"/>
+  <circle cx="91" cy="96" r="2.6" fill="#3e7a3a"/><circle cx="109" cy="96" r="2.6" fill="#3e7a3a"/>
+  <path d="M92 108 Q100 114 108 108" stroke="#2f4f2c" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="78" cy="72" rx="11" ry="13" fill="#1f2a1f"/><ellipse cx="122" cy="72" rx="11" ry="13" fill="#1f2a1f"/>
+  <circle cx="82" cy="67" r="4" fill="#fff"/><circle cx="126" cy="67" r="4" fill="#fff"/>
+  <circle cx="78" cy="72" r="17" fill="none" stroke="#3b3b44" stroke-width="3.5"/><circle cx="122" cy="72" r="17" fill="none" stroke="#3b3b44" stroke-width="3.5"/>
+  <path d="M95 72 H105" stroke="#3b3b44" stroke-width="3.5"/>
+  <ellipse cx="64" cy="92" rx="8" ry="5" fill="#ff9aa8" opacity=".8"/><ellipse cx="136" cy="92" rx="8" ry="5" fill="#ff9aa8" opacity=".8"/>
+  <g transform="translate(150 70)"><path d="M0 40 L26 4" stroke="#6dbb6a" stroke-width="12" stroke-linecap="round"/></g>
+</g></svg></div>
+  </div>
+  <div class="band bot" style="background-image:url(img/desk.jpg)"></div>
+  <div class="pill">save for later and follow for more</div>
+</section>
+</body></html>
