@@ -108,3 +108,21 @@ Measured: about 3.3 sound hits per second, a sound bed that never goes quiet (on
 Do NOT open with a 1-2 s flash-forward "hook" + rewind glitch: it makes the video worse. Start straight in the story's
 flow (frame 1 is the story's first moment); the FIRST TEXT CARD is the hook line. The ending still loops: tape-stop, then
 a short rewind glitch that lands exactly on frame 1.
+
+## 7. Story mode: narrated mini-thrillers (owner's reference, Nov 2026)
+
+Learned from the "Every woman on earth died overnight, except you" reel (full breakdown: `references/story-mode-last-woman.md`).
+Use it for narrated story / "what if" videos. It replaces section 6's beat-and-counter rules for these videos only.
+
+- **Hook in 3 lines, under 11 s:** impossible premise + "you" ("...except you") -> a huge stake number -> a 5-word threat.
+- **Then give "you" a name** and follow that character. Structure the middle as **numbered chapters** ("Rule 1 / 2 / 3",
+  "Step 1"), then escalate (a chase), escape, **false safety**, and a **twist that flips the premise**. End on an
+  unanswered question + an ominous final image (comment bait; the last frame flows back to the first).
+- **Write in fragments**, 1-4 words, present tense, only things you can see ("Cut the hair. Oversize jacket. Cap. Hood.").
+  One sentence = one shot. ~2 words/s: a slow, calm, low male narrator (`en-US-ChristopherNeural` or Andrew at -4..0 %).
+- **A new shot every 1-2 s.** Close-up inserts of hands/objects for every verb. Time-jump cards (a DAY 1 -> 3 -> 7 calendar
+  flip). A persistent HUD: top tag "DAY 1 · 08:12 · PLACE" + a checklist of chapters done.
+- **Captions build word by word** as spoken (big, bold, lower-middle, max 2 lines; red danger / gold key / green safe).
+- **Sound: no beat.** A low cinematic drone/pad ~11 dB under the voice, never silent; literal foley for every action; a
+  whoosh/hit on key words (~1.5 hits/s); the chase builds; the last 10 s get quieter before the final question.
+  Mean about -17 dBFS.

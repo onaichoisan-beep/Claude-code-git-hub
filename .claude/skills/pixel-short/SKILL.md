@@ -26,6 +26,14 @@ Handle `@SCROLL2STUDY.IN` on every frame (engine does it), an 8-bit beat bed tha
 counter tick / cut (3+ hits per second), the main object as a character with a face, a live counter on screen the whole time,
 one continuous camera journey, a call to action inside the video, and a perfect loop. Text-only (no narration) is the default.
 
+## Story mode (narrated mini-thrillers): STYLE_GUIDE.md section 7
+
+For narrated story / "what if" videos follow section 7 (learned from the owner's "every woman died, except you" reference,
+`references/story-mode-last-woman.md`): 3-line hook with "you" + a huge number + a threat; a named character; numbered
+chapters (Rule 1/2/3); chase -> escape -> false safety -> premise-flipping twist -> unanswered question; fragment sentences
+at ~2 words/s with a calm low narrator; a new shot every 1-2 s with hand/object inserts; DAY calendar cards + a HUD
+checklist; captions that build word by word; NO beat: a low drone + literal foley + hits on key words, quieter at the end.
+
 ## The look: SHARP HD pixel art (owner's rule, Oct 2026; full rules in /STYLE_GUIDE.md)
 
 - 9:16, **1080×1920 @ 30fps**. Scenes are written in a **180×320 world**, rendered **sharp at 360×640**
