@@ -1,0 +1,13 @@
+[
+  ["narrator", "One crore rupees right now, or one rupee that doubles every day for thirty days?"],
+  ["you", "One crore! Obviously."],
+  ["narrator", "Day one, one rupee. Day two, two. Day five, sixteen rupees."],
+  ["you", "Ha! Told you."],
+  ["narrator", "Day ten: five hundred and twelve rupees. Not even a pizza."],
+  ["narrator", "Day twenty: five lakh. Still losing."],
+  ["you", "Wait... it's speeding up."],
+  ["narrator", "Day twenty-five: one crore sixty-seven lakh. You just lost."],
+  ["narrator", "Day thirty: fifty-three crore, sixty-eight lakh rupees."],
+  ["uncle", "Should have picked the rupee, beta."],
+  ["narrator", "That's the power of doubling. Comment which one you'd pick."]
+]

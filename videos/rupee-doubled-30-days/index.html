@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>₹1 Crore or ₹1 Doubled for 30 Days?</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "₹1 crore now, or ₹1 doubled every day for 30 days?" — narrated (owner's request, like the ancestors hit), YOU + the uncle,
+      the golden night look of the ancestors video, a DAY / ₹ counter at the top, coins clink on every day.
+      Maths: day n = 2^(n-1) rupees -> day 10 ₹512, day 20 ₹5,24,288, day 25 ₹1,67,77,216, day 30 ₹53,68,70,912.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="36.4" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="36.4" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="36.4" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      FONT["₹"] = "11111000101111100010111000011000011";
+      var T = window.BEATS || {}, MOUTH = window.MOUTH || {};
+      var DAYK = T.DAYK || [[0, 0]];
+      var C = {
+        sky1: "#0a0820", sky2: "#1a1240", sky3: "#3a1e4a", star: "#fff6d8",
+        gold: "#ffc83a", goldL: "#fff0a0", goldD: "#c8841a", amber: "#ff9a2a", red: "#ff3a4a", pink: "#ff5ab8", green: "#3ae86a", cyan: "#4ae0ff",
+        coin: "#ffd040", coinD: "#c8901a", coinL: "#fff4b0", note: "#c8a0e0", noteD: "#8a68a8", noteL: "#f0e0ff", band: "#ffffff",
+        bag: "#d8a050", bagD: "#9a6a2a", bagL: "#f0c880", rope: "#6a3a1a",
+        city: "#241a40", cityL: "#ffd860", cloud: "#5a4a7a", cloudL: "#8a7aa8", plane: "#e0e0f0",
+        skin: "#f0b88a", skinD: "#c88a5a", skinL: "#ffd8b0", hair: "#2a1a14", hairL: "#5a3a28",
+        hoodie: "#ff6a3a", hoodieD: "#c8401a", jeans: "#3a5ab8", jeansD: "#24387a", shoe: "#f4f4f4", shoeD: "#a8a8b8",
+        u_skin: "#c8865a", u_skinD: "#9a5e3a", kurta: "#f4f0e0", kurtaD: "#c8c0a8", grey: "#d8d8e0", greyD: "#9a9aa8", glass: "#2a2a3a",
+        white: "#ffffff", ink: "#0a0614", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+
+      function talk(who, t) { var s = MOUTH[who] || "", f = Math.floor(t * 30); return f >= 0 && f < s.length ? +s[f] / 9 : 0; }
+      function day(t) {
+        for (var i = 0; i < DAYK.length - 1; i++) { var a = DAYK[i], b = DAYK[i + 1]; if (t < b[0]) return b[1] - a[1] <= 1 ? a[1] : a[1] + (b[1] - a[1]) * (t - a[0]) / (b[0] - a[0]); }
+        return 30;
+      }
+      function amountAt(t) { var d = Math.floor(day(t) + 1e-6); return d <= 0 ? 0 : Math.pow(2, d - 1); }
+      function amountSmooth(t) { var d = day(t); return d < 1 ? 0 : Math.pow(2, d - 1); }
+      function inr(n) { var s = String(Math.round(n)); if (s.length <= 3) return s; var last = s.slice(-3), rest = s.slice(0, -3), o = ""; while (rest.length > 2) { o = "," + rest.slice(-2) + o; rest = rest.slice(0, -2); } return rest + o + "," + last; }
+
+      // ============================================================ characters (character() adds the outline)
+      function limb(x1, y1, x2, y2, x3, y3, w, col, colD) {
+        line(x1, y1, x2, y2, w, colD); line(x2, y2, x3, y3, w, colD);
+        line(x1 - 0.4, y1 - 0.4, x2 - 0.4, y2 - 0.4, w - 1, col); line(x2 - 0.4, y2 - 0.4, x3 - 0.4, y3 - 0.4, w - 1, col);
+      }
+      // YOU (the ancestors kid): feet at (x, y), ~74*s tall. o: t, talk, look, mood (happy|puzzled|sad), arms (hug|up|shrug|wave)
+      function kid(x, y, s, o) {
+        var t = o.t || 0, bob = Math.sin(t * 2.4) * 0.5 + (o.jump || 0);
+        g.save(); g.translate(x, y - bob); g.scale(s * (o.look || 1), s);
+        limb(-3.5, -24, -3.5, -12, -3.5, -2, 5.5, C.jeans, C.jeansD); limb(3.5, -24, 3.5, -12, 3.5, -2, 5.5, C.jeans, C.jeansD);
+        ell(-3, -1.5, 4.2, 2.2, 0, C.shoeD); ell(-3.4, -2, 3.8, 1.8, 0, C.shoe); ell(4, -1.5, 4.2, 2.2, 0, C.shoeD); ell(3.6, -2, 3.8, 1.8, 0, C.shoe);
+        var ar = o.arms || "";
+        if (ar === "shrug" || ar === "up") { limb(-8, -42, -14, -40, -15, ar === "up" ? -56 : -46, 4.5, C.hoodie, C.hoodieD); disc(-15, ar === "up" ? -57 : -47, 2.2, C.skin); }
+        else { limb(-8, -42, -10, -32, -9, -23, 4.5, C.hoodie, C.hoodieD); disc(-9, -22.5, 2.2, C.skinD); }
+        rrect(-10, -46, 20, 24, 6, C.hoodieD); rrect(-9.5, -46, 18.5, 22.5, 6, C.hoodie);
+        rrect(-5.5, -34, 11, 6, 2, C.hoodieD); rect(-1.5, -45, 0.6, 8, C.white); rect(1, -45, 0.6, 7, C.white); rect(-10, -25, 20, 2.5, C.hoodieD);
+        if (ar === "shrug" || ar === "up") { limb(8, -42, 14, -40, 15, ar === "up" ? -56 : -46, 4.5, C.hoodie, C.hoodieD); disc(15, ar === "up" ? -57 : -47, 2.2, C.skin); }
+        else if (ar === "hug") { limb(8, -42, 14, -34, 6, -30, 4.5, C.hoodie, C.hoodieD); disc(5.5, -30, 2.2, C.skin); }
+        else if (ar === "wave") { var wa = Math.sin(t * 14) * 0.35; limb(8, -42, 14, -50, 15 + wa * 8, -60, 4.5, C.hoodie, C.hoodieD); disc(15.5 + wa * 8, -61, 2.4, C.skin); }
+        else { limb(8, -42, 10, -32, 9, -23, 4.5, C.hoodie, C.hoodieD); disc(9, -22.5, 2.2, C.skin); }
+        rect(-2.5, -50, 5, 5, C.skinD);
+        disc(0, -58, 10.5, C.skin); ell(-2.5, -61, 4, 3, -0.4, C.skinL);
+        disc(0, -63, 9.5, C.hair); disc(-6, -60, 5, C.hair); disc(7, -61, 4.5, C.hair); disc(5, -72, 4.6, C.hair); disc(4.4, -72.6, 2, C.hairL);
+        poly([[-9, -60], [-4, -66], [2, -62], [6, -66], [9, -59], [9, -64], [-9, -64]], C.hair);
+        var md = o.mood || "happy", big = md === "puzzled" ? 1.25 : 1;
+        ell(-4, -56.5, 2.2 * big, 2.8 * big, 0, C.white); ell(4, -56.5, 2.2 * big, 2.8 * big, 0, C.white);
+        ell(-3.6, -56.2, 1.4, 2, 0, C.ink); ell(4.4, -56.2, 1.4, 2, 0, C.ink); rect(-4.4, -57.8, 0.8, 0.8, C.white); rect(3.6, -57.8, 0.8, 0.8, C.white);
+        if (md === "sad") { line(-6, -61.5, -2.5, -62.5, 0.8, C.hair); line(2.5, -62.5, 6, -61.5, 0.8, C.hair); ell(-6.5, -53, 0.8, 1.6, 0, C.cyan); }
+        else if (md === "puzzled") { line(-6, -62, -2.5, -61, 0.8, C.hair); line(2.5, -62.5, 6, -63.5, 0.8, C.hair); }
+        else { line(-6, -60.5, -2.5, -61, 0.8, C.hair); line(2.5, -61, 6, -60.5, 0.8, C.hair); }
+        disc(-7, -53.5, 1.6, C.pink); disc(7, -53.5, 1.6, C.pink);
+        var k = o.talk || 0;
+        if (k > 0.12) { ell(0.5, -51.8, 2.2, 0.6 + 1.8 * k, 0, C.hoodieD); rect(-1, -52.6 - 0.9 * k, 3, 0.7, C.white); }
+        else { g.strokeStyle = C.skinD; g.lineWidth = 0.8; g.beginPath(); if (md === "sad") g.arc(0.5, -50.5, 2.2, Math.PI + 0.3, -0.3); else g.arc(0.5, -53, 2.2, 0.3, Math.PI - 0.3); g.stroke(); }
+        g.restore();
+      }
+      // the uncle: feet at (x, y), ~90*s tall. Kurta, glasses, a big moustache, grey hair
+      function uncle(x, y, s, t, k, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s * (o.look || 1), s);
+        limb(-4, -30, -4, -14, -4, -2, 6, C.kurtaD, C.greyD); limb(4, -30, 4, -14, 4, -2, 6, C.kurtaD, C.greyD);
+        ell(-4, -1.5, 4.6, 2.2, 0, C.ink); ell(4, -1.5, 4.6, 2.2, 0, C.ink);
+        poly([[-13, -26], [13, -26], [11, -62], [-11, -62]], C.kurtaD); poly([[-12, -27], [12, -27], [10, -61], [-10, -61]], C.kurta);
+        ell(0, -40, 13, 12, 0, C.kurta); for (var bt = 0; bt < 3; bt++) disc(0, -58 + bt * 5, 0.9, C.goldD);
+        limb(-10, -58, -15, -44, -12, -34, 5, C.kurta, C.kurtaD); disc(-12, -33.5, 2.6, C.u_skin);
+        var wag = o.wag ? Math.sin(t * 9) * 3 : 0;
+        if (o.wag) { limb(10, -58, 17, -64, 18 + wag, -74, 5, C.kurta, C.kurtaD); disc(18 + wag, -75, 2.6, C.u_skin); line(18 + wag, -77, 18 + wag, -81, 1.4, C.u_skin); }
+        else { limb(10, -58, 15, -44, 12, -34, 5, C.kurta, C.kurtaD); disc(12, -33.5, 2.6, C.u_skin); }
+        rect(-3, -66, 6, 5, C.u_skinD);
+        disc(0, -75, 11.5, C.u_skin); ell(-3, -79, 4, 3, -0.3, C.skinL);
+        ell(0, -85, 10, 4.5, 0, C.grey); disc(-10, -78, 3, C.grey); disc(10, -78, 3, C.grey);
+        g.strokeStyle = C.glass; g.lineWidth = 1; g.beginPath(); g.arc(-4.5, -76, 3.4, 0, 6.28); g.stroke(); g.beginPath(); g.arc(4.5, -76, 3.4, 0, 6.28); g.stroke(); line(-1.1, -76, 1.1, -76, 0.8, C.glass);
+        disc(-4.5, -76, 1.3, C.ink); disc(4.5, -76, 1.3, C.ink);
+        line(-7, -81, -2, -80.5, 1, C.greyD); line(2, -80.5, 7, -81, 1, C.greyD);
+        ell(0, -73, 1.4, 1.8, 0, C.u_skinD);
+        if (k > 0.12) ell(0, -67.5, 2.6, 0.5 + 2 * k, 0, C.ink);
+        ell(-3.6, -70, 4.4, 1.8, 0.25, C.ink); ell(3.6, -70, 4.4, 1.8, -0.25, C.ink);
+        g.restore();
+      }
+      // the ₹1 crore bag
+      function bag(x, y, s) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        ell(0, -16, 17, 17, 0, C.bagD); ell(-0.5, -17, 16, 16, 0, C.bag); ell(-5, -22, 5, 6, -0.4, C.bagL);
+        poly([[-6, -32], [6, -32], [9, -40], [-9, -40]], C.bag); rect(-7, -34, 14, 2.5, C.rope);
+        worldText("₹1CR", 0, -20, 1, C.rope);
+        g.restore();
+      }
+      function coin(x, y, r) { disc(x, y + 0.6, r, C.coinD); disc(x, y, r, C.coin); disc(x - r * 0.3, y - r * 0.3, r * 0.35, C.coinL); }
+      // the doubling pile: coins -> a heap -> a tower of note bundles (1 crore = 40 world px tall, the height of the bag)
+      function pile(x, y, A, t) {
+        if (A <= 0) return;
+        if (A <= 16) {
+          var n = 0;
+          for (var row = 0; n < A && row < 8; row++) for (var c = 0; c <= Math.max(1, 5 - row) && n < A; c++, n++) coin(x - Math.max(1, 5 - row) * 3 + c * 6, y - 3 - row * 5, 3);
+          return;
+        }
+        var r = Math.min(20, 4 + 2 * Math.log(A) / Math.log(2));
+        ell(x, y - 1, r, r * 0.45, 0, C.coinD); ell(x, y - 2, r - 1, r * 0.42, 0, C.coin);
+        for (var k = 0; k < 10; k++) coin(x + (hash1(k * 3.1) - 0.5) * r * 1.4, y - 2 - hash1(k * 5.3) * r * 0.35, 2.2);
+        var H = 40 * A / 1e7;
+        if (A > 2000) { var nb = Math.min(6, Math.floor(Math.log(A / 2000) / Math.log(4)) + 1); for (var b2 = 0; b2 < nb; b2++) { var bx = x - 8 + (b2 % 3) * 7, by = y - 6 - Math.floor(b2 / 3) * 4; rect(bx - 3, by - 2, 7, 4, C.noteD); rect(bx - 3, by - 2.5, 7, 3.5, C.note); rect(bx, by - 2.5, 1, 3.5, C.band); } }
+        if (H > 3) {
+          var w = 22, top = y - 6 - H;
+          rect(x - w / 2 - 1, top, w + 2, H + 2, C.noteD); rect(x - w / 2, top, w, H, C.note);
+          var stripe = 4; for (var sy = Math.max(top, -2600); sy < y - 6; sy += stripe) { rect(x - w / 2, sy, w, 0.6, C.noteD); }
+          for (var sy2 = Math.max(top, -2600); sy2 < y - 6; sy2 += 12) rect(x - 1, sy2, 2, 12, C.band);
+          lighter(); glow(x, top, 30, C.goldL, 0.5); normalBlend();
+        }
+      }
+      function towerTop(t) { var A = amountSmooth(t); return 300 - 6 - 40 * A / 1e7; }
+
+      // ============================================================ the world: golden night, a city skyline, clouds high up
+      function night(t, cam) {
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.sky1], [0.65, C.sky2], [1, C.sky3]]); g.fillRect(0, 0, W, H);
+        for (var i = 0; i < 70; i++) { var x = hash1(i * 3.3) * 180, y = hash1(i * 5.1 + 2) * 320, tw = 0.35 + 0.65 * Math.abs(Math.sin(t * (1 + hash1(i)) + i)); g.globalAlpha = tw; rect(Math.round(x), Math.round(y), i % 7 ? 0.5 : 1, i % 7 ? 0.5 : 1, C.star); }
+        g.globalAlpha = 1;
+      }
+      function ground(t) {
+        for (var b = 0; b < 12; b++) { var bx = -60 + b * 26, bh = 30 + hash1(b * 7.1) * 50; rect(bx, 300 - bh, 22, bh, C.city); for (var wy = 0; wy < bh - 6; wy += 7) for (var wx = 0; wx < 3; wx++) if (hash1(b * 13 + wy + wx * 3.3) > 0.55) rect(bx + 3 + wx * 6, 300 - bh + 4 + wy, 2.4, 3, C.cityL); }
+        rect(-200, 300, 600, 60, "#1a1230"); rect(-200, 300, 600, 1.5, C.goldD);
+        // high up: clouds, a plane, a satellite-ish twinkle
+        for (var c = 0; c < 8; c++) { var cx = -40 + c * 34 + Math.sin(t * 0.3 + c) * 6, cy = -420 - (c % 3) * 160; ell(cx, cy, 22, 7, 0, C.cloud); ell(cx + 8, cy - 4, 14, 6, 0, C.cloudL); }
+        var px = 200 - ((t * 30) % 320), py = -1100; poly([[px, py], [px + 18, py - 2], [px + 18, py + 2]], C.plane); poly([[px + 8, py], [px + 12, py - 8], [px + 14, py]], C.plane); poly([[px + 8, py], [px + 12, py + 8], [px + 14, py]], C.plane);
+        worldText("CLOUDS", 40, -440, 1, C.cloudL); worldText("PLANES", 40, -1130, 1, C.plane);
+      }
+
+      // ============================================================ scene: the choice, the doubling, the tower
+      function scene_money(t) {
+        var tt = tapeT(t, T);
+        var keys = [[0, 90, 214, 1.5], [1.9, 90, 212, 1.4], [T.D1, 92, 211, 1.35], [T.D20, 92, 211, 1.35], [T.BREAK, 100, 206, 1.25], [T.LOST + 0.2, 98, 200, 1.0], [T.D30, 98, 200, 0.95]];
+        var cam = camAt(keys, tt);
+        if (tt > T.D30) {
+          var top = towerTop(tt), u = ease(clamp01((tt - T.D30) / (T.BIG + 0.8 - T.D30)));
+          cam = { x: lerp(98, 128, u), y: lerp(200, Math.max(top + 60, -2400), u), z: lerp(0.95, 0.8, u) };
+        }
+        shake(cam, tt, T.HIT, 8, 0.5); shake(cam, tt, T.BIG, 8, 0.6);
+        night(tt, cam);
+        setCam(cam, 1);
+        ground(tt);
+        lighter(); glow(90, 280, 70, C.amber, 0.3); normalBlend();
+        var A = amountSmooth(tt);
+        // the crore bag (left) and the doubling pile (right)
+        bag(46, 301, 1.1);
+        pile(140, 301, Math.floor(A), tt);
+        // the very first coin glints before day 1
+        if (tt < T.D1) { var cp = Math.min(1.2, pop(tt, T.COIN - 0.05)); if (cp > 0) { coin(140, 290, 5 * cp); lighter(); glow(140, 290, 16, C.goldL, 0.6 * cp); normalBlend(); worldText("₹1", 140, 276, 1, C.goldL); } }
+        else worldText("₹" + inr(amountAt(tt)), 140, 309, 1, C.goldL);
+        worldText("₹1 CRORE", 46, 309, 1, C.goldL);
+        // the top of the tower: its flag
+        if (tt > T.HIT - 0.1) { var tp = towerTop(tt); worldText("₹" + inr(amountAt(tt)), 140, tp - 12, 1, C.green); }
+        // YOU, between them
+        var hugging = tt > T.YOU1 + 0.2;
+        var kx = hugging ? lerp(90, 66, ease(clamp01((tt - T.YOU1 - 0.2) / 0.4))) : 90;
+        var md = tt > T.WAIT - 0.1 && tt < T.HIT ? "puzzled" : tt > T.LOST - 0.1 ? "sad" : "happy";
+        var ar = tt > T.HA && tt < T.HA + 1.3 ? "shrug" : hugging ? "hug" : "";
+        character(function () { kid(kx, 301, 1.0, { t: tt, talk: talk("you", tt), mood: md, arms: ar, look: hugging && tt < T.HIT ? -1 : 1, jump: tt > T.HA && tt < T.HA + 0.5 ? Math.abs(Math.sin((tt - T.HA) * 12)) * 3 : 0 }); });
+        if (tt > T.YOU1 + 0.3 && tt < T.D1 - 0.1) bubble(kx + 30, 236, "MINE!", C.ink);
+        if (tt > T.PIZZA + 0.1 && tt < T.D20) bubble(140, 262, "₹512", C.red);
+        if (tt > T.LOST && tt < T.D30) bubble(kx + 32, 236, "NOOO...", C.red);
+        vignette(0.35, "rgba(10,6,30,");
+      }
+
+      // ============================================================ scene: the uncle's verdict + CTA
+      function scene_uncle(t) {
+        var tt = tapeT(t, T);
+        var cam = camAt([[T.UNCLE - 0.2, 88, 190, 1.3], [T.CTA, 88, 192, 1.32], [T.STOP, 88, 194, 1.36]], tt);
+        night(tt, cam);
+        setCam(cam, 1);
+        ground(tt);
+        // the giant tower behind them
+        rect(132, -400, 30, 700, C.noteD); rect(134, -400, 26, 700, C.note); for (var sy = -400; sy < 300; sy += 12) rect(146, sy, 2, 12, C.band);
+        lighter(); glow(147, 200, 60, C.goldL, 0.25); normalBlend();
+        character(function () {
+          kid(56, 301, 1.0, { t: tt, mood: tt > T.CTA ? "happy" : "sad", arms: tt > T.CTA ? "wave" : "hug", look: 1 });
+          uncle(116, 301, 1.05, tt, talk("uncle", tt), { wag: tt > T.UNCLE && tt < T.CTA, look: -1 });
+        });
+        bag(62, 302, 0.7);
+        // CTA: a bouncing comment icon
+        if (tt > T.CTA) { var bb = Math.abs(Math.sin(tt * 5)) * 3; rrect(76, 226 - bb, 24, 15, 3, C.white); poly([[81, 240 - bb], [87, 240 - bb], [80, 245 - bb]], C.white); worldText("1/2", 88, 229.5 - bb, 1, C.ink); }
+        vignette(0.35, "rgba(10,6,30,");
+      }
+
+      function sceneAt(t) { return t < T.UNCLE ? "money" : t < T.REWIND ? "uncle" : "money"; }
+
+      function drawUI(t) {
+        var d = Math.floor(day(t) + 1e-6), l1, l2 = "", c1 = C.gold, c2 = C.white, S1 = 3;
+        if (t < T.D1 || t >= T.REWIND) { l1 = "₹1 CRORE OR ₹1?"; S1 = 2; c1 = Math.floor(t * 3) % 2 ? C.gold : C.white; l2 = "DAY 0"; }
+        else if (t < T.BREAK || t >= T.HIT) {
+          l1 = "DAY " + d; var A = amountAt(t); l2 = "₹" + inr(A); c2 = A >= 1e7 ? C.green : C.red;
+          if (t >= T.UNCLE) { l1 = "₹1 CR  VS  ₹53.68 CR"; S1 = 2; c1 = C.gold; l2 = "DOUBLING WINS"; c2 = C.green; }
+        } else { l1 = ""; }
+        if (l1) counterLines(l1, c1, S1, l2, c2);
+      }
+
+      KIT.start(C, T, {
+        scenes: { money: scene_money, uncle: scene_uncle }, sceneAt: sceneAt, ui: drawUI, hitCol: "#fff0a0",
+        cuts: [[T.UNCLE, "money", "uncle"]],
+      });
+    </script>
+  </body>
+</html>

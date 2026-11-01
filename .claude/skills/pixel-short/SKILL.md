@@ -57,7 +57,9 @@ one continuous camera journey, a call to action inside the video, and a perfect 
 
 ## Voice: NO narration (owner's rule, Oct 31 2026: "don't add narration")
 
-**Never add narration unless the owner explicitly asks for it.** Every video is text cards (3-6 words, gold keyword, a new
+**Never add narration unless the owner explicitly asks for it.** (The owner DID ask for narration + characters on the
+doubling series — `how-many-ancestors` hit 30k+ views vs their usual 200-1,500: personal "you" question + doubling counter +
+paradox + comment bait + a warm twist. For that series, narrate like `how-many-ancestors` / `rupee-doubled-30-days`.) Every video is text cards (3-6 words, gold keyword, a new
 one every ~2 s) + speech bubbles for the characters + the 8-bit bed and sound effects (see `videos/zombie-ant-fungus`,
 `videos/tongue-eating-louse`: `CT.write_captions` + `short-kit.js`). The rest of this section applies only when narration
 is requested.

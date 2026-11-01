@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>How Many Humans Have EVER Lived?</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "How many humans have EVER lived?" — Part 2 of the ancestors hit: same golden night look, same narrator, YOU and the
+      ancestor. Facts: PRB (Kaneda & Haub, 2022 update): ~117 billion humans ever born since ~190,000 BCE; ~8 billion alive
+      -> ~7%; (117 - 8) / 8 ≈ 14 dead for every person alive. Grid: 117 figures = 1 billion each, 8 gold (alive).
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="43.1" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="43.1" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="43.1" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {}, MOUTH = window.MOUTH || {};
+      var BIRTHS = T.BIRTHS || [];
+      var C = {
+        sky1: "#0a0820", sky2: "#1a1240", sky3: "#3a1e4a", star: "#fff6d8",
+        gold: "#ffc83a", goldL: "#fff0a0", goldD: "#c8841a", amber: "#ff9a2a", red: "#ff3a4a", pink: "#ff5ab8", green: "#3ae86a", cyan: "#4ae0ff",
+        ghost: "#8ab8e8", ghostD: "#4a6a9a", ground: "#1a1230", grass: "#2a3a2a",
+        fire: "#ff7a2a", fireL: "#ffd860", stone: "#6a5a7a", stoneD: "#4a3e5a", wheat: "#e8c060", pyr: "#d8a860", pyrD: "#9a7038", castle: "#7a6a8a", castleD: "#5a4a6a", city: "#241a40", cityL: "#ffd860",
+        skin: "#f0b88a", skinD: "#c88a5a", skinL: "#ffd8b0", hair: "#2a1a14", hairL: "#5a3a28",
+        hoodie: "#ff6a3a", hoodieD: "#c8401a", jeans: "#3a5ab8", jeansD: "#24387a", shoe: "#f4f4f4", shoeD: "#a8a8b8",
+        robe: "#e8e0c8", robeD: "#b8a888", sash: "#c83a3a", beard: "#f4f4f4", beardD: "#c8c8d8", staff: "#8a5a2a",
+        hide: "#a8784a", hideD: "#7a5030", crown: "#ffd23a",
+        white: "#ffffff", ink: "#0a0614", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+
+      function talk(who, t) { var s = MOUTH[who] || "", f = Math.floor(t * 30); return f >= 0 && f < s.length ? +s[f] / 9 : 0; }
+      function commas(n) { var s = String(Math.round(n)), o = ""; while (s.length > 3) { o = "," + s.slice(-3) + o; s = s.slice(0, -3); } return s + o; }
+
+      // ============================================================ characters
+      function limb(x1, y1, x2, y2, x3, y3, w, col, colD) {
+        line(x1, y1, x2, y2, w, colD); line(x2, y2, x3, y3, w, colD);
+        line(x1 - 0.4, y1 - 0.4, x2 - 0.4, y2 - 0.4, w - 1, col); line(x2 - 0.4, y2 - 0.4, x3 - 0.4, y3 - 0.4, w - 1, col);
+      }
+      function kid(x, y, s, o) {
+        var t = o.t || 0, bob = Math.sin(t * 2.4) * 0.5;
+        g.save(); g.translate(x, y - bob); g.scale(s * (o.look || 1), s);
+        limb(-3.5, -24, -3.5, -12, -3.5, -2, 5.5, C.jeans, C.jeansD); limb(3.5, -24, 3.5, -12, 3.5, -2, 5.5, C.jeans, C.jeansD);
+        ell(-3, -1.5, 4.2, 2.2, 0, C.shoeD); ell(-3.4, -2, 3.8, 1.8, 0, C.shoe); ell(4, -1.5, 4.2, 2.2, 0, C.shoeD); ell(3.6, -2, 3.8, 1.8, 0, C.shoe);
+        var ar = o.arms || "";
+        if (ar === "shrug") { limb(-8, -42, -14, -40, -15, -46, 4.5, C.hoodie, C.hoodieD); disc(-15, -47, 2.2, C.skin); } else { limb(-8, -42, -10, -32, -9, -23, 4.5, C.hoodie, C.hoodieD); disc(-9, -22.5, 2.2, C.skinD); }
+        rrect(-10, -46, 20, 24, 6, C.hoodieD); rrect(-9.5, -46, 18.5, 22.5, 6, C.hoodie);
+        rrect(-5.5, -34, 11, 6, 2, C.hoodieD); rect(-1.5, -45, 0.6, 8, C.white); rect(1, -45, 0.6, 7, C.white); rect(-10, -25, 20, 2.5, C.hoodieD);
+        if (ar === "shrug") { limb(8, -42, 14, -40, 15, -46, 4.5, C.hoodie, C.hoodieD); disc(15, -47, 2.2, C.skin); }
+        else if (ar === "wave") { var wa = Math.sin(t * 14) * 0.35; limb(8, -42, 14, -50, 15 + wa * 8, -60, 4.5, C.hoodie, C.hoodieD); disc(15.5 + wa * 8, -61, 2.4, C.skin); }
+        else { limb(8, -42, 10, -32, 9, -23, 4.5, C.hoodie, C.hoodieD); disc(9, -22.5, 2.2, C.skin); }
+        rect(-2.5, -50, 5, 5, C.skinD);
+        disc(0, -58, 10.5, C.skin); ell(-2.5, -61, 4, 3, -0.4, C.skinL);
+        disc(0, -63, 9.5, C.hair); disc(-6, -60, 5, C.hair); disc(7, -61, 4.5, C.hair); disc(5, -72, 4.6, C.hair); disc(4.4, -72.6, 2, C.hairL);
+        poly([[-9, -60], [-4, -66], [2, -62], [6, -66], [9, -59], [9, -64], [-9, -64]], C.hair);
+        var big = o.puzzled ? 1.25 : 1;
+        ell(-4, -56.5, 2.2 * big, 2.8 * big, 0, C.white); ell(4, -56.5, 2.2 * big, 2.8 * big, 0, C.white);
+        ell(-3.6, -56.2, 1.4, 2, 0, C.ink); ell(4.4, -56.2, 1.4, 2, 0, C.ink); rect(-4.4, -57.8, 0.8, 0.8, C.white); rect(3.6, -57.8, 0.8, 0.8, C.white);
+        if (o.puzzled) { line(-6, -62, -2.5, -61, 0.8, C.hair); line(2.5, -62.5, 6, -63.5, 0.8, C.hair); } else { line(-6, -60.5, -2.5, -61, 0.8, C.hair); line(2.5, -61, 6, -60.5, 0.8, C.hair); }
+        disc(-7, -53.5, 1.6, C.pink); disc(7, -53.5, 1.6, C.pink);
+        var k = o.talk || 0;
+        if (k > 0.12) { ell(0.5, -51.8, 2.2, 0.6 + 1.8 * k, 0, C.hoodieD); rect(-1, -52.6 - 0.9 * k, 3, 0.7, C.white); }
+        else { g.strokeStyle = C.skinD; g.lineWidth = 0.8; g.beginPath(); g.arc(0.5, -53, 2.2, 0.3, Math.PI - 0.3); g.stroke(); }
+        g.restore();
+      }
+      // the ancestor from the ancestors video
+      function elder(x, y, s, t, k) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        line(16, -2, 18, -96, 2.6, C.staff); disc(18, -97, 3, C.goldL);
+        poly([[-12, -2], [12, -2], [8, -60], [-8, -60]], C.robeD); poly([[-11, -3], [10, -3], [7, -59], [-7, -59]], C.robe);
+        rect(-8, -40, 16, 4, C.sash);
+        limb(-8, -56, -12, -40, -6, -32, 5, C.robe, C.robeD); disc(-6, -31.5, 2.4, C.skin);
+        limb(8, -56, 14, -46, 17, -52, 5, C.robe, C.robeD); disc(17, -53, 2.6, C.skin);
+        rect(-3, -64, 6, 6, C.skinD);
+        disc(0, -73, 11.5, C.beard); ell(0, -82, 10, 4, 0, C.beard);
+        poly([[-10.5, -68], [10.5, -68], [8, -54], [0, -46], [-8, -54]], C.beard); poly([[-5, -56], [5, -56], [0, -48]], C.beardD);
+        ell(0, -72.5, 8.6, 9, 0, C.skin); ell(-2.5, -76, 3.5, 2.6, -0.3, C.skinL);
+        line(-7, -78.5, -2, -77.8, 1.4, C.beard); line(2, -77.8, 7, -78.5, 1.4, C.beard);
+        ell(-3.6, -74, 1.5, 1.8, 0, C.ink); ell(3.6, -74, 1.5, 1.8, 0, C.ink); rect(-4.2, -75.2, 0.7, 0.7, C.white); rect(3, -75.2, 0.7, 0.7, C.white);
+        disc(-6.2, -70.5, 1.6, C.pink); disc(6.2, -70.5, 1.6, C.pink); ell(0, -71.5, 1.2, 1.6, 0, C.skinD);
+        if (k > 0.12) ell(0, -66, 2.6, 0.6 + 1.8 * k, 0, C.ink); else { g.strokeStyle = C.skinD; g.lineWidth = 0.8; g.beginPath(); g.arc(0, -67.5, 2.4, 0.3, Math.PI - 0.3); g.stroke(); }
+        ell(-2.6, -68.6, 3, 1.3, 0.15, C.beard); ell(2.6, -68.6, 3, 1.3, -0.15, C.beard);
+        rect(-10, -82.5, 20, 2.6, C.gold); disc(0, -81.5, 1.8, C.red);
+        g.restore();
+      }
+      // a little person (a figure on the timeline / in the grid): feet at (x, y), ~22*s tall
+      function person(x, y, s, col, colD, seed, t) {
+        var bob = Math.sin(t * 3 + seed) * 0.4;
+        g.save(); g.translate(x, y - bob); g.scale(s, s);
+        line(-2, -8, -2.5, 0, 2.2, colD); line(2, -8, 2.5, 0, 2.2, colD);
+        rrect(-4.5, -16, 9, 9, 3, col); line(-4, -14, -6.5, -8, 1.8, colD); line(4, -14, 6.5, -8, 1.8, colD);
+        disc(0, -19.5, 3.6, col); disc(-1.2, -19.8, 0.6, C.ink); disc(1.2, -19.8, 0.6, C.ink);
+        g.restore();
+      }
+
+      function night(t) {
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.sky1], [0.65, C.sky2], [1, C.sky3]]); g.fillRect(0, 0, W, H);
+        for (var i = 0; i < 70; i++) { var x = hash1(i * 3.3) * 180, y = hash1(i * 5.1 + 2) * 320, tw = 0.35 + 0.65 * Math.abs(Math.sin(t * (1 + hash1(i)) + i)); g.globalAlpha = tw; rect(Math.round(x), Math.round(y), i % 7 ? 0.5 : 1, i % 7 ? 0.5 : 1, C.star); }
+        g.globalAlpha = 1;
+      }
+      function crowdCol(i) { return [[C.gold, C.goldD], [C.cyan, "#2a8aa8"], [C.pink, "#a83a7a"], [C.green, "#2a8a4a"], [C.amber, "#a8601a"]][i % 5]; }
+
+      // ============================================================ scene: now — 8 billion alive (and the loop's frame 1)
+      function scene_now(t) {
+        var tt = tapeT(t, T);
+        var cam = camAt([[0, 90, 196, 1.35], [T.GUESS, 90, 194, 1.3], [T.COUNT, 90, 190, 1.2]], tt);
+        night(tt);
+        setCam(cam, 1);
+        rect(-100, 300, 400, 80, C.ground); rect(-100, 300, 400, 1.5, C.goldD);
+        lighter(); glow(90, 270, 80, C.amber, 0.3); normalBlend();
+        character(function () {
+          for (var i = 0; i < 12; i++) { if (i === 5 || i === 6) continue; var px = 4 + i * 15.5, pp = Math.min(1, pop(tt, 0.2 + i * 0.1)); if (pp <= 0) continue; var c = crowdCol(i); person(px, 301, 1.15 * pp, c[0], c[1], i, tt); }
+          kid(90, 302, 1.0, { t: tt, talk: talk("you", tt), puzzled: tt > T.GUESS, arms: tt > T.GUESS && tt < T.COUNT ? "shrug" : "" });
+        });
+        if (tt > T.GUESS + 0.1 && tt < T.COUNT) bubble(122, 238, "20 BILLION?", C.ink);
+        worldText("YOU", 90, 306, 1, C.goldL);
+        vignette(0.35, "rgba(10,6,30,");
+      }
+
+      // ============================================================ scene: the timeline — 200,000 years of births
+      var STATIONS = [[0, 200000, "200,000 YRS AGO"], [200, 40000, "40,000"], [380, 10000, "10,000"], [520, 4500, "4,500"], [640, 1000, "1,000"], [760, 0, "NOW"]];
+      function camX(t) { var u = clamp01((t - T.START) / (T.BREAK - T.START)); return 760 * Math.pow(u, 1.5); }
+      function yearsAgo(x) { for (var i = 0; i < STATIONS.length - 1; i++) { var a = STATIONS[i], b = STATIONS[i + 1]; if (x <= b[0]) return lerp(a[1], b[1], (x - a[0]) / (b[0] - a[0])); } return 0; }
+      function bornAt(t) { var u = clamp01((t - T.START) / (T.HIT - T.START)); return 117e9 * Math.pow(u, 3); }
+      function stationArt(i, x, t) {
+        if (i === 0) { for (var r = 0; r < 4; r++) line(x - 6 + r * 4, 300, x - 2 + r * 1.5, 292, 1.6, C.hideD); var fl = Math.sin(t * 12) * 1.2; poly([[x - 5, 296], [x + 5, 296], [x + fl, 282]], C.fire); poly([[x - 2.5, 296], [x + 2.5, 296], [x + fl * 0.5, 288]], C.fireL); lighter(); glow(x, 290, 30, C.fire, 0.6); normalBlend(); }
+        if (i === 1) { poly([[x - 26, 300], [x - 16, 250], [x + 16, 246], [x + 26, 300]], C.stoneD); ell(x, 292, 14, 14, 0, C.ink); worldText("HANDS", x, 258, 1, C.amber); }
+        if (i === 2) { for (var w = 0; w < 9; w++) { line(x - 22 + w * 5.5, 300, x - 21 + w * 5.5, 280, 1.2, C.wheat); ell(x - 21 + w * 5.5, 279, 1.2, 3, 0, C.wheat); } }
+        if (i === 3) { poly([[x - 36, 300], [x, 252], [x + 36, 300]], C.pyrD); poly([[x - 32, 300], [x, 256], [x + 28, 300]], C.pyr); }
+        if (i === 4) { rect(x - 24, 266, 48, 34, C.castleD); rect(x - 22, 268, 44, 32, C.castle); for (var c = 0; c < 6; c++) rect(x - 22 + c * 8, 262, 5, 6, C.castle); rect(x - 4, 286, 8, 14, C.ink); }
+        if (i === 5) { for (var b = 0; b < 6; b++) { var bh = 26 + hash1(b * 3) * 34, bx = x - 40 + b * 14; rect(bx, 300 - bh, 12, bh, C.city); for (var wy = 4; wy < bh - 4; wy += 6) rect(bx + 3, 300 - bh + wy, 2.4, 3, C.cityL); } }
+      }
+      function eraFigure(kind, x, s, t, t0) {
+        var p = Math.min(1.2, pop(t, t0)); if (p <= 0) return;
+        g.save(); g.translate(x, 301); g.scale(s * p, s * p);
+        var skin = kind === "king" ? C.skin : "#c8865a";
+        line(-3, -16, -3.5, 0, 3.4, C.hideD); line(3, -16, 3.5, 0, 3.4, C.hideD);
+        var body = kind === "hunter" ? C.hide : kind === "farmer" ? "#6a8a3a" : "#8a2ab8";
+        rrect(-7, -32, 14, 17, 4, body);
+        if (kind === "hunter") { line(9, -44, 11, 0, 1.4, C.staff); poly([[8, -48], [12, -48], [10, -54]], C.stone); }
+        if (kind === "farmer") { line(-10, -40, -9, 0, 1.4, C.staff); line(-12, -40, -6, -40, 1.6, C.stone); }
+        if (kind === "king") { poly([[-5, -44], [5, -44], [6, -50], [3, -47], [0, -51], [-3, -47], [-6, -50]], C.crown); }
+        disc(0, -38, 6, skin); disc(-2, -38.5, 0.9, C.ink); disc(2, -38.5, 0.9, C.ink);
+        g.restore();
+      }
+      function scene_road(t) {
+        var cx = camX(t), cam = { x: cx, y: 222, z: 1.25 };
+        if (t < T.START) { var u0 = ease(clamp01((t - T.COUNT) / (T.START - T.COUNT))); cam = { x: lerp(760, 0, u0), y: lerp(190, 222, u0), z: lerp(0.4, 1.25, u0) }; }
+        night(t);
+        setCam(cam, 1);
+        rect(-200, 300, 1300, 80, C.ground); rect(-200, 300, 1300, 1.5, C.goldD);
+        for (var s = 0; s < STATIONS.length; s++) { stationArt(s, STATIONS[s][0], t); worldText(STATIONS[s][2], STATIONS[s][0], 305, 1, s === 5 ? C.green : C.goldL); }
+        // everyone ever born pops onto the road where the camera was at that moment
+        character(function () {
+          for (var i = 0; i < BIRTHS.length; i++) {
+            var tb = BIRTHS[i]; if (t < tb) break;
+            var bx = camX(tb) + (hash1(i * 7.3) - 0.5) * 150, sc = Math.min(1, pop(t, tb)) * 0.75, c = crowdCol(i);
+            if (Math.abs(bx - cx) > 120) continue;
+            person(bx, 300 - hash1(i * 3.1) * 3, sc, c[0], c[1], i, t);
+          }
+        });
+        // the eras stamp in on the words
+        character(function () {
+          if (t > T.HUNT - 0.05) eraFigure("hunter", camX(T.HUNT) - 30, 1.2, t, T.HUNT);
+          if (t > T.FARM - 0.05) eraFigure("farmer", camX(T.FARM) + 6, 1.2, t, T.FARM);
+          if (t > T.KING - 0.05) eraFigure("king", camX(T.KING) + 36, 1.2, t, T.KING);
+        });
+        if (t > T.ANCS) { var a = clamp01((t - T.ANCS) / 0.3); lighter(); glow(cx, 270, 60, C.goldL, 0.4 * a); normalBlend(); }
+        vignette(0.35, "rgba(10,6,30,");
+      }
+
+      // ============================================================ scene: the grid — 117 figures, 1 billion each
+      var COLS = 13, ROWS = 9, GX0 = 90 - 6 * 13, GY0 = 196, CW = 13, CH = 13.5, YOU_I = 8 * 13 + 3;
+      function alive(i) { return i >= 104 && i < 112; }
+      function scene_grid(t) {
+        var tt = tapeT(t, T);
+        var you = { x: GX0 + 3 * CW, y: GY0 + 8 * CH };
+        var keys = [[T.HIT - 0.2, 90, 164, 1.0], [T.GONE, 90, 164, 1.0], [T.FOURTEEN - 0.2, 90, 164, 1.0], [T.FOURTEEN + 0.6, you.x + 10, you.y - 50, 1.7], [T.SEVEN - 0.3, you.x + 10, you.y - 50, 1.7], [T.SEVEN + 0.6, 90, 164, 1.0]];
+        var cam = camAt(keys, tt);
+        shake(cam, tt, T.HIT, 8, 0.5);
+        night(tt);
+        setCam(cam, 1);
+        var gone = clamp01((tt - T.GONE - 0.2) / 1.4);
+        // the 14 ghosts nearest YOU (for the 1 : 14 moment)
+        var near = []; for (var i = 0; i < 117; i++) if (!alive(i)) { var p0 = { x: GX0 + (i % COLS) * CW, y: GY0 + Math.floor(i / COLS) * CH }; near.push([Math.hypot(p0.x - you.x, (p0.y - you.y) * 1.3), i]); }
+        near.sort(function (a, b) { return a[0] - b[0]; }); var hl = {}; for (var n = 0; n < 14; n++) hl[near[n][1]] = 1;
+        var show14 = tt > T.FOURTEEN && tt < T.SEVEN;
+        for (var j = 0; j < 117; j++) {
+          var x = GX0 + (j % COLS) * CW, y = GY0 + Math.floor(j / COLS) * CH, pp = Math.min(1, pop(tt, T.HIT + hash1(j * 2.7) * 0.9));
+          if (pp <= 0) continue;
+          var al = alive(j);
+          if (al) { lighter(); if (tt > T.SEVEN) glow(x, y - 6, 12, C.goldL, 0.5); normalBlend(); character(function () { person(x, y, 0.55 * pp, C.gold, C.goldD, j, tt); }); }
+          else {
+            var lift = gone * 4 * (0.5 + hash1(j)), dim = show14 && !hl[j] ? 0.25 : 1;
+            g.globalAlpha = lerp(1, 0.55, gone) * dim;
+            if (gone < 0.5) character(function () { person(x, y - lift, 0.55 * pp, mix(C.gold, C.ghost, gone * 2), C.goldD, j, tt); });
+            else person(x, y - lift, 0.55 * pp, C.ghost, C.ghostD, j, tt);
+            g.globalAlpha = 1;
+            if (show14 && hl[j]) { g.strokeStyle = C.white; g.lineWidth = 0.4; g.beginPath(); g.arc(x, y - 6, 6, 0, 6.28); g.stroke(); }
+          }
+        }
+        // YOU marker
+        worldText("YOU", you.x, you.y + 3, 1, C.goldL);
+        if (tt > T.WHERE + 0.1 && tt < T.GONE) bubble(you.x + 26, you.y - 30, "WHERE?", C.red);
+        if (tt > T.SEVEN + 0.3) { worldText("7% ALIVE", GX0 + 7.5 * CW - 6, GY0 + 8 * CH + 4, 1, C.gold); }
+        vignette(0.35, "rgba(10,6,30,");
+      }
+
+      // ============================================================ scene: the ancestor returns
+      function scene_anc(t) {
+        var tt = tapeT(t, T);
+        var cam = camAt([[T.ANC - 0.2, 90, 190, 1.25], [T.CTA, 90, 192, 1.3], [T.STOP, 90, 194, 1.35]], tt);
+        night(tt);
+        setCam(cam, 1);
+        // a faint crowd of the 109 billion behind
+        for (var i = 0; i < 40; i++) { g.globalAlpha = 0.25 + 0.15 * Math.sin(tt * 2 + i); person(-10 + (i % 20) * 11, 250 + Math.floor(i / 20) * 14, 0.5, C.ghost, C.ghostD, i, tt); }
+        g.globalAlpha = 1;
+        rect(-100, 300, 400, 80, C.ground); rect(-100, 300, 400, 1.5, C.goldD);
+        lighter(); glow(60, 250, 70, C.goldL, 0.35); glow(120, 270, 50, C.amber, 0.3); normalBlend();
+        var pp = Math.min(1, pop(tt, T.ANC - 0.1));
+        character(function () { elder(60, 302, 1.0 * pp, tt, talk("ancestor", tt)); kid(124, 302, 1.0, { t: tt, look: -1, arms: tt > T.CTA ? "wave" : "" }); }, { col: "#0a0614" });
+        vignette(0.35, "rgba(10,6,30,");
+      }
+
+      function sceneAt(t) { return t < T.COUNT ? "now" : t < T.HIT ? "road" : t < T.ANC ? "grid" : t < T.REWIND ? "anc" : "now"; }
+
+      function drawUI(t) {
+        var l1, l2 = "", c1 = C.gold, c2 = C.white, S1 = 3;
+        if (t < T.COUNT || t >= T.REWIND) { l1 = "ALIVE NOW: ~8 BILLION"; S1 = 2; c1 = C.gold; l2 = "EVER LIVED: ???"; }
+        else if (t < T.START) { l1 = "REWINDING..."; S1 = 2; c1 = C.white; }
+        else if (t < T.HUNT) { l1 = commas(yearsAgo(camX(t))); l2 = "YEARS AGO"; }
+        else if (t < T.BREAK) { l1 = commas(bornAt(t)); l2 = "HUMANS EVER BORN"; c1 = C.gold; }
+        else if (t < T.HIT) { l1 = ""; }
+        else if (t < T.GONE) { l1 = "117,000,000,000"; c1 = Math.floor(t * 6) % 2 ? C.red : C.white; l2 = "HUMANS EVER BORN"; c2 = C.gold; }
+        else if (t < T.SEVEN) { l1 = "1 ALIVE : 14 GONE"; S1 = 2; c1 = C.gold; l2 = "~109 BILLION GONE"; c2 = C.cyan; }
+        else if (t < T.ANC) { l1 = "7%"; c1 = C.green; l2 = "OF ALL HUMANS EVER"; }
+        else { l1 = "YOU: 1 OF THE 7%"; S1 = 2; c1 = C.gold; l2 = "MAKE IT COUNT"; c2 = C.green; }
+        if (l1) counterLines(l1, c1, S1, l2, c2);
+      }
+
+      KIT.start(C, T, {
+        scenes: { now: scene_now, road: scene_road, grid: scene_grid, anc: scene_anc }, sceneAt: sceneAt, ui: drawUI, hitCol: "#fff0a0",
+        cuts: [[T.COUNT, "now", "road"], [T.ANC, "grid", "anc"]],
+      });
+    </script>
+  </body>
+</html>

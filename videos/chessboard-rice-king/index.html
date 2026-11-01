@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The King Who Lost to a Grain of Rice</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "The king who lost to a grain of rice" (the chessboard / wheat-and-chessboard legend, told in India about the
+      invention of chess) — narrated on request (narrator, king, sage), golden night look of the ancestors hit,
+      SQUARE / GRAINS counter at the top. Maths: square n holds 2^(n-1) grains; square 32 = 2,147,483,648 (~50 t at ~25 mg);
+      square 64 = 9,223,372,036,854,775,808; all 64 = 18,446,744,073,709,551,615.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="39.2" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="39.2" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="39.2" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {}, MOUTH = window.MOUTH || {};
+      var SQK = T.SQK || [[0, 0]];
+      var C = {
+        wall: "#2a1640", wallD: "#1a0e2a", arch: "#3a2058", pillar: "#c8902a", pillarL: "#ffd860", pillarD: "#8a5a1a", floor: "#4a2a3a", floorL: "#5a3a4a",
+        lamp: "#ffc83a", flame: "#ff9a2a",
+        sqL: "#f0dcb0", sqD: "#8a5a3a", rim: "#5a3418", rice: "#fff8e8", riceD: "#d8cfb8", sack: "#d8b878", sackD: "#9a7a48",
+        robe: "#8a2ab8", robeD: "#5a1a80", trim: "#ffc83a", crown: "#ffd23a", crownD: "#c8901a", jewel: "#ff3a5a",
+        saffron: "#ff9a2a", saffronD: "#c8641a", beard: "#f4f4f4", beardD: "#c8c8d8", skin: "#d89a6a", skinD: "#a86a40", skinL: "#f0c090", ash: "#f0e8e0",
+        k_skin: "#e0a878", mous: "#2a1a10",
+        space: "#060418", earth: "#2a6ad8", land: "#3ab86a", star: "#fff6d8",
+        gold: "#ffc83a", goldL: "#fff0a0", goldD: "#c8841a", amber: "#ff9a2a", red: "#ff3a4a", pink: "#ff5ab8", green: "#3ae86a", white: "#ffffff", ink: "#0a0614", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+
+      function talk(who, t) { var s = MOUTH[who] || "", f = Math.floor(t * 30); return f >= 0 && f < s.length ? +s[f] / 9 : 0; }
+      function sq(t) {
+        for (var i = 0; i < SQK.length - 1; i++) { var a = SQK[i], b = SQK[i + 1]; if (t < b[0]) return b[1] - a[1] <= 1 ? a[1] : a[1] + (b[1] - a[1]) * (t - a[0]) / (b[0] - a[0]); }
+        return 64;
+      }
+      function grains(n) { var s = (BigInt(2) ** BigInt(n - 1)).toString(), o = ""; while (s.length > 3) { o = "," + s.slice(-3) + o; s = s.slice(0, -3); } return s + o; }
+
+      // ============================================================ characters
+      function limb(x1, y1, x2, y2, x3, y3, w, col, colD) {
+        line(x1, y1, x2, y2, w, colD); line(x2, y2, x3, y3, w, colD);
+        line(x1 - 0.4, y1 - 0.4, x2 - 0.4, y2 - 0.4, w - 1, col); line(x2 - 0.4, y2 - 0.4, x3 - 0.4, y3 - 0.4, w - 1, col);
+      }
+      // the king: feet at (x, y), ~100*s tall. o: arms (point|up|grab), laugh, sweat, worried, buried (0..1 rice level)
+      function king(x, y, s, t, k, o) {
+        o = o || {};
+        var shake = o.laugh ? Math.sin(t * 30) * 0.8 : 0;
+        g.save(); g.translate(x + shake, y); g.scale(s * (o.look || 1), s);
+        // robe
+        poly([[-18, 0], [18, 0], [13, -58], [-13, -58]], C.robeD); poly([[-17, -1], [17, -1], [12, -57], [-12, -57]], C.robe);
+        rect(-2, -57, 4, 57, C.trim); rect(-17, -4, 34, 3, C.trim);
+        ell(0, -40, 15, 5, 0, C.trim); for (var j = 0; j < 5; j++) disc(-8 + j * 4, -40, 1.2, C.jewel);
+        var ar = o.arms || "";
+        if (ar === "up") { limb(-12, -54, -20, -66, -18, -78, 6, C.robe, C.robeD); limb(12, -54, 20, -66, 18, -78, 6, C.robe, C.robeD); disc(-18, -79, 3, C.k_skin); disc(18, -79, 3, C.k_skin); }
+        else if (ar === "point") { limb(-12, -54, -18, -40, -14, -30, 6, C.robe, C.robeD); disc(-14, -29, 3, C.k_skin); limb(12, -54, 24, -56, 34, -58, 6, C.robe, C.robeD); disc(35, -58, 3, C.k_skin); }
+        else { limb(-12, -54, -18, -40, -14, -30, 6, C.robe, C.robeD); limb(12, -54, 18, -40, 14, -30, 6, C.robe, C.robeD); disc(-14, -29, 3, C.k_skin); disc(14, -29, 3, C.k_skin); }
+        rect(-3, -64, 6, 7, C.skinD);
+        disc(0, -73, 12, C.k_skin); ell(-3, -77, 4.5, 3, -0.3, C.skinL);
+        // crown
+        poly([[-11, -82], [11, -82], [12, -94], [6, -88], [0, -97], [-6, -88], [-12, -94]], C.crownD); poly([[-10, -83], [10, -83], [11, -92], [6, -87], [0, -95], [-6, -87], [-11, -92]], C.crown);
+        disc(0, -86, 1.8, C.jewel); disc(-6, -85, 1.2, C.green); disc(6, -85, 1.2, C.green);
+        // eyes, brows
+        var wr = o.worried;
+        ell(-4.5, -74, 2, wr ? 2.8 : 2.2, 0, C.white); ell(4.5, -74, 2, wr ? 2.8 : 2.2, 0, C.white); disc(-4.5, -73.6, 1.2, C.ink); disc(4.5, -73.6, 1.2, C.ink);
+        if (wr) { line(-7, -78, -2, -79.5, 1, C.mous); line(2, -79.5, 7, -78, 1, C.mous); } else { line(-7, -79, -2, -78, 1.2, C.mous); line(2, -78, 7, -79, 1.2, C.mous); }
+        // mouth + curly moustache
+        if (k > 0.12 || o.laugh) ell(0, -66.5, 3, 0.6 + 2.2 * Math.max(k, o.laugh ? 0.8 : 0), 0, C.ink);
+        else { g.strokeStyle = C.skinD; g.lineWidth = 0.8; g.beginPath(); if (wr) g.arc(0, -64.5, 2.5, Math.PI + 0.4, -0.4); else g.arc(0, -67.5, 2.5, 0.4, Math.PI - 0.4); g.stroke(); }
+        ell(-4, -69, 4.5, 1.6, 0.2, C.mous); ell(4, -69, 4.5, 1.6, -0.2, C.mous); disc(-8.5, -70, 1.3, C.mous); disc(8.5, -70, 1.3, C.mous);
+        if (o.sweat) { var ph = (t * 1.5) % 1; g.globalAlpha = 1 - ph; ell(11, -78 + ph * 8, 1, 1.6, 0, "#8ad8ff"); g.globalAlpha = 1; }
+        g.restore();
+      }
+      // the sage: feet at (x, y), ~96*s tall. Saffron robe, long white beard, tilak, beads
+      function sage(x, y, s, t, k, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s * (o.look || 1), s);
+        poly([[-14, 0], [14, 0], [10, -56], [-10, -56]], C.saffronD); poly([[-13, -1], [13, -1], [9, -55], [-9, -55]], C.saffron);
+        line(-9, -54, 9, -20, 3, C.saffronD);
+        for (var b = 0; b < 9; b++) disc(-6 + b * 1.5, -50 + Math.sin(b / 8 * Math.PI) * 10, 1.1, C.pillarD);
+        if (o.move) { limb(10, -50, 18, -44, 22, -36, 5, C.skin, C.skinD); disc(22, -35, 2.6, C.skin); }
+        else { limb(10, -50, 14, -38, 10, -28, 5, C.skin, C.skinD); disc(10, -27.5, 2.6, C.skin); }
+        limb(-10, -50, -14, -38, -10, -28, 5, C.skin, C.skinD); disc(-10, -27.5, 2.6, C.skin);
+        rect(-3, -62, 6, 6, C.skinD);
+        disc(0, -71, 11, C.skin); ell(-3, -75, 4, 3, -0.3, C.skinL);
+        disc(0, -82, 4, C.beard); disc(-9, -72, 3, C.beard); disc(9, -72, 3, C.beard);
+        poly([[-9, -68], [9, -68], [6, -46], [0, -40], [-6, -46]], C.beard); poly([[-4, -54], [4, -54], [0, -44]], C.beardD);
+        rect(-3.5, -80, 7, 1.2, C.ash); rect(-0.5, -80, 1, 3, C.red);
+        var wink = o.wink && Math.sin(t * 3) > 0;
+        disc(-4, -72, 1.3, C.ink); if (wink) line(2.5, -72, 5.5, -72, 1, C.ink); else disc(4, -72, 1.3, C.ink);
+        line(-7, -75.5, -2, -75, 1, C.beard); line(2, -75, 7, -75.5, 1, C.beard);
+        if (k > 0.12) ell(0, -64, 2.4, 0.5 + 1.8 * k, 0, C.ink); else { g.strokeStyle = C.skinD; g.lineWidth = 0.8; g.beginPath(); g.arc(0, -65.5, 2.2, 0.3, Math.PI - 0.3); g.stroke(); }
+        ell(-3, -66.6, 3.4, 1.2, 0.2, C.beard); ell(3, -66.6, 3.4, 1.2, -0.2, C.beard);
+        g.restore();
+      }
+
+      // ============================================================ the palace
+      function palace(t) {
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.wallD], [0.7, C.wall], [1, C.arch]]); g.fillRect(0, 0, W, H);
+      }
+      function hall(t) {
+        for (var a = 0; a < 5; a++) { var ax = -20 + a * 55; ell(ax + 22, 180, 20, 34, 0, C.wallD); rect(ax + 2, 180, 40, 120, C.wallD); }
+        for (var p = 0; p < 6; p++) { var px = -30 + p * 55; rect(px, 120, 10, 182, C.pillarD); rect(px + 1, 120, 7, 182, C.pillar); rect(px + 2, 120, 2, 182, C.pillarL); rect(px - 3, 116, 16, 5, C.pillarD); }
+        for (var l = 0; l < 4; l++) { var lx = 0 + l * 60, fl = Math.sin(t * 9 + l) * 0.6; line(lx, 100, lx, 140, 0.6, C.pillarD); ell(lx, 142, 5, 2.5, 0, C.pillarD); ell(lx, 138 + fl * 0.3, 1.6, 3 + fl, 0, C.flame); lighter(); glow(lx, 138, 26, C.lamp, 0.5); normalBlend(); }
+        rect(-100, 302, 400, 80, C.floor);
+        for (var f = 0; f < 14; f++) rect(-100 + f * 30, 302, 15, 80, C.floorL);
+        rect(-100, 302, 400, 1.5, C.pillar);
+      }
+      function smallBoard(x, y, w) {
+        rect(x - w / 2 - 2, y - w * 0.3 - 2, w + 4, w * 0.6 + 4, C.rim);
+        for (var r = 0; r < 8; r++) for (var c = 0; c < 8; c++) { var sx = x - w / 2 + c * w / 8 + (7 - r) * 0 , sy = y - w * 0.3 + r * w * 0.6 / 8; rect(sx, sy, w / 8 + 0.2, w * 0.6 / 8 + 0.2, (r + c) % 2 ? C.sqD : C.sqL); }
+      }
+
+      // ============================================================ scene: the court (the deal; later the king buried in rice)
+      function scene_court(t) {
+        var tt = tapeT(t, T), late = tt >= T.NEVER;
+        var cam = late ? camAt([[T.NEVER - 0.2, 90, 184, 1.25], [T.CTA, 90, 185, 1.27], [T.STOP, 90, 186, 1.3]], tt)
+          : camAt([[0, 90, 196, 1.45], [T.REWARD, 86, 194, 1.3], [T.SAGE, 94, 194, 1.3], [T.GRANT, 88, 192, 1.25], [T.S1, 90, 200, 1.6]], tt);
+        palace(tt);
+        setCam(cam, 1);
+        hall(tt);
+        // the throne
+        rect(22, 222, 44, 80, C.pillarD); rect(24, 224, 40, 78, C.robeD); ell(44, 222, 24, 10, 0, C.pillar); disc(44, 214, 6, C.jewel);
+        // the table + board
+        rect(78, 282, 28, 20, C.rim); smallBoard(92, 280, 30);
+        if (!late && tt > T.DOUBLE - 0.2) { var gp = Math.min(1.3, pop(tt, T.DOUBLE - 0.15)); disc(80, 291, 1.5 * gp, C.rice); lighter(); glow(80, 291, 8, C.goldL, 0.7); normalBlend(); }
+        if (late) {
+          // rice everywhere: a sea of grains up to the king's chest
+          var lvl = 252;
+          character(function () { king(46, 302, 1.0, tt, talk("king", tt), { worried: true, sweat: true }); sage(134, 294, 1.0, tt, talk("sage", tt), { look: -1, move: tt > T.CHECK && tt < T.CHECK + 0.6, wink: tt > T.CTA }); });
+          g.fillStyle = C.riceD; g.beginPath(); g.moveTo(-60, 400); for (var x = -60; x <= 240; x += 6) g.lineTo(x, lvl + Math.sin(x * 0.2) * 3 + (x > 108 ? 38 : 0)); g.lineTo(240, 400); g.fill();
+          for (var r = 0; r < 160; r++) { var rx = -40 + hash1(r * 3.3) * 260, ry = lvl + 2 + hash1(r * 7.1) * 60; rect(rx, ry, 1.2, 0.6, C.rice); }
+          smallBoard(108, 280, 22);
+          if (tt > T.CHECK + 0.1) { disc(102, 276, 2.6, C.ink); rect(100.5, 271, 3, 5, C.ink); }
+        } else {
+          var kArms = tt > T.REWARD && tt < T.SAGE ? "point" : tt > T.GRANT && tt < T.S1 ? "up" : "";
+          character(function () {
+            king(46, 302, 1.0, tt, talk("king", tt), { arms: kArms, laugh: tt > E9(T.GRANT) && tt < T.S1 });
+            sage(136, 302, 1.0, tt, talk("sage", tt), { look: -1, move: tt > T.DOUBLE - 0.4 && tt < T.DOUBLE + 0.6 });
+          });
+        }
+        vignette(0.35, "rgba(10,6,30,");
+      }
+      function E9(t0) { return t0 + 1.0; }
+
+      // ============================================================ scene: the board (top-down) — rice doubles square by square
+      var SQ = 18, BX0 = 90 - 4 * SQ, BY0 = 178;
+      function cellXY(k) { var i = k - 1, r = Math.floor(i / 8), c = i % 8; return { x: BX0 + c * SQ + SQ / 2, y: BY0 + (7 - r) * SQ + SQ / 2 }; }
+      function scene_board(t) {
+        var s = sq(t), si = Math.floor(s + 1e-6);
+        var c1 = cellXY(1);
+        var cam = camAt([[T.S1 - 0.2, c1.x + 4, c1.y - 30, 3.2], [T.S10, 80, 250, 2.0], [T.S20, 90, 236, 1.25], [T.S32, 90, 214, 1.0], [T.MORE, 90, 190, 0.8], [T.BREAK, 90, 170, 0.62]], t);
+        if (t > T.MORE) { cam.x += (hash1(Math.floor(t * 30)) - 0.5) * 2; cam.y += (hash1(Math.floor(t * 30) + 5) - 0.5) * 2; }
+        palace(t);
+        setCam(cam, 1);
+        rect(-200, 140, 600, 400, C.floor); for (var f = 0; f < 20; f++) rect(-200 + f * 30, 140, 15, 400, C.floorL);
+        // the overflow: sacks then a rice mountain behind/around the board
+        if (si >= 21) {
+          var ns = Math.min(60, (si - 20) * 4);
+          for (var k2 = 0; k2 < ns; k2++) { var a = hash1(k2 * 2.3) * 6.28, rr = 90 + hash1(k2 * 5.1) * 50 + Math.floor(k2 / 20) * 20; var sx = 90 + Math.cos(a) * rr, sy = 250 + Math.sin(a) * rr * 0.8; ell(sx, sy, 6, 7, 0, C.sackD); ell(sx, sy - 0.5, 5.4, 6.4, 0, C.sack); rect(sx - 3, sy - 7, 6, 1.2, C.sackD); }
+        }
+        if (s > 32) {
+          var mh = Math.pow((s - 32) / 32, 1.4) * 520;
+          g.fillStyle = C.riceD; g.beginPath(); g.moveTo(-200, 600); g.lineTo(-200, 330 - mh * 0.6); g.quadraticCurveTo(90, 330 - mh * 1.5, 380, 330 - mh * 0.6); g.lineTo(380, 600); g.fill();
+          for (var r = 0; r < 120; r++) { var rx = -150 + hash1(r * 3.7) * 480, ry = 330 - mh * (0.5 + hash1(r * 1.3)) ; rect(rx, ry, 1.5, 0.8, C.rice); }
+        }
+        // the board
+        rect(BX0 - 4, BY0 - 4, 8 * SQ + 8, 8 * SQ + 8, C.rim);
+        for (var k = 1; k <= 64; k++) { var p = cellXY(k), rr2 = Math.floor((k - 1) / 8), cc = (k - 1) % 8; rect(p.x - SQ / 2, p.y - SQ / 2, SQ, SQ, (rr2 + cc) % 2 ? C.sqD : C.sqL); }
+        // the rice on each square
+        for (var k3 = 1; k3 <= Math.min(si, 64); k3++) {
+          var q = cellXY(k3), n = Math.pow(2, k3 - 1), fresh = k3 === si ? Math.min(1, (t - lastTime(k3)) / 0.2) : 1;
+          if (n <= 64) { for (var gI = 0; gI < n; gI++) { var gx = q.x + (hash1(k3 * 100 + gI) - 0.5) * (SQ - 4), gy = q.y + (hash1(k3 * 200 + gI) - 0.5) * (SQ - 4); ell(gx, gy, 1.1, 0.6, hash1(gI) * 3, C.rice); } }
+          else { var rad = Math.min(SQ * 0.48, 2 + Math.log(n) / Math.log(2) * 0.45) * fresh; ell(q.x, q.y + 0.5, rad, rad * 0.85, 0, C.riceD); ell(q.x - 0.3, q.y - 0.3, rad * 0.9, rad * 0.75, 0, C.rice); if (k3 > 24) { var hgt = Math.min(14, (k3 - 24) * 0.6); ell(q.x, q.y - hgt * 0.5, rad * 0.7, hgt * 0.5 + 1, 0, C.rice); } }
+        }
+        // highlight the current square + its count
+        if (si >= 1 && t < T.MORE) { var cq = cellXY(si); g.strokeStyle = C.gold; g.lineWidth = 0.8 / Math.max(0.6, cam.z) * 1.6; g.strokeRect(cq.x - SQ / 2, cq.y - SQ / 2, SQ, SQ); if (si <= 12) worldText(String(Math.pow(2, si - 1)), cq.x, cq.y - SQ / 2 - 8, 1, C.goldL); }
+        // the king pops up in panic
+        if (t > T.MORE - 0.2 && t < T.BREAK) { var kp = ease(clamp01((t - T.MORE + 0.2) / 0.4)); character(function () { king(170, 330 + 60 * (1 - kp), 1.2, t, talk("king", t), { arms: "up", worried: true, sweat: true }); }); }
+        vignette(0.35, "rgba(10,6,30,");
+      }
+      var STEPS = (function () { var out = [], last = 0; for (var k = 0; k < 4000; k++) { var tt = k / 100, d = Math.floor(sq(tt) + 1e-6); if (d !== last) { out[d] = tt; last = d; } } return out; })();
+      function lastTime(k) { return STEPS[k] || 0; }
+
+      // ============================================================ scene: square 64 — Earth under rice
+      function scene_earth(t) {
+        var u = t - T.HIT;
+        screen(); g.fillStyle = C.space; g.fillRect(0, 0, W, H);
+        for (var i = 0; i < 90; i++) { g.globalAlpha = 0.4 + 0.6 * Math.abs(Math.sin(t + i)); rect(hash1(i * 3.3) * 180, hash1(i * 5.1) * 320, 0.6, 0.6, C.star); } g.globalAlpha = 1;
+        var cam = camAt([[T.HIT, 90, 196, 1.55], [T.QUINT, 90, 190, 1.15], [T.NEVER, 90, 186, 1.0]], t);
+        shake(cam, t, T.HIT, 10, 0.6);
+        setCam(cam, 1);
+        var EX = 90, EY = 250, R = 42;
+        disc(EX, EY, R, C.earth);
+        ell(EX - 14, EY - 10, 14, 9, 0.4, C.land); ell(EX + 16, EY + 8, 12, 14, -0.3, C.land); ell(EX + 6, EY - 26, 8, 5, 0, C.land);
+        // the rice blanket: grows outward from the poles until it swallows the planet
+        var cov = ease(clamp01(u / 2.6));
+        g.save(); g.beginPath(); g.arc(EX, EY, R + 10 * cov, 0, 6.2832); g.clip();
+        g.fillStyle = C.riceD; g.beginPath(); g.moveTo(EX - 60, EY - 60); g.lineTo(EX + 60, EY - 60); g.lineTo(EX + 60, EY - 60 + 120 * cov * 0.55); g.lineTo(EX - 60, EY - 60 + 120 * cov * 0.55); g.fill();
+        g.beginPath(); g.moveTo(EX - 60, EY + 60); g.lineTo(EX + 60, EY + 60); g.lineTo(EX + 60, EY + 60 - 120 * cov * 0.55); g.lineTo(EX - 60, EY + 60 - 120 * cov * 0.55); g.fill();
+        for (var r = 0; r < 260 * cov; r++) { var a = hash1(r * 1.7) * 6.28, d = hash1(r * 2.9) * (R + 8 * cov); rect(EX + Math.cos(a) * d, EY + Math.sin(a) * d, 1.4, 0.7, C.rice); }
+        g.restore();
+        lighter(); glow(EX, EY, 80, C.goldL, 0.25); normalBlend();
+        // pixel-art eyes on the planet: it can't believe it either
+        disc(EX - 10, EY - 4, 4, C.white); disc(EX + 10, EY - 4, 4, C.white); disc(EX - 10, EY - 3, 2, C.ink); disc(EX + 10, EY - 3, 2, C.ink); ell(EX, EY + 10, 3, 3 + 1.5 * Math.sin(t * 6), 0, C.ink);
+        vignette(0.3, "rgba(0,0,20,");
+      }
+
+      function sceneAt(t) { return t < T.S1 ? "court" : t < T.HIT ? "board" : t < T.NEVER ? "earth" : t < T.REWIND ? "court" : "court"; }
+
+      function drawUI(t) {
+        var s = Math.floor(sq(t) + 1e-6), l1, l2 = "", c1 = C.gold, c2 = C.white, S1 = 3;
+        if (t < T.S1 || t >= T.REWIND) { l1 = "GRAINS OWED: 0"; S1 = 2; c1 = C.gold; l2 = "SQUARES: 64"; }
+        else if (t < T.BREAK) { l1 = "SQUARE " + s; l2 = grains(s) + (s === 1 ? " GRAIN" : ""); c2 = s >= 32 ? C.red : C.white; if (s > 26) S1 = 3; }
+        else if (t < T.HIT) { l1 = ""; }
+        else if (t < T.NEVER) { l1 = "SQUARE 64"; c1 = Math.floor(t * 6) % 2 ? C.red : C.white; l2 = grains(64); c2 = C.gold; }
+        else if (t < T.CHECK) { l1 = "TOTAL OWED"; S1 = 2; c1 = C.white; l2 = "18.4 QUINTILLION GRAINS"; c2 = C.red; }
+        else { l1 = "SAGE 1 : KING 0"; S1 = 2; c1 = C.gold; l2 = "CHECKMATE"; c2 = C.green; }
+        if (l1) counterLines(l1, c1, S1, l2, c2);
+      }
+
+      KIT.start(C, T, {
+        scenes: { court: scene_court, board: scene_board, earth: scene_earth }, sceneAt: sceneAt, ui: drawUI, hitCol: "#fff8e8",
+        cuts: [[T.S1, "court", "board"], [T.NEVER, "earth", "court"]],
+      });
+    </script>
+  </body>
+</html>

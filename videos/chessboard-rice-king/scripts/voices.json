@@ -1,0 +1,5 @@
+{
+  "narrator": ["en-US-AndrewMultilingualNeural", "+16%", "+0Hz"],
+  "king": ["en-IN-PrabhatNeural", "-4%", "-8Hz"],
+  "sage": ["hi-IN-MadhurNeural", "+8%", "-6Hz"]
+}
