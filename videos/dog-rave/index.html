@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>What If All Dogs Threw a Rave?</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "What if all dogs got together and threw a rave?" — the owner's cat-rave reference, remade for dogs in the house pixel
+      style: no narration, an EDM track (150 BPM) driving everything, info chips with real dog facts, sound on every chip.
+      Facts: ~900M dogs (estimates 700M-1B); hearing to ~45 kHz vs ~20 kHz for humans; smell 10,000-100,000x; "zoomies" =
+      FRAPs (frenetic random activity periods); tail wags biased right = positive (Quaranta et al. 2007, Current Biology);
+      dogs howl at sirens; adult dogs sleep ~12-14 h a day. Fiction.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="51" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="51" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="51" data-track-index="1"></audio>
+    </div>
+    <script>window.PX_HANDLE_Y = 352;</script>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var CHIPS = T.CHIPS || [], BEAT = 60 / (T.BPM || 150), BEAT0 = T.BEAT0 || 3;
+      var C = {
+        night1: "#0a0618", night2: "#1a0e30", night3: "#2a1240",
+        wall: "#2a2440", wallL: "#342c50", floor: "#4a3428", floorL: "#5a4030", rug: "#7a3a5a", bed: "#ff6aa8", bedD: "#c83a7a", bedIn: "#ffa8cc",
+        door: "#6a4a2a", doorD: "#4a3018", moon: "#fff4c8", sunrise: "#ffb87a",
+        bldg: "#1a1230", win: "#ffd860", stage: "#1a1028", truss: "#c8a04a", trussD: "#8a6a2a",
+        pink: "#ff3ab8", cyan: "#3ae8ff", green: "#3aff7a", yellow: "#fff03a", purple: "#a83aff", orange: "#ff8a2a", red: "#ff3a4a",
+        gold: "#ffc83a", amber: "#ffaa3a", white: "#ffffff", ink: "#0a0614", paper: "#f1eef4",
+        // dogs
+        golden: "#f0b04a", goldenD: "#c8862a", black: "#3a3438", blackD: "#24202a", whiteDog: "#f4eee4", whiteD: "#c8c0b4", brown: "#a8643a", brownD: "#7a4424",
+        corgi: "#ff9a3a", corgiD: "#c86a1a", bull: "#d8b896", bullD: "#a8886a", nose: "#2a1a1a", tongue: "#ff6a8a",
+        cat: "#9a9aa8", catD: "#6a6a7a", bacon: "#d8604a", baconL: "#ffb8a0", fog: "#c86a7a", ball: "#d8ff3a", ballD: "#a8c81a",
+      };
+      DISSOLVE = 0.1;
+      var BREEDS = [["golden", "goldenD", "flop"], ["black", "blackD", "up"], ["whiteDog", "whiteD", "flop"], ["brown", "brownD", "up"], ["corgi", "corgiD", "up"], ["bull", "bullD", "flop"]];
+      function ph(t) { return ((t - BEAT0) / BEAT % 1 + 1) % 1; }
+      function bop(t) { return Math.pow(Math.abs(Math.sin(Math.PI * ph(t))), 0.6); }
+      function inGroove(t) { return (t > T.SNEAK && t < T.BUILD) || (t > T.HIT && t < T.LATER) || (t > T.CTA && t < T.STOP); }
+
+      // ============================================================ the dog (front view, sitting): feet at (x, y), ~60*s tall
+      function dog(x, y, s, t, o) {
+        o = o || {};
+        var col = C[o.col || "golden"], colD = C[o.colD || "goldenD"], ear = o.ear || "flop";
+        g.save(); g.translate(x, y); g.scale(s * (o.look || 1), s);
+        if (o.howl) g.rotate(-0.12);
+        // tail
+        var wag = Math.sin(t * (o.wagFast ? 26 : 10)) * 0.5;
+        g.save(); g.translate(10, -10); g.rotate(-0.9 + wag); rrect(-1.5, -14, 4, 15, 2, colD); g.restore();
+        // body + legs
+        ell(0, -16, 14, 15, 0, colD); ell(-0.5, -17, 13, 14, 0, col);
+        ell(0, -12, 7, 8, 0, o.chest ? C[o.chest] : col);
+        rrect(-9, -6, 6, 7, 2, colD); rrect(3, -6, 6, 7, 2, colD); rrect(-8.5, -6, 5, 6, 2, col); rrect(3.5, -6, 5, 6, 2, col);
+        if (o.wristband) { rect(3.5, -5, 5, 2, C.pink); lighter(); glow(6, -4, 6, "#ff3ab8", 0.7); normalBlend(); }
+        // head
+        var hy = o.howl ? -40 : -36;
+        if (ear === "up") { poly([[-12, hy - 6], [-6, hy - 20], [-2, hy - 8]], colD); poly([[12, hy - 6], [6, hy - 20], [2, hy - 8]], colD); poly([[-10, hy - 7], [-6, hy - 16], [-4, hy - 8]], C.tongue); poly([[10, hy - 7], [6, hy - 16], [4, hy - 8]], C.tongue); }
+        disc(0, hy, 12.5, colD); disc(-0.5, hy - 0.5, 11.5, col);
+        if (ear === "flop") { var fl = Math.sin(t * 6) * 0.15; g.save(); g.translate(-10, hy - 6); g.rotate(0.3 + fl); ell(0, 7, 4.5, 9, 0, colD); g.restore(); g.save(); g.translate(10, hy - 6); g.rotate(-0.3 - fl); ell(0, 7, 4.5, 9, 0, colD); g.restore(); }
+        // muzzle
+        ell(0, hy + 5, 7, 5.5, 0, o.muzzle ? C[o.muzzle] : C.whiteDog);
+        ell(0, hy + 1.5, 3, 2.2, 0, C.nose); rect(-0.8, hy + 1, 1, 0.8, C.white);
+        // eyes
+        var eyes = o.eyes || "open";
+        if (eyes === "closed") { g.strokeStyle = C.ink; g.lineWidth = 1; g.beginPath(); g.arc(-5, hy - 4, 2.2, 0.2, Math.PI - 0.2); g.stroke(); g.beginPath(); g.arc(5, hy - 4, 2.2, 0.2, Math.PI - 0.2); g.stroke(); }
+        else if (eyes === "shades") { rrect(-10, hy - 7, 9, 5, 1.5, C.ink); rrect(1, hy - 7, 9, 5, 1.5, C.ink); line(-1, hy - 5, 1, hy - 5, 1, C.ink); rect(-8, hy - 6, 2, 1, C.white); rect(3, hy - 6, 2, 1, C.white); }
+        else { disc(-5, hy - 4, 2.8, C.ink); disc(5, hy - 4, 2.8, C.ink); disc(-6, hy - 5.2, 1, C.white); disc(4, hy - 5.2, 1, C.white); if (o.wide) { disc(-5, hy - 4, 3.4, C.ink); disc(5, hy - 4, 3.4, C.ink); disc(-6, hy - 5.5, 1.2, C.white); disc(4, hy - 5.5, 1.2, C.white); } }
+        // mouth
+        if (o.howl) ell(0, hy + 8.5, 2.6, 3.2, 0, C.ink);
+        else if (o.tongue) { ell(0, hy + 8.5, 2.4, 3.4 + Math.sin(t * 8) * 0.5, 0, C.tongue); line(-3, hy + 6.5, 3, hy + 6.5, 0.8, C.nose); }
+        else { g.strokeStyle = C.nose; g.lineWidth = 0.8; g.beginPath(); g.arc(-1.5, hy + 5.5, 1.6, 0.2, Math.PI - 0.4); g.stroke(); g.beginPath(); g.arc(1.5, hy + 5.5, 1.6, 0.4, Math.PI - 0.2); g.stroke(); }
+        if (o.headphones) { g.strokeStyle = C.ink; g.lineWidth = 2.4; g.beginPath(); g.arc(0, hy - 2, 13, Math.PI * 1.05, Math.PI * 1.95); g.stroke(); rrect(-16, hy - 5, 6, 10, 2, C.pink); rrect(10, hy - 5, 6, 10, 2, C.pink); }
+        if (o.security) { rect(-10, -26, 20, 7, C.ink); worldText("SECURITY", 0, -25, 0.5, C.yellow); }
+        g.restore();
+      }
+      // a crowd dog (just head + shoulders), cheap, bobbing
+      function crowdDog(x, y, s, i, t, o) {
+        o = o || {};
+        var br = BREEDS[i % BREEDS.length], col = C[br[0]], colD = C[br[1]];
+        var b = o.still ? 0 : bop(t + hash1(i) * 0.08) * 2.5;
+        g.save(); g.translate(x, y - b); g.scale(s, s);
+        if (o.back) { ell(0, 2, 8, 6, 0, colD); g.save(); g.translate(0, -2); g.rotate(o.tailR !== undefined ? o.tailR : 0); rrect(-1.2, -9, 2.6, 9, 1.2, col); g.restore(); disc(0, -5, 5.5, col); if (br[2] === "up") { poly([[-5, -8], [-3, -14], [-1, -9]], colD); poly([[5, -8], [3, -14], [1, -9]], colD); } else { ell(-5, -4, 2, 4, 0.3, colD); ell(5, -4, 2, 4, -0.3, colD); } g.restore(); return; }
+        ell(0, 4, 8, 6, 0, colD);
+        if (br[2] === "up") { poly([[-6, -6], [-3, -14], [-1, -7]], colD); poly([[6, -6], [3, -14], [1, -7]], colD); }
+        disc(0, -3, 6.5, col);
+        if (br[2] === "flop") { ell(-6, -2, 2.4, 4.5, 0.3, colD); ell(6, -2, 2.4, 4.5, -0.3, colD); }
+        ell(0, 0, 3.5, 2.6, 0, C.whiteDog); disc(0, -1.5, 1.3, C.nose);
+        if (o.howl) { ell(0, 2.5, 1.4, 1.8, 0, C.ink); line(-3, -6, -1.5, -5, 0.8, C.ink); line(1.5, -5, 3, -6, 0.8, C.ink); }
+        else if (o.sleep) { line(-3.5, -4, -1.5, -4, 0.7, C.ink); line(1.5, -4, 3.5, -4, 0.7, C.ink); }
+        else { disc(-2.5, -4, 1.1, C.ink); disc(2.5, -4, 1.1, C.ink); if (o.tongue) ell(0, 2.8, 1.2, 1.6, 0, C.tongue); }
+        g.restore();
+      }
+
+      // ============================================================ backgrounds
+      function night() { screen(); g.fillStyle = vgrad(0, H, [[0, C.night1], [0.6, C.night2], [1, C.night3]]); g.fillRect(0, 0, W, H); for (var i = 0; i < 50; i++) { g.globalAlpha = 0.3 + 0.5 * Math.abs(Math.sin(i * 7 + (window._t || 0))); rect(hash1(i * 3.3) * 180, hash1(i * 5.1) * 200, 0.6, 0.6, C.white); } g.globalAlpha = 1; }
+      function stageBg(t, power) {
+        // truss, the paw-heart logo, speakers, lights, lasers
+        rect(-60, 60, 300, 140, C.stage);
+        for (var i = 0; i < 2; i++) { line(-20, 70 + i * 6, 200, 70 + i * 6, 2, C.trussD); }
+        for (var x = -20; x < 200; x += 8) line(x, 70, x + 8, 76, 1, C.truss);
+        var beat = inGroove(t) ? bop(t) : 0.3;
+        // paw-heart logo (neon)
+        g.save(); g.translate(90, 120); g.globalAlpha = 0.6 + 0.4 * beat * power;
+        g.strokeStyle = C.pink; g.lineWidth = 2; g.beginPath(); g.moveTo(0, 18); g.bezierCurveTo(-26, 0, -18, -20, 0, -8); g.bezierCurveTo(18, -20, 26, 0, 0, 18); g.stroke();
+        disc(0, 4, 5, C.pink); disc(-6, -3, 2, C.pink); disc(6, -3, 2, C.pink); disc(-2, -7, 2, C.pink); disc(2, -7, 2, C.pink);
+        g.restore(); g.globalAlpha = 1;
+        lighter(); glow(90, 120, 50, "#ff3ab8", 0.3 + 0.3 * beat * power); normalBlend();
+        // speaker stacks
+        for (var sp = 0; sp < 2; sp++) { var sx = sp ? 158 : 2; rect(sx, 140, 20, 50, "#14101e"); for (var c = 0; c < 3; c++) { disc(sx + 10, 150 + c * 15, 5 + beat * 0.8, "#2a2440"); disc(sx + 10, 150 + c * 15, 2, "#4a4060"); } }
+        // lasers
+        if (power > 0.3) {
+          lighter();
+          var cols = ["#3ae8ff", "#ff3ab8", "#3aff7a", "#fff03a", "#a83aff"];
+          for (var l = 0; l < 10; l++) { var a = -Math.PI / 2 + Math.sin(t * 1.3 + l * 1.7) * 1.1, x0 = 20 + (l % 5) * 35; g.globalAlpha = 0.45 * power * (0.6 + 0.4 * beat); line(x0, 76, x0 + Math.cos(a + Math.PI) * -260, 76 + Math.sin(a + Math.PI) * -260, 0.8, cols[l % 5]); }
+          g.globalAlpha = 1; normalBlend();
+        }
+      }
+      function crowd(t, rows, density, o) {
+        o = o || {};
+        var n = 0;
+        for (var r = 0; r < rows; r++) {
+          var y = 196 + r * 14, s = 0.75 + r * 0.12, cnt = 14 - r;
+          for (var c = 0; c < cnt; c++) {
+            n++; if (hash1(n * 2.3) > density) continue;
+            var x = (c + 0.5) / cnt * 200 - 10 + (r % 2) * 6;
+            var ox = 0, oy = 0;
+            if (o.surge) { ox = o.surge * (x < 90 ? 1 : -1) * 6; oy = -o.surge * 4; }
+            crowdDog(x + ox, y + oy, s, n, t, { howl: o.howl, sleep: o.sleep, back: o.back, tailR: o.back ? 0.9 + Math.sin(t * 22 + n) * 0.35 : 0, tongue: (n % 3) === 0, still: o.sleep });
+            if (o.sleep && n % 7 === 0) worldText("Z", x + 6, y - 14 - ((t * 10 + n) % 8), 1, C.white);
+          }
+        }
+      }
+
+      // ============================================================ scene: home (frame 1, the sneak-out, the morning, the wristband, CTA)
+      function scene_home(t) {
+        var tt = tapeT(t, T), morning = tt >= T.SEVEN;
+        var cam = tt < T.SNEAK ? camAt([[0, 92, 238, 2.2], [T.SNEAK, 96, 226, 1.6]], tt)
+          : tt < T.SEVEN ? camAt([[T.SNEAK, 96, 226, 1.6], [T.STREAM, 128, 222, 1.4]], tt)
+          : tt < T.WAIT ? camAt([[T.SEVEN, 90, 230, 1.5], [T.WAIT, 90, 236, 1.8]], tt)
+          : tt < T.CTA ? camAt([[T.WAIT, 92, 268, 2.8], [T.CTA, 94, 272, 3.2]], tt)
+          : camAt([[T.CTA, 90, 228, 1.7], [T.STOP, 90, 226, 1.8]], tt);
+        screen(); g.fillStyle = morning ? vgrad(0, H, [[0, "#3a3060"], [1, "#6a4a6a"]]) : vgrad(0, H, [[0, C.night1], [1, C.night2]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        rect(-60, 120, 300, 186, C.wall); for (var i = 0; i < 8; i++) rect(-60 + i * 40, 120, 2, 186, C.wallL);
+        rect(-60, 300, 300, 80, C.floor); for (var f = 0; f < 10; f++) rect(-60 + f * 30, 300, 15, 80, C.floorL);
+        // window: moon or sunrise
+        rect(22, 180, 40, 40, C.doorD); rect(25, 183, 34, 34, morning ? C.sunrise : "#1a1840"); rect(41, 183, 2, 34, C.doorD);
+        if (!morning) disc(50, 194, 5, C.moon);
+        // the door (right)
+        var dOpen = tt > T.SNEAK + 0.2 && tt < T.SEVEN ? clamp01((tt - T.SNEAK - 0.2) / 0.4) : 0;
+        rect(140, 222, 34, 80, C.doorD); rect(142, 224, 30 - 22 * dOpen, 76, C.door);
+        if (dOpen > 0) { lighter(); glow(158, 262, 40, "#ff3ab8", 0.5 * dOpen * (0.6 + 0.4 * bop(tt))); glow(158, 262, 30, "#3ae8ff", 0.3 * dOpen); normalBlend(); }
+        rect(50, 296, 80, 10, C.rug);
+        // the dog bed
+        ell(90, 298, 30, 9, 0, C.bedD); ell(90, 296, 28, 8, 0, C.bed); ell(90, 296, 20, 5, 0, C.bedIn);
+        // the dog: asleep -> ears up -> tiptoes out; morning: asleep again; CTA: DJ headphones
+        var awake = tt > 1.5 && tt < T.SEVEN;
+        var dx = 90, dy = 298;
+        if (tt > T.SNEAK) { var u = clamp01((tt - T.SNEAK - 0.4) / 1.6); dx = lerp(90, 160, u); }
+        if (morning) { dx = 90; }
+        var o = { col: "golden", colD: "goldenD", eyes: awake || tt >= T.CTA ? "open" : "closed", wide: tt > 1.5 && tt < 2.6, tongue: tt >= T.CTA, wristband: tt >= T.WAIT, headphones: tt >= T.CTA };
+        if (!(tt > T.SNEAK + 2.0 && tt < T.SEVEN)) character(function () { dog(dx, dy, 1.0, tt, o); });
+        if (!awake && tt < T.WAIT && tt > 0.4) for (var z = 0; z < 3; z++) { var zp = (tt * 0.6 + z / 3) % 1; g.globalAlpha = 1 - zp; worldText("Z", 112 + zp * 10, 268 - zp * 16, 1, C.white); g.globalAlpha = 1; }
+        if (tt > 1.5 && tt < T.SNEAK) worldText("!", 90, 240, 2, C.yellow);
+        if (tt >= T.WAIT && tt < T.CTA) { lighter(); glow(96, 294, 14, "#ff3ab8", 0.6); normalBlend(); worldText("VIP", 96, 285, 1, C.white); }
+        vignette(0.4, "rgba(0,0,20,");
+      }
+      // ============================================================ scene: every dog heads out
+      function scene_city(t) {
+        var cam = camAt([[T.STREAM - 0.1, 90, 220, 1.0], [T.COUNT, 90, 236, 1.3]], t);
+        night(); setCam(cam, 1);
+        for (var b = 0; b < 14; b++) { var bx = -40 + b * 20, bh = 40 + hash1(b * 7.1) * 60; rect(bx, 250 - bh, 16, bh, C.bldg); for (var wy = 4; wy < bh - 4; wy += 7) if (hash1(b * 13 + wy) > 0.5) rect(bx + 4, 250 - bh + wy, 3, 3, C.win); }
+        rect(-60, 250, 300, 100, "#14101e");
+        // the venue glow
+        lighter(); glow(90, 300, 70, "#ff3ab8", 0.5 + 0.2 * bop(t)); glow(90, 300, 40, "#3ae8ff", 0.4); normalBlend();
+        ell(90, 302, 34, 12, 0, "#2a1640"); ell(90, 298, 28, 8, 0, C.pink); worldText("BARK", 90, 294, 1, C.white);
+        // streams of dogs from every door
+        character(function () {
+          for (var s = 0; s < 46; s++) {
+            var sx = -30 + hash1(s * 3.7) * 240, sy = 252 + hash1(s * 1.9) * 6, u = ((t - T.STREAM) * (0.25 + hash1(s) * 0.2) + hash1(s * 5.5)) % 1;
+            var x = lerp(sx, 90 + (hash1(s * 9) - 0.5) * 40, u), y = lerp(sy, 292, u);
+            crowdDog(x, y, 0.55, s, t * 2, { tongue: true });
+          }
+        });
+        vignette(0.4, "rgba(0,0,20,");
+      }
+      // ============================================================ scene: the rave
+      function scene_rave(t) {
+        var tt = t, power = tt < T.BUILD ? 0.3 : tt < T.BREAK ? 0.5 + 0.5 * ramp(tt, T.BUILD, T.BREAK) : tt < T.HIT ? 0 : 1;
+        var cam;
+        if (tt < T.BOUNCER) cam = camAt([[T.COUNT, 90, 214, 1.0], [T.BOUNCER, 90, 220, 1.1]], tt);
+        else if (tt < T.BUILD) cam = { x: 90, y: 214, z: 1.0 };
+        else if (tt < T.HIT) cam = camAt([[T.BUILD, 90, 214, 1.0], [T.BREAK, 90, 220, 1.25]], tt);
+        else cam = camAt([[T.HIT, 90, 210, 0.9], [T.BACON, 90, 214, 1.0], [T.TAILS, 90, 214, 1.0], [T.BALL, 90, 210, 0.95], [T.SIREN, 90, 216, 1.05], [T.LATER, 90, 220, 1.15]], tt);
+        if (inGroove(tt) && tt > T.HIT) { var k = bop(tt); cam.z *= 1 + 0.015 * k; }
+        shake(cam, tt, T.HIT, 8, 0.5);
+        night(); setCam(cam, 1);
+        stageBg(tt, power);
+        var density = tt < T.BOUNCER ? clamp01((tt - T.COUNT) / 3) : 1;
+        var howl = tt > T.SIREN + 0.7;
+        var back = tt >= T.TAILS && tt < T.BALL;
+        var surge = tt >= T.BALL ? Math.sin(clamp01((tt - T.BALL - 0.4) / 2.0) * Math.PI) : 0;
+        if (tt >= T.BACON && tt < T.FRAP) {
+          // bacon fog
+          for (var fgi = 0; fgi < 8; fgi++) { g.globalAlpha = 0.25; disc(-20 + fgi * 28 + Math.sin(tt + fgi) * 6, 200 + Math.sin(tt * 0.7 + fgi) * 10, 30, C.fog); } g.globalAlpha = 1;
+          for (var bc = 0; bc < 10; bc++) { var bx = (hash1(bc * 4.1) * 200 - 10 + tt * 8) % 200 - 10, by = 130 + hash1(bc * 2.2) * 60 + Math.sin(tt * 2 + bc) * 4; g.save(); g.translate(bx, by); g.rotate(Math.sin(tt * 3 + bc) * 0.4); rect(-7, -1.5, 14, 3, C.bacon); rect(-7, -0.5, 14, 1, C.baconL); g.restore(); }
+        }
+        character(function () { crowd(tt, 7, density, { howl: howl, back: back, surge: surge }); });
+        if (back) { lighter(); worldText("WAG >>>", 90, 182, 1, C.green); normalBlend(); }
+        // the tennis ball
+        if (tt >= T.BALL && tt < T.SIREN) { var bu = clamp01((tt - T.BALL - 0.2) / 1.6); var bx2 = lerp(170, 20, bu), by2 = 180 - Math.sin(bu * Math.PI) * 70; disc(bx2, by2, 6, C.ballD); disc(bx2 - 0.5, by2 - 0.5, 5.4, C.ball); g.strokeStyle = C.white; g.lineWidth = 0.8; g.beginPath(); g.arc(bx2 - 3, by2, 4, -1, 1); g.stroke(); }
+        // the siren: red/blue flashes + AWOOO
+        if (tt >= T.SIREN) { lighter(); glow(170, 150, 60, (Math.floor(tt * 4) % 2) ? "#ff3a4a" : "#3a6aff", 0.5); normalBlend(); if (howl) worldText("AWOOOO!", 90, 182 + Math.sin(tt * 8) * 2, 2, C.yellow); }
+        // the drop: confetti
+        if (tt > T.HIT && tt < T.LATER) for (var cf = 0; cf < 30; cf++) { var cy = ((tt - T.HIT) * (30 + hash1(cf) * 30) + hash1(cf + 7) * 300) % 320 - 10; poly([[hash1(cf + 3) * 180, cy], [hash1(cf + 3) * 180 + 2, cy + 1], [hash1(cf + 3) * 180, cy + 3]], [C.pink, C.cyan, C.yellow, C.green][cf % 4]); }
+        vignette(0.4, "rgba(0,0,20,");
+      }
+      // the gate: the bulldog bouncer + NO CATS
+      function scene_gate(t) {
+        var cam = camAt([[T.BOUNCER - 0.1, 100, 214, 1.32], [T.DJ, 102, 216, 1.38]], t);
+        night(); setCam(cam, 1);
+        rect(-40, 150, 260, 156, "#1e1430"); rect(-40, 300, 260, 60, "#14101e");
+        rect(90, 262, 4, 40, C.truss); rect(150, 262, 4, 40, C.truss); line(92, 268, 152, 268, 2, C.red);
+        // NO CATS sign
+        rrect(102, 240, 40, 30, 2, C.white); worldText("NO", 122, 243, 1, C.red); worldText("CATS", 122, 252, 1, C.red); line(106, 266, 138, 244, 1.5, C.red);
+        lighter(); glow(90, 200, 70, "#ff3ab8", 0.3); normalBlend();
+        character(function () { dog(62, 302, 1.3, t, { col: "bull", colD: "bullD", ear: "flop", eyes: "shades", security: true, muzzle: "bull" }); });
+        // the cat in a dog-ear headband, refused
+        var cu = clamp01((t - T.BOUNCER - 1.6) / 0.9), cx = lerp(146, 190, cu);
+        character(function () {
+          g.save(); g.translate(cx, 300); g.scale(0.95, 0.95);
+          ell(0, -12, 10, 12, 0, C.catD); ell(0, -13, 9, 11, 0, C.cat);
+          disc(0, -30, 9, C.cat); poly([[-8, -34], [-6, -44], [-2, -37]], C.cat); poly([[8, -34], [6, -44], [2, -37]], C.cat);
+          ell(-11, -30, 3, 7, 0.3, C.brownD); ell(11, -30, 3, 7, -0.3, C.brownD); line(-11, -38, 11, -38, 1.2, C.brownD);   // fake dog ears
+          disc(-3.5, -31, 1.6, C.ink); disc(3.5, -31, 1.6, C.ink); poly([[-1, -27], [1, -27], [0, -26]], C.pink);
+          line(-6, -27, -12, -28, 0.5, C.white); line(6, -27, 12, -28, 0.5, C.white);
+          g.restore();
+        });
+        if (t > T.BOUNCER + 0.5 && t < T.BOUNCER + 1.5) bubble(150, 244, "WOOF?", C.ink);
+        if (t > T.BOUNCER + 1.3) bubble(66, 230, "NICE TRY.", C.red);
+        vignette(0.4, "rgba(0,0,20,");
+      }
+      // DJ Biscuit
+      function scene_dj(t) {
+        var cam = camAt([[T.DJ - 0.1, 90, 204, 1.3], [T.BUILD, 90, 206, 1.4]], t);
+        night(); setCam(cam, 1);
+        stageBg(t, 0.6);
+        character(function () { dog(90, 300, 1.2, t, { col: "corgi", colD: "corgiD", ear: "up", headphones: true, tongue: true, chest: "whiteDog" }); });
+        // the decks
+        rect(36, 282, 108, 40, "#14101e"); rect(36, 280, 108, 3, C.cyan);
+        for (var d = 0; d < 2; d++) { var dx = 58 + d * 64; disc(dx, 296, 11, "#2a2440"); disc(dx, 296, 3, C.pink); line(dx, 296, dx + Math.cos(t * 8 + d) * 10, 296 + Math.sin(t * 8 + d) * 10, 1, C.white); }
+        for (var b = 0; b < 6; b++) rect(80 + b * 4, 304 - bop(t + b * 0.07) * 8 * (b % 3 + 1) / 3, 3, 8, [C.green, C.yellow, C.pink][b % 3]);
+        worldText("DJ BISCUIT", 90, 312, 1, C.yellow);
+        vignette(0.4, "rgba(0,0,20,");
+      }
+      // FRAP pit: zoomies in a circle
+      function scene_frap(t) {
+        var cam = { x: 90, y: 222, z: 1.1 + 0.03 * bop(t) };
+        night(); setCam(cam, 1);
+        rect(-40, 150, 260, 200, "#1a1030");
+        lighter(); glow(90, 250, 80, "#ff3ab8", 0.3); normalBlend();
+        g.strokeStyle = C.pink; g.lineWidth = 1; g.beginPath(); g.ellipse(90, 250, 60, 34, 0, 0, 6.28); g.stroke();
+        character(function () {
+          for (var i = 0; i < 22; i++) {
+            var a = t * 4 + i / 22 * 6.28, x = 90 + Math.cos(a) * (50 + (i % 3) * 8), y = 250 + Math.sin(a) * (28 + (i % 3) * 5);
+            crowdDog(x, y, 0.85 + (Math.sin(a) + 1) * 0.15, i, t, { tongue: true });
+          }
+        });
+        for (var s = 0; s < 12; s++) { var a2 = t * 4 + s / 12 * 6.28; g.globalAlpha = 0.5; line(90 + Math.cos(a2) * 70, 250 + Math.sin(a2) * 40, 90 + Math.cos(a2 - 0.3) * 70, 250 + Math.sin(a2 - 0.3) * 40, 1, C.white); } g.globalAlpha = 1;
+        vignette(0.4, "rgba(0,0,20,");
+      }
+      function scene_later(t) { screen(); rect(0, 0, W, H, C.ink); }
+      // dawn: everyone asleep
+      function scene_dawn(t) {
+        var cam = camAt([[T.FIVE, 90, 222, 1.1], [T.SEVEN, 90, 228, 1.3]], t);
+        screen(); g.fillStyle = vgrad(0, H, [[0, "#2a1a4a"], [0.6, "#6a3a6a"], [1, "#ff9a7a"]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        stageBg(t, 0);
+        rect(-60, 200, 300, 160, "#1a1030");
+        character(function () { crowd(t, 7, 1, { sleep: true }); });
+        vignette(0.4, "rgba(0,0,20,");
+      }
+
+      function sceneAt(t) {
+        if (t < T.STREAM) return "home";
+        if (t < T.COUNT) return "city";
+        if (t < T.BOUNCER) return "rave";
+        if (t < T.DJ) return "gate";
+        if (t < T.BUILD) return "dj";
+        if (t < T.FRAP) return "rave";
+        if (t < T.TAILS) return "frap";
+        if (t < T.LATER) return "rave";
+        if (t < T.FIVE) return "later";
+        if (t < T.SEVEN) return "dawn";
+        return "home";
+      }
+
+      // ============================================================ UI: hook, counter, chips, 4 hours later, CTA
+      var CHIPCOL = { gold: "#ffc83a", pink: "#ff3ab8", cyan: "#3ae8ff", green: "#3aff7a", amber: "#ffaa3a", red: "#ff3a4a" };
+      function chip(c, t) {
+        var a = c[0], b = c[1], title = c[2], sub = c[3], col = CHIPCOL[c[4]] || "#ffffff";
+        var p = clamp01((t - a) / 0.15), q = clamp01((b - t) / 0.2), al = Math.min(p, q);
+        var w = Math.max(title.length * 12, sub.length * 6) + 20, h = 34, x0 = Math.round(180 - w / 2), y0 = 300 + Math.round((1 - p) * 8);
+        u.globalAlpha = 0.85 * al; u.fillStyle = "#120a22"; u.fillRect(x0, y0, w, h); u.fillStyle = col; u.fillRect(x0, y0, 3, h);
+        u.globalAlpha = al; uiText(title, x0 + 10, y0 + 5, 2, col); uiText(sub, x0 + 10, y0 + 22, 1, "#ffffff"); u.globalAlpha = 1;
+      }
+      function drawUI(t) {
+        if (t < T.SNEAK || t >= T.REWIND) {
+          var hp = clamp01(t / 0.2); u.globalAlpha = t >= T.REWIND ? 1 : hp;
+          uiCentre("WHAT IF ALL DOGS", 290, 2, "#ffffff"); uiCentre("GOT TOGETHER", 308, 2, "#ffffff"); uiCentre("AND THREW A RAVE?", 326, 2, "#ff3ab8");
+          u.globalAlpha = 1;
+        }
+        for (var i = 0; i < CHIPS.length; i++) if (t >= CHIPS[i][0] && t < CHIPS[i][1]) chip(CHIPS[i], t);
+        if (t >= T.COUNT && t < T.BOUNCER + 0.4) {
+          var n = Math.round(9e8 * Math.pow(clamp01((t - T.COUNT) / 3.2), 1.6)), s = String(n), o = ""; while (s.length > 3) { o = "," + s.slice(-3) + o; s = s.slice(0, -3); } s = s + o;
+          u.globalAlpha = 0.85; u.fillStyle = "#120a22"; u.fillRect(70, 40, 220, 46); u.globalAlpha = 1;
+          uiCentre("DOGS ATTENDING", 46, 1, "#ff3ab8"); uiCentre(s, 58, 3, "#ffffff");
+        }
+        if (t >= T.LATER && t < T.FIVE) { uiCentre("4 HOURS", 290, 3, "#ffffff"); uiCentre("LATER...", 318, 3, "#ffc83a"); }
+        if (t >= T.CTA && t < T.REWIND) {
+          uiCentre("WHAT SHOULD DJ BISCUIT", 286, 2, "#ffffff"); uiCentre("PLAY NEXT?", 304, 2, "#ffc83a");
+          var bp = 0.5 + 0.5 * Math.sin(t * 6); u.fillStyle = "#ff3ab8"; u.fillRect(110, 324, 140, 22); uiCentre("FOLLOW FOR MORE", 331, 1, "#ffffff");
+        }
+      }
+
+      KIT.start(C, T, {
+        scenes: { home: scene_home, city: scene_city, rave: scene_rave, gate: scene_gate, dj: scene_dj, frap: scene_frap, later: scene_later, dawn: scene_dawn },
+        sceneAt: sceneAt, ui: drawUI, hitCol: "#ff3ab8",
+        cuts: [[T.STREAM, "home", "city"], [T.COUNT, "city", "rave"], [T.BOUNCER, "rave", "gate"], [T.DJ, "gate", "dj"], [T.BUILD, "dj", "rave"],
+               [T.FRAP, "rave", "frap"], [T.TAILS, "frap", "rave"], [T.FIVE, "later", "dawn"], [T.SEVEN, "dawn", "home"]],
+      });
+    </script>
+  </body>
+</html>
