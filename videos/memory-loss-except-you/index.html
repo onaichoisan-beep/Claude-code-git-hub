@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Every Human Lost Their Memory. Except You.</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "Every human on Earth lost their memory overnight. Except you." — story mode (STYLE_GUIDE.md section 7), but fast cut on
+      the owner's request: a new shot every 1-2 s, word-by-word captions, a red "?" over every head except YOURS (until the
+      twist), a HUD with the day/time/place and the three rules. Voices: Kokoro-82M (narrator af_heart, mom af_bella, the man
+      am_fenrir, the note af_nicole). Fiction.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="45.4" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="45.4" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="45.4" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {}, MOUTH = window.MOUTH || {};
+      var NOTES = T.NOTES || [];
+      var C = {
+        sky1: "#060a1e", sky2: "#101a3a", sky3: "#22204a", star: "#fff6d8",
+        earth: "#1a3a8a", land: "#1e5a4a", light: "#ffd860",
+        wall: "#2a2440", wallL: "#3a3458", floor: "#3a2a2a", wood: "#6a4a2a", woodD: "#4a3018", bed: "#4a6ab8", bedD: "#2a4a8a", pillow: "#e8e8f0",
+        street: "#2a2a3a", line: "#e8d860", bldg: "#1a1630", win: "#ffd860", car1: "#d83a3a", car2: "#3a8ad8", smoke: "#6a6a7a",
+        paper: "#f4ecd8", paperD: "#c8bca0", ink: "#1a1a2a", inkB: "#2a3a8a", candle: "#fff0c0", flame: "#ff9a2a",
+        q: "#ff3a4a", qB: "#ffffff",
+        skin: "#f0b88a", skinD: "#c88a5a", skinL: "#ffd8b0", hair: "#2a1a14", hairL: "#5a3a28",
+        hoodie: "#ff6a3a", hoodieD: "#c8401a", jeans: "#3a5ab8", jeansD: "#24387a", shoe: "#f4f4f4", shoeD: "#a8a8b8",
+        m_skin: "#e8a878", m_hair: "#5a2a1a", apron: "#f0e0c8", dress: "#5a8a5a", dressD: "#3a6a3a", pan: "#3a3a44",
+        x_skin: "#c88a5a", jacket: "#5a6a3a", jacketD: "#3a4a24", cap: "#a83a2a",
+        gold: "#ffc83a", goldL: "#fff0a0", goldD: "#c8841a", amber: "#ff9a2a", red: "#ff3a4a", green: "#3ae86a", cyan: "#4ae0ff", dim: "#6a6a8a",
+        white: "#ffffff", black: "#0a0614",
+      };
+      C.paperText = C.ink;
+      DISSOLVE = 0.08;
+
+      function talk(who, t) { var s = MOUTH[who] || "", f = Math.floor(t * 30); return f >= 0 && f < s.length ? +s[f] / 9 : 0; }
+      function L(i) { return T["L" + i] || 0; }
+      // the red "?" bubble that floats over every head that forgot
+      function qmark(x, y, s, t, seed) {
+        var b = Math.sin(t * 4 + (seed || 0)) * 1.2;
+        g.save(); g.translate(x, y + b); g.scale(s, s);
+        disc(0, 0, 5.5, C.qB); poly([[-2, 4], [2, 4], [0, 8]], C.qB); worldText("?", 0, -3.5, 1, C.q);
+        g.restore();
+      }
+
+      // ============================================================ characters (character() adds the outline)
+      function limb(x1, y1, x2, y2, x3, y3, w, col, colD) {
+        line(x1, y1, x2, y2, w, colD); line(x2, y2, x3, y3, w, colD);
+        line(x1 - 0.4, y1 - 0.4, x2 - 0.4, y2 - 0.4, w - 1, col); line(x2 - 0.4, y2 - 0.4, x3 - 0.4, y3 - 0.4, w - 1, col);
+      }
+      // YOU: feet at (x, y), ~74*s tall. o: mood (calm|shock|sad|scared|shh), arms (shh|run|write|""), run (phase)
+      function kid(x, y, s, o) {
+        var t = o.t || 0, rn = o.run ? Math.sin(t * 18) : 0, bob = o.run ? Math.abs(Math.cos(t * 18)) * 2 : Math.sin(t * 2.4) * 0.5;
+        g.save(); g.translate(x, y - bob); g.scale(s * (o.look || 1), s);
+        if (o.run) g.rotate(0.12);
+        limb(-3.5, -24, -3.5 - rn * 5, -12, -3.5 - rn * 8, -2, 5.5, C.jeans, C.jeansD); limb(3.5, -24, 3.5 + rn * 5, -12, 3.5 + rn * 8, -2, 5.5, C.jeans, C.jeansD);
+        ell(-3 - rn * 8, -1.5, 4.2, 2.2, 0, C.shoeD); ell(4 + rn * 8, -1.5, 4.2, 2.2, 0, C.shoeD);
+        var ar = o.arms || "";
+        if (o.run) { limb(-8, -42, -12 + rn * 6, -34, -10 + rn * 10, -28, 4.5, C.hoodie, C.hoodieD); }
+        else limb(-8, -42, -10, -32, -9, -23, 4.5, C.hoodie, C.hoodieD);
+        rrect(-10, -46, 20, 24, 6, C.hoodieD); rrect(-9.5, -46, 18.5, 22.5, 6, C.hoodie);
+        rrect(-5.5, -34, 11, 6, 2, C.hoodieD); rect(-1.5, -45, 0.6, 8, C.white); rect(1, -45, 0.6, 7, C.white); rect(-10, -25, 20, 2.5, C.hoodieD);
+        if (ar === "shh") { limb(8, -42, 10, -46, 2, -52, 4.5, C.hoodie, C.hoodieD); rect(1, -60, 2.2, 9, C.skin); }
+        else if (ar === "write") { limb(8, -42, 12, -34, 4, -30, 4.5, C.hoodie, C.hoodieD); disc(4, -30, 2.2, C.skin); }
+        else if (o.run) { limb(8, -42, 12 - rn * 6, -34, 10 - rn * 10, -28, 4.5, C.hoodie, C.hoodieD); }
+        else limb(8, -42, 10, -32, 9, -23, 4.5, C.hoodie, C.hoodieD);
+        rect(-2.5, -50, 5, 5, C.skinD);
+        disc(0, -58, 10.5, C.skin); ell(-2.5, -61, 4, 3, -0.4, C.skinL);
+        disc(0, -63, 9.5, C.hair); disc(-6, -60, 5, C.hair); disc(7, -61, 4.5, C.hair); disc(5, -72, 4.6, C.hair); disc(4.4, -72.6, 2, C.hairL);
+        poly([[-9, -60], [-4, -66], [2, -62], [6, -66], [9, -59], [9, -64], [-9, -64]], C.hair);
+        var md = o.mood || "calm", big = md === "shock" || md === "scared" ? 1.3 : 1;
+        ell(-4, -56.5, 2.2 * big, 2.8 * big, 0, C.white); ell(4, -56.5, 2.2 * big, 2.8 * big, 0, C.white);
+        var pd = md === "shock" ? 0.8 : 1.4; ell(-3.6, -56.2, pd, pd * 1.4, 0, C.black); ell(4.4, -56.2, pd, pd * 1.4, 0, C.black);
+        rect(-4.4, -57.8, 0.8, 0.8, C.white); rect(3.6, -57.8, 0.8, 0.8, C.white);
+        if (md === "sad" || md === "scared") { line(-6, -61.5, -2.5, -62.8, 0.8, C.hair); line(2.5, -62.8, 6, -61.5, 0.8, C.hair); }
+        else if (md === "shock") { line(-6, -63, -2.5, -63.5, 0.8, C.hair); line(2.5, -63.5, 6, -63, 0.8, C.hair); }
+        else { line(-6, -60.5, -2.5, -61, 0.8, C.hair); line(2.5, -61, 6, -60.5, 0.8, C.hair); }
+        disc(-7, -53.5, 1.6, C.red); disc(7, -53.5, 1.6, C.red);
+        if (md === "shock" || md === "scared") ell(0.5, -51.5, 1.6, 2.2, 0, C.black);
+        else { g.strokeStyle = C.skinD; g.lineWidth = 0.8; g.beginPath(); if (md === "sad") g.arc(0.5, -50.5, 2.2, Math.PI + 0.3, -0.3); else g.arc(0.5, -53, 2.2, 0.3, Math.PI - 0.3); g.stroke(); }
+        g.restore();
+      }
+      // mom: feet at (x, y), ~78*s tall; raises a frying pan
+      function mom(x, y, s, t, k, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s * (o.look || 1), s);
+        poly([[-12, 0], [12, 0], [9, -44], [-9, -44]], C.dressD); poly([[-11, -1], [11, -1], [8, -43], [-8, -43]], C.dress);
+        poly([[-7, -6], [7, -6], [6, -36], [-6, -36]], C.apron);
+        limb(-8, -40, -13, -28, -10, -20, 4.5, C.dress, C.dressD); disc(-10, -19.5, 2.2, C.m_skin);
+        var up = o.pan ? Math.sin(t * 10) * 2 : 0;
+        if (o.pan) { limb(8, -40, 16, -50, 15, -60 + up, 4.5, C.dress, C.dressD); disc(15, -61 + up, 2.4, C.m_skin); line(15, -62 + up, 15, -70 + up, 2, C.pan); ell(15, -76 + up, 7, 6, 0, C.pan); ell(14, -77 + up, 4, 3, 0, "#5a5a66"); }
+        else { limb(8, -40, 13, -28, 10, -20, 4.5, C.dress, C.dressD); disc(10, -19.5, 2.2, C.m_skin); }
+        rect(-2.5, -48, 5, 5, C.m_skin);
+        disc(0, -56, 10, C.m_skin);
+        disc(0, -61, 9, C.m_hair); disc(0, -70, 5, C.m_hair); disc(-8, -56, 3, C.m_hair); disc(8, -56, 3, C.m_hair);
+        ell(-3.8, -55, 2, 2.6, 0, C.white); ell(3.8, -55, 2, 2.6, 0, C.white); disc(-3.6, -54.8, 1.1, C.black); disc(3.6, -54.8, 1.1, C.black);
+        line(-6, -59.5, -2, -58, 0.9, C.m_hair); line(2, -58, 6, -59.5, 0.9, C.m_hair);
+        if (k > 0.12) ell(0, -50, 2.2, 0.6 + 1.8 * k, 0, C.black); else ell(0, -50, 1.6, 0.8, 0, C.black);
+        g.restore();
+      }
+      // the man: feet at (x, y), ~82*s tall; cap, stubble, points
+      function man(x, y, s, t, k, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s * (o.look || 1), s);
+        limb(-4, -28, -4, -14, -4, -2, 6, "#3a3a4a", "#24242e"); limb(4, -28, 4, -14, 4, -2, 6, "#3a3a4a", "#24242e");
+        rrect(-12, -54, 24, 28, 5, C.jacketD); rrect(-11.5, -54, 23, 27, 5, C.jacket);
+        limb(-10, -50, -14, -38, -12, -28, 5, C.jacket, C.jacketD); disc(-12, -27.5, 2.5, C.x_skin);
+        if (o.point) { limb(10, -50, 22, -50, 32, -52, 5, C.jacket, C.jacketD); disc(33, -52, 2.5, C.x_skin); line(34, -52, 38, -53, 1.4, C.x_skin); }
+        else { limb(10, -50, 14, -38, 12, -28, 5, C.jacket, C.jacketD); disc(12, -27.5, 2.5, C.x_skin); }
+        rect(-3, -60, 6, 6, C.x_skin);
+        disc(0, -68, 10.5, C.x_skin); ell(0, -62, 8, 4.5, 0, "#6a4a30");
+        ell(0, -76, 11, 5, 0, C.cap); rect(0, -76, 14, 2.5, C.cap);
+        ell(-4, -68, 2, 2.6, 0, C.white); ell(4, -68, 2, 2.6, 0, C.white); disc(-3.4, -67.8, 1.1, C.black); disc(4.6, -67.8, 1.1, C.black);
+        line(-7, -72, -2, -70.5, 1.2, C.black); line(2, -70.5, 7, -72, 1.2, C.black);
+        if (k > 0.12) ell(0.5, -62.5, 2.6, 0.6 + 2 * k, 0, C.black);
+        g.restore();
+      }
+      function person(x, y, s, col, colD, seed, t, o) {
+        o = o || {};
+        var bob = Math.sin(t * 3 + seed) * 0.4;
+        g.save(); g.translate(x, y - bob); g.scale(s * (o.look || 1), s);
+        var rn = o.run ? Math.sin(t * 16 + seed) * 3 : 0;
+        line(-2, -8, -2.5 - rn, 0, 2.4, colD); line(2, -8, 2.5 + rn, 0, 2.4, colD);
+        rrect(-4.5, -17, 9, 10, 3, col);
+        if (o.hands) { line(-4, -15, -5, -21, 1.8, colD); line(4, -15, 5, -21, 1.8, colD); disc(-5, -22, 1.4, C.skin); disc(5, -22, 1.4, C.skin); }
+        else { line(-4, -15, -6.5 - rn, -9, 1.8, colD); line(4, -15, 6.5 + rn, -9, 1.8, colD); }
+        disc(0, -20.5, 3.8, C.skin); disc(-1.2, -20.8, 0.6, C.black); disc(1.2, -20.8, 0.6, C.black);
+        g.restore();
+      }
+      function crowdCol(i) { return [["#d84a4a", "#8a2a2a"], ["#4a8ad8", "#2a5a8a"], ["#d8a84a", "#8a6a2a"], ["#6ab86a", "#3a7a3a"], ["#a86ad8", "#6a3a8a"]][i % 5]; }
+
+      function sky() { screen(); g.fillStyle = vgrad(0, H, [[0, C.sky1], [0.65, C.sky2], [1, C.sky3]]); g.fillRect(0, 0, W, H); }
+      function stars(t) { for (var i = 0; i < 60; i++) { g.globalAlpha = 0.35 + 0.65 * Math.abs(Math.sin(t * (1 + hash1(i)) + i)); rect(hash1(i * 3.3) * 180, hash1(i * 5.1 + 2) * 320, 0.6, 0.6, C.star); } g.globalAlpha = 1; }
+
+      // ============================================================ scenes
+      function scene_globe(t) {
+        var tt = tapeT(t, T);
+        var cam = camAt([[0, 90, 214, 1.2], [T.EXCEPT, 90, 222, 1.6]], tt);
+        sky(); stars(tt); setCam(cam, 1);
+        var EX = 90, EY = 246, R = 52;
+        lighter(); glow(EX, EY, 80, "#4a6ad8", 0.35); normalBlend();
+        disc(EX, EY, R, C.earth);
+        ell(EX - 18, EY - 12, 18, 12, 0.4, C.land); ell(EX + 20, EY + 10, 15, 18, -0.3, C.land); ell(EX + 8, EY - 34, 10, 6, 0, C.land); ell(EX - 26, EY + 26, 10, 7, 0.2, C.land);
+        for (var c = 0; c < 26; c++) { var a = hash1(c * 2.3) * 6.28, d = hash1(c * 4.1) * (R - 6); rect(EX + Math.cos(a) * d, EY + Math.sin(a) * d * 0.95, 1, 1, C.light); }
+        // the "?"s pop over the cities (same schedule as the audio)
+        for (var k = 0; k < 28; k++) {
+          var tk = 0.35 + 2.0 * Math.pow(k / 28, 0.7); if (tt < tk) continue;
+          var a2 = hash1(k * 7.7) * 6.28, d2 = 8 + hash1(k * 3.9) * (R - 10);
+          var p = Math.min(1, pop(tt, tk));
+          qmark(EX + Math.cos(a2) * d2, EY + Math.sin(a2) * d2 * 0.9 - 6, 0.55 * p, tt, k);
+        }
+        vignette(0.4, "rgba(0,0,20,");
+      }
+      function room(t, warm) {
+        sky(); setCam({ x: 90, y: 214, z: 1 }, 1);
+        rect(-60, 100, 300, 210, C.wall); rect(-60, 300, 300, 60, C.floor);
+        for (var b = 0; b < 8; b++) rect(-60 + b * 40, 100, 2, 200, C.wallL);
+      }
+      function scene_bed(t) {
+        var cam = camAt([[T.EXCEPT - 0.1, 82, 222, 2.1], [T.MOM, 86, 220, 1.85]], t);
+        shake(cam, t, T.EXCEPT, 6, 0.4);
+        sky(); setCam(cam, 1);
+        rect(-60, 100, 300, 210, C.wall); rect(-60, 300, 300, 60, C.floor);
+        // window, morning light
+        rect(120, 170, 40, 46, C.woodD); rect(123, 173, 34, 40, "#ffd8a0"); rect(139, 173, 2, 40, C.woodD);
+        // alarm clock
+        rect(28, 262, 22, 14, C.woodD); rect(30, 264, 18, 10, C.black); worldText("07:12", 39, 266, 1, C.red);
+        // bed
+        rect(40, 272, 110, 16, C.woodD); rect(42, 262, 106, 14, C.bed); ell(58, 260, 14, 6, 0, C.pillow);
+        // YOU, lying down: head on the pillow, eyes snap open
+        var open = t > T.EXCEPT + 0.05;
+        character(function () {
+          g.save(); g.translate(60, 254); g.rotate(-Math.PI / 2 + 0.15);
+          disc(0, 0, 10.5, C.skin); disc(-3, -3, 9.5, C.hair); disc(-9, 2, 5, C.hair);
+          if (open) { ell(4, -3, 2.4, 3, 0, C.white); ell(4, 4, 2.4, 3, 0, C.white); disc(4.5, -3, 1.2, C.black); disc(4.5, 4, 1.2, C.black); }
+          else { line(3, -5, 3, -1, 0.9, C.black); line(3, 2, 3, 6, 0.9, C.black); }
+          g.restore();
+          rect(64, 254, 70, 12, C.bedD); rect(64, 252, 70, 10, C.bed);
+        });
+        if (open) { lighter(); glow(60, 252, 34, C.goldL, 0.28 * clamp01((t - T.EXCEPT) / 0.3)); normalBlend(); worldText("NO ?", 92, 244, 1, C.gold); }
+        vignette(0.35, "rgba(0,0,20,");
+      }
+      function scene_kitchen(t) {
+        var frame = t > L(3) + 0.1 && t < T.CROWD;
+        var cam = frame ? camAt([[L(3), 100, 196, 1.25], [T.CROWD, 108, 198, 1.4]], t) : camAt([[T.MOM - 0.1, 96, 198, 1.3], [L(3), 98, 196, 1.25]], t);
+        shake(cam, t, W2(), 5, 0.3);
+        sky(); setCam(cam, 1);
+        rect(-60, 100, 300, 210, "#3a2a40"); rect(-60, 300, 300, 60, C.floor);
+        for (var tl = 0; tl < 10; tl++) rect(-60 + tl * 30, 300, 15, 60, "#4a3434");
+        // counter + cupboards
+        rect(-40, 252, 70, 48, C.woodD); rect(-40, 250, 70, 4, C.wood); rect(-40, 150, 70, 40, C.woodD);
+        // the photo frame: mom + YOU
+        rect(96, 214, 30, 24, C.goldD); rect(98, 216, 26, 20, "#a8c8e8");
+        disc(106, 224, 3, C.m_skin); disc(106, 221, 3, C.m_hair); disc(116, 225, 3, C.skin); disc(116, 222, 3, C.hair); rect(103, 228, 6, 7, C.dress); rect(113, 229, 6, 6, C.hoodie);
+        // mom (with the pan) and YOU in the doorway
+        var mk = talk("mom", t);
+        character(function () {
+          mom(70, 301, 1.0, t, mk, { pan: t < L(3), look: 1 });
+          kid(140, 301, 1.0, { t: t, mood: t < L(3) ? "scared" : "sad", look: -1 });
+        });
+        qmark(70, 216, 1.0, t, 1);
+        vignette(0.35, "rgba(0,0,20,");
+      }
+      function W2() { return T.MOM + 0.9; }
+      function scene_city(t) {
+        var tt = t, crowd = tt < T.R1;
+        if (crowd) {
+          var cam = camAt([[T.CROWD - 0.1, 90, 236, 1.5], [T.R1, 90, 214, 0.75]], tt);
+          sky(); stars(tt); setCam(cam, 1);
+          for (var b = 0; b < 16; b++) { var bx = -120 + b * 28, bh = 60 + hash1(b * 7.1) * 90; rect(bx, 300 - bh, 24, bh, C.bldg); for (var wy = 4; wy < bh - 6; wy += 8) for (var wx = 0; wx < 3; wx++) if (hash1(b * 13 + wy + wx * 3.3) > 0.5) rect(bx + 3 + wx * 7, 300 - bh + wy, 3, 4, C.win); }
+          rect(-200, 300, 600, 80, C.street);
+          for (var p = 0; p < 60; p++) { var px = -110 + (p % 30) * 13 + (Math.floor(p / 30)) * 6, py = 304 + Math.floor(p / 30) * 10, c = crowdCol(p); person(px, py, 0.8, c[0], c[1], p, tt); qmark(px, py - 30, 0.5, tt, p); }
+          character(function () { kid(90, 322, 0.75, { t: tt, mood: "scared" }); });
+          worldText("YOU", 90, 326, 1, C.gold);
+          vignette(0.4, "rgba(0,0,20,");
+          return;
+        }
+        // street level: people stare at their hands, cars stop, the man points, RUN
+        var run = tt > T.RUN - 0.05;
+        var camx = run ? lerp(90, 170, ease(clamp01((tt - T.RUN) / 1.2))) : tt < T.CARS ? 70 : tt < T.MAN ? 110 : 100;
+        var cam2 = camAt([[T.STREET - 0.1, 70, 216, 1.5], [T.CARS - 0.2, 80, 214, 1.3], [T.CARS + 0.4, 110, 216, 1.4], [T.MAN - 0.1, 104, 214, 1.35], [T.RUN, 100, 216, 1.35], [T.R2, 170, 216, 1.2]], tt);
+        if (run) shake(cam2, tt, T.RUN, 6, 1.0);
+        sky(); setCam(cam2, 1);
+        for (var b2 = 0; b2 < 14; b2++) { var bx2 = -80 + b2 * 30, bh2 = 70 + hash1(b2 * 5.1) * 80; rect(bx2, 280 - bh2, 26, bh2, C.bldg); for (var wy2 = 4; wy2 < bh2 - 6; wy2 += 8) if (hash1(b2 * 11 + wy2) > 0.45) rect(bx2 + 4, 280 - bh2 + wy2, 3, 4, C.win); }
+        rect(-200, 280, 600, 100, C.street); for (var ln = 0; ln < 12; ln++) rect(-100 + ln * 30, 302, 14, 2, C.line);
+        // cars stopped every which way, one crashed (smoke)
+        function car(x, y, col, rot) { g.save(); g.translate(x, y); g.rotate(rot); rrect(-16, -8, 32, 10, 3, col); rrect(-9, -14, 18, 8, 3, col); rect(-7, -13, 6, 5, "#a8d8f0"); rect(1, -13, 6, 5, "#a8d8f0"); disc(-9, 2, 3.5, C.black); disc(9, 2, 3.5, C.black); g.restore(); }
+        car(120, 300, C.car1, 0.15); car(152, 306, C.car2, -0.25);
+        if (tt > T.CARS + 0.6) for (var sm = 0; sm < 5; sm++) { var ph = (tt * 0.8 + sm / 5) % 1; g.globalAlpha = 0.6 * (1 - ph); disc(140 + Math.sin(sm) * 4, 292 - ph * 40, 4 + ph * 8, C.smoke); g.globalAlpha = 1; }
+        // people staring at their hands
+        for (var q = 0; q < 6; q++) { var qx = 10 + q * 18 + (q > 2 ? 130 : 0), c2 = crowdCol(q); character(function () { person(qx, 300, 1.4, c2[0], c2[1], q, tt, { hands: !run, run: run, look: run ? 1 : 1 }); }); qmark(qx, 258, 0.8, tt, q); }
+        // the man points at YOU
+        var mx = run ? lerp(60, 150, ease(clamp01((tt - T.RUN - 0.2) / 1.4))) : 60;
+        if (tt > T.MAN - 0.2) { character(function () { man(mx, 302, 1.15, tt, talk("man", tt), { point: !run }); }); qmark(mx, 196, 1.0, tt, 9); }
+        var kx = run ? lerp(100, 220, ease(clamp01((tt - T.RUN) / 1.4))) : 100;
+        character(function () { kid(kx, 302, 1.0, { t: tt, mood: tt > T.MAN ? "scared" : "calm", run: run, look: tt > T.MAN && !run ? -1 : 1 }); });
+        if (run) for (var sl = 0; sl < 6; sl++) line(kx - 30 - sl * 6, 250 + sl * 8, kx - 12 - sl * 6, 250 + sl * 8, 0.8, C.white);
+        vignette(0.4, "rgba(0,0,20,");
+      }
+      // RULE / DAY cards
+      function cardKind(t) {
+        if (t < T.STREET) return ["RULE", 1];
+        if (t >= T.R2 && t < NOTES[0]) return ["RULE", 2];
+        if (t >= T.DAY4 && t < T.DAY4 + 0.9) return ["DAY", 4];
+        if (t >= T.R3 && t < T.DAY9) return ["RULE", 3];
+        return ["DAY", 9];
+      }
+      function scene_card(t) {
+        var k = cardKind(t), t0 = k[0] === "RULE" ? (k[1] === 1 ? T.R1 : k[1] === 2 ? T.R2 : T.R3) : (k[1] === 4 ? T.DAY4 : T.DAY9);
+        sky(); var cam = { x: 90, y: 214 - (t - t0) * 2, z: 1.05 + (t - t0) * 0.06 }; setCam(cam, 1);
+        rect(-40, 100, 260, 260, "#0e1430");
+        for (var gx = -40; gx < 220; gx += 12) rect(gx, 100, 0.5, 260, "#1a2448");
+        var p = Math.min(1.15, pop(t, t0));
+        g.save(); g.translate(90, 270); g.scale(p, p);
+        if (k[0] === "DAY") {
+          rrect(-30, -32, 60, 64, 4, C.paper); rect(-30, -32, 60, 16, C.red); worldText("DAY", 0, -27, 1, C.white);
+          worldText(String(k[1]), 0, -6, 4, C.black);
+          worldText(k[1] === 4 ? "07:40" : "23:51", 0, 22, 1, C.dim);
+        } else {
+          worldText("RULE " + k[1], 0, -30, 2, C.gold);
+          if (k[1] === 1) { character(function () { kid(0, 44, 0.62, { t: t, arms: "shh", mood: "calm" }); }); }
+          if (k[1] === 2) { rrect(-22, -14, 44, 30, 2, C.paper); line(0, -14, 0, 16, 0.8, C.paperD); for (var r = 0; r < 5; r++) line(-18, -8 + r * 5, -18 + 14 * Math.min(1, (t - t0) * 3 - r * 0.3), -8 + r * 5, 0.8, C.inkB); line(10, 12, 22, -6, 2, C.amber); }
+          if (k[1] === 3) { rrect(-26, -12, 52, 24, 3, C.white); rect(-26, -12, 52, 8, C.red); worldText("HELLO, I AM", 0, -11, 1, C.white); worldText("ME", 0, 0, 2, C.black); }
+        }
+        g.restore();
+        vignette(0.35, "rgba(0,0,20,");
+      }
+      function scene_notebook(t) {
+        sky();
+        var day4 = t > T.DAY4 + 0.9;
+        var cam = { x: 90, y: 186, z: 1.25 + 0.03 * Math.sin(t) };
+        if (day4) cam = camAt([[T.DAY4 + 0.9, 90, 236, 2.0], [T.R3, 90, 230, 1.6]], t);
+        setCam(cam, 1);
+        rect(-40, 150, 260, 200, C.woodD); for (var gr = 0; gr < 8; gr++) rect(-40, 150 + gr * 22, 260, 1, C.wood);
+        if (!day4) {
+          var idx = 0; for (var i = 0; i < NOTES.length; i++) if (t >= NOTES[i] - 0.05) idx = i;
+          var flip = clamp01((t - NOTES[idx] + 0.05) / 0.18);
+          rect(40, 196, 100, 70, C.paperD); rect(42, 198, 96, 66, C.paper); line(90, 198, 90, 264, 1, C.paperD);
+          for (var r = 0; r < 8; r++) line(46, 206 + r * 7.5, 86, 206 + r * 7.5, 0.4, "#c8d8f0");
+          var titles = ["NAMES", "FACES", "NUMBERS", "MOM BDAY"];
+          worldText(titles[idx], 66, 200, 1, C.red);
+          var wr = clamp01((t - NOTES[idx]) / 0.6);
+          if (idx === 0) { var nm = ["MOM", "DAD", "AMIT", "PRIYA", "SAM"]; for (var a = 0; a < 5; a++) if (wr * 5 > a) worldText(nm[a], 66, 210 + a * 9, 1, C.inkB); }
+          if (idx === 1) { for (var f = 0; f < 4; f++) if (wr * 4 > f) { var fx = 54 + (f % 2) * 22, fy = 218 + Math.floor(f / 2) * 22; g.strokeStyle = C.inkB; g.lineWidth = 0.8; g.beginPath(); g.arc(fx, fy, 7, 0, 6.28); g.stroke(); disc(fx - 2.5, fy - 1, 0.8, C.inkB); disc(fx + 2.5, fy - 1, 0.8, C.inkB); g.beginPath(); g.arc(fx, fy + 2, 3, 0.3, 2.8); g.stroke(); } }
+          if (idx === 2) { var nb = ["555-0101", "555-0142", "100", "112"]; for (var n = 0; n < 4; n++) if (wr * 4 > n) worldText(nb[n], 66, 212 + n * 10, 1, C.inkB); }
+          if (idx === 3) { rect(54, 236, 26, 14, C.red); rect(54, 232, 26, 5, C.paper); for (var cd = 0; cd < 3; cd++) { line(59 + cd * 8, 232, 59 + cd * 8, 226, 1, C.cyan); disc(59 + cd * 8, 224, 1.2, C.amber); } worldText("12 MAR", 67, 212, 1, C.inkB); }
+          // right page: scribbles
+          for (var s2 = 0; s2 < 8; s2++) line(94, 206 + s2 * 7.5, 94 + 38 * clamp01(wr * 2 - s2 * 0.15), 206 + s2 * 7.5, 0.6, C.inkB);
+          // page turning
+          if (flip < 1 && idx > 0) { g.globalAlpha = 1 - flip; rect(90 + (1 - flip) * -48, 198, 48 * (1 - flip), 66, C.paperD); g.globalAlpha = 1; }
+          character(function () { g.save(); g.translate(124 + Math.sin(t * 20) * 2, 236 + Math.cos(t * 17) * 2); line(0, 0, 14, -16, 3, C.amber); disc(15, -17, 2.4, C.skin); g.restore(); });
+        } else {
+          // three full notebooks stacked
+          for (var nbk = 0; nbk < 3; nbk++) { var sy = 270 - nbk * 12, pp = Math.min(1, pop(t, T.DAY4 + 1.1 + nbk * 0.22)); if (pp <= 0) continue; g.save(); g.translate(90, sy); g.scale(pp, pp); rect(-34, -6, 68, 11, ["#a83a3a", "#3a6aa8", "#3a8a5a"][nbk]); rect(-32, -4, 64, 2, C.paper); rect(-32, 0, 64, 2, C.paper); g.restore(); }
+          if (t > T.DAY4 + 2.0) worldText("FULL", 90, 220, 2, C.red);
+        }
+        vignette(0.35, "rgba(0,0,20,");
+      }
+      function scene_night(t) {
+        var tt = tapeT(t, T);
+        var page = tt > T.PAGE - 0.1 && tt < T.BUT;
+        var cam = page ? camAt([[T.PAGE - 0.1, 90, 214, 1.4], [T.NOTE, 90, 216, 1.5], [T.BUT, 90, 218, 1.6]], tt)
+          : tt < T.BUT ? camAt([[T.DAY9 + 0.8, 90, 214, 1.2], [T.PAGE, 90, 222, 1.5]], tt)
+          : camAt([[T.BUT, 80, 213, 2.0], [T.LAST, 82, 198, 1.55], [T.HIT, 84, 196, 1.5], [T.STOP, 84, 196, 1.45]], tt);
+        shake(cam, tt, T.HIT, 8, 0.5);
+        sky(); setCam(cam, 1);
+        rect(-60, 100, 300, 260, "#1a1428");
+        var fl = 0.8 + 0.2 * Math.sin(tt * 13) * Math.sin(tt * 7.3);
+        lighter(); glow(132, 250, 90 * fl, C.flame, 0.35); normalBlend();
+        rect(-60, 280, 300, 80, C.woodD); rect(-60, 278, 300, 4, C.wood);
+        // candle
+        rect(128, 258, 8, 20, C.candle); poly([[132, 246 - fl * 2], [129.5, 256], [134.5, 256]], C.flame); disc(132, 254, 1.5, C.goldL);
+        if (!page) {
+          // YOU at the desk with the open notebook
+          var md = tt > T.BUT ? "shock" : "calm";
+          character(function () { kid(70, 302, 1.0, { t: tt, mood: md, arms: tt < T.BUT ? "write" : "" }); });
+          rect(80, 270, 40, 10, C.paperD); rect(82, 268, 36, 9, C.paper);
+          // the twist: a "?" grows over YOUR head
+          if (tt > T.LAST - 0.3) { var gq = clamp01((tt - T.LAST + 0.3) / 1.2); qmark(70, 220, 1.3 * gq, tt, 3); if (tt > T.HIT) { lighter(); glow(70, 220, 26, C.red, 0.5); normalBlend(); } }
+        } else {
+          // close-up of page one: the handwriting writes itself, word by word
+          rect(30, 222, 120, 80, C.paperD); rect(32, 224, 116, 76, C.paper);
+          for (var r = 0; r < 8; r++) line(36, 234 + r * 8, 144, 234 + r * 8, 0.4, "#c8d8f0");
+          worldText("PAGE 1", 124, 227, 1, C.dim);
+          var words = ["DON'T", "TRUST", "WHAT", "YOU", "REMEMBER."];
+          var vo = (window.VO || [])[15], shown = 0;
+          if (vo) for (var w = 0; w < vo.w.length; w++) if (tt >= vo.w[w][1]) shown = w + 1;
+          var l1 = words.slice(0, Math.min(3, shown)).join(" "), l2 = shown > 3 ? words.slice(3, shown).join(" ") : "";
+          worldText(l1, 90, 250, 1, C.inkB); worldText(l2, 90, 264, 1, C.inkB);
+          if (shown >= 5) { line(52, 274, 128, 274, 0.8, C.red); }
+        }
+        vignette(0.45, "rgba(0,0,10,");
+      }
+
+      function sceneAt(t) {
+        if (t < T.EXCEPT) return "globe";
+        if (t < T.MOM) return "bed";
+        if (t < T.CROWD) return "kitchen";
+        if (t < T.R1) return "city";
+        if (t < T.STREET) return "card";
+        if (t < T.R2) return "city";
+        if (t < NOTES[0]) return "card";
+        if (t < T.DAY4) return "notebook";
+        if (t < T.DAY4 + 0.9) return "card";
+        if (t < T.R3) return "notebook";
+        if (t < T.DAY9 + 0.8) return "card";
+        if (t < T.REWIND) return "night";
+        return "globe";
+      }
+
+      function drawUI(t) {
+        var day = t < T.DAY4 ? 1 : t < T.DAY9 ? 4 : 9, place = t < T.CROWD ? "HOME" : t < T.R2 ? "STREET" : t < T.DAY9 ? "HIDEOUT" : "HIDEOUT";
+        var clock = t < T.CROWD ? "07:1" + Math.min(9, 2 + Math.floor(t / 3)) : t < T.DAY4 ? "08:" + (10 + Math.floor(t) % 40) : t < T.DAY9 ? "07:40" : "23:51";
+        var tag = t >= T.HIT ? "DAY ? · ??:?? · ???" : "DAY " + day + " · " + clock + " · " + place;
+        if (t >= T.REWIND) tag = "DAY 1 · 07:12 · HOME";
+        uiCentre(tag, 16, 2, t >= T.HIT && t < T.REWIND ? C.red : C.white);
+        // the three rules
+        var done = [t >= T.R1 && t < T.REWIND, t >= T.R2 && t < T.REWIND, t >= T.R3 && t < T.REWIND];
+        var x0 = 180 - (3 * 7 * 6 * 2 + 2 * 12) / 2;
+        for (var i = 0; i < 3; i++) { var s = "RULE " + (i + 1) + (done[i] ? "+" : " "); uiText(s, x0 + i * (7 * 12 + 12) + 1, 37, 2, C.black); uiText(s, x0 + i * (7 * 12 + 12), 36, 2, done[i] ? C.gold : C.dim); }
+        // who remembers
+        var rem = t < T.EXCEPT ? "WHO REMEMBERS: ..." : t < T.HIT || t >= T.REWIND ? "WHO REMEMBERS: 1" : "WHO REMEMBERS: 0?";
+        uiCentre(rem, 56, 2, t >= T.HIT && t < T.REWIND ? C.red : C.green);
+      }
+
+      KIT.start(C, T, {
+        scenes: { globe: scene_globe, bed: scene_bed, kitchen: scene_kitchen, city: scene_city, card: scene_card, notebook: scene_notebook, night: scene_night },
+        sceneAt: sceneAt, ui: drawUI, hitCol: "#ff3a4a",
+        cuts: [[T.EXCEPT, "globe", "bed"], [T.MOM, "bed", "kitchen"], [T.CROWD, "kitchen", "city"], [T.R1, "city", "card"], [T.STREET, "card", "city"],
+               [T.R2, "city", "card"], [NOTES[0], "card", "notebook"], [T.DAY4, "notebook", "card"], [T.DAY4 + 0.9, "card", "notebook"],
+               [T.R3, "notebook", "card"], [T.DAY9 + 0.8, "card", "night"]],
+      });
+    </script>
+  </body>
+</html>

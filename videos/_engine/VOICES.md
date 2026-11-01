@@ -1,4 +1,13 @@
-# Voice casting: every video is narrated, every character gets a voice that fits
+# Voice casting: every character gets a voice that fits
+
+**Default engine (owner, Nov 2026: the edge-tts voices sound robotic): Kokoro-82M** — open source, runs locally,
+`python3 scripts/make_voices_kokoro.py .` with `scripts/voices_kokoro.json` = `{speaker: [voice, speed]}` (copy the script
+from `videos/_engine/`). Best voices (Kokoro's own grades): narrator `af_heart` (A) at speed 1.08-1.12; women `af_bella` (A-),
+`af_nicole` (B-, soft/whispery), `bf_emma` (B-, British); men `am_fenrir` / `am_michael` / `am_puck` (C+), `bm_george` /
+`bm_fable` (C, British). Don't speed narration past ~1.15 and don't squeeze natural pauses below 0.45 s. Example:
+`videos/memory-loss-except-you`. edge-tts (below) is the fallback, e.g. for Indian-accented characters (`hi-IN-MadhurNeural`).
+
+# (edge-tts casting, fallback)
 
 House rule: **narrate everything.** Each speaking character gets their **own** voice, matched to who they are
 (age, gender, culture, personality, size). The narrator matches the story's mood and setting. Never reuse one

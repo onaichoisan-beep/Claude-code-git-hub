@@ -33,6 +33,8 @@ For narrated story / "what if" videos follow section 7 (learned from the owner's
 chapters (Rule 1/2/3); chase -> escape -> false safety -> premise-flipping twist -> unanswered question; fragment sentences
 at ~2 words/s with a calm low narrator; a new shot every 1-2 s with hand/object inserts; DAY calendar cards + a HUD
 checklist; captions that build word by word; NO beat: a low drone + literal foley + hits on key words, quieter at the end.
+The owner prefers it FAST (memory-loss-except-you): 1-3-word caption cards, a shot every 1-2 s, a dark pulse + effects on
+almost every phrase. Voices: Kokoro-82M (`_engine/make_voices_kokoro.py`, narrator af_heart) — the owner finds edge-tts robotic.
 
 ## The look: SHARP HD pixel art (owner's rule, Oct 2026; full rules in /STYLE_GUIDE.md)
 
