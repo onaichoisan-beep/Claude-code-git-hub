@@ -36,6 +36,12 @@ checklist; captions that build word by word; NO beat: a low drone + literal fole
 The owner prefers it FAST (memory-loss-except-you): 1-3-word caption cards, a shot every 1-2 s, a dark pulse + effects on
 almost every phrase. Voices: Kokoro-82M (`_engine/make_voices_kokoro.py`, narrator af_heart) — the owner finds edge-tts robotic.
 
+## Safe zone (owner's rule, Nov 2 2026): STYLE_GUIDE.md section 8
+
+Keep every counter, text card, bubble, face and key object inside **x 120-840, y 190-1350** of the 1080x1920 frame
+(canvas x 40-280, y 64-450; world x 20-140, y 32-225), clear of the Reels status bar, right icon column and bottom
+profile/caption rows. Caption lines max 16 characters, max 2 lines. Snapshot once with `window.PX_SAFE_GUIDE = true`.
+
 ## The look: SHARP HD pixel art (owner's rule, Oct 2026; full rules in /STYLE_GUIDE.md)
 
 - 9:16, **1080×1920 @ 30fps**. Scenes are written in a **180×320 world**, rendered **sharp at 360×640**

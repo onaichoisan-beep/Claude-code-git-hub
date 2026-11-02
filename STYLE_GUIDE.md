@@ -126,3 +126,18 @@ Use it for narrated story / "what if" videos. It replaces section 6's beat-and-c
 - **Sound: no beat.** A low cinematic drone/pad ~11 dB under the voice, never silent; literal foley for every action; a
   whoosh/hit on key words (~1.5 hits/s); the chase builds; the last 10 s get quieter before the final question.
   Mean about -17 dBFS.
+
+## 8. Safe zone: keep everything clear of the Instagram UI (owner's rule, Nov 2 2026)
+
+The owner showed a Reels screenshot: the status bar + header cover the top, the like/comment/share/send column covers the
+right side from mid-frame down, and the profile name, caption and "Liked by" rows cover the bottom quarter. Tall phones
+also crop ~9% off each side. So:
+
+- **Everything important stays inside the safe box** (1080x1920 px): **x 120-840, y 190-1350** (caption canvas 360x640:
+  x 40-280, y 64-450; world 180x320: x 20-140, y 32-225). That means counters, text cards, speech bubbles, faces, the key
+  object and the handle. Backgrounds can fill the whole frame.
+- **Small text boxes:** caption lines **max 16 characters** (split longer cards over 2 lines, max 2 lines), counter line 1
+  max ~13 characters at scale 3 (else scale 2). The engine warns in the console when a caption line is too long.
+- **Counter** sits at y 66 (canvas), under the status bar, not at the very top (`counterLines` does this).
+- **Nothing important on the right edge below mid-frame** (the icon column) or in the bottom quarter.
+- Check it: `window.PX_SAFE_GUIDE = true` draws the safe box and blocked areas; snapshot the key moments, then turn it off.

@@ -190,10 +190,23 @@ var FONT = {
 };
 var CAPTIONS = [];
 var DISSOLVE = 0.4, CAP_S = 2;
+// Instagram/YouTube safe zone (owner's rule, Nov 2 2026), in caption-canvas px (360x640; x3 = 1080x1920).
+// Outside it sit the phone status bar + Reels header (top), the like/comment/share column (right, from y 270 down),
+// the profile name + caption + "Liked by" rows (bottom, from y 455), and the side crop on tall phones (~32 px each side).
+// Keep counters, captions, bubbles, faces and the key object inside. window.PX_SAFE_GUIDE = true draws it (debug only).
+var SAFE = { x0: 40, x1: 280, y0: 64, y1: 450, maxCapChars: 16 };
+function drawSafeGuide() {
+  if (!window.PX_SAFE_GUIDE) return;
+  u.save(); u.strokeStyle = "#ff2a6d"; u.lineWidth = 1;
+  u.strokeRect(SAFE.x0 + 0.5, SAFE.y0 + 0.5, SAFE.x1 - SAFE.x0, SAFE.y1 - SAFE.y0);
+  u.fillStyle = "rgba(255,42,109,0.25)"; u.fillRect(285, 270, 75, 190); u.fillRect(0, 455, 360, 185); u.fillRect(0, 0, 360, 60);
+  u.restore();
+}
 function lineText(l) { return l.map(function (s) { return s[0]; }).join(""); }
 function drawCaption(cap, t) {
   var S = CAP_S, padX = 5, padY = 4, gap = 4;
   var widths = cap.lines.map(function (l) { return lineText(l).length * 6 * S - S; });
+  cap.lines.forEach(function (l) { if (lineText(l).length > SAFE.maxCapChars) console.warn("caption line over " + SAFE.maxCapChars + " chars (leaves the safe zone): " + lineText(l)); });
   var w = Math.max.apply(null, widths) + padX * 2;
   var h = padY * 2 + cap.lines.length * (7 * S + gap) - gap;
   var x0 = Math.round(180 - w / 2), top = Math.round((cap.y || 320) - h / 2);
@@ -268,6 +281,7 @@ PX.render = function (t) {
   CAPTIONS.forEach(function (c) { if (t >= c.a && t < c.b) drawCaption(c, t); });
   if (cfg.ui) cfg.ui(t);
   drawHandle(t);
+  drawSafeGuide();
 };
 
 // ---------------------------------------------------------------- the channel handle, on every frame
