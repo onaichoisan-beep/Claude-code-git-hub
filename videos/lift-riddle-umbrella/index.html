@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Lift Riddle</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "The Lift Riddle" — the classic short-man-and-the-lift riddle, told in our own words with original characters
+      (the short man, the night guard). Owner's request: narration + sound effects only, NO on-screen text overlays
+      (the @SCROLL2STUDY.IN handle stays). Voices: Kokoro-82M (narrator am_michael, guard bm_george).
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="49.4" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="49.4" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="49.4" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {}, MOUTH = window.MOUTH || {};
+      // the engine's KIT needs these two; this video has no dark break before a hit
+      T.HIT = T.HIT || -10; T.BREAK = T.BREAK || -10;
+      var C = {
+        dusk1: "#1a1a48", dusk2: "#5a3a6a", dusk3: "#ff9a6a", rain1: "#1a2234", rain2: "#2a3a4a", drop: "#8ab8e8",
+        tower: "#2a2a44", towerL: "#3a3a5a", win: "#ffd860", winOff: "#1a1a2e", street: "#1e1e2a",
+        lift: "#6a7080", liftD: "#4a4e5a", liftL: "#8a90a0", door: "#9aa0b0", doorD: "#6a7080", panel: "#2a2e38", btn: "#c8ccd8", btnOn: "#ffc83a", disp: "#14161c", dispOn: "#ff5a3a",
+        stair: "#5a5248", stairL: "#7a7062", rail: "#c8a04a", wallS: "#3a3634",
+        room: "#1a2028", desk: "#4a3828", deskL: "#6a5038", mon: "#0e1418", monG: "#3ae86a",
+        skin: "#f0c09a", skinD: "#c8906a", skinL: "#ffdcbc", hat: "#5a3a2a", hatD: "#3a2418", coat: "#c86a3a", coatD: "#9a4a24", case: "#6a4a2a",
+        umb: "#3a8ad8", umbD: "#2a5aa8", gUni: "#2a3a6a", gUniD: "#1a2a4a", gCap: "#1a2a4a", gHair: "#d8d8e0", mug: "#e8e8f0",
+        gold: "#ffc83a", goldL: "#fff0a0", red: "#ff3a4a", green: "#3ae86a", cyan: "#4ae0ff", white: "#ffffff", ink: "#0a0614", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.08;
+      function talk(who, t) { var s = MOUTH[who] || "", f = Math.floor(t * 30); return f >= 0 && f < s.length ? +s[f] / 9 : 0; }
+      function limb(x1, y1, x2, y2, x3, y3, w, col, colD) { line(x1, y1, x2, y2, w, colD); line(x2, y2, x3, y3, w, colD); line(x1 - 0.4, y1 - 0.4, x2 - 0.4, y2 - 0.4, w - 1, col); line(x2 - 0.4, y2 - 0.4, x3 - 0.4, y3 - 0.4, w - 1, col); }
+
+      // ============================================================ the short man: feet at (x, y), ~46*s tall (deliberately short)
+      function shorty(x, y, s, t, o) {
+        o = o || {};
+        var walk = o.walk ? Math.sin(t * 12) : 0, bob = o.walk ? Math.abs(Math.cos(t * 12)) * 1.2 : 0;
+        g.save(); g.translate(x, y - bob - (o.tiptoe ? 2.5 : 0)); g.scale(s * (o.look || 1), s);
+        limb(-2.5, -14, -2.5 - walk * 3, -7, -2.5 - walk * 4, -1, 4, "#3a3a4a", "#24242e"); limb(2.5, -14, 2.5 + walk * 3, -7, 2.5 + walk * 4, -1, 4, "#3a3a4a", "#24242e");
+        ell(-2.5 - walk * 4, -0.5, 3.2, 1.5, 0, C.ink); ell(2.5 + walk * 4, -0.5, 3.2, 1.5, 0, C.ink);
+        rrect(-8, -30, 16, 18, 4, C.coatD); rrect(-7.5, -30, 15, 17, 4, C.coat); rect(-0.5, -30, 1, 17, C.coatD);
+        // arms: reach (one hand up), umbrella (tip up), case, or relaxed
+        if (o.reach) { var rh = o.reach; limb(6, -28, 9, -34 - rh * 0.4, 9, -40 - rh, 3.6, C.coat, C.coatD); disc(9, -41 - rh, 2, C.skin); }
+        else if (o.umbrellaTap) { limb(6, -28, 9, -34, 8, -40, 3.6, C.coat, C.coatD); disc(8, -41, 2, C.skin); line(8, -41, 10, -41 - o.umbrellaTap, 1.4, C.umbD); }
+        else { limb(6, -28, 8, -20, 8, -14, 3.6, C.coat, C.coatD); disc(8, -13.5, 2, C.skin); if (o.briefcase) { rect(5, -12, 9, 7, C.case); rect(8, -14, 3, 2, C.case); } }
+        limb(-6, -28, -8, -20, -8, -14, 3.6, C.coat, C.coatD); disc(-8, -13.5, 2, C.skin);
+        if (o.umbrellaOpen) { line(-8, -14, -8, -46, 1, C.umbD); poly([[-24, -44], [8, -44], [-8, -56]], C.umb); for (var r = 0; r < 4; r++) line(-8, -56, -24 + r * 10.6, -44, 0.6, C.umbD); }
+        else if (o.umbrellaClosed) { line(-8, -14, -10, 0, 1.4, C.umbD); poly([[-9, -12], [-7, -12], [-9.5, -2]], C.umb); }
+        disc(0, -36, 7.5, C.skin); ell(-2, -38, 3, 2.2, -0.3, C.skinL);
+        ell(0, -42, 9, 2.2, 0, C.hatD); rrect(-6, -50, 12, 9, 2, C.hat); rect(-6, -44, 12, 1.6, C.hatD);
+        var md = o.mood || "calm";
+        disc(-2.6, -36, 1, C.ink); disc(2.6, -36, 1, C.ink);
+        if (md === "tired") { line(-4, -38.5, -1.5, -37.5, 0.7, C.ink); line(1.5, -37.5, 4, -38.5, 0.7, C.ink); ell(6, -34, 0.8, 1.4, 0, C.cyan); }
+        if (md === "happy" || md === "proud") { g.strokeStyle = C.skinD; g.lineWidth = 0.8; g.beginPath(); g.arc(0, -33, 2, 0.3, Math.PI - 0.3); g.stroke(); }
+        else if (md === "strain") { ell(0, -32.5, 1.2, 0.8, 0, C.ink); }
+        else { line(-1.5, -32.5, 1.5, -32.5, 0.7, C.skinD); }
+        disc(-4.5, -33.5, 1, "#ff8a8a"); disc(4.5, -33.5, 1, "#ff8a8a");
+        line(-2.5, -34.2, 2.5, -34.2, 0.8, "#5a3a2a");                         // a small moustache
+        g.restore();
+      }
+      // the night guard: feet at (x, y), ~84*s tall
+      function guard(x, y, s, t, k, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s * (o.look || 1), s);
+        limb(-4, -30, -4, -15, -4, -2, 6, C.gUniD, "#10182e"); limb(4, -30, 4, -15, 4, -2, 6, C.gUniD, "#10182e");
+        ell(-4, -1.5, 4.4, 2, 0, C.ink); ell(4, -1.5, 4.4, 2, 0, C.ink);
+        rrect(-13, -60, 26, 32, 6, C.gUniD); rrect(-12.5, -60, 25, 31, 6, C.gUni); disc(-6, -50, 2, C.gold);
+        limb(-11, -56, -14, -44, -12, -34, 5, C.gUni, C.gUniD); disc(-12, -33.5, 2.6, C.skin);
+        if (o.mug) { limb(11, -56, 16, -46, 12, -42, 5, C.gUni, C.gUniD); rrect(9, -48, 7, 8, 1.5, C.mug); disc(12, -42, 2.4, C.skin); }
+        else if (o.thumb) { limb(11, -56, 17, -60, 19, -68, 5, C.gUni, C.gUniD); disc(19, -69, 2.8, C.skin); rect(18, -75, 2, 5, C.skin); }
+        else { limb(11, -56, 14, -44, 12, -34, 5, C.gUni, C.gUniD); disc(12, -33.5, 2.6, C.skin); }
+        rect(-3, -66, 6, 6, C.skinD); disc(0, -74, 10.5, C.skin); ell(-3, -77, 4, 3, -0.3, C.skinL);
+        disc(-10, -72, 3, C.gHair); disc(10, -72, 3, C.gHair);
+        ell(0, -82, 11, 4, 0, C.gCap); rect(-11, -84, 22, 6, C.gCap); rect(0, -80, 14, 2.4, C.gCap); disc(0, -82, 1.6, C.gold);
+        var md = o.mood || "calm";
+        if (md === "laugh") { line(-6, -75, -2, -74, 1, C.ink); line(2, -74, 6, -75, 1, C.ink); }
+        else { disc(-4, -75, 1.3, C.ink); disc(4, -75, 1.3, C.ink); if (md === "puzzled") { line(-6, -79, -2, -78, 0.9, C.gHair); line(2, -79.5, 6, -80.5, 0.9, C.gHair); } }
+        ell(0, -70, 6, 2.2, 0, C.gHair);                                        // a big grey moustache
+        if (k > 0.12 || md === "laugh") ell(0, -66.5, 2.6, 0.6 + 2 * Math.max(k, md === "laugh" ? 0.8 : 0), 0, C.ink);
+        g.restore();
+      }
+
+      // ============================================================ sets
+      function tower(t, rainy) {
+        screen(); g.fillStyle = rainy ? vgrad(0, H, [[0, C.rain1], [1, C.rain2]]) : vgrad(0, H, [[0, C.dusk1], [0.6, C.dusk2], [1, C.dusk3]]); g.fillRect(0, 0, W, H);
+      }
+      function liftPanel(x, y, lit, t, press) {
+        // 2 x 10 buttons: 1..20 bottom to top (no text overlay: the button numbers are part of the panel)
+        rect(x - 13, y - 104, 26, 108, C.panel);
+        for (var n = 1; n <= 20; n++) {
+          var col = (n - 1) % 2, row = Math.floor((n - 1) / 2), bx = x - 6 + col * 12, by = y - 6 - row * 10;
+          var on = lit[n];
+          disc(bx, by, 3.6, on ? C.btnOn : C.btn); if (on) { lighter(); glow(bx, by, 8, "#ffc83a", 0.6); normalBlend(); }
+          worldText(String(n), bx, by - 2, 0.5, C.ink);
+        }
+      }
+      function liftCar(t, o) {
+        o = o || {};
+        rect(-40, 100, 260, 260, C.liftD); rect(-20, 120, 220, 200, C.lift);
+        for (var p = 0; p < 6; p++) rect(-20 + p * 40, 120, 2, 200, C.liftL);
+        rect(-20, 300, 220, 30, "#3a3e48");
+        // the floor display above the door (lit digits are part of the lift)
+        rect(66, 128, 48, 16, C.disp); worldText(o.floor ? String(o.floor) : "", 90, 132, 1, C.dispOn);
+      }
+      function scene_ride(t) {
+        var tt = tapeT(t, T);
+        var outside = tt < 0.9 || t >= T.REWIND;
+        if (outside) {
+          tower(tt, false); var cam = camAt([[0, 90, 200, 1.0], [0.9, 92, 230, 1.4]], tt); setCam(cam, 1);
+          rect(46, 20, 88, 290, C.tower); rect(48, 20, 84, 290, C.towerL);
+          for (var f = 0; f < 20; f++) for (var c = 0; c < 4; c++) rect(54 + c * 20, 290 - f * 13.5, 12, 8, f === 19 && c === 1 ? C.win : (hash1(f * 7 + c) > 0.6 ? C.win : C.winOff));
+          lighter(); glow(80, 33, 16, "#ffd860", 0.6); normalBlend();
+          rect(-60, 300, 300, 80, C.street);
+          character(function () { shorty(lerp(150, 100, clamp01(tt / 0.9)), 302, 1.1, tt, { walk: true, briefcase: true, look: -1 }); });
+          vignette(0.35, "rgba(0,0,20,"); return;
+        }
+        var floor = Math.min(10, 1 + Math.floor(clamp01((tt - 1.7) / 2.8) * 9));
+        var cam2 = camAt([[0.9, 90, 236, 1.4], [T.TEN, 92, 232, 1.45], [T.CLIMB, 92, 232, 1.45]], tt);
+        tower(tt, false); setCam(cam2, 1);
+        liftCar(tt, { floor: floor });
+        // the doors (the back wall, from inside): they slide open at 10 onto a dim corridor
+        var op = clamp01((tt - T.TEN - 0.2) / 0.4);
+        rect(14, 150, 104, 150, "#2a2834"); rect(20, 230, 92, 70, "#3a3644");
+        rect(14 - op * 50, 150, 52, 150, C.door); rect(66 + op * 50, 150, 52, 150, C.door); line(66, 150, 66, 300, 0.8, C.doorD);
+        var lit = {}; if (tt > 1.0 && tt < T.TEN + 0.3) lit[10] = true;
+        liftPanel(140, 300, lit, tt);
+        var reach = tt > 0.8 && tt < 1.3 ? 8 : 0;
+        character(function () { shorty(118, 302, 1.15, tt, { reach: reach, tiptoe: reach > 0, briefcase: reach === 0, mood: "calm" }); });
+        vignette(0.35, "rgba(0,0,20,");
+      }
+      function scene_stairs(t) {
+        var cam = camAt([[T.CLIMB, 90, 230, 1.3], [T.G1, 90, 210, 1.15]], t);
+        screen(); g.fillStyle = vgrad(0, H, [[0, "#1a1816"], [1, "#2a2624"]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        rect(-40, 100, 260, 260, C.wallS);
+        // zig-zag flights; floor numbers painted on the wall are part of the stairwell
+        for (var fl = 0; fl < 4; fl++) {
+          var y0 = 310 - fl * 52, dir = fl % 2 ? -1 : 1, x0 = dir > 0 ? 20 : 160;
+          for (var st = 0; st < 8; st++) { var sx = x0 + dir * st * 16, sy = y0 - st * 6; rect(Math.min(sx, sx + dir * 16), sy, 16, 6, C.stair); rect(Math.min(sx, sx + dir * 16), sy, 16, 1.5, C.stairL); }
+          line(x0, y0 - 18, x0 + dir * 128, y0 - 66, 1.2, C.rail);
+          worldText(String(11 + fl), dir > 0 ? 8 : 172, y0 - 30, 1, "#8a8070");
+        }
+        var u = clamp01((t - T.CLIMB) / (T.G1 - T.CLIMB)), fl2 = Math.min(3, Math.floor(u * 4)), fu = u * 4 - fl2;
+        var dir2 = fl2 % 2 ? -1 : 1, x0b = dir2 > 0 ? 20 : 160, sxm = x0b + dir2 * fu * 128, sym = 310 - fl2 * 52 - fu * 48;
+        character(function () { shorty(sxm, sym, 1.1, t, { walk: true, briefcase: true, look: dir2, mood: "tired" }); });
+        vignette(0.4, "rgba(0,0,0,");
+      }
+      function monitors(t, which) {
+        rect(10, 190, 160, 70, "#1a1e24");
+        for (var m = 0; m < 2; m++) {
+          var mx = 18 + m * 78; rect(mx, 196, 70, 54, C.mon);
+          g.save(); g.beginPath(); g.rect(mx, 196, 70, 54); g.clip();
+          rect(mx, 196, 70, 54, m ? "#20262c" : "#1c2228");
+          // tiny CCTV view: the lift on the left screen, the stairwell on the right
+          if (m === 0) { rect(mx + 20, 204, 30, 40, "#3a3e48"); g.save(); g.translate(mx + 36, 244); g.scale(0.5, 0.5); shorty(0, 0, 1, t, { briefcase: which !== "rain", umbrellaClosed: which === "rain" }); g.restore(); }
+          else { for (var s = 0; s < 5; s++) rect(mx + 6 + s * 12, 240 - s * 7, 12, 4, "#4a4440"); if (which !== "rain") { g.save(); g.translate(mx + 20 + ((t * 8) % 40), 236 - ((t * 5) % 20)); g.scale(0.4, 0.4); shorty(0, 0, 1, t, { walk: true, briefcase: true }); g.restore(); } }
+          g.restore();
+          for (var sl = 0; sl < 54; sl += 3) { g.globalAlpha = 0.15; rect(mx, 196 + sl, 70, 1, C.monG); } g.globalAlpha = 1;
+          if (Math.floor(t * 2) % 2) disc(mx + 64, 200, 1.5, C.red);
+        }
+      }
+      function scene_guard(t) {
+        var rainy = t > T.RAIN;
+        var cam = camAt([[T.G1 - 0.1, 90, 220, 1.15], [T.RAIN, 92, 224, 1.25], [T.G2 - 0.1, 90, 222, 1.2], [T.Q, 92, 226, 1.3]], t);
+        screen(); g.fillStyle = vgrad(0, H, [[0, "#0e1218"], [1, C.room]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        monitors(t, rainy ? "rain" : "dry");
+        rect(-20, 262, 220, 50, C.desk); rect(-20, 262, 220, 3, C.deskL);
+        character(function () { guard(140, 302, 1.0, t, talk("guard", t), { mood: "puzzled", mug: !rainy, look: -1 }); });
+        vignette(0.4, "rgba(0,0,10,");
+      }
+      function scene_rain(t) {
+        var tt = t, inLift = tt > T.UP20 + 0.3;
+        if (!inLift) {
+          var cam = camAt([[T.RAIN, 90, 220, 1.0], [T.UP20, 96, 236, 1.4]], tt);
+          tower(tt, true); setCam(cam, 1);
+          rect(46, 20, 88, 290, C.tower); for (var f = 0; f < 20; f++) for (var c = 0; c < 4; c++) rect(54 + c * 20, 290 - f * 13.5, 12, 8, hash1(f * 7 + c) > 0.6 ? C.win : C.winOff);
+          rect(-60, 300, 300, 80, C.street);
+          for (var p = 0; p < 8; p++) ell(10 + p * 24, 306, 6, 1, 0, "#3a4a5a");
+          if (Math.floor(tt * 10) % 23 === 0) { screen(); g.globalAlpha = 0.5; rect(0, 0, W, H, C.white); g.globalAlpha = 1; setCam(cam, 1); }
+          character(function () { shorty(lerp(160, 104, clamp01((tt - T.RAIN) / 2.0)), 302, 1.1, tt, { walk: true, umbrellaOpen: true, look: -1 }); });
+        } else {
+          var cam2 = camAt([[T.UP20 + 0.3, 92, 232, 1.45], [T.G2, 92, 232, 1.45]], tt);
+          screen(); rect(0, 0, W, H, "#1a1c24"); setCam(cam2, 1);
+          var floor = Math.min(20, 1 + Math.floor(clamp01((tt - T.UP20 - 0.9) / 2.6) * 19));
+          liftCar(tt, { floor: floor });
+          var lit = {}; if (tt < T.TWENTY + 0.5) lit[20] = true;
+          liftPanel(140, 300, lit, tt);
+          character(function () { shorty(118, 302, 1.15, tt, { umbrellaClosed: true, mood: "happy" }); });
+        }
+        if (!inLift) { screen(); for (var d = 0; d < 70; d++) { var x = (hash1(d * 3.1) * 200 + tt * 30) % 200 - 10, y = (hash1(d * 7.3) * 340 + tt * 260) % 340 - 10; line(x, y, x - 2, y + 7, 0.6, C.drop); } }
+        vignette(0.4, "rgba(0,0,20,");
+      }
+      // the countdown: no numbers — five lamps go out, one per tick, around a big ticking clock
+      function scene_count(t) {
+        screen(); g.fillStyle = vgrad(0, H, [[0, "#140a20"], [1, "#2a1440"]]); g.fillRect(0, 0, W, H);
+        var cam = { x: 90, y: 214, z: 1.0 + 0.03 * Math.sin(t * 3) }; setCam(cam, 1);
+        var q = t < T.COUNT0;
+        // a question-mark silhouette of the man, then the clock
+        character(function () { shorty(90, 304, 1.25, t, { umbrellaClosed: true, mood: "calm" }); });
+        var CX = 90, CY = 186, R = 30;
+        disc(CX, CY, R + 3, C.ink); disc(CX, CY, R, C.paper);
+        for (var h = 0; h < 12; h++) { var a = h / 12 * 6.28; rect(CX + Math.cos(a) * (R - 4) - 1, CY + Math.sin(a) * (R - 4) - 1, 2, 2, C.ink); }
+        var el = clamp01((t - T.COUNT0) / 5);
+        var tick = Math.floor((t - T.COUNT0) * 1) ;
+        var ang = -Math.PI / 2 + (q ? 0 : Math.min(5, Math.max(0, tick + Math.min(1, ((t - T.COUNT0) % 1) * 8))) / 5 * 6.28);
+        line(CX, CY, CX + Math.cos(ang) * (R - 6), CY + Math.sin(ang) * (R - 6), 2, C.red);
+        disc(CX, CY, 2.5, C.ink);
+        for (var l = 0; l < 5; l++) { var on = q || (t - T.COUNT0) < l + 1; var lx = CX - 40 + l * 20, ly = CY + R + 16; disc(lx, ly, 5, on ? C.gold : "#3a3448"); if (on) { lighter(); glow(lx, ly, 12, "#ffc83a", 0.6); normalBlend(); } }
+        if (!q) shake(cam, t, T.COUNT0 + Math.floor(t - T.COUNT0), 2, 0.1);
+        vignette(0.4, "rgba(0,0,10,");
+      }
+      function scene_reveal(t) {
+        var tt = tapeT(t, T);
+        var lit = {};
+        var phase = tt < T.UMB ? "reach" : tt < T.TAP ? "umb" : "tap";
+        var cam = camAt([[T.SHORT - 0.1, 112, 236, 1.6], [T.REACH, 124, 226, 2.1], [T.UMB, 112, 236, 1.6], [T.TAP + 0.4, 126, 214, 1.9], [T.LAUGH, 98, 236, 1.3], [T.STOP, 96, 236, 1.3]], tt);
+        screen(); rect(0, 0, W, H, "#1a1c24"); setCam(cam, 1);
+        liftCar(tt, { floor: tt > W20() ? 20 : 1 });
+        // a height line at the man's highest reach (button 10)
+        if (phase === "reach") { g.setLineDash ? g.setLineDash([2, 2]) : 0; line(100, 254, 156, 254, 0.8, C.red); g.setLineDash ? g.setLineDash([]) : 0; }
+        if (tt > T.REACH && tt < T.UMB) lit[10] = Math.floor(tt * 4) % 2 === 0;
+        if (tt > W20()) lit[20] = true;
+        liftPanel(140, 300, lit, tt);
+        var reach = phase === "reach" ? 6 + 4 * Math.abs(Math.sin(tt * 3)) : 0;
+        var tapLen = phase === "tap" ? lerp(10, 44, ease(clamp01((tt - T.TAP) / 0.5))) : 0;
+        character(function () { shorty(122, 302, 1.15, tt, { reach: reach || 0, tiptoe: phase === "reach", umbrellaClosed: phase === "umb", umbrellaTap: tapLen, mood: phase === "reach" ? "strain" : "proud" }); });
+        if (tt > T.LAUGH) { character(function () { guard(56, 302, 0.95, tt, talk("guard", tt), { mood: "laugh", thumb: tt > T.CTA, look: 1 }); }); }
+        vignette(0.35, "rgba(0,0,20,");
+      }
+      function W20() { return (T.TAP || 0) + 1.2; }
+
+      function sceneAt(t) {
+        if (t < T.CLIMB) return "ride";
+        if (t < T.G1) return "stairs";
+        if (t < T.RAIN) return "guard";
+        if (t < T.G2) return "rain";
+        if (t < T.Q) return "guard";
+        if (t < T.SHORT) return "count";
+        if (t < T.REWIND) return "reveal";
+        return "ride";
+      }
+
+      KIT.start(C, T, {
+        scenes: { ride: scene_ride, stairs: scene_stairs, guard: scene_guard, rain: scene_rain, count: scene_count, reveal: scene_reveal },
+        sceneAt: sceneAt, ui: function () {}, hitCol: "#ffffff",
+        cuts: [[T.CLIMB, "ride", "stairs"], [T.G1, "stairs", "guard"], [T.RAIN, "guard", "rain"], [T.G2, "rain", "guard"], [T.Q, "guard", "count"], [T.SHORT, "count", "reveal"]],
+      });
+    </script>
+  </body>
+</html>
