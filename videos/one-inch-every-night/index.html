@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>One Inch Every Night</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "One Inch Every Night" — a fiction story set in Japan, told in our own words in the fast story mode
+      (memory-loss-except-you): 1-3-word captions, a shot every 1-3 s, a HUD (DAY n · INCHES MOVED), Kokoro voices.
+      Original pixel characters: the Tanaka family (dad, mom, Yui) and the seller.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="29.9" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="29.9" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="29.9" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {}, MOUTH = window.MOUTH || {};
+      var DAYK = T.DAYK || [[0, 1]], NIGHTS = T.NIGHTS || [];
+      var C = {
+        sky1: "#080a20", sky2: "#141c40", sky3: "#26244a", moon: "#fff4c8", star: "#fff6d8", dawn1: "#4a6aa8", dawn2: "#f0b8a0",
+        roof: "#2a3448", roofL: "#3a4a64", wall: "#d8cbb0", wallD: "#a8987a", woodJ: "#6a4428", woodD: "#4a2e18", lantern: "#ff5a3a", lanternL: "#ffc87a",
+        tatami: "#c8c27a", tatamiD: "#9a944a", tatamiL: "#ddd796", shoji: "#f4eedc", shojiF: "#8a6a4a", inWall: "#e8dcc0", inWallD: "#c4b498",
+        kot: "#a8483a", kotD: "#7a2e24", kotTop: "#6a4428", shelf: "#7a5432", tv: "#1a1a24", tvS: "#3a6aa8", table: "#8a5a32", tableD: "#5a3a1e",
+        flour: "#f4f4f0", print: "#b8b4a8", glass: "#a8d8e8",
+        skin: "#f4c8a0", skinD: "#c89470", skinL: "#ffe0c4", hair: "#1a1418", glassF: "#2a2a3a",
+        cardigan: "#5a7aa8", cardiganD: "#3a5a88", pants: "#3a3a4a", apron: "#f0e0c0", momTop: "#c86a8a", momTopD: "#9a4a6a",
+        yui: "#ffb83a", yuiD: "#c8861a", skirt: "#3a6ac8", suit: "#24242e", suitL: "#3a3a48", hat: "#1a1a22", tie: "#c83a3a",
+        cam: "#101418", camG: "#3ae86a", red: "#ff3a4a", gold: "#ffc83a", goldL: "#fff0a0", green: "#3ae86a", cyan: "#4ae0ff",
+        white: "#ffffff", ink: "#0a0614", paper: "#f1eef4", dim: "#7a7a90",
+      };
+      DISSOLVE = 0.08;
+
+      function talk(who, t) { var s = MOUTH[who] || "", f = Math.floor(t * 30); return f >= 0 && f < s.length ? +s[f] / 9 : 0; }
+      function L(i) { return T["L" + i] || 0; }
+      function day(t) { for (var i = 0; i < DAYK.length - 1; i++) { var a = DAYK[i], b = DAYK[i + 1]; if (t < b[0]) return a[1] + (b[1] - a[1]) * (t - a[0]) / (b[0] - a[0]); } return 30; }
+      function limb(x1, y1, x2, y2, x3, y3, w, col, colD) { line(x1, y1, x2, y2, w, colD); line(x2, y2, x3, y3, w, colD); line(x1 - 0.4, y1 - 0.4, x2 - 0.4, y2 - 0.4, w - 1, col); line(x2 - 0.4, y2 - 0.4, x3 - 0.4, y3 - 0.4, w - 1, col); }
+
+      // ============================================================ characters (feet at x, y; ~80*s tall)
+      function face(o, k, cy) {
+        var md = o.mood || "calm";
+        var big = md === "shock" ? 1.3 : 1;
+        ell(-4, cy, 1.8 * big, 2.4 * big, 0, C.white); ell(4, cy, 1.8 * big, 2.4 * big, 0, C.white);
+        disc(-3.7, cy + 0.2, md === "shock" ? 0.8 : 1.2, C.ink); disc(4.3, cy + 0.2, md === "shock" ? 0.8 : 1.2, C.ink);
+        if (md === "tired") { rect(-6, cy - 2.5, 4.5, 1.6, C.skinD); rect(1.5, cy - 2.5, 4.5, 1.6, C.skinD); }
+        if (md === "angry") { line(-6, cy - 4, -2, cy - 2.8, 1, C.hair); line(2, cy - 2.8, 6, cy - 4, 1, C.hair); }
+        if (md === "scared" || md === "shock") { line(-6, cy - 4.6, -2, cy - 5.2, 0.8, C.hair); line(2, cy - 5.2, 6, cy - 4.6, 0.8, C.hair); }
+        if (k > 0.12 || md === "shock") ell(0.4, cy + 6, 1.8, 0.6 + 1.6 * Math.max(k, md === "shock" ? 0.6 : 0), 0, C.ink);
+        else { g.strokeStyle = C.skinD; g.lineWidth = 0.8; g.beginPath(); if (md === "smug") { g.moveTo(-2.5, cy + 5.5); g.quadraticCurveTo(1, cy + 8, 4, cy + 4.5); } else if (md === "scared" || md === "tired" || md === "angry") g.arc(0.4, cy + 7.5, 2, Math.PI + 0.4, -0.4); else g.arc(0.4, cy + 5, 2, 0.4, Math.PI - 0.4); g.stroke(); }
+      }
+      function dad(x, y, s, t, k, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s * (o.look || 1), s);
+        limb(-4, -30, -4, -15, -4, -2, 6, C.pants, "#24242e"); limb(4, -30, 4, -15, 4, -2, 6, C.pants, "#24242e");
+        ell(-4, -1.5, 4.4, 2, 0, C.ink); ell(4, -1.5, 4.4, 2, 0, C.ink);
+        rrect(-12, -58, 24, 30, 5, C.cardiganD); rrect(-11.5, -58, 23, 29, 5, C.cardigan); rect(-1, -58, 2, 28, "#e8e8f0");
+        var ar = o.arms || "";
+        if (ar === "scatter") { limb(10, -54, 18, -46, 24, -42 + Math.sin(t * 12) * 2, 5, C.cardigan, C.cardiganD); disc(24, -42, 2.6, C.skin); }
+        else if (ar === "shake") { limb(10, -54, 16, -40, 24, -40, 5, C.cardigan, C.cardiganD); disc(25, -40, 2.6, C.skin); }
+        else if (ar === "up") { limb(10, -54, 16, -62, 18, -72, 5, C.cardigan, C.cardiganD); disc(18, -73, 2.6, C.skin); }
+        else { limb(10, -54, 13, -42, 12, -32, 5, C.cardigan, C.cardiganD); disc(12, -31.5, 2.6, C.skin); }
+        limb(-10, -54, -13, -42, -12, -32, 5, C.cardigan, C.cardiganD); disc(-12, -31.5, 2.6, C.skin);
+        rect(-3, -64, 6, 6, C.skinD); disc(0, -72, 10.5, C.skin);
+        ell(0, -79, 10.5, 6, 0, C.hair); rect(-10, -80, 20, 4, C.hair);
+        face(o, k, -72);
+        g.strokeStyle = C.glassF; g.lineWidth = 0.9; g.beginPath(); g.arc(-4, -72, 3.2, 0, 6.28); g.stroke(); g.beginPath(); g.arc(4.4, -72, 3.2, 0, 6.28); g.stroke();
+        g.restore();
+      }
+      function mom(x, y, s, t, k, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s * (o.look || 1), s);
+        poly([[-11, 0], [11, 0], [9, -42], [-9, -42]], C.momTopD); poly([[-10, -1], [10, -1], [8, -41], [-8, -41]], C.momTop);
+        poly([[-6, -6], [6, -6], [5, -34], [-5, -34]], C.apron);
+        limb(-8, -38, -12, -27, -10, -19, 4.5, C.momTop, C.momTopD); disc(-10, -18.5, 2.2, C.skin);
+        if (o.point) { limb(8, -38, 16, -40, 22, -44, 4.5, C.momTop, C.momTopD); disc(22, -44.5, 2.2, C.skin); }
+        else { limb(8, -38, 12, -27, 10, -19, 4.5, C.momTop, C.momTopD); disc(10, -18.5, 2.2, C.skin); }
+        rect(-2.5, -47, 5, 5, C.skinD); disc(0, -55, 9.5, C.skin);
+        ell(0, -60, 10, 6.5, 0, C.hair); rect(-10.5, -60, 4, 12, C.hair); rect(6.5, -60, 4, 12, C.hair);
+        face(o, k, -54);
+        g.restore();
+      }
+      function yui(x, y, s, t, k, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s * (o.look || 1), s);
+        limb(-3, -18, -3, -9, -3, -1, 4.5, C.skin, C.skinD); limb(3, -18, 3, -9, 3, -1, 4.5, C.skin, C.skinD);
+        ell(-3, -1, 3.4, 1.6, 0, C.ink); ell(3, -1, 3.4, 1.6, 0, C.ink);
+        poly([[-9, -14], [9, -14], [6, -22], [-6, -22]], C.skirt);
+        rrect(-7, -36, 14, 16, 4, C.yuiD); rrect(-6.5, -36, 13, 15, 4, C.yui);
+        limb(-6, -33, -9, -25, -8, -19, 3.6, C.yui, C.yuiD); limb(6, -33, 9, -25, 8, -19, 3.6, C.yui, C.yuiD);
+        rect(-2, -40, 4, 4, C.skinD); disc(0, -47, 9, C.skin);
+        ell(0, -52, 9.4, 5.6, 0, C.hair); disc(-10, -48, 3.4, C.hair); disc(10, -48, 3.4, C.hair); disc(-12, -44, 2.4, C.hair); disc(12, -44, 2.4, C.hair);
+        face(o, k, -46);
+        g.restore();
+      }
+      function seller(x, y, s, t, k, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s * (o.look || 1), s);
+        limb(-4, -30, -4, -15, -4, -2, 6, C.suit, "#14141a"); limb(4, -30, 4, -15, 4, -2, 6, C.suit, "#14141a");
+        ell(-4, -1.5, 4.4, 2, 0, C.ink); ell(4, -1.5, 4.4, 2, 0, C.ink);
+        rrect(-12, -60, 24, 32, 4, "#14141a"); rrect(-11.5, -60, 23, 31, 4, C.suit); poly([[-3, -60], [3, -60], [0, -52]], C.white); rect(-1, -56, 2, 12, C.tie);
+        limb(-10, -56, -13, -44, -12, -34, 5, C.suit, "#14141a"); disc(-12, -33.5, 2.6, C.skin);
+        if (o.shake) { limb(10, -56, 16, -42, 24, -42, 5, C.suit, "#14141a"); disc(25, -42, 2.6, C.skin); }
+        else if (o.key) { limb(10, -56, 16, -64, 20, -72, 5, C.suit, "#14141a"); disc(20, -73, 2.6, C.skin); disc(23, -79, 3, C.gold); rect(22, -79, 1.6, 8, C.gold); lighter(); glow(23, -78, 10, "#fff0a0", 0.6); normalBlend(); }
+        else { limb(10, -56, 13, -44, 12, -34, 5, C.suit, "#14141a"); disc(12, -33.5, 2.6, C.skin); }
+        if (o.bow) g.rotate(0.25);
+        rect(-3, -66, 6, 6, C.skinD); disc(0, -74, 10.5, C.skin);
+        face(o, k, -74);
+        line(-5, -68.5, -1, -67.5, 1.4, C.hair); line(1, -67.5, 5, -68.5, 1.4, C.hair);    // a thin moustache
+        if (!o.noHat) { ell(0, -83, 15, 3.2, 0, C.hat); rrect(-9, -96, 18, 13, 3, C.hat); rect(-9, -86, 18, 2, C.tie); }
+        else { ell(0, -81, 10.5, 5.5, 0, C.hair); }
+        g.restore();
+      }
+
+      // ============================================================ sets
+      function nightSky(t) { screen(); g.fillStyle = vgrad(0, H, [[0, C.sky1], [0.6, C.sky2], [1, C.sky3]]); g.fillRect(0, 0, W, H); for (var i = 0; i < 50; i++) { g.globalAlpha = 0.3 + 0.6 * Math.abs(Math.sin(t * (1 + hash1(i)) + i)); rect(hash1(i * 3.3) * 180, hash1(i * 5.1) * 180, 0.6, 0.6, C.star); } g.globalAlpha = 1; }
+      function jhouse(x, y, w, h, lit, t) {
+        rect(x, y - h, w, h, C.wallD); rect(x + 1, y - h + 1, w - 2, h - 1, C.wall);
+        poly([[x - 8, y - h + 2], [x + w + 8, y - h + 2], [x + w - 4, y - h - 16], [x + 4, y - h - 16]], C.roof);
+        for (var r = 0; r < 4; r++) line(x - 6 + r * 1.5, y - h - 2 - r * 4, x + w + 6 - r * 1.5, y - h - 2 - r * 4, 0.6, C.roofL);
+        for (var wi = 0; wi < 2; wi++) { rect(x + 6 + wi * (w - 22), y - h + 8, 10, 12, lit ? "#ffd890" : "#3a3a54"); line(x + 11 + wi * (w - 22), y - h + 8, x + 11 + wi * (w - 22), y - h + 20, 0.6, C.woodD); }
+        rect(x + w / 2 - 6, y - 18, 12, 18, C.woodD);
+      }
+      function lantern(x, y, t) { line(x, y - 10, x, y - 6, 0.6, C.woodD); ell(x, y, 4, 5.5, 0, C.lantern); rect(x - 3, y - 6, 6, 1, C.woodD); rect(x - 3, y + 5, 6, 1, C.woodD); lighter(); glow(x, y, 16 + Math.sin(t * 5) * 1, "#ff9a5a", 0.5); normalBlend(); }
+      function scene_town(t) {
+        var tt = tapeT(t, T);
+        var cam = camAt([[0, 90, 214, 1.0], [W0(), 96, 230, 1.55], [L(1), 104, 240, 2.1]], tt);
+        nightSky(tt); setCam(cam, 1);
+        disc(140, 120, 12, C.moon); lighter(); glow(140, 120, 40, "#fff4c8", 0.25); normalBlend();
+        rect(-60, 300, 300, 80, "#14141e"); rect(-60, 298, 300, 3, "#2a2a3a");
+        jhouse(-40, 300, 60, 46, false, tt); jhouse(130, 300, 70, 50, false, tt);
+        jhouse(40, 300, 84, 60, true, tt);                                 // the Tanaka house
+        
+        lantern(28, 250, tt); lantern(146, 252, tt);
+        worldText("TANAKA", 82, 222, 1, C.woodD);
+        // a shadow with a key at the door
+        if (tt > W0()) {
+          var u = clamp01((tt - W0()) / 0.8);
+          g.globalAlpha = 0.85 * u; character(function () { seller(lerp(122, 94, u), 300, 0.62, tt, 0, { key: tt > W0() + 0.6 }); }, { col: "#000000" }); g.globalAlpha = 1;
+          if (tt > W0() + 0.8) { lighter(); glow(82, 288, 14, "#fff0a0", 0.6); normalBlend(); }
+        }
+        vignette(0.45, "rgba(0,0,20,");
+      }
+      function W0() { return (window.VO && window.VO[0]) ? window.VO[0].w.filter(function (w) { return /^every/.test(w[0]); }).map(function (w) { return w[1]; })[0] || 4 : 4; }
+      // the room: tatami, shoji, kotatsu, shoe shelf, TV — positions shift one inch a night
+      function inchOffset(t, which) { var d = day(t); return Math.min(d, 30) * (which === "kot" ? 1.2 : which === "shelf" ? 0.9 : 0.7); }
+      function room(t, o) {
+        o = o || {};
+        screen(); g.fillStyle = vgrad(0, H, [[0, "#1a1428"], [1, "#2a2438"]]); g.fillRect(0, 0, W, H);
+        setCam(o.cam, 1);
+        rect(-80, 150, 340, 140, C.inWall); for (var p = 0; p < 9; p++) rect(-80 + p * 40, 150, 3, 140, C.inWallD);
+        // shoji doors (garden side, right)
+        rect(120, 172, 70, 118, C.shojiF); for (var gx = 0; gx < 4; gx++) for (var gy = 0; gy < 6; gy++) rect(122 + gx * 17, 174 + gy * 19, 15, 17, o.night ? "#c8c4b8" : C.shoji);
+        // tatami floor
+        rect(-80, 290, 340, 80, C.tatami); for (var tm = 0; tm < 8; tm++) { rect(-80 + tm * 44, 290, 1.5, 80, C.tatamiD); } rect(-80, 300, 340, 1, C.tatamiL);
+        if (o.flour) { g.globalAlpha = o.flour; rect(-80, 290, 340, 80, C.flour); g.globalAlpha = 1; }
+        // the TV (left), turning to face the wall
+        var tvx = -6 - (o.tvx || 0), turn = o.tvTurn || 0;
+        rect(tvx - 18, 262, 36, 28, C.woodD);
+        if (turn < 0.5) { rect(tvx - 16, 234, 32, 26, C.tv); rect(tvx - 14, 236, 28, 20, o.night ? "#1a2a48" : C.tvS); }
+        else { rect(tvx - 16 + 8 * (turn - 0.5), 234, 32 - 16 * (turn - 0.5), 26, "#2a2a34"); worldText("BACK", tvx, 244, 1, C.dim); }
+        // the shoe shelf (far left, by the entrance)
+        var sx = -60 + (o.shelfx || 0);
+        rect(sx, 240, 22, 50, C.shelf); for (var s = 0; s < 3; s++) { rect(sx + 2, 248 + s * 14, 18, 1.5, C.woodD); ell(sx + 7, 246 + s * 14, 4, 2, 0, s % 2 ? C.red : C.cyan); ell(sx + 15, 246 + s * 14, 4, 2, 0, C.ink); }
+        // the kotatsu (centre)
+        var kx = 70 + (o.kotx || 0);
+        rect(kx - 30, 266, 60, 4, C.kotTop); poly([[kx - 34, 270], [kx + 34, 270], [kx + 38, 292], [kx - 38, 292]], C.kotD); poly([[kx - 32, 270], [kx + 32, 270], [kx + 36, 290], [kx - 36, 290]], C.kot);
+        disc(kx + 10, 262, 3, "#ff8a2a"); disc(kx + 16, 263, 2.6, "#ff8a2a");   // mikan oranges
+      }
+      function inchArrow(x, y, t0, t) { var p = clamp01((t - t0) / 0.3); if (p <= 0 || t - t0 > 1.4) return; g.globalAlpha = Math.min(1, 1.4 - (t - t0)); line(x - 6, y, x + 6 * p, y, 1.2, C.gold); poly([[x + 6 * p, y - 2.5], [x + 6 * p + 4, y], [x + 6 * p, y + 2.5]], C.gold); worldText("1 INCH", x + 2, y - 10, 1, C.gold); g.globalAlpha = 1; }
+      function scene_room(t) {
+        var tvTurn = t > T.DAY15 ? ramp(t, T.DAY15 + 0.6, T.DAY15 + 1.4) : 0;
+        var cam;
+        if (t < T.NOTICE) cam = camAt([[L(1), 60, 222, 1.4], [T.KOT - 0.1, 70, 226, 1.7], [T.SHOE - 0.1, 0, 226, 1.7], [T.TV - 0.1, 10, 226, 1.6], [T.NOTICE, 50, 214, 1.2]], t);
+        else if (t < T.DAY10) cam = camAt([[T.NOTICE, 60, 214, 1.05], [T.DAY10, 66, 216, 1.12]], t);
+        else cam = camAt([[T.DAY15, 20, 226, 1.45], [T.CAM, 30, 222, 1.3]], t);
+        var night = t < T.NOTICE;
+        room(t, { cam: cam, night: night, kotx: inchOffset(t, "kot"), shelfx: inchOffset(t, "shelf"), tvx: inchOffset(t, "tv"), tvTurn: tvTurn });
+        if (t < T.NOTICE) { inchArrow(70 + 30, 300, T.KOT, t); inchArrow(-60 + 16, 300, T.SHOE, t); inchArrow(-6 + 12, 300, T.TV, t); g.globalAlpha = 0.35; rect(-80, 150, 340, 220, "#0a0820"); g.globalAlpha = 1; }
+        if (t >= T.NOTICE && t < T.DAY10) {
+          // a sleepy morning: nobody notices
+          character(function () { dad(30, 302, 0.95, t, 0, { mood: "tired" }); mom(96, 302, 0.95, t, 0, { mood: "calm", look: -1 }); yui(132, 302, 0.95, t, 0, { mood: "calm", look: -1 }); });
+          if (t > T.NOTICE + 1.2) bubble(132, 236, "?", C.ink);
+        }
+        if (t >= T.DAY15) {
+          character(function () { dad(70, 302, 0.95, t, 0, { mood: "shock" }); yui(100, 302, 0.95, t, 0, { mood: "scared" }); });
+        }
+        vignette(0.4, "rgba(0,0,20,");
+      }
+      function scene_dining(t) {
+        var cam = camAt([[T.DAY10, 130, 228, 1.4], [T.MOM - 0.2, 120, 220, 1.25], [T.DAY15, 116, 218, 1.2]], t);
+        room(t, { cam: cam, kotx: inchOffset(t, "kot"), shelfx: inchOffset(t, "shelf"), tvx: inchOffset(t, "tv") });
+        // the dining table, now pressed against the garden door
+        rect(110, 258, 56, 6, C.table); rect(114, 264, 4, 26, C.tableD); rect(158, 264, 4, 26, C.tableD);
+        g.strokeStyle = C.red; g.lineWidth = 1; g.beginPath(); g.ellipse(150, 230, 38, 52, 0, 0, 6.28); g.stroke();
+        character(function () { mom(70, 302, 1.0, t, talk("mom", t), { mood: "angry", point: t > T.MOM && t < T.DAD + 0.6 }); dad(30, 302, 1.0, t, talk("dad", t), { mood: t > T.DAD ? "scared" : "calm", arms: t > T.DAD ? "up" : "" }); });
+        vignette(0.4, "rgba(0,0,20,");
+      }
+      function scene_cam(t) {
+        screen(); rect(0, 0, W, H, C.cam);
+        var cam = { x: 90, y: 224, z: 1.0 + 0.02 * (t - T.CAM) };
+        setCam(cam, 1);
+        rect(14, 186, 152, 108, "#2a2e34"); rect(18, 190, 144, 96, "#0a0c10");
+        var st = t > T.STATIC;
+        if (!st) { g.save(); g.beginPath(); g.rect(18, 190, 144, 96); g.clip(); g.translate(90, 238); g.scale(0.45, 0.45); g.translate(-90, -238); room(t, { cam: cam, night: true, kotx: inchOffset(t, "kot"), shelfx: inchOffset(t, "shelf"), tvx: inchOffset(t, "tv"), tvTurn: 1 }); g.restore(); setCam(cam, 1); }
+        else { for (var i = 0; i < 360; i++) { var x = 18 + hash1(i * 3.1 + Math.floor(t * 20)) * 144, y = 190 + hash1(i * 5.7 + Math.floor(t * 20)) * 96; rect(x, y, 2, 1, hash1(i + Math.floor(t * 20)) > 0.5 ? "#c8c8c8" : "#404048"); } }
+        var clk = st ? (2 + Math.min(1.99, (t - T.STATIC) * 0.9)) : 1.98;
+        var hh = Math.floor(clk), mm = Math.floor((clk - hh) * 60);
+        worldText("CAM 1  0" + hh + ":" + (mm < 10 ? "0" : "") + mm, 64, 192, 1, C.white);
+        if (Math.floor(t * 2) % 2) { disc(152, 196, 2, C.red); worldText("REC", 140, 193, 1, C.red); }
+        if (st) worldText("NO SIGNAL 02:00-04:00", 90, 296, 1, C.red);
+        vignette(0.5, "rgba(0,0,0,");
+      }
+      function scene_flour(t) {
+        var morning = t > T.PRINTS;
+        var cam = morning ? camAt([[T.PRINTS, 20, 280, 1.6], [T.PRINTS + 1.6, 80, 276, 1.3], [T.KEY, 100, 230, 1.4], [T.DAY30, 100, 226, 1.3]], t) : camAt([[T.FLOUR, 60, 226, 1.3], [T.PRINTS, 50, 240, 1.45]], t);
+        room(t, { cam: cam, night: !morning, flour: ramp(t, T.FLOUR + 0.4, T.FLOUR + 2.2) * 0.9, kotx: inchOffset(t, "kot"), shelfx: inchOffset(t, "shelf"), tvx: inchOffset(t, "tv"), tvTurn: 1 });
+        if (!morning) {
+          character(function () { dad(40 + (t - T.FLOUR) * 12, 302, 1.0, t, 0, { mood: "angry", arms: "scatter" }); });
+          for (var f = 0; f < 14; f++) { var ph = ((t * 1.5 + f / 14) % 1); g.globalAlpha = 1 - ph; disc(64 + (t - T.FLOUR) * 12 + f * 2, 262 + ph * 30, 1.2, C.flour); } g.globalAlpha = 1;
+        } else {
+          // footprints: from the front door (far left), to the kotatsu, the shelf, the TV, and back
+          var pts = [[-90, 300], [-50, 296], [-20, 300], [20, 294], [60, 298], [100, 294], [60, 304], [10, 306], [-40, 304], [-90, 308]];
+          var nshow = Math.floor(clamp01((t - T.PRINTS - 0.8) / 2.6) * 40);
+          for (var k = 0; k < nshow; k++) { var seg = Math.min(pts.length - 2, Math.floor(k / 4.4)), u = (k / 4.4) - seg, a = pts[seg], b = pts[seg + 1]; var x = lerp(a[0], b[0], u), y = lerp(a[1], b[1], u) + (k % 2 ? 2 : -2); ell(x, y, 2.2, 1.2, 0, C.print); ell(x + 2, y, 0.8, 0.8, 0, C.print); }
+          if (t > T.KEY - 0.3) character(function () { yui(100, 302, 1.15, t, talk("daughter", t), { mood: "scared", look: -1 }); dad(140, 302, 1.0, t, 0, { mood: "shock", look: -1 }); });
+        }
+        vignette(0.4, "rgba(0,0,20,");
+      }
+      function scene_sale(t) {
+        var tt = t;
+        var cam = camAt([[T.DAY30, 70, 224, 1.0], [T.BUYER, 80, 236, 1.25], [T.BREAK, 92, 236, 1.6]], tt);
+        screen(); g.fillStyle = vgrad(0, H, [[0, C.dawn1], [1, C.dawn2]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        rect(-60, 300, 300, 80, "#5a6a4a"); jhouse(10, 300, 84, 60, false, tt);
+        // the sign: FOR SALE -> SOLD (HALF PRICE)
+        var sold = tt > (T.SELL || T.DAY30 + 2) + 1.0;
+        rect(118, 270, 3, 30, C.woodD); rrect(104, 248, 34, 22, 2, C.white); worldText(sold ? "SOLD" : "FOR", 121, 251, 1, C.red); worldText(sold ? "50%" : "SALE", 121, 260, 1, sold ? C.ink : C.red);
+        if (sold) { g.strokeStyle = C.red; g.lineWidth = 1.2; g.strokeRect(104, 248, 34, 22); }
+        if (tt > T.BUYER - 0.1) {
+          var shake = tt > (T.BUYER + 1.0);
+          character(function () { dad(64, 302, 1.0, tt, 0, { mood: "tired", arms: shake ? "shake" : "" }); seller(112, 302, 1.0, tt, 0, { look: -1, shake: shake, bow: tt < T.BUYER + 0.9, mood: "calm" }); });
+        } else {
+          character(function () { dad(64, 302, 1.0, tt, 0, { mood: "tired" }); mom(36, 302, 0.95, tt, 0, { mood: "tired" }); yui(90, 302, 0.9, tt, 0, { mood: "tired" }); });
+        }
+        vignette(0.35, "rgba(0,0,20,");
+      }
+      function scene_reveal(t) {
+        var tt = tapeT(t, T);
+        var cam = camAt([[T.HIT, 100, 210, 1.7], [T.SELLER, 98, 206, 1.55], [T.SPARE, 94, 204, 1.45], [T.CTA, 92, 202, 1.35]], tt);
+        shake(cam, tt, T.HIT, 8, 0.5);
+        screen(); g.fillStyle = vgrad(0, H, [[0, "#1a0a14"], [1, "#3a1424"]]); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        // a flashback panel: one year ago, the same man hands over the keys (and hides one)
+        if (tt < T.SELLER + 0.2) { g.save(); g.translate(16, 0); rrect(36, 228, 50, 44, 3, C.paper); rect(38, 230, 46, 40, "#a8b8c8"); worldText("1 YR AGO", 61, 232, 1, C.ink); g.save(); g.beginPath(); g.rect(38, 230, 46, 40); g.clip(); character(function () { seller(70, 278, 0.42, tt, 0, { noHat: true, key: true, mood: "smug", look: -1 }); dad(50, 278, 0.4, tt, 0, { mood: "calm" }); }); g.restore(); g.restore(); }
+        lighter(); glow(108, 250, 60, "#ff3a4a", 0.35); normalBlend();
+        var hatOff = tt > T.HIT + 0.2;
+        character(function () { seller(112, 304, 0.85, tt, talk("seller", tt), { noHat: hatOff, mood: "smug", key: tt > T.SPARE, look: -1 }); });
+        if (tt > T.HIT + 0.3 && tt < T.SPARE) { worldText("THE SELLER", 112, 224, 1, C.red); }
+        if (tt > T.SPARE) { worldText("SPARE KEY", 116, 226 + Math.sin(tt * 4) * 2, 1, C.gold); }
+        vignette(0.4, "rgba(0,0,10,");
+      }
+
+      function sceneAt(t) {
+        if (t < L(1)) return "town";
+        if (t < T.DAY10) return "room";
+        if (t < T.FLOUR) return "dining";
+        if (t < T.DAY30) return "flour";
+        if (t < T.HIT) return "sale";
+        if (t < T.REWIND) return "reveal";
+        return "town";
+      }
+
+      function drawUI(t) {
+        var d = Math.min(30, Math.max(1, Math.floor(day(t)))), inches = d;
+        var tag, line2, c2 = C.gold;
+        if (t >= T.REWIND || t < W0()) { tag = "TANAKA HOUSE  -  DAY 1"; line2 = "MOVED: 0 INCHES"; c2 = C.green; }
+        else if (t < T.DAY30) { tag = "TANAKA HOUSE  -  DAY " + d; line2 = "MOVED: " + inches + (inches === 1 ? " INCH" : " INCHES"); c2 = inches > 20 ? C.red : C.gold; }
+        else if (t < T.HIT) { tag = "DAY 30  -  SOLD"; line2 = "PRICE: HALF"; c2 = C.red; }
+        else { tag = "THE BUYER = THE SELLER"; line2 = "30 INCHES = 1 HOUSE"; c2 = Math.floor(t * 3) % 2 ? C.gold : C.red; }
+        uiCentre(tag, 18, 2, C.white);
+        uiCentre(line2, 38, 2, c2);
+      }
+
+      KIT.start(C, T, {
+        scenes: { town: scene_town, room: scene_room, dining: scene_dining, cam: scene_cam, flour: scene_flour, sale: scene_sale, reveal: scene_reveal },
+        sceneAt: sceneAt, ui: drawUI, hitCol: "#ff3a4a",
+        cuts: [[L(1), "town", "room"], [T.DAY10, "room", "dining"], [T.FLOUR, "dining", "flour"], [T.DAY30, "flour", "sale"]],
+      });
+    </script>
+  </body>
+</html>
