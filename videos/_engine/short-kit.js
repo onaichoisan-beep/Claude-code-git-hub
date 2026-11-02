@@ -12,7 +12,7 @@ function uiText(str, x, y, S, col) {
 function uiCentre(str, y, S, col) { var w = str.length * 6 * S - S; uiText(str, Math.round(180 - w / 2) + 1, y + 1, S, "#0a0614"); uiText(str, Math.round(180 - w / 2), y, S, col); }
 function bubble(x, y, str, col) { var w = str.length * 6 + 5; rrect(x - w / 2, y - 6, w, 11, 2, "#ffffff"); poly([[x - 3, y + 5], [x + 2, y + 5], [x - 5, y + 10]], "#ffffff"); worldText(str, x, y - 3.5, 1, col || "#0a0614"); }
 // counter sits at the top of the safe zone (y 66), below the phone status bar + Reels header; keep line 1 to ~13 chars at S1=3
-function counterLines(l1, c1, S1, l2, c2) { var y0 = 66; uiCentre(l1, y0, S1, c1); if (l2) uiCentre(l2, y0 + 7 * S1 + 8, 2, c2 || "#ffffff"); }
+function counterLines(l1, c1, S1, l2, c2) { var y0 = 66; while (S1 > 2 && l1.length * 6 * S1 > 236) S1--; uiCentre(l1, y0, S1, c1); if (l2) uiCentre(l2, y0 + 7 * S1 + 8, 2, c2 || "#ffffff"); }
 // time as seen through the tape-stop (slows to a halt between STOP and REWIND)
 function tapeT(t, T) { if (t <= T.STOP) return t; var tau = Math.min(t, T.REWIND) - T.STOP, TT = T.REWIND - T.STOP; return T.STOP + tau - tau * tau / (2 * TT); }
 // an accelerating schedule of event times (shared with the audio): rate r0 -> r1 per second between t0 and t1

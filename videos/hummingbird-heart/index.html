@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Heart That Beats 20 Times a Second</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "The Heart That Beats 20 Times a Second" (hummingbird) — text cards + sound only (STYLE_GUIDE.md section 6), safe zone
+      (section 8): counter at the top of the safe box, action in world y 55-185, handle at canvas y 380, captions at 412.
+      The heart on screen pulses at bpm(t), the same function the audio uses (scripts/synth_audio.py).
+      Facts: Lasiewski (1964) heart rates up to ~1,260 BPM; torpor heart rate ~50 BPM; Wolf et al. (2020) Biology Letters
+      (black metaltail body temperature down to 3.3 °C in torpor); ruby-throated wingbeat ~53/s.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="29.4" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="29.4" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="29.4" data-track-index="1"></audio>
+    </div>
+    <script>window.PX_HANDLE_Y = 380;</script>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        sky1: "#5ac8ff", sky2: "#ffd0e8", dusk1: "#ff7a3a", dusk2: "#ffc86a", night1: "#0a0a2a", night2: "#1a1a4a",
+        dawn1: "#ff9ab0", dawn2: "#ffe0a0", dawnP1: "#4a2a7a", dawnP2: "#c85aa8", sun: "#fff0a0", bush: "#2a9a4a", bushD: "#1a6a3a", stem: "#3aa84a",
+        fl1: "#ff4a6a", fl2: "#ff9a2a", fl3: "#c84aff", flIn: "#ffe07a",
+        hbG: "#3ad86a", hbGD: "#1a8a4a", hbGL: "#9af0a0", belly: "#f4f4ec", bellyD: "#c8c8bc", throat: "#ff2a4a", throatL: "#ff8a9a",
+        beak: "#2a2028", wing: "#b8d8c8", twig: "#8a5a3a", twigD: "#5a3a2a", leaf: "#4ac85a",
+        heart: "#ff3a7a", heartL: "#ffa0c0", hHuman: "#e8384a", hHumanD: "#a82838", sweat: "#8ae0ff", frost: "#e8f8ff",
+        bug: "#ff3a3a", bugD: "#8a1a1a", bar: "#3ae86a", barBg: "#2a2a3a",
+        red: "#ff3a4a", green: "#3ae86a", gold: "#ffc83a", pink: "#ff5ab8", cyan: "#3ae8ff", white: "#ffffff", ink: "#0a0614", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+
+      // ============================================================ the counter that drives picture AND sound (mirrors the audio)
+      function bpm(t) {
+        if (t < T.NIGHT) return 1200;
+        if (t < T.TORPOR) return 1200 - 300 * (t - T.NIGHT) / (T.TORPOR - T.NIGHT);
+        if (t < T.HIT) { var u = Math.min(1, (t - T.TORPOR) / 3.2); return 50 + 850 * Math.pow(1 - u, 2.2); }
+        if (t < T.BACK) { var v = Math.min(1, (t - T.HIT) / (T.BACK - T.HIT)); return 50 * Math.pow(1200 / 50, Math.pow(v, 1.3)); }
+        return 1200;
+      }
+      function beatPhase(t) { var b = 0, dt = 0.01; for (var x = 0; x < t; x += dt) b += bpm(x) / 60 * dt; return b % 1; }
+      function pulseAt(t) { var r = bpm(t); if (r > 400) return 0.5 + 0.5 * Math.sin(t * 60); return Math.exp(-beatPhase(t) * 6); }
+      function tempAt(t) {
+        if (t < T.TORPOR) return 40;
+        if (t < T.HIT) return Math.round(40 - 37 * clamp01((t - T.TORPOR) / 3.6));
+        return Math.round(3 + 37 * clamp01((t - T.HIT) / (T.CTA - T.HIT)));
+      }
+
+      // ============================================================ hearts
+      function heartShape(x, y, r, col) {
+        disc(x - r * 0.5, y - r * 0.25, r * 0.6, col); disc(x + r * 0.5, y - r * 0.25, r * 0.6, col);
+        poly([[x - r * 1.08, y - 0.05 * r], [x + r * 1.08, y - 0.05 * r], [x, y + r * 1.05]], col);
+      }
+      function heartGlow(x, y, r, p, dim) {
+        lighter(); glow(x, y, r * (3 + 2 * p), C.heart, (0.35 + 0.4 * p) * (dim || 1)); normalBlend();
+        var rr = r * (1 + 0.3 * p);
+        heartShape(x, y, rr, C.heart); disc(x - rr * 0.5, y - rr * 0.4, rr * 0.22, C.heartL);
+      }
+
+      // ============================================================ the hummingbird (centre x, y; ~70*s long incl. beak), facing right
+      // o: perch (wings folded), fluff 0..1 (torpor: puffed up), eyes 0..1, heart (pulse 0..1 or null), dim
+      function hbird(x, y, s, t, o) {
+        o = o || {};
+        var f = clamp01(o.fluff || 0), eo = o.eyes === undefined ? 1 : o.eyes;
+        g.save(); g.translate(x, y); g.scale(s, s);
+        // tail
+        poly([[-12, 4], [-30, 12], [-27, 16], [-22, 13], [-24, 18], [-10, 9]], C.hbGD);
+        // far wing (hovering)
+        var fr = Math.floor(t * 30) % 2;
+        if (!o.perch) ell(fr ? -6 : 2, fr ? -19 : -9, 3.5, fr ? 11 : 9, fr ? -0.45 : 1.25, C.wing);
+        // body
+        ell(0, 0, 16 + f * 5, 11 + f * 5, -0.35 + f * 0.25, C.hbGD); ell(-0.5, -1, 15 + f * 5, 10 + f * 5, -0.35 + f * 0.25, C.hbG);
+        ell(3, 5 + f, 11 + f * 3, 6 + f * 2, -0.2, C.belly);
+        // head, throat (gorget), beak, eye
+        disc(13, -10 + f * 2, 8.5, C.hbG); disc(12, -13 + f * 2, 4, C.hbGL);
+        ell(13, -3 + f * 2, 6.5, 4, -0.2, C.throat); ell(14, -4 + f * 2, 3, 1.5, -0.2, C.throatL);
+        line(20, -11 + f * 2, 40, -14 + f * 2, 1.7, C.beak);
+        if (eo > 0.2) { disc(16, -12 + f * 2, 2, C.ink); disc(16.6, -12.7 + f * 2, 0.7, C.white); }
+        else line(14, -12 + f * 2, 18, -11.5 + f * 2, 0.9, C.ink);
+        // near wing
+        if (o.perch) ell(-4, -2, 13 + f * 3, 5, -0.25, C.hbGD);
+        else {
+          ell(fr ? -4 : 4, fr ? -20 : -7, 4, fr ? 12 : 10, fr ? -0.25 : 1.4, C.hbGL);
+          g.strokeStyle = C.white; g.lineWidth = 0.6; g.beginPath(); g.arc(-1, -6, 17, -2.6, -0.9); g.stroke();
+        }
+        // frost
+        if (o.frost) for (var k = 0; k < 7; k++) { var a = hash1(k) * 6.28, r = 13 + hash1(k + 4) * 6; if (hash1(k + 9) < o.frost) { rect(Math.cos(a) * r, Math.sin(a) * r * 0.8 - 2, 1.2, 1.2, C.frost); } }
+        g.restore();
+      }
+      function bird(x, y, s, t, o) {
+        o = o || {};
+        character(function () { hbird(x, y, s, t, o); });
+        if (o.heart !== null && o.heart !== undefined) heartGlow(x + 6 * s, y + 1 * s, 3.3 * s, o.heart, o.dim);
+      }
+
+      // ============================================================ backdrops
+      function garden(cam, t, sky1, sky2, noSun) {
+        sky([[0, sky1 || C.sky1], [1, sky2 || C.sky2]]);
+        setCam(cam, 0.3); if (!noSun) disc(140, 70, 14, C.sun);
+        setCam(cam, 0.6);
+        for (var k = 0; k < 7; k++) disc(-10 + k * 34, 210 + (k % 2) * 8, 30, C.bushD);
+        for (var k2 = 0; k2 < 7; k2++) disc(5 + k2 * 34, 222 + (k2 % 2) * 6, 28, C.bush);
+        setCam(cam, 1);
+      }
+      function flower(x, y, col, open) {
+        line(x - 8, y + 6, x - 14, y + 60, 1.5, C.stem); ell(x - 14, y + 30, 6, 2, -0.6, C.leaf);
+        g.save(); g.translate(x, y); g.rotate(-0.5);
+        poly([[-10, -3], [4, -6], [10, -10], [12, 0], [10, 10], [4, 6], [-10, 3]], col);
+        ell(10, 0, 2.5, 8, 0, C.flIn);
+        g.restore();
+      }
+
+      // ============================================================ 1. hover (hook + CTA): x-ray heart
+      function scene_hover(t) {
+        var tt = tapeT(t, T);
+        var cam = tt < T.VS ? camAt([[0, 88, 160, 1.15], [T.VS, 88, 160, 1.05]], tt) : camAt([[T.CTA, 88, 160, 1.0], [T.STOP, 86, 150, 1.25]], tt);
+        garden(cam, tt);
+        flower(40, 170, C.fl1); flower(132, 176, C.fl2);
+        var bob = Math.sin(tt * 3) * 3;
+        bird(68, 128 + bob, 1.75, tt, { heart: pulseAt(tt) });
+        lighter(); for (var k = 0; k < 4; k++) { var q = (tt * 2 + k / 4) % 1; glow(68 + 11, 128 + bob, 20 + q * 40, C.heart, 0.12 * (1 - q)); } normalBlend();
+        vignette(0.3, "rgba(40,10,30,");
+      }
+
+      // ============================================================ 2. you vs bird
+      function scene_vs(t) {
+        screen();
+        rect(0, 0, 90, 320, C.night2); rect(90, 0, 90, 320, "#3a1030");
+        rect(89, 0, 2, 320, C.white);
+        var ph = ((t - T.VS - 0.2) * 70 / 60) % 1, hp = Math.exp(-Math.max(0, ph) * 6);
+        var cam = { x: 90, y: 160, z: 1 };
+        setCam(cam, 1);
+        worldText("YOU", 50, 74, 2, C.white); worldText("BIRD", 120, 74, 2, C.pink);
+        // the human heart: big, slow, sweating
+        character(function () {
+          var r = 22 * (1 + 0.12 * hp);
+          heartShape(50, 120, r, C.hHumanD); heartShape(49, 119, r * 0.93, C.hHuman);
+          disc(43, 116, 2.4, C.white); disc(57, 116, 2.4, C.white); disc(43.5, 116.5, 1.2, C.ink); disc(57.5, 116.5, 1.2, C.ink);
+          line(45, 128, 55, 127, 1, C.ink);
+        });
+        var sw = (t * 0.9) % 1; ell(68, 102 + sw * 16, 2, 3, 0, C.sweat);
+        // the bird heart: small, buzzing
+        var j = (hash1(Math.floor(t * 30)) - 0.5) * 2;
+        character(function () {
+          var r = 9 * (1 + 0.25 * (0.5 + 0.5 * Math.sin(t * 60)));
+          heartShape(120 + j, 120, r, C.heart);
+          disc(116 + j, 118, 1.5, C.white); disc(124 + j, 118, 1.5, C.white); disc(116 + j, 118, 0.8, C.ink); disc(124 + j, 118, 0.8, C.ink);
+        });
+        lighter(); glow(120, 120, 26, C.heart, 0.5); normalBlend();
+        if (t > T.VS + 0.6) bubble(50, 160, "CHILL!", C.ink);
+        if (t > T.VS + 1.2) bubble(120, 160, "NO.", C.ink);
+      }
+
+      // ============================================================ 3. the wings, close up
+      function scene_wings(t) {
+        var cam = camAt([[T.WINGS, 80, 130, 1.3], [T.FLOWERS, 76, 118, 1.7]], t);
+        garden(cam, t);
+        bird(78, 116, 1.5, t, { heart: pulseAt(t) });
+        lighter();
+        g.strokeStyle = "rgba(255,255,255,0.5)"; g.lineWidth = 1; g.beginPath();
+        for (var a = 0; a <= 6.3; a += 0.1) { var px = 72 + Math.sin(a) * 11, py = 88 + Math.sin(2 * a) * 5; a ? g.lineTo(px, py) : g.moveTo(px, py); }
+        g.stroke(); normalBlend();
+      }
+
+      // ============================================================ 4. flower to flower
+      var FL = [[70, 84, "fl1"], [128, 118, "fl2"], [100, 140, "fl3"], [62, 124, "fl2"], [120, 80, "fl1"]];
+      var FT = []; for (var k = 0; k < 9; k++) FT.push(T.FLOWERS + 0.3 + k * (0.75 * Math.pow(0.86, k)));
+      function scene_flowers(t) {
+        var cam = { x: 90, y: 150, z: 1.0 };
+        garden(cam, t, C.sky1, C.sky2);
+        FL.forEach(function (f) { flower(f[0], f[1], C[f[2]]); });
+        var i = countOf(FT, t) - 1, cur = FL[Math.max(0, i) % FL.length], prev = FL[Math.max(0, i - 1) % FL.length];
+        var mv = i < 0 ? 1 : clamp01((t - FT[i]) / 0.12);
+        var tx = cur[0] - 44, ty = cur[1] + 16, px = prev[0] - 44, py = prev[1] + 16;
+        if (i < 0) { tx = 30; ty = 110; }
+        bird(lerp(px, tx, easeOut(mv)), lerp(py, ty, easeOut(mv)) + Math.sin(t * 5) * 1.5, 1.1, t, { heart: pulseAt(t) });
+        if (i >= 0 && t - FT[i] < 0.35) { lighter(); glow(cur[0] + 4, cur[1], 10, C.gold, 0.6); normalBlend(); }
+        if (t > T.FLOWERS + 0.8) bubble(Math.max(40, Math.min(120, tx + 10)), ty - 30, i % 2 ? "MORE!" : "SNACK!", C.ink);
+      }
+
+      // ============================================================ 5. the perch: night, torpor, the bug, sunrise
+      function perchSky(t) {
+        if (t < T.TORPOR) { var k = clamp01((t - T.NIGHT) / (T.TORPOR - T.NIGHT)); return k < 0.5 ? [mix(C.sky1, C.dusk1, k * 2), mix(C.sky2, C.dusk2, k * 2)] : [mix(C.dusk1, C.night1, k * 2 - 1), mix(C.dusk2, C.night2, k * 2 - 1)]; }
+        if (t < T.HIT) return [C.night1, C.night2];
+        var d = clamp01((t - T.HIT) / 2.4);
+        if (d < 0.33) return [mix(C.night1, C.dawnP1, d * 3), mix(C.night2, C.dawnP2, d * 3)];
+        if (d < 0.66) return [mix(C.dawnP1, C.dawn1, d * 3 - 1), mix(C.dawnP2, C.dawn2, d * 3 - 1)];
+        return [mix(C.dawn1, C.sky1, d * 3 - 2), mix(C.dawn2, C.sky2, d * 3 - 2)];
+      }
+      function scene_perch(t) {
+        var cam = t < T.TORPOR ? camAt([[T.NIGHT, 88, 150, 1.0], [T.TORPOR, 88, 140, 1.1]], t)
+          : t < T.HIT ? camAt([[T.TORPOR, 88, 140, 1.1], [T.DEAD, 88, 136, 1.3], [T.HIT, 92, 136, 1.4]], t)
+          : camAt([[T.HIT, 92, 136, 1.4], [T.BACK, 88, 140, 1.15], [T.CTA, 88, 145, 1.05]], t);
+        shake(cam, t, T.HIT, 6, 0.4);
+        var sk = perchSky(t);
+        garden(cam, t, sk[0], sk[1], t > T.TORPOR - 0.6 && t < T.HIT + 0.9);
+        if (t > T.TORPOR - 1 && t < T.HIT + 1.5) { var na = t < T.HIT ? clamp01((t - T.TORPOR + 1) / 1.5) : 1 - clamp01((t - T.HIT) / 1.5); setCam(cam, 0.3); g.globalAlpha = na; for (var s = 0; s < 40; s++) rect(hash1(s) * 200 - 10, hash1(s + 7) * 150, 1, 1, C.white); disc(40, 70, 10, C.frost); disc(44, 67, 9, sk[0]); g.globalAlpha = 1; setCam(cam, 1); }
+        // the twig
+        line(0, 146, 170, 140, 4, C.twigD); line(0, 145, 170, 139, 2.5, C.twig);
+        ell(150, 134, 8, 3, -0.5, C.leaf); ell(20, 138, 7, 2.5, 0.4, C.leaf);
+        var land = clamp01((t - T.NIGHT) / 0.8), lift = t > T.BACK ? clamp01((t - T.BACK) / 0.6) : 0;
+        var perched = t > T.NIGHT + 0.7 && t < T.BACK + 0.1;
+        var fluff = t < T.TORPOR ? 0 : t < T.HIT ? clamp01((t - T.TORPOR) / 1.5) : 1 - clamp01((t - T.HIT - 0.4) / 1.0);
+        var frost = t < T.LOW ? 0 : t < T.HIT ? clamp01((t - T.LOW) / 1.5) : 1 - clamp01((t - T.HIT) / 0.8);
+        var eyes = t < T.TORPOR + 0.6 ? 1 : t < T.HIT + 0.6 ? 0 : 1;
+        var shiver = t > T.HIT + 0.6 && t < T.BACK ? Math.sin(t * 70) * 0.8 : 0;
+        var bx = 84 + shiver, by = lerp(100, 120, land) - lift * 12 + (lift > 0 ? Math.sin(t * 3) * 2 : 0);
+        var dim = t > T.TORPOR && t < T.HIT + 1 ? 0.5 : 1;
+        bird(bx, by, 1.8, t, { perch: perched, fluff: fluff, eyes: eyes, frost: frost, heart: pulseAt(t), dim: dim });
+        // energy bar (night falls)
+        if (t > T.NIGHT && t < T.TORPOR) {
+          var e = 1 - 0.95 * clamp01((t - T.NIGHT - 0.4) / (T.TORPOR - T.NIGHT - 0.6));
+          rrect(52, 64, 66, 9, 2, C.ink); rect(54, 66, 62 * e, 5, e < 0.3 ? C.red : C.bar);
+        }
+        if (t > T.TORPOR + 0.8 && t < T.DEAD) { var zp = (t * 0.7) % 1; worldText("Z", 64 - zp * 6, 84 - zp * 10, 1, C.white); }
+        // the bug walks up and pokes
+        if (t > T.DEAD && t < T.HIT + 0.8) {
+          var w = clamp01((t - T.DEAD) / 0.8), bgx = lerp(170, 124, w), bgy = 136 + (170 - bgx) * 0.035;
+          var poke = t > T.DEAD + 0.8 && t < T.DEAD + 1.9 ? Math.max(0, Math.sin((t - T.DEAD) * 18)) * 3 : 0;
+          if (t > T.HIT) { bgx += (t - T.HIT) * 60; bgy -= (t - T.HIT) * 30; }
+          character(function () {
+            ell(bgx, bgy - 3, 6, 4.5, 0, C.bug); line(bgx, bgy - 7, bgx, bgy + 1, 0.6, C.bugD);
+            disc(bgx - 2, bgy - 4, 1, C.bugD); disc(bgx + 2.5, bgy - 2, 1, C.bugD);
+            disc(bgx - 6, bgy - 4, 2.6, C.ink); disc(bgx - 7, bgy - 4.5, 0.7, C.white);
+            line(bgx - 8, bgy - 5, bgx - 11 - poke, bgy - 8, 0.6, C.ink);
+          });
+          if (t > T.DEAD + 1.0 && t < T.HIT) bubble(112, 96, "IS IT DEAD?", C.ink);
+        }
+        if (t > T.HIT + 0.8 && t < T.CTA) bubble(84, 74, "GOOD MORNING!", C.ink);
+        vignette(0.35, "rgba(20,10,40,");
+      }
+
+      function sceneAt(t) {
+        var tt = tapeT(t, T);
+        return tt < T.VS ? "hover" : tt < T.WINGS ? "vs" : tt < T.FLOWERS ? "wings" : tt < T.NIGHT ? "flowers" : tt < T.CTA ? "perch" : "hover";
+      }
+      function drawUI(t) {
+        var tt = tapeT(t, T);
+        if (tt < T.VS) counterLines("1,200 BPM", C.pink, 3, "HEART RATE (MAX)", C.white);
+        else if (tt < T.WINGS) counterLines("BIRD 1,200", C.pink, 3, "YOU: 70 BPM", C.white);
+        else if (tt < T.FLOWERS) counterLines("WINGS 53/SEC", C.gold, 3, "HEART 1,200 BPM", C.white);
+        else if (tt < T.NIGHT) { var n = Math.round(1000 * Math.pow(clamp01((tt - T.FLOWERS - 0.2) / (T.NIGHT - T.FLOWERS - 0.6)), 1.4)); counterLines("FLOWERS " + (n >= 1000 ? "1000+" : n), C.gold, 3, "TODAY", C.white); }
+        else if (tt < T.TORPOR) { var e = Math.round(100 - 95 * clamp01((tt - T.NIGHT - 0.4) / (T.TORPOR - T.NIGHT - 0.6))); counterLines("ENERGY " + e + "%", e < 30 ? C.red : C.green, 3, "HEART " + Math.round(bpm(tt)) + " BPM", C.white); }
+        else if (tt < T.HIT) counterLines("HEART " + Math.round(bpm(tt)) + " BPM", C.cyan, 3, "BODY " + tempAt(tt) + "°C", C.white);
+        else if (tt < T.CTA) counterLines("HEART " + Math.round(bpm(tt)) + " BPM", C.green, 3, "BODY " + tempAt(tt) + "°C", C.white);
+        else counterLines("1,200 BPM", C.pink, 3, "SHARE THIS", C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { hover: scene_hover, vs: scene_vs, wings: scene_wings, flowers: scene_flowers, perch: scene_perch },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.dawn2,
+        cuts: [[T.VS, "hover", "vs"], [T.WINGS, "vs", "wings"], [T.FLOWERS, "wings", "flowers"], [T.NIGHT, "flowers", "perch"], [T.CTA, "perch", "hover"]],
+      });
+      CAPTIONS.forEach(function (c) { c.y = 412; });   // captions low in the safe box, under the action
+    </script>
+  </body>
+</html>

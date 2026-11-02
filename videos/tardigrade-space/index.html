@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Animal That Survived Space</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "The Animal That Survived Space" (tardigrade) — text cards + sound only (STYLE_GUIDE.md section 6), safe zone
+      (section 8): counter at the top of the safe box, action in world y 55-185, handle at canvas y 380, captions at 412.
+      Facts: Jonsson et al. (2008) Current Biology 18: R729 (TARDIS on FOTON-M3, 10 days open space, survivors reproduced);
+      Seki & Toyoshima (1998) Nature (6,000 atm, tun); Tsujimoto et al. (2016) Cryobiology (revived after 30 years frozen);
+      Traspas & Burchell (2021) Astrobiology (Beresheet tardigrades probably did not survive the crash).
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="31" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="31" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="31" data-track-index="1"></audio>
+    </div>
+    <script>window.PX_HANDLE_Y = 380;</script>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        sp1: "#06061e", sp2: "#141448", star: "#ffffff", earth: "#2a6ae8", earthL: "#5ac8ff", land: "#3ac85a", cloud: "#f0f8ff",
+        tg: "#f2c49a", tgD: "#c8906a", tgL: "#ffe6cc", claw: "#4a3030", eyeW: "#ffffff", blush: "#ff8aa8", mouth: "#8a3a4a",
+        metal: "#c8ccd8", metalD: "#7a8098", foil: "#ffc83a", foilD: "#c8902a",
+        lab1: "#0e2a2e", lab2: "#18464c", glass: "#d8f4f0", glassD: "#9ad8d0", water: "#3aa8ff", waterL: "#9ae0ff",
+        sky1: "#4ab0ff", sky2: "#a8e0ff", ground: "#5a6a4a", pad: "#5a5a6a", rocket: "#f0f0f4", rocketD: "#b0b0c0",
+        flame: "#ff8a2a", flameY: "#ffe07a", ray: "#ff5ab8", ice: "#c8f0ff", iceD: "#7ac8e8", press: "#8a8aa0",
+        moon: "#c8c8d0", moonD: "#8a8a98", moonL: "#e8e8ee", dust: "#b8b0a8", egg: "#fff4dc", eggD: "#d8c8a0",
+        red: "#ff3a4a", green: "#3ae86a", gold: "#ffc83a", pink: "#ff5ab8", cyan: "#3ae8ff", white: "#ffffff", ink: "#0a0614", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+
+      // ============================================================ the tardigrade (centre x, y; ~70*s wide), facing right
+      // o: dry 0..1 (curls into a tun), wave (front leg up), eyes 0..1 (open), happy
+      function tardi(x, y, s, t, o) {
+        o = o || {};
+        var d = clamp01(o.dry || 0), eo = o.eyes === undefined ? 1 : o.eyes;
+        g.save(); g.translate(x, y); g.scale(s, s); g.rotate(o.rot || 0);
+        var rx = lerp(31, 17, d), ry = lerp(16, 13, d), legL = lerp(9, 0, d);
+        // legs (4 visible pairs, stubby with claws)
+        var lx = [-21, -8, 5, 18];
+        for (var i = 0; i < 4; i++) {
+          if (legL < 0.5) break;
+          var px = lx[i] * lerp(1, 0.5, d), sw = Math.sin(t * 6 + i * 1.3) * 1.2 * (1 - d);
+          if (o.wave && i === 3) {
+            g.save(); g.translate(px + 2, 6); g.rotate(-2.1 + Math.sin(t * 9) * 0.35);
+            rrect(-3, 0, 6, legL + 3, 3, C.tgD); line(-2, legL + 3, -3, legL + 6, 1, C.claw); line(2, legL + 3, 3, legL + 6, 1, C.claw);
+            g.restore(); continue;
+          }
+          rrect(px - 3 + sw, 6, 6, legL + 4, 3, C.tgD);
+          for (var c = -1; c <= 1; c++) line(px + sw + c * 1.6, 9 + legL, px + sw + c * 2.4, 12 + legL, 0.8, C.claw);
+        }
+        // body + segments
+        ell(0, 0, rx, ry, 0, C.tgD); ell(-0.5, -1.5, rx - 1, ry - 1.5, 0, C.tg); ell(-3, -6, rx * 0.6, ry * 0.35, 0, C.tgL);
+        for (var k = -1; k <= 2; k++) line(k * rx * 0.33 - 4, -ry + 2, k * rx * 0.33 - 6, ry - 3, 0.8, C.tgD);
+        if (d > 0.4) for (var w = 0; w < 4; w++) line(-rx + 4, -6 + w * 4, rx - 4, -7 + w * 4, 0.6, C.tgD);  // tun wrinkles
+        // head: big eyes, snout mouth, blush
+        var hx = lerp(rx - 6, rx - 6, d);
+        disc(hx + 1, -2, lerp(12, 10, d), C.tg);
+        if (eo > 0.15) {
+          disc(hx + 1, -6, 3.6, C.eyeW); disc(hx + 8, -6, 3.2, C.eyeW);
+          disc(hx + 1.8, -5.6, 1.7 * eo, C.ink); disc(hx + 8.6, -5.6, 1.6 * eo, C.ink);
+          disc(hx + 1.2, -6.6, 0.6, C.eyeW); disc(hx + 8, -6.6, 0.6, C.eyeW);
+        } else { line(hx - 1.5, -6, hx + 3, -6, 0.9, C.ink); line(hx + 6, -6, hx + 10, -6, 0.9, C.ink); }
+        disc(hx - 1, 0, 1.8, C.blush); disc(hx + 10, 0, 1.6, C.blush);
+        if (o.happy) { disc(hx + 5, 1.5, 2.6, C.mouth); rect(hx + 3, -0.5, 4, 1.6, C.tg); }
+        else { disc(hx + 5, 2, 1.9, C.tgD); disc(hx + 5, 2, 1.0, C.mouth); }
+        g.restore();
+      }
+      function tun(x, y, s, t) { character(function () { tardi(x, y, s, t, { dry: 1, eyes: 0 }); }); }
+
+      // ============================================================ backdrops
+      function stars(t, n, seed) {
+        for (var k = 0; k < n; k++) {
+          var a = 0.5 + 0.5 * Math.sin(t * 2 + k);
+          rect(hash1(k + seed) * 200 - 10, hash1(k + seed + 50) * 340 - 10, a > 0.8 ? 1.5 : 1, a > 0.8 ? 1.5 : 1, C.star);
+        }
+      }
+      function space(cam, t) {
+        sky([[0, C.sp1], [1, C.sp2]]);
+        setCam(cam, 0.3); stars(t, 70, 3);
+        setCam(cam, 0.6);
+        disc(90, 360, 150, C.earth);
+        g.save(); g.beginPath(); g.arc(90, 360, 150, 0, 6.2832); g.clip();
+        ell(40 + t * 2, 225, 40, 12, 0.2, C.land); ell(150 + t * 2, 240, 30, 16, -0.3, C.land);
+        ell(80 + t * 3, 235, 50, 4, 0, C.cloud); ell(10 + t * 3, 250, 30, 3, 0, C.cloud);
+        g.restore();
+        lighter(); glow(90, 212, 60, C.earthL, 0.25); normalBlend();
+      }
+      function satellite(x, y, s, lid) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        rect(-34, -3, 18, 6, C.earth); rect(16, -3, 18, 6, C.earth);                 // solar panels
+        for (var k = 0; k < 3; k++) { rect(-33 + k * 6, -3, 0.6, 6, C.earthL); rect(17 + k * 6, -3, 0.6, 6, C.earthL); }
+        disc(0, 0, 16, C.metalD); disc(-1, -1, 15, C.metal);
+        rect(-10, -4, 8, 6, C.foil); rect(3, 4, 7, 5, C.foil);
+        // the box on the outside (BIOPAN-style) with its lid
+        rect(-8, -24, 16, 9, C.foilD); rect(-7, -23, 14, 7, C.foil);
+        g.save(); g.translate(-8, -24); g.rotate(-lid * 1.9); rect(0, -2, 16, 2.5, C.metalD); g.restore();
+        g.restore();
+      }
+
+      // ============================================================ 1. space hook (frame 1) + size
+      function scene_space(t) {
+        var tt = tapeT(t, T);
+        var cam = camAt([[0, 88, 160, 1.15], [T.SIZE, 88, 160, 1.0], [T.TUN, 88, 162, 0.95]], tt);
+        space(cam, tt);
+        setCam(cam, 1);
+        satellite(140, 76, 0.8, 1);
+        var bob = Math.sin(tt * 1.4) * 3;
+        character(function () { tardi(78, 118 + bob, 1.3, tt, { wave: tt < T.SIZE + 1.2, happy: true, rot: Math.sin(tt * 0.8) * 0.08 }); });
+        if (tt < T.SIZE) bubble(84, 80, "HI, EARTH!", C.ink);
+        if (tt > T.SIZE) {
+          var p = Math.min(pop(tt, T.SIZE + 0.3), 1.1);
+          g.save(); g.translate(78, 160); g.scale(p, p);
+          rect(-46, 0, 92, 3, C.white); rect(-46, -4, 2, 11, C.white); rect(44, -4, 2, 11, C.white); rect(-1, -2, 2, 7, C.gold);
+          worldText("1 MM", 0, 7, 1, C.white); worldText("0.5", -23, -10, 1, C.gold);
+          g.restore();
+        }
+        vignette(0.4, "rgba(0,0,20,");
+      }
+
+      // ============================================================ 2. the microscope: drying into a tun / revival / eggs
+      function scope(cam, t, wet) {
+        sky([[0, C.lab1], [1, C.lab2]]);
+        setCam(cam, 1);
+        disc(85, 120, 72, C.ink); disc(85, 120, 68, C.glassD); disc(85, 120, 66, C.glass);
+        if (wet > 0.02) { ell(85, 128, 52 * wet + 6, 30 * wet + 4, 0, C.waterL); ell(85, 128, 46 * wet + 4, 25 * wet + 3, 0, C.water); }
+        for (var k = 0; k < 6; k++) disc(40 + hash1(k + 4) * 90, 70 + hash1(k + 9) * 90, 1.2 + hash1(k) * 1.5, C.glassD);
+      }
+      function dryAt(t) { return t < T.BACK ? clamp01((t - T.TUN - 0.4) / 2.4) : t < T.HIT ? 1 : 1 - clamp01((t - T.HIT - 0.15) / 0.8); }
+      function scene_lab(t) {
+        var cam = t < T.LAUNCH ? camAt([[T.TUN, 85, 150, 1.0], [T.LAUNCH, 85, 140, 1.15]], t)
+          : camAt([[T.BACK, 85, 145, 1.15], [T.HIT, 85, 140, 1.25], [T.BABIES, 85, 150, 1.0], [T.MOON, 85, 152, 0.98]], t);
+        shake(cam, t, T.HIT, 6, 0.4);
+        var d = dryAt(t);
+        scope(cam, t, t < T.BACK ? 1 - d : t < T.HIT ? 0 : 1 - d * 0.9);
+        var eyes = t < T.BACK ? 1 - clamp01((t - T.TUN - 1.8) / 0.6) : clamp01((t - T.HIT - 0.6) / 0.25);
+        var happy = t > T.HIT + 0.7;
+        character(function () { tardi(85, 126, lerp(1.2, 1.45, d), t, { dry: d, eyes: eyes, happy: happy, wave: happy && t < T.BABIES }); });
+        if (t < T.BACK && t > T.TUN + 2.6 && t < T.LAUNCH) bubble(85, 84, "BRB.", C.ink);
+        if (t > T.BACK && t < T.HIT) {
+          // the dropper + the falling drop
+          var dy = 92 + 34 * Math.pow(clamp01((t - T.BACK - 0.3) / (T.HIT - T.BACK - 0.3)), 2);
+          rect(80, 70, 10, 16, C.glassD); rrect(78, 60, 14, 12, 4, C.red);
+          if (t > T.BACK + 0.3) { disc(85, dy, 3.5, C.water); poly([[82, dy - 1], [88, dy - 1], [85, dy - 7]], C.water); disc(84, dy - 1, 1, C.waterL); }
+        }
+        if (t > T.HIT + 0.9 && t < T.BABIES) bubble(85, 84, "I'M BACK!", C.ink);
+        if (t > T.BABIES) {
+          var pos = [[42, 150], [62, 162], [108, 162], [128, 150], [40, 100], [130, 100], [85, 170]];
+          pos.forEach(function (p, k) {
+            var th = T.BABIES + 0.4 + k * 0.28;
+            if (t < th) { ell(p[0], p[1], 5, 6, 0, C.eggD); ell(p[0] - 0.5, p[1] - 0.5, 4.2, 5.2, 0, C.egg); }
+            else { var sc = Math.min(pop(t, th), 1.1) * 0.32; character(function () { tardi(p[0], p[1], sc, t + k, { happy: true }); }); }
+          });
+        }
+        vignette(0.45, "rgba(0,10,20,");
+      }
+
+      // ============================================================ 3. launch 2007
+      function scene_launch(t) {
+        var lt = t - T.LAUNCH, up = Math.max(0, lt - 0.4);
+        var rise = up * up * 30;
+        var cam = { x: 88, y: 150, z: 1.0 };
+        shake(cam, t, T.LAUNCH + 0.4, 5, 2.5);
+        sky([[0, mix(C.sky1, C.sp1, clamp01(up / 2.2))], [1, mix(C.sky2, C.sp2, clamp01(up / 2.2))]]);
+        setCam(cam, 0.3); if (up > 1.2) stars(t, 40, 9);
+        setCam(cam, 1);
+        g.save(); g.translate(0, rise);
+        for (var k = 0; k < 4; k++) ell(30 + k * 45, 60 - k * 70, 22, 6, 0, C.cloud);
+        rect(-20, 182, 220, 160, C.ground); rect(55, 176, 60, 8, C.pad); rect(112, 80, 5, 100, C.pad);
+        g.restore();
+        var ry = 150 - Math.min(rise, 34);
+        // smoke + flame
+        if (lt > 0.2) {
+          for (var s = 0; s < 8; s++) disc(70 + hash1(s) * 36 + Math.sin(t * 3 + s) * 3, ry + 34 + Math.min(rise, 30) * 0.3 + s * 4, 7 + s, C.cloud);
+          var fl = 18 + Math.sin(t * 40) * 3;
+          poly([[80, ry + 30], [96, ry + 30], [88, ry + 30 + fl]], C.flame); poly([[83, ry + 30], [93, ry + 30], [88, ry + 30 + fl * 0.6]], C.flameY);
+        }
+        rect(80, ry - 30, 16, 60, C.rocketD); rect(81, ry - 30, 13, 60, C.rocket);
+        poly([[80, ry - 30], [96, ry - 30], [88, ry - 48]], C.red);
+        poly([[80, ry + 18], [72, ry + 30], [80, ry + 30]], C.red); poly([[96, ry + 18], [104, ry + 30], [96, ry + 30]], C.red);
+        rect(80, ry - 8, 16, 3, C.red);
+        // the porthole with a tun asleep inside
+        disc(88, ry - 18, 6, C.metalD); disc(88, ry - 18, 5, C.sp2);
+        character(function () { tardi(88, ry - 18, 0.22, t, { dry: 1, eyes: 0 }); });
+        
+        vignette(0.35, "rgba(0,0,20,");
+      }
+
+      // ============================================================ 4. orbit: the lid opens, cosmic rays
+      function scene_orbit(t) {
+        var cam = camAt([[T.ORBIT, 90, 140, 1.0], [T.ORBIT + 1.2, 90, 104, 2.0], [T.POWERS, 90, 102, 2.3]], t);
+        space(cam, t);
+        setCam(cam, 1);
+        var lid = clamp01((t - T.ORBIT - 0.15) / 0.5);
+        satellite(90, 140, 1.4, lid);
+        // three tuns inside the open box (box top at y ~106)
+        for (var k = 0; k < 3; k++) tun(80 + k * 10, 110, 0.16, t);
+        if (lid > 0.5) for (var a = 0; a < 6; a++) { var q = (t * 1.5 + a / 6) % 1; disc(84 + a * 2.5 + q * (a - 2.5) * 10, 106 - q * 22, 0.9 * (1 - q) + 0.2, C.white); }
+        if (t > T.ORBIT + 1.4 && t < T.RAYS) { var zp = (t * 0.8) % 1; worldText("Z", 104 + zp * 6, 98 - zp * 10, 1, C.white); }
+        if (t > T.RAYS) {
+          lighter();
+          for (var r = 0; r < 7; r++) {
+            var ph = ((t - T.RAYS) * (1.4 + r * 0.25) + hash1(r)) % 1, x0 = 40 + hash1(r + 3) * 80;
+            var y0 = 60 + ph * 70, x1 = x0 + 22, y1 = y0 + 26;
+            line(x0, y0, x0 + 7, y0 + 9, 1, C.ray); line(x0 + 7, y0 + 9, x0 + 4, y0 + 14, 1, C.ray); line(x0 + 4, y0 + 14, x1, y1, 1, C.ray);
+            glow(x1, y1, 6, C.ray, 0.5);
+          }
+          normalBlend();
+        }
+        vignette(0.4, "rgba(0,0,20,");
+      }
+
+      // ============================================================ 5. powers: three icons pop
+      function scene_powers(t) {
+        var cam = { x: 88, y: 140, z: 1.0 };
+        shake(cam, t, T.POWERS + 0.1, 5, 0.3); shake(cam, t, T.POWERS + 0.85, 5, 0.3); shake(cam, t, T.POWERS + 1.6, 5, 0.3);
+        sky([[0, C.sp1], [1, C.sp2]]); setCam(cam, 0.3); stars(t, 50, 21); setCam(cam, 1);
+        var labels = ["-272°C", "6,000 ATM", "30 YRS FROZEN"];
+        var k = Math.min(2, Math.floor((t - T.POWERS - 0.1) / 0.75));
+        if (k >= 0) {
+          var p = Math.min(pop(t, T.POWERS + 0.1 + k * 0.75), 1.15), x = 86;
+          g.save(); g.translate(x, 104); g.scale(p * 1.5, p * 1.5);
+          rrect(-20, -20, 40, 40, 6, C.ink); rrect(-19, -19, 38, 38, 6, C.sp2);
+          if (k === 0) { rrect(-3, -14, 6, 22, 3, C.white); disc(0, 10, 5, C.iceD); rect(-1.5, -6, 3, 14, C.iceD); }
+          else if (k === 1) { rect(-12, -14, 24, 7, C.press); rect(-2, -18, 4, 5, C.press); poly([[-4, -4], [4, -4], [0, 2]], C.gold); rect(-14, 6, 28, 6, C.press); }
+          else { rrect(-12, -12, 24, 24, 4, C.iceD); rrect(-11, -12, 22, 21, 4, C.ice); rect(-7, -8, 4, 2, C.white); }
+          g.restore();
+          for (var d = 0; d <= k; d++) disc(78 + d * 8, 144, 2, d === k ? C.gold : C.white);
+        }
+        tun(86, 158, 0.55, t);
+        var zp = (t * 0.8) % 1; worldText("Z", 104 + zp * 6, 146 - zp * 10, 1, C.white);
+        vignette(0.4, "rgba(0,0,20,");
+      }
+
+      // ============================================================ 6. the Moon, 2019
+      function scene_moon(t) {
+        var cam = camAt([[T.MOON, 88, 140, 1.0], [T.CRASH, 88, 140, 1.0], [T.ASK, 88, 146, 1.3], [T.STOP, 88, 146, 1.4]], t);
+        shake(cam, t, T.CRASH, 9, 0.6);
+        sky([[0, "#000000"], [1, C.sp1]]); setCam(cam, 0.3); stars(t, 60, 31);
+        setCam(cam, 0.6); disc(140, 70, 13, C.earth); ell(137, 66, 6, 3, 0.3, C.land); ell(143, 74, 5, 2, 0, C.cloud);
+        setCam(cam, 1);
+        poly([[-30, 150], [40, 146], [90, 152], [140, 144], [210, 150], [210, 360], [-30, 360]], C.moonD);
+        poly([[-30, 154], [40, 150], [90, 156], [140, 148], [210, 154], [210, 360], [-30, 360]], C.moon);
+        ell(40, 166, 14, 4, 0, C.moonD); ell(140, 172, 10, 3, 0, C.moonD);
+        // the crater from the crash
+        if (t > T.CRASH) { ell(86, 158, 26, 6, 0, C.moonD); ell(86, 159, 20, 4, 0, "#000000"); }
+        if (t < T.CRASH) {
+          var p = clamp01((t - T.MOON) / (T.CRASH - T.MOON)), lx = 10 + p * 76, ly = 40 + p * 116;
+          g.save(); g.translate(lx, ly); g.rotate(0.6);
+          rect(-8, -6, 16, 10, C.metal); disc(-4, 0, 4, C.foil); disc(4, 0, 4, C.foil);
+          line(-8, 4, -12, 10, 1, C.metalD); line(8, 4, 12, 10, 1, C.metalD); poly([[-3, 4], [3, 4], [0, 12]], C.flameY);
+          g.restore();
+          for (var s = 0; s < 4; s++) disc(lx - 6 - s * 5, ly - 8 - s * 7, 1.5 + s * 0.6, C.flame);
+        } else {
+          var dp = clamp01((t - T.CRASH) / 1.4);
+          for (var k = 0; k < 14; k++) {
+            var a = -Math.PI * (0.05 + 0.9 * hash1(k)), r = dp * (20 + 30 * hash1(k + 5));
+            disc(86 + Math.cos(a) * r, 156 + Math.sin(a) * r * 0.7 + dp * dp * 18, 5 * (1 - dp) + 1, C.dust);
+          }
+          if (t < T.CRASH + 0.12) { lighter(); glow(86, 152, 40, C.flameY, 0.8); normalBlend(); }
+        }
+        if (t > T.ASK) {
+          var pk = clamp01((t - T.ASK) / 0.5);
+          character(function () { tardi(86, 160 - pk * 14, 0.8, t, { wave: t > T.ASK + 0.9, happy: t > T.ASK + 0.9 }); });
+          rect(56, 158, 60, 30, C.moon); ell(86, 158, 26, 6, 0, C.moonD); ell(86, 159, 20, 3, 0, C.moon);
+          if (t < T.ASK + 0.9) worldText("?", 86, 118 + Math.sin(t * 6), 2, C.gold);
+        }
+        vignette(0.4, "rgba(0,0,20,");
+      }
+
+      function sceneAt(t) {
+        var tt = tapeT(t, T);
+        return tt < T.TUN ? "space" : tt < T.LAUNCH ? "lab" : tt < T.ORBIT ? "launch" : tt < T.POWERS ? "orbit"
+          : tt < T.BACK ? "powers" : tt < T.MOON ? "lab" : "moon";
+      }
+      function drawUI(t) {
+        var tt = tapeT(t, T);
+        if (tt < T.SIZE) counterLines("DAY 10", C.cyan, 3, "IN OPEN SPACE", C.white);
+        else if (tt < T.TUN) counterLines("SIZE 0.5 MM", C.gold, 3);
+        else if (tt < T.LAUNCH) counterLines("WATER " + Math.round(85 - 82 * dryAt(tt)) + "%", dryAt(tt) > 0.9 ? C.red : C.cyan, 3, dryAt(tt) > 0.95 ? "LIFE SIGNS: ---" : "LIFE SIGNS: OK", C.white);
+        else if (tt < T.ORBIT) counterLines("YEAR 2007", C.gold, 3, "FOTON-M3", C.white);
+        else if (tt < T.POWERS) counterLines("DAY " + Math.min(10, Math.floor(clamp01((tt - T.ORBIT - 0.3) / (T.POWERS - T.ORBIT - 0.5)) * 10 + 0.001)) + "/10", C.cyan, 3, tt > T.RAYS ? "RADIATION: HIGH" : "AIR: 0%", tt > T.RAYS ? C.pink : C.white);
+        else if (tt < T.BACK) { var k = Math.min(2, Math.floor((tt - T.POWERS - 0.1) / 0.75)); counterLines(k < 0 ? "SURVIVES" : ["-272°C", "6,000 ATM", "30 YRS FROZEN"][k], C.gold, 3, "SURVIVES", C.white); }
+        else if (tt < T.HIT) counterLines("WATER " + Math.round(3 + 82 * (1 - dryAt(tt))) + "%", C.cyan, 3, "LIFE SIGNS: ---", C.white);
+        else if (tt < T.BABIES) counterLines("ALIVE: YES", C.green, 3, "WATER " + Math.round(85 - 82 * dryAt(tt)) + "%", C.white);
+        else if (tt < T.MOON) counterLines("EGGS " + Math.min(7, countOf([0, 1, 2, 3, 4, 5, 6].map(function (k) { return T.BABIES + 0.4 + k * 0.28; }), tt)), C.gold, 3, "HATCHED", C.white);
+        else if (tt < T.ASK) counterLines("MOON 2019", C.gold, 3, "BERESHEET LANDER", C.white);
+        else counterLines("COMMENT BELOW", C.pink, 3);
+      }
+
+      KIT.start(C, T, {
+        scenes: { space: scene_space, lab: scene_lab, launch: scene_launch, orbit: scene_orbit, powers: scene_powers, moon: scene_moon },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.waterL,
+        cuts: [[T.TUN, "space", "lab"], [T.LAUNCH, "lab", "launch"], [T.ORBIT, "launch", "orbit"], [T.POWERS, "orbit", "powers"],
+          [T.BACK, "powers", "lab"], [T.MOON, "lab", "moon"]],
+      });
+      CAPTIONS.forEach(function (c) { c.y = 412; });   // captions low in the safe box, under the action
+    </script>
+  </body>
+</html>
