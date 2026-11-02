@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>There's a Wasp in This Fig</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "There's a wasp in this fig" — engagement rules (STYLE_GUIDE.md section 6), text only (no narration), no cold-open hook:
+      frame 1 is the fig with an X-ray window showing the dead wasp inside.
+      Counter: WASPS INSIDE 1 -> FLOWERS INSIDE -> HOLE IN x MM -> WINGS 2/1/0 -> POLLINATED n -> WASP: GONE? -> WASP LEFT % ->
+      CRUNCH = SEEDS -> WASPS EATEN: MAYBE 1.
+      Sound: her buzz -> wing rips -> a pollen pop per flower (speeding up) -> fizz per digest tick -> crunch per bite.
+      Facts: Ficus carica / Blastophaga psenes pollination (Kjellberg et al.; Cook & Rasplus 2003); ficin protease.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="25" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="25" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="25" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var POLLEN = T.POLLEN || [], FT = T.FLOWERTICK || [], FIZZ = T.FIZZ || [], BITES = T.BITES || [];
+      var C = {
+        sky1: "#4ac0ff", sky2: "#a8ecff", leaf: "#3ac85a", leafD: "#1e8a3a", leafL: "#8aee6a", br: "#8a5a2a", brD: "#5a3a1a",
+        fig: "#9a4ac8", figD: "#62208a", figL: "#c88aee", figK: "#3a0a5a", stem: "#7aa82a",
+        flesh: "#ff6a8a", fleshD: "#c83a5a", fleshL: "#ffb0c0", cav: "#4a0a24", cav2: "#7a1a3a",
+        flower: "#fff0c0", flowerD: "#e8c070", seed: "#d8a050", seedD: "#9a6a2a",
+        wHead: "#4a2a1a", wasp: "#ff9a2a", waspD: "#c8641a", wing: "#c8f4ff",
+        skin: "#f0b080", skinD: "#c88050", hair: "#2a1a3a", lip: "#d84a5a", mouthK: "#4a0a1a", shirt: "#3a8aff",
+        enz: "#7aff8a", gold: "#ffc83a", red: "#ff3a4a", pink: "#ff5ab8", green: "#3ae86a", white: "#ffffff", ink: "#0a0614",
+        paper: "#f1eef4", cyan: "#4ae0ff",
+      };
+      DISSOLVE = 0.12;
+
+      // ============================================================ helpers
+      function figPath(sc) {
+        g.beginPath(); g.moveTo(0, -50 * sc);
+        g.bezierCurveTo(10 * sc, -48 * sc, 46 * sc, -22 * sc, 46 * sc, 8 * sc);
+        g.bezierCurveTo(46 * sc, 36 * sc, 24 * sc, 48 * sc, 0, 48 * sc);
+        g.bezierCurveTo(-24 * sc, 48 * sc, -46 * sc, 36 * sc, -46 * sc, 8 * sc);
+        g.bezierCurveTo(-46 * sc, -22 * sc, -10 * sc, -48 * sc, 0, -50 * sc); g.closePath();
+      }
+      function leafShape(x, y, s, rot, col, colD) {
+        g.save(); g.translate(x, y); g.rotate(rot); g.scale(s, s);
+        poly([[0, 0], [10, -8], [22, -4], [28, -14], [34, 0], [28, 14], [22, 4], [10, 8]], colD);
+        poly([[2, 0], [10, -6], [21, -3], [27, -11], [32, 0], [27, 11], [21, 3], [10, 6]], col);
+        line(2, 0, 30, 0, 0.8, colD);
+        g.restore();
+      }
+      function outside(t) {
+        sky([[0, C.sky1], [1, C.sky2]]);
+        for (var c = 0; c < 4; c++) { var cx = (c * 61 + t * 3) % 220 - 20; ell(cx, 40 + c * 22, 18, 5, 0, C.white); }
+      }
+      function flowerRing(cx, cy, rx, ry, n, o) {
+        // tiny flowers lining the inside wall, pointing inwards. o.lit(i) -> 0..1 gold, o.seed (0..1), o.hi index
+        for (var i = 0; i < n; i++) {
+          var a = i / n * 6.2832, ca = Math.cos(a), sa = Math.sin(a);
+          var bx = cx + ca * rx, by = cy + sa * ry, tx = cx + ca * rx * 0.82, ty = cy + sa * ry * 0.82;
+          line(bx, by, tx, ty, 0.9, C.fleshL);
+          var lit = o.lit ? o.lit(i) : 0;
+          if (o.seed > 0) { ell(tx, ty, 1.8 + o.seed * 0.6, 1.3 + o.seed * 0.4, a, C.seedD); ell(tx - 0.3, ty - 0.3, 1.4 + o.seed * 0.5, 0.9 + o.seed * 0.3, a, C.seed); }
+          else { disc(tx, ty, o.r || 1.6, lit > 0.5 ? C.gold : C.flower); disc(tx, ty, (o.r || 1.6) * 0.5, lit > 0.5 ? C.white : C.flowerD); }
+          if (o.hi === i) { lighter(); glow(tx, ty, 6, "#ffc83a", 0.6); normalBlend(); }
+        }
+      }
+
+      // ============================================================ the fig: centre (x, y), ~92*s wide, stem on top, hole at the bottom
+      // o: mood ("calm" | "shh" | "happy" | "worried"), look [dx, dy], xr (x-ray radius factor, 0 = none), hiFlower, ostiole glow
+      function figChar(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s, s);
+        rect(-2.5, -62, 5, 14, C.stem); leafShape(2, -56, 0.7, -0.6, C.leaf, C.leafD);
+        g.fillStyle = C.figD; figPath(1); g.fill();
+        g.fillStyle = C.fig; figPath(0.95); g.fill();
+        ell(-22, -8, 9, 20, 0.35, C.figL);
+        for (var d = 0; d < 14; d++) disc(-34 + hash1(d * 3.1) * 68, -30 + hash1(d * 5.7) * 70, 0.6, C.figL);
+        // the hole (ostiole) at the bottom
+        disc(0, 46, 3.2, C.figD); disc(0, 46, 1.6, C.figK);
+        // face
+        var lk = o.look || [0, 0], md = o.mood || "calm";
+        [-1, 1].forEach(function (sd) {
+          ell(sd * 14, -16, 6.5, 7.5, 0, C.white);
+          disc(sd * 14 + lk[0], -15 + lk[1], 3.6, C.ink); disc(sd * 14 + lk[0] - 1.2, -16.6 + lk[1], 1.1, C.white);
+          if (md === "worried") line(sd * 8, -27, sd * 20, -24, 1.6, C.figK);
+          else line(sd * 9, -26, sd * 19, -27, 1.4, C.figK);
+        });
+        if (md === "shh") { ell(0, -2, 3.2, 3.6, 0, C.figK); rect(-1, -12, 2, 12, C.figL); disc(0, -12, 1.6, C.figL); }
+        else if (md === "happy") { g.strokeStyle = C.figK; g.lineWidth = 1.6; g.beginPath(); g.arc(0, -6, 7, 0.4, Math.PI - 0.4); g.stroke(); }
+        else ell(0, -2, 4.5, 2 + Math.abs(Math.sin(t * 3)) * 1.2, 0, C.figK);
+        g.restore();
+      }
+      // the x-ray window (drawn after the fig, not part of its outline): flowers inside + the wasp
+      function figXray(x, y, s, t, xr, o) {
+        o = o || {};
+        var cx = x, cy = y + 24 * s, r = 18 * s * xr;
+        g.save(); g.beginPath(); g.arc(cx, cy, r, 0, 6.2832); g.clip();
+        disc(cx, cy, r, C.flesh); disc(cx, cy, r * 0.8, C.cav2); disc(cx, cy, r * 0.62, C.cav);
+        flowerRing(cx, cy, r * 0.8, r * 0.8, 22, { r: 1.2 * Math.sqrt(xr), lit: o.lit, hi: o.hi });
+        character(function () { waspSide(cx + 2, cy + r * 0.2, 0.62 * s * Math.sqrt(xr), t, { dead: true, wings: 0 }); });
+        g.restore();
+        g.strokeStyle = C.ink; g.lineWidth = 1.4; g.beginPath(); g.arc(cx, cy, r, 0, 6.2832); g.stroke();
+        g.strokeStyle = C.cyan; g.lineWidth = 0.7; g.beginPath(); g.arc(cx, cy, r + 1.2, 0, 6.2832); g.stroke();
+        worldText("X-RAY", cx, cy + r + 3, 1, C.cyan);
+      }
+
+      // ============================================================ the fig wasp, side view, facing right, ~30*s long
+      // o: wings (0..2), flap, dead, mood ("happy" | "strain" | "sad"), alpha
+      function waspSide(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); if (o.rot) g.rotate(o.rot); g.scale(s, s);
+        if (o.dead) g.rotate(Math.PI);
+        var wings = o.wings === undefined ? 2 : o.wings, fl = o.flap ? Math.sin(t * 60) * 0.5 : 0;
+        // legs (twitch / walk)
+        for (var l = 0; l < 3; l++) {
+          var wk = Math.sin(t * (o.walk ? 18 : 6) + l * 2) * (o.dead ? 0.4 : 1.2);
+          line(-1 + l * 2.2, 2.5, -2 + l * 2.8 + wk, 7, 0.8, C.wHead); line(-2 + l * 2.8 + wk, 7, -3 + l * 2.8 + wk, 8.5, 0.7, C.wHead);
+        }
+        if (wings >= 2) { g.save(); g.translate(0, -2.5); g.rotate(-0.55 - fl); ell(-6, 0, 8, 2.6, 0, C.wing); g.restore(); }
+        // ovipositor + abdomen
+        line(-13, 1.5, -17.5, 2.6, 0.8, C.wHead);
+        ell(-7, 0.6, 7, 4.3, 0.12, C.waspD); ell(-7, 0, 6.4, 3.7, 0.12, C.wasp);
+        line(-9.5, -3, -10, 3.8, 0.9, C.wHead); line(-5.5, -3.6, -5.8, 4.2, 0.9, C.wHead);
+        ell(-8, -1.6, 3, 1, 0.1, "#ffd08a");
+        // thorax
+        ell(1.5, 0, 4, 3.5, 0, C.waspD); ell(1.5, -0.4, 3.5, 3, 0, C.wasp);
+        if (wings >= 1) { g.save(); g.translate(1, -2.5); g.rotate(-0.25 + fl); ell(-6, 0, 8.5, 2.8, 0, C.wing); ell(-6, -0.6, 5, 1, 0, C.white); g.restore(); }
+        // head
+        disc(7.5, -0.6, 3.9, C.wHead);
+        line(9, -3.6, 12, -8 + Math.sin(t * 5) * 0.6, 0.8, C.wHead); line(12, -8 + Math.sin(t * 5) * 0.6, 14.5, -7.4, 0.8, C.wHead);
+        if (o.dead) {
+          line(7.2, -2.6, 9.8, -0.2, 0.7, C.white); line(9.8, -2.6, 7.2, -0.2, 0.7, C.white);
+        } else {
+          ell(8.6, -1.2, 2.1, 2.5, 0, C.ink); rect(9, -2.8, 0.9, 0.9, C.white); rect(8, -0.5, 0.5, 0.5, C.white);
+          var md = o.mood || "happy";
+          if (md === "strain") line(7.5, -4.5, 10.5, -3.6, 0.6, C.ink);
+          if (md === "sad") line(7.5, -3.6, 10.5, -4.6, 0.6, C.ink);
+          line(10, 1.8, 11.4, md === "sad" ? 1.6 : 2.4, 0.6, "#ffd08a");
+        }
+        g.restore();
+      }
+      function torn(x, y, s, t, t0, dir) {
+        // a ripped-off wing fluttering away
+        var u = (t - t0) / 1.4; if (u < 0 || u > 1) return;
+        g.save(); g.globalAlpha = 1 - u * 0.8;
+        g.translate(x + dir * u * 40 + Math.sin(u * 14) * 4, y - u * 46 + u * u * 20); g.rotate(u * 7 * dir); g.scale(s, s);
+        ell(0, 0, 8.5, 2.8, 0, C.wing); ell(0, -0.6, 5, 1, 0, C.white);
+        g.restore();
+      }
+
+      // ============================================================ scene: the fig (frame 1, flowers, and the CTA/loop)
+      var FX = 90, FY = 236;
+      function scene_fig(t) {
+        var tt = tapeT(t, T), late = tt >= T.CTA;
+        var cam = late ? camAt([[T.CTA - 0.2, 90, 166, 1.04], [T.STOP, 90, 172, 1.1]], tt)
+          : camAt([[0, 90, 172, 1.1], [1.95, 90, 168, 1.05], [3.95, 90, 196, 1.38]], tt);
+        outside(tt);
+        setCam(cam, 1);
+        // the branch and big fig leaves
+        line(-20, 150, 200, 138, 7, C.brD); line(-20, 149, 200, 137, 5, C.br);
+        leafShape(10, 150, 2.0, 0.5, C.leaf, C.leafD); leafShape(170, 140, 2.0, 2.6, C.leaf, C.leafD);
+        leafShape(150, 150, 1.6, 0.9, C.leafL, C.leafD);
+        line(FX, 144, FX, 178, 2, C.stem);
+        var sway = Math.sin(tt * 1.3) * 0.04;
+        var xr = late || tt < T.FLOWERS ? 1.3 : 1.3 + 0.4 * ramp(tt, T.FLOWERS, T.FLOWERS + 1.2);
+        var nt = countOf(FT, tt), hi = !late && tt >= T.FLOWERS && tt < T.FLY ? (nt * 5) % 22 : -1;
+        g.save(); g.translate(FX, FY - 62); g.rotate(sway); g.translate(-FX, -(FY - 62));
+        character(function () {
+          var bub = tt > 0.5 && tt < 1.9 || late && tt > 23.35 && tt < 24.25;
+          figChar(FX, FY, 1, tt, { mood: bub ? "shh" : tt > T.FLOWERS && !late ? "happy" : "calm", look: [Math.sin(tt * 0.9) * 1, 0.5] });
+        });
+        figXray(FX, FY, 1, tt, xr, { hi: hi, lit: function (i) { return !late && tt >= T.FLOWERS && i < nt * 22 / Math.max(1, FT.length) ? 1 : 0; } });
+        g.restore();
+        if (tt > 0.5 && tt < 1.9 || late && tt > 23.35 && tt < 24.25) bubble(FX + 46, FY - 38, "SHHH.", C.pink);
+        vignette(0.3, "rgba(20,10,40,");
+      }
+
+      // ============================================================ scene: the wasp flies to the hole
+      function scene_fly(t) {
+        var HX = 112, HYs = 0.85, FYf = 222, HY = FYf + 46 * HYs;
+        var cam = camAt([[T.FLY - 0.2, 90, 162, 1.0], [6.0, 96, 176, 1.15], [T.SQUEEZE, HX - 2, HY - 34, 2.6]], t);
+        outside(t);
+        setCam(cam, 1);
+        line(-20, 120, 200, 108, 7, C.brD); line(-20, 119, 200, 107, 5, C.br);
+        leafShape(-10, 126, 2.2, 0.6, C.leaf, C.leafD); leafShape(185, 112, 2.0, 2.7, C.leafL, C.leafD);
+        // a second fig far left
+        line(30, 116, 30, 150, 1.6, C.stem);
+        character(function () { figChar(30, 186, 0.6, t + 3, { mood: "calm", look: [2, 1] }); });
+        line(HX, 114, HX, 166, 2, C.stem);
+        // the wasp's path: zig-zags in from the left, ends just under the hole
+        var u = clamp01((t - T.FLY) / (T.SQUEEZE - 0.15 - T.FLY));
+        var wx = lerp(20, HX - 2, ease(u)) + Math.sin(u * 13) * 10 * (1 - u), wy = lerp(250, HY + 10, ease(u)) + Math.sin(u * 19) * 8 * (1 - u);
+        character(function () { figChar(HX, FYf, HYs, t, { mood: u > 0.6 ? "worried" : "calm", look: [clamp01((wx - HX + 40) / 80) * 4 - 2, 3] }); });
+        // the hole glows: the only way in
+        if (t > 5.95) { lighter(); glow(HX, HY, 8 + Math.sin(t * 8) * 2, "#ffc83a", 0.55); normalBlend(); }
+        character(function () { waspSide(wx, wy, 0.8, t, { flap: true, rot: u > 0.85 ? -1.2 * ramp(u, 0.85, 1) : Math.sin(t * 6) * 0.1 }); });
+        if (u < 0.8 && t > T.FLY + 0.4) {
+          worldText("FIG WASP", wx, wy + 12, 1, C.ink); worldText("~2 MM", wx, wy + 20, 1, C.figK);
+        }
+        if (t > 5.95 && u < 0.92) { worldText("HOLE", HX - 18, HY - 12, 1, C.red); line(HX - 10, HY - 4, HX - 4, HY - 1, 1, C.red); }
+      }
+
+      // ============================================================ scene: the squeeze (cross-section of the fig's skin at the hole)
+      function shoves(t) { var n = 0; for (var k = 0; k < 8; k++) { var tk = T.SQUEEZE + 0.35 + k * 0.28; if (t > tk) n += clamp01((t - tk) / 0.12); } return n; }
+      function scene_squeeze(t) {
+        var cam = camAt([[T.SQUEEZE - 0.2, 90, 168, 1.0], [T.RIP1, 90, 172, 1.12], [T.INSIDE, 90, 178, 1.2]], t);
+        shake(cam, t, T.RIP1, 6, 0.3); shake(cam, t, T.RIP2, 6, 0.3);
+        outside(t);
+        setCam(cam, 1);
+        var WY = 262, WH = 22;
+        // inside, below the skin
+        rect(-40, WY + WH, 260, 120, C.cav); flowerRing(90, WY + 80, 100, 50, 30, {});
+        // the wasp, head-down, pushing in
+        var push = shoves(t) * 1.4, slide = t > T.SLIDE ? ease((t - T.SLIDE) / 0.45) * 80 : 0;
+        var wig = Math.sin(t * 22) * (t < T.SLIDE ? 1.2 : 0);
+        var wcy = 226 + push + slide;
+        var wings = t < T.RIP1 ? 2 : t < T.RIP2 ? 1 : 0;
+        g.save(); if (slide > 0) { g.beginPath(); g.rect(-40, -40, 260, WY + WH + 40 + slide); g.clip(); }
+        character(function () { waspSide(90 + wig, wcy, 2.3, t, { wings: wings, rot: Math.PI / 2, mood: t < T.SLIDE ? "strain" : "happy", flap: t < T.SQUEEZE + 0.3 }); });
+        g.restore();
+        torn(104, 214, 2.3, t, T.RIP1, 1); torn(98, 222, 2.3, t, T.RIP2, -1);
+        // the skin wall with the tight hole (overlapping scales) drawn over her
+        var gap = 3 + clamp01(push / 11) * 4;
+        rect(-40, WY, 130 - gap - 40 + 40, WH, C.figD); rect(90 + gap, WY, 140, WH, C.figD);
+        rect(-40, WY, 130 - gap, 4, C.fig); rect(90 + gap, WY, 140, 4, C.fig);
+        for (var sc = 0; sc < 4; sc++) {
+          var yy = WY + 2 + sc * 5;
+          poly([[90 - gap - 14, yy], [90 - gap + 1, yy + 3], [90 - gap - 14, yy + 6]], sc % 2 ? C.fig : C.figL);
+          poly([[90 + gap + 14, yy], [90 + gap - 1, yy + 3], [90 + gap + 14, yy + 6]], sc % 2 ? C.fig : C.figL);
+        }
+        worldText("FIG SKIN", 34, WY + 8, 1, C.figL); worldText("INSIDE", 146, WY + WH + 8, 1, C.fleshL);
+        if (t > T.RIP1 && t < T.RIP1 + 0.6) worldText("RIP!", 140, 196, 2, C.red);
+        if (t > T.RIP2 && t < T.RIP2 + 0.6) worldText("RIP!", 40, 204, 2, C.red);
+        if (t > 10.75 && t < 11.6) bubble(130, 214, "WORTH IT.", C.pink);
+      }
+
+      // ============================================================ scene: inside the fig (pollinate, trapped, dies, digested, seeds)
+      var IX = 90, IY = 236, IRX = 84, IRY = 66, NF = 36;
+      function floorFlowers() {
+        var out = [];
+        for (var i = 0; i < NF; i++) { var a = i / NF * 6.2832; if (a > 0.15 * Math.PI && a < 0.85 * Math.PI) out.push(i); }
+        out.sort(function (p, q) { return Math.cos(p / NF * 6.2832) - Math.cos(q / NF * 6.2832); });
+        return out;
+      }
+      var FLOOR = floorFlowers();
+      function tipOf(i) { var a = i / NF * 6.2832; return [IX + Math.cos(a) * IRX * 0.82, IY + Math.sin(a) * IRY * 0.82]; }
+      function waspPos(t) {
+        var n = countOf(POLLEN, t), steps = Math.min(n, FLOOR.length - 1);
+        var a = tipOf(FLOOR[Math.max(0, steps - 1)]), b = tipOf(FLOOR[steps]);
+        var lp = lastOf(POLLEN, t), nx = steps < POLLEN.length ? POLLEN[steps] : lp + 0.3;
+        var k = n === 0 ? clamp01((t - T.INSIDE) / Math.max(0.1, POLLEN[0] - T.INSIDE)) : clamp01((t - lp) / Math.max(0.1, nx - lp));
+        if (n === 0) a = [IX - 18, IY + 46];
+        var tb = t >= T.BREAK ? tipOf(FLOOR[Math.min(POLLEN.length, FLOOR.length - 1)]) : null;
+        if (tb) return [tb[0], tb[1] - 5];
+        return [lerp(a[0], b[0], ease(k)), lerp(a[1], b[1], ease(k)) - 5];
+      }
+      function wLeft(t) { if (t < T.DIGEST) return 1; return 1 - countOf(FIZZ, t) / FIZZ.length; }
+      function scene_inside(t) {
+        var wp = waspPos(Math.min(t, T.BREAK + 0.01));
+        var cam = camAt([[T.INSIDE - 0.2, 90, 186, 1.15], [T.TRAP, 90, 196, 1.3], [T.HIT, wp[0], wp[1] - 40, 1.6], [T.DIGEST, wp[0], wp[1] - 44, 1.8],
+          [T.SEEDS - 0.1, wp[0], wp[1] - 48, 2.1], [T.EAT, 90, 172, 1.05]], t);
+        shake(cam, t, T.HIT, 6, 0.4);
+        if (t > T.INSIDE && t < T.BREAK) shake(cam, t, lastOf(POLLEN, t), 1.5, 0.12);
+        screen(); rect(0, 0, W, H, C.flesh);
+        setCam(cam, 1);
+        // the fig flesh around the cavity
+        ell(IX, IY, IRX + 40, IRY + 60, 0, C.fleshD); ell(IX, IY, IRX + 18, IRY + 18, 0, C.flesh);
+        for (var d = 0; d < 40; d++) { var a0 = hash1(d * 2.3) * 6.28, rr = 1.08 + hash1(d * 4.1) * 0.2; disc(IX + Math.cos(a0) * IRX * rr, IY + Math.sin(a0) * IRY * rr, 0.8, C.fleshL); }
+        ell(IX, IY, IRX, IRY, 0, C.cav2); ell(IX, IY + 4, IRX * 0.86, IRY * 0.82, 0, C.cav);
+        // the sealed hole at the top
+        poly([[IX - 12, IY - IRY - 6], [IX, IY - IRY + 4], [IX + 12, IY - IRY - 6]], C.fleshD);
+        var nP = countOf(POLLEN, t), seedK = t >= T.SEEDS - 0.3 ? ease((t - T.SEEDS + 0.3) / 0.6) : 0;
+        var litSet = {}; for (var q = 0; q < Math.min(nP, FLOOR.length); q++) litSet[FLOOR[q]] = 1;
+        var lpt = lastOf(POLLEN, t);
+        flowerRing(IX, IY, IRX, IRY, NF, { r: 2.2, lit: function (i) { return litSet[i] ? 1 : 0; }, seed: seedK,
+          hi: t - lpt < 0.2 && nP > 0 && nP <= FLOOR.length ? FLOOR[nP - 1] : -1 });
+        // pollen puffs
+        if (t < T.BREAK) for (var p = 0; p < POLLEN.length; p++) { var pu = (t - POLLEN[p]) / 0.5; if (pu < 0 || pu > 1 || p >= FLOOR.length) continue; var tp = tipOf(FLOOR[p]);
+          for (var s2 = 0; s2 < 5; s2++) disc(tp[0] + Math.cos(s2 * 1.3) * pu * 7, tp[1] - pu * 8 + Math.sin(s2 * 1.3) * pu * 4, 0.9 * (1 - pu), C.gold); }
+        // the wasp
+        var dead = t >= T.HIT, wl = wLeft(t);
+        if (wl > 0.02) {
+          g.save(); g.globalAlpha = 0.25 + 0.75 * wl;
+          character(function () { waspSide(wp[0], wp[1] + (dead ? 1 : Math.sin(t * 14) * 0.6 - 2), 2.0, t, { wings: 0, dead: dead, walk: !dead && t < T.BREAK, mood: t > T.TRAP ? "sad" : "happy" }); });
+          g.restore();
+        }
+        // enzyme: green fizz rising off her while she is digested
+        if (t > T.DIGEST && t < T.SEEDS + 0.3) for (var e = 0; e < 14; e++) { var ph = (t * 0.9 + e / 14) % 1; g.globalAlpha = 0.8 * (1 - ph); disc(wp[0] - 12 + hash1(e * 3.3) * 24, wp[1] + 4 - ph * 26, 0.6 + (e % 3) * 0.4, C.enz); g.globalAlpha = 1; }
+        if (t > T.DIGEST && t < T.SEEDS) worldText("FICIN", wp[0], wp[1] + 12, 1, C.enz);
+                if (t > 16.3 && t < 17.6) bubble(wp[0] + 18, wp[1] - 16, "BYE.", C.pink);
+        if (t > T.SEEDS + 0.2) { worldText("SEEDS", wp[0] + 2, wp[1] - 20, 1, C.gold); }
+        vignette(0.35, "rgba(40,0,20,");
+      }
+
+      // ============================================================ scene: you eat the fig
+      function scene_eat(t) {
+        var cam = camAt([[T.EAT - 0.2, 90, 166, 1.0], [T.CTA, 90, 170, 1.12]], t);
+        shake(cam, t, lastOf(BITES, t), 3, 0.2);
+        sky([[0, "#ffe0a0"], [1, "#ffb0c0"]]);
+        setCam(cam, 1);
+        var HX = 90, HY = 252;
+        // which bite we're on: the mouth opens before each bite and snaps shut on it
+        var nb = countOf(BITES, t), nxt = nb < BITES.length ? BITES[nb] : 99, lb = lastOf(BITES, t);
+        var open = nb < BITES.length ? clamp01(1 - (nxt - t) / 0.35) : 0;
+        if (t - lb < 0.12) open = 0; else if (nb < BITES.length && nxt - t > 0.35) open = 0.15;
+        character(function () {
+          rect(HX - 36, HY + 40, 72, 40, C.shirt);
+          disc(HX, HY, 38, C.skinD); disc(HX, HY - 1, 37, C.skin);
+          ell(HX, HY - 30, 38, 16, 0, C.hair); rect(HX - 38, HY - 32, 8, 26, C.hair); rect(HX + 30, HY - 32, 8, 26, C.hair);
+          ell(HX - 40, HY + 2, 4, 7, 0, C.skin); ell(HX + 40, HY + 2, 4, 7, 0, C.skin);
+          var hap = nb >= 2;
+          [-1, 1].forEach(function (sd) {
+            if (hap) { g.strokeStyle = C.ink; g.lineWidth = 1.6; g.beginPath(); g.arc(HX + sd * 14, HY - 6, 4, Math.PI + 0.3, -0.3); g.stroke(); }
+            else { ell(HX + sd * 14, HY - 7, 4, 4.6, 0, C.white); disc(HX + sd * 14 - 1, HY - 6, 2.4, C.ink); rect(HX + sd * 14 - 2, HY - 8, 1, 1, C.white); }
+          });
+          ell(HX - 22, HY + 6, 5, 3, 0, "#ff9a8a"); ell(HX + 22, HY + 6, 5, 3, 0, "#ff9a8a");
+          ell(HX, HY + 16, 12, 2 + open * 9, 0, C.lip); ell(HX, HY + 16, 10, 0.8 + open * 7.5, 0, C.mouthK);
+          if (open > 0.3) rect(HX - 6, HY + 16 - open * 7, 12, 2, C.white);
+        });
+        // the half fig in a hand, getting smaller with every bite
+        var left = 1 - nb / BITES.length, k = nb < BITES.length ? clamp01(1 - (nxt - t) / 0.35) : 0;
+        if (left > 0.01) {
+          var fx = lerp(150, HX + 20, k), fy = lerp(290, HY + 18, k);
+          character(function () {
+            ell(fx + 10, fy + 12, 12, 9, 0, C.skin); rect(fx + 2, fy + 18, 16, 20, C.skin);
+            g.save(); g.beginPath(); g.rect(fx - 30, fy - 30, 30 + 30 * left, 60); g.clip();
+            ell(fx, fy, 16, 20, 0, C.figD); ell(fx, fy, 13.5, 17.5, 0, C.flesh); ell(fx, fy, 9, 12, 0, C.fleshL);
+            for (var sd2 = 0; sd2 < 12; sd2++) disc(fx - 7 + hash1(sd2) * 14, fy - 10 + hash1(sd2 * 3.3) * 20, 0.8, C.seed);
+            g.restore();
+          });
+        }
+        if (t > 22.0 && t < 23.1) bubble(HX + 44, HY - 46, "CRUNCHY!", C.pink);
+      }
+
+      function sceneAt(t) { return t < T.FLY ? "fig" : t < T.SQUEEZE ? "fly" : t < T.INSIDE ? "squeeze" : t < T.EAT ? "inside" : t < T.CTA ? "eat" : "fig"; }
+
+      function drawUI(t) {
+        var l1, c1 = C.gold, S1 = 2, l2 = "";
+        if (t < T.FLOWERS || t >= T.CTA) { l1 = "WASPS INSIDE: 1"; c1 = Math.floor(t * 4) % 2 ? C.red : C.white; l2 = "FIG STATUS: SHHH"; }
+        else if (t < T.FLY) { var n = countOf(FT, t); l1 = "FLOWERS INSIDE: " + Math.round(300 * n / Math.max(1, FT.length)) + (n >= FT.length ? "+" : ""); }
+        else if (t < T.SQUEEZE) { var u = clamp01((t - T.FLY) / (T.SQUEEZE - 0.15 - T.FLY)); var cm = 20 * (1 - ease(u)); l1 = "HOLE IN " + cm.toFixed(1) + " CM"; c1 = cm < 3 ? C.red : C.gold; l2 = "WASP SIZE: 2 MM"; }
+        else if (t < T.INSIDE) { var wg = t < T.RIP1 ? 2 : t < T.RIP2 ? 1 : 0; l1 = "WINGS: " + wg; S1 = 3; c1 = wg === 0 ? C.red : C.gold; l2 = wg === 0 ? "WAY BACK: NONE" : ""; }
+        else if (t < T.BREAK) { l1 = "POLLINATED: " + countOf(POLLEN, t); c1 = C.gold; l2 = t > T.TRAP ? "EXIT: SEALED" : ""; }
+        else if (t < T.HIT) { l1 = ""; }
+        else if (t < T.DIGEST) { l1 = "WASP: R.I.P."; c1 = Math.floor(t * 6) % 2 ? C.red : C.white; }
+        else if (t < T.SEEDS) { l1 = "WASP LEFT: " + Math.round(100 * wLeft(t)) + "%"; c1 = C.enz; }
+        else if (t < T.EAT) { l1 = "CRUNCH = SEEDS"; c1 = C.gold; l2 = "WASP LEFT: 0%"; }
+        else { l1 = "WASPS EATEN: MAYBE 1"; c1 = C.gold; }
+        if (l1) counterLines(l1, c1, S1, l2, C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { fig: scene_fig, fly: scene_fly, squeeze: scene_squeeze, inside: scene_inside, eat: scene_eat }, sceneAt: sceneAt, ui: drawUI, hitCol: "#ffffff",
+        cuts: [[T.FLY, "fig", "fly"], [T.SQUEEZE, "fly", "squeeze"], [T.INSIDE, "squeeze", "inside"], [T.EAT, "inside", "eat"], [T.CTA, "eat", "fig"]],
+        post: function (t, img) { if (t > T.DIGEST && t < T.SEEDS) tintImg(img, C.enz, 0.06); },
+      });
+    </script>
+  </body>
+</html>
