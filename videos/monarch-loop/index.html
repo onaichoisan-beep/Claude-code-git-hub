@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Egg to Butterfly to Egg</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0614; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0614; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "Egg to butterfly to egg" — the monarch life cycle as a perfect loop. Text only (no narration), no cold-open hook:
+      frame 1 is the egg on a milkweed leaf; the last frame is the new egg the butterfly just laid (same shot).
+      Counter: DAY 0 -> 4 -> 16 -> 26 -> DAY 0, with SHELL % / WEIGHT x2000 / CATERPILLAR % / CELL GROUPS / NEW BODY % / WINGS %.
+      Sound: wiggle ticks -> crack -> chomps (faster, lower) -> soup blorps -> sparkles -> wing pumps -> plip.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="25" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="25" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="25" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var WIG = T.WIGGLE || [], CH = T.CHOMPS || [], BL = T.BLORPS || [], SP = T.SPARKS || [], PU = T.PUMPS || [];
+      var C = {
+        sky1: "#5ac8ff", sky2: "#c8f4ff", grass: "#3aa84a", grassD: "#1e7a32",
+        leaf: "#5ad06a", leafD: "#2a8a3a", leafL: "#a8f08a",
+        egg: "#fff2c8", eggD: "#d8c890", twig: "#8a5a2a", twigD: "#5a3a1a",
+        cY: "#ffd030", cK: "#1a1420", cW: "#ffffff",
+        ch: "#5ae07a", chD: "#2aa04a", chL: "#b8ffc0", soup: "#c8e060", soupD: "#8aa030", glass: "#e8fff0",
+        or: "#ff8a1a", orD: "#d85a0a", orL: "#ffb04a",
+        gold: "#ffc83a", red: "#ff3a4a", pink: "#ff5ab8", green: "#3ae86a", white: "#ffffff", ink: "#0a0614", paper: "#f1eef4", cyan: "#4ae0ff",
+      };
+      DISSOLVE = 0.12;
+
+      // ============================================================ shared background bits
+      function bg(t) {
+        sky([[0, C.sky1], [1, C.sky2]]);
+        for (var c = 0; c < 4; c++) { var cx = (c * 61 + t * 3) % 220 - 20; ell(cx, 40 + c * 22, 18, 5, 0, C.white); }
+      }
+      function grass(t) {
+        rect(-60, 296, 300, 60, C.grassD);
+        for (var b = 0; b < 40; b++) { var x = -40 + b * 7, h = 10 + hash1(b) * 10, sw = Math.sin(t * 1.5 + b) * 2; poly([[x, 300], [x + 2 + sw, 300 - h], [x + 4, 300]], b % 2 ? C.grass : C.grassD); }
+      }
+      // the milkweed leaf: flat top at y = 236, pointed tip at endX
+      var LTOP = 236, LBOT = 262, EGGX = 112;
+      function leaf(endX, bites) {
+        line(-60, 270, 220, 276, 4, C.leafD);
+        poly([[-60, LTOP - 1], [endX - 20, LTOP - 1], [endX + 1, 249], [endX - 20, LBOT + 1], [-60, LBOT + 1]], C.leafD);
+        poly([[-60, LTOP], [endX - 20, LTOP], [endX, 249], [endX - 20, LBOT], [-60, LBOT]], C.leaf);
+        rect(-60, LTOP, endX - 40 + 60, 3, C.leafL);
+        line(-60, 249, endX - 4, 249, 1, C.leafD);
+        for (var v = 0; v < 12; v++) { var vx = -50 + v * 16; if (vx > endX - 14) break; line(vx, 249, vx + 8, LTOP + 3, 0.6, C.leafD); line(vx, 249, vx + 8, LBOT - 3, 0.6, C.leafD); }
+        if (bites) { disc(endX + 1, 241, 3.4, C.sky2); disc(endX - 1, 257, 3.4, C.sky2); disc(endX + 2, 249, 2.6, C.sky2); }
+      }
+      function sbubble(cam, wx, wy, str, col) {
+        var w = str.length * 6 + 5, sx = 90 + (wx - cam.x) * cam.z, sy = 160 + (wy - cam.y) * cam.z;
+        sx = Math.max(w / 2 + 2, Math.min(178 - w / 2, sx)); sy = Math.max(184, Math.min(300, sy));
+        screen(); bubble(sx, sy, str, col);
+      }
+      function twig() { line(-20, 184, 200, 180, 5, C.twigD); line(-20, 183, 200, 179, 3.5, C.twig); }
+
+      // ============================================================ the egg (base at (x, y)), ridged, with a tiny face
+      function eggChar(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.rotate(o.rot || 0); g.scale(s, s);
+        if (o.cracked) { g.beginPath(); g.moveTo(-8, -6); g.lineTo(-3, -8); g.lineTo(-1, -6); g.lineTo(1, -8.5); g.lineTo(3, -6); g.lineTo(8, -7.5); g.lineTo(8, 3); g.lineTo(-8, 3); g.closePath(); g.clip(); }
+        g.fillStyle = C.eggD; g.beginPath(); g.moveTo(0, -12); g.bezierCurveTo(6, -11, 6.5, -2, 5.5, 0); g.lineTo(-5.5, 0); g.bezierCurveTo(-6.5, -2, -6, -11, 0, -12); g.fill();
+        g.fillStyle = C.egg; g.beginPath(); g.moveTo(0, -11.3); g.bezierCurveTo(5.2, -10.4, 5.7, -2, 4.8, -0.6); g.lineTo(-4.8, -0.6); g.bezierCurveTo(-5.7, -2, -5.2, -10.4, 0, -11.3); g.fill();
+        for (var r = -3; r <= 3; r++) line(r * 1.3, -10.2 + Math.abs(r) * 0.6, r * 1.6, -1, 0.35, C.eggD);
+        if (!o.cracked && !o.noFace) {
+          ell(-2, -5.5, 1.2, 1.5, 0, C.ink); ell(2, -5.5, 1.2, 1.5, 0, C.ink); rect(-2.4, -6.4, 0.5, 0.5, C.white); rect(1.6, -6.4, 0.5, 0.5, C.white);
+          line(-0.8, -3.2, 0.8, -3.2, 0.4, C.ink);
+        }
+        g.restore();
+      }
+
+      // ============================================================ the monarch caterpillar: head at (x, y) facing right, ~60*s long
+      // o: chomp (0..1 mouth open), crawl (bool)
+      function catSide(x, y, s, t, o) {
+        o = o || {};
+        var N = 9, cols = [C.cW, C.cK, C.cY];
+        g.save(); g.translate(x, y); g.scale(s, s);
+        // back filaments
+        var tx = -N * 6.5 + 2;
+        line(tx, -3, tx - 5, -10 + Math.sin(t * 4) * 1, 1, C.cK);
+        for (var i = N - 1; i >= 0; i--) {
+          var sx = -i * 6.5 - 3, lift = o.crawl ? -Math.max(0, Math.sin(t * 7 - i * 0.7)) * 2 : 0;
+          line(sx, 3 + lift, sx, 6.5, 1.1, C.cK);
+          ell(sx, lift, 4.6, 5.2, 0, cols[i % 3]);
+          rect(sx - 0.8, lift - 5, 1.6, 10, cols[(i + 1) % 3]);
+        }
+        // front filaments + head
+        line(1, -4, 6, -12 + Math.sin(t * 4 + 1), 1, C.cK);
+        disc(3, 0, 5.2, C.cK); rect(1.5, -3.5, 3, 1.2, C.cY);
+        ell(4.5, -1.2, 1.7, 2.1, 0, C.white); disc(5, -1, 1, C.ink); rect(4.4, -2.4, 0.6, 0.6, C.white);
+        var m = o.chomp || 0;
+        ell(7, 2.4, 1.6, 0.4 + m * 1.6, 0, "#ff6a8a");
+        g.restore();
+      }
+      // hanging in a J from the twig at (x, y)
+      function catHang(x, y, s, t, squash) {
+        var N = 9, cols = [C.cW, C.cK, C.cY], pts = [];
+        for (var i = 0; i < N; i++) {
+          var d = i * 6.5 * s * squash;
+          if (d < 46 * s) pts.push([x + Math.sin(t * 3 + i) * 0.4 * s, y + 4 * s + d]);
+          else { var a = (d - 46 * s) / (12 * s); pts.push([x + (12 * s) * (1 - Math.cos(a)), y + 4 * s + 46 * s + 12 * s * Math.sin(a)]); }
+        }
+        for (var k = 0; k < N; k++) {
+          ell(pts[k][0], pts[k][1], 5.2 * s, 4.6 * s, 0, cols[k % 3]);
+          rect(pts[k][0] - 5 * s, pts[k][1] - 0.8 * s, 10 * s, 1.6 * s, cols[(k + 1) % 3]);
+        }
+        var h = pts[N - 1]; disc(h[0] + 3 * s, h[1] - 1 * s, 5 * s, C.cK);
+        ell(h[0] + 4 * s, h[1] - 3 * s, 1.6 * s, 2 * s, 0, C.white); disc(h[0] + 4.3 * s, h[1] - 3.3 * s, 0.9 * s, C.ink);
+        return pts;
+      }
+
+      // ============================================================ the chrysalis hanging from (x, y): ~ 30*s wide, 58*s tall
+      function chrysPath(x, y, s) {
+        g.beginPath(); g.moveTo(x, y + 4 * s);
+        g.bezierCurveTo(x + 16 * s, y + 10 * s, x + 17 * s, y + 40 * s, x + 4 * s, y + 56 * s);
+        g.quadraticCurveTo(x, y + 60 * s, x - 4 * s, y + 56 * s);
+        g.bezierCurveTo(x - 17 * s, y + 40 * s, x - 16 * s, y + 10 * s, x, y + 4 * s); g.closePath();
+      }
+      function chrysalis(x, y, s, t, o) {
+        o = o || {};
+        line(x, y, x, y + 6 * s, 1.2 * s, C.cK);
+        g.fillStyle = o.clear ? C.glass : C.chD; chrysPath(x, y, s * 1.04); g.fill();
+        g.fillStyle = o.clear ? "#ffffff" : C.ch; chrysPath(x, y, s); g.fill();
+        if (!o.clear) {
+          ell(x - 6 * s, y + 26 * s, 3 * s, 12 * s, 0.1, C.chL);
+          for (var d = -4; d <= 4; d++) disc(x + d * 2.6 * s, y + 18 * s + Math.abs(d) * 0.5 * s, 0.9 * s, C.gold);
+          rect(x - 12 * s, y + 16.5 * s, 24 * s, 0.7 * s, C.cK);
+          for (var e = 0; e < 3; e++) disc(x - 4 * s + e * 4 * s, y + 50 * s, 0.7 * s, C.gold);
+          if (o.face) { line(x - 6 * s, y + 30 * s, x - 2 * s, y + 30 * s, 0.9 * s, C.chD); line(x + 2 * s, y + 30 * s, x + 6 * s, y + 30 * s, 0.9 * s, C.chD); ell(x, y + 35 * s, 1.4 * s, 0.8 * s, 0, C.chD);
+            worldText("Z", x + 14 * s, y + 18 * s - (t * 6 % 8), 1, C.white); }
+        }
+      }
+
+      // ============================================================ the butterfly, front view: body centre (x, y), ~76*s wingspan
+      // o: wing (0..1 size), flap (0..1 fold), crumple
+      function wing(sd, k, cr) {
+        g.save(); g.scale(sd * k, k);
+        var wob = cr || 0;
+        poly([[1, -4], [10, -22 + wob * 3], [30, -30], [38, -20 + wob * 4], [34, -8], [14, 2]], C.cK);
+        poly([[2.5, -4], [11, -19.5 + wob * 3], [29, -27], [35.5, -19 + wob * 4], [32, -9], [14, 0]], C.or);
+        poly([[26, -26], [30, -28], [35, -20], [32, -21]], C.cK);
+        line(4, -4, 30, -24, 0.7, C.cK); line(6, -3, 33, -14, 0.7, C.cK); line(8, -1, 22, -18, 0.6, C.cK);
+        poly([[1, 0], [16, 1], [28, 8], [26, 24 - wob * 3], [14, 28], [3, 14]], C.cK);
+        poly([[2.5, 1.5], [15.5, 2.5], [26, 9], [24, 22 - wob * 3], [14, 25.5], [4, 13]], C.or);
+        line(4, 3, 22, 20, 0.6, C.cK); line(4, 4, 14, 24, 0.6, C.cK); line(6, 2, 25, 12, 0.6, C.cK);
+        for (var d = 0; d < 5; d++) { disc(30 - d * 1.5, -27 + d * 3.6, 0.6, C.white); disc(25 - d * 2.6, 9 + d * 3.6, 0.6, C.white); }
+        g.restore();
+      }
+      function butterfly(x, y, s, t, o) {
+        o = o || {};
+        var k = o.wing === undefined ? 1 : o.wing, fl = o.flap || 0, cr = o.crumple || 0;
+        g.save(); g.translate(x, y); g.scale(s, s);
+        g.save(); g.scale(1 - 0.85 * fl, 1); wing(-1, k, cr); wing(1, k, cr); g.restore();
+        ell(0, 2, 2.6, 15, 0, C.cK); for (var d = 0; d < 4; d++) disc(-0.8 + (d % 2) * 1.6, -4 + d * 3, 0.5, C.white);
+        disc(0, -14, 3.6, C.cK);
+        line(-1, -17, -6, -26, 0.7, C.cK); line(1, -17, 6, -26, 0.7, C.cK); disc(-6, -26, 1.1, C.cK); disc(6, -26, 1.1, C.cK);
+        ell(-1.6, -14.4, 1.3, 1.6, 0, C.white); ell(1.6, -14.4, 1.3, 1.6, 0, C.white); disc(-1.4, -14, 0.7, C.ink); disc(1.8, -14, 0.7, C.ink);
+        g.restore();
+      }
+
+      // ============================================================ scene: the leaf (egg, hatch, eat) and the laying (loop end)
+      function growS(t) { if (t < T.EAT) return 0.25; var u = clamp01((t - T.EAT) / (T.HANG - T.EAT - 0.2)); return 0.25 * Math.exp(Math.log(6.2) * u); }
+      function endXAt(t) { if (t < T.EAT) return 136; return 136 - 26 * countOf(CH, t) / CH.length; }
+      function chompOpen(t) { var lc = lastOf(CH, t), ph = t - lc; return ph < 0.18 ? Math.sin(ph / 0.18 * Math.PI) : 0; }
+      function scene_leaf(t) {
+        var tt = tapeT(t, T), late = tt >= T.LAY, cam;
+        var s = growS(tt), ex = endXAt(tt);
+        if (late) cam = camAt([[T.LAY - 0.2, 100, 196, 1.25], [T.EGG, 106, 202, 1.6], [T.STOP, EGGX, 213, 4.0]], tt);
+        else if (tt < T.EAT) cam = camAt([[0, EGGX, 213, 4.0], [T.CRACK, EGGX - 2, 214, 3.6], [T.EAT, EGGX - 6, 214, 3.2]], tt);
+        else { var z = Math.max(1.1, 3.2 * Math.pow(0.25 / s, 0.75)); var midx = ex - 4 - 30 * s; cam = { x: lerp(EGGX - 6, Math.max(70, midx), clamp01((tt - T.EAT) / 0.6)), y: 230 - 74 / z, z: z }; }
+        if (!late && tt > T.CRACK && tt < T.CRACK + 0.3) shake(cam, tt, T.CRACK, 3, 0.3);
+        bg(tt);
+        setCam(cam, 1);
+        grass(tt);
+        leaf(late ? 136 : ex, !late && tt >= T.EAT);
+        if (late) {
+          // the butterfly flies in, lays the egg, flies off
+          var u = clamp01((tt - T.LAY) / (T.EGG - 0.2 - T.LAY)), v = clamp01((tt - T.EGG - 0.15) / 0.5);
+          var bx = lerp(190, EGGX + 2, ease(u)) + v * 120, by = lerp(150, LTOP - 13, ease(u)) - v * 110 + Math.sin(tt * 9) * (1 - u) * 6;
+          if (tt >= T.EGG) character(function () { eggChar(EGGX, LTOP + 0.5, 1, tt, {}); });
+          if (tt >= T.EGG && tt < T.EGG + 0.4) { lighter(); glow(EGGX, LTOP - 6, 10, "#ffc83a", 0.6 * (1 - (tt - T.EGG) / 0.4)); normalBlend(); }
+          if (v < 1) character(function () { butterfly(bx, by, 0.55, tt, { flap: u < 1 || v > 0 ? 0.5 + 0.5 * Math.sin(tt * 30) : 0.2 }); });
+          if (tt > 22.6 && tt < 23.4) sbubble(cam, bx - 40, by + 14, "GOOD LUCK.", C.pink);
+        } else if (tt < T.CRACK + 0.45) {
+          var wig = 0, lw = lastOf(WIG, tt); if (tt - lw < 0.15) wig = Math.sin((tt - lw) / 0.15 * Math.PI) * 0.2 * (countOf(WIG, tt) % 2 ? 1 : -1);
+          var cracked = tt >= T.CRACK;
+          character(function () {
+            eggChar(EGGX, LTOP + 0.5, 1, tt, { rot: wig, cracked: cracked });
+            if (cracked) { var pk = ease((tt - T.CRACK) / 0.3); g.save(); g.translate(EGGX, LTOP - 7 - pk * 4); g.scale(0.4, 0.4); disc(0, 0, 5.2, C.cK); ell(1.5, -1.2, 1.7, 2.1, 0, C.white); disc(2, -1, 1, C.ink); g.restore(); }
+          });
+          if (tt > 0.6 && tt < 1.9) sbubble(cam, EGGX + 7, LTOP - 14, "SOON.", C.pink);
+        } else {
+          // hatched: eat the shell, then the leaf
+          var shell = tt < T.EAT ? 1 - clamp01((tt - T.CRACK - 0.6) / (T.EAT - T.CRACK - 0.7)) : 0;
+          var hx = tt < T.EAT ? EGGX - 5 : ex - 4 * s, hy = LTOP - 6.6 * s;
+          if (shell > 0.02) { g.save(); g.translate(EGGX + 1, LTOP + 0.5); g.scale(1, shell); eggChar(0, 0, 1, tt, { cracked: true }); g.restore(); }
+          var cm = tt < T.EAT ? (Math.sin(tt * 14) > 0.3 ? 1 : 0) : chompOpen(tt);
+          character(function () { catSide(hx, hy, s, tt, { chomp: cm, crawl: tt > T.EAT }); });
+          if (tt > 2.9 && tt < 3.9) sbubble(cam, hx - 4, hy - 9, "CRUNCH.", C.pink);
+          // crumbs on every chomp
+          if (tt >= T.EAT) for (var c = 0; c < CH.length; c++) { var cu = (tt - CH[c]) / 0.4; if (cu < 0 || cu > 1) continue; disc(hx + 5 * s + cu * 6 * s, hy + cu * 10 * s, 0.6 + s * 0.6, C.leafL); }
+        }
+        vignette(0.25, "rgba(10,30,20,");
+      }
+
+      // ============================================================ scene: hangs in a J, sheds into a chrysalis
+      function scene_hang(t) {
+        var cam = camAt([[T.HANG - 0.2, 90, 164, 1.0], [T.CHRYS, 90, 168, 1.1], [T.INSIDE, 90, 172, 1.2]], t);
+        shake(cam, t, T.SPLIT, 3, 0.3);
+        bg(t); setCam(cam, 1); grass(t);
+        line(150, 300, 140, 180, 3, C.twigD); twig();
+        leafRest(30, 186); leafRest(160, 184);
+        var HX = 90, HY = 182, s = 1.3;
+        if (t < T.SPLIT + 0.9) {
+          // the skin slides up and away while the chrysalis is revealed from the bottom
+          var k = clamp01((t - T.SPLIT) / 0.9);
+          if (k > 0) { g.save(); g.beginPath(); g.rect(-40, HY + 80 - k * 76, 260, 200); g.clip(); character(function () { chrysalis(HX, HY, 1.4, t, {}); }); g.restore(); }
+          g.save(); g.beginPath(); g.rect(-40, -40, 260, HY + 80 - k * 76 + 40); g.clip();
+          character(function () { var wg = t > T.CHRYS && t < T.SPLIT ? Math.sin(t * 30) * 0.06 : 0; g.save(); g.translate(HX, HY); g.rotate(wg); g.translate(-HX, -HY); catHang(HX, HY, s, t, 1 - 0.45 * k); g.restore(); });
+          g.restore();
+        } else {
+          character(function () { chrysalis(HX, HY, 1.4, t, { face: t > 11.3 }); });
+          var f = clamp01((t - T.SPLIT - 0.9) / 0.8);
+          if (f < 1) { g.save(); g.globalAlpha = 1 - f; g.translate(HX + 10 + f * 30, HY + 4 + f * f * 110); g.rotate(f * 4); ell(0, 0, 6, 4, 0, C.cK); ell(0, -1, 4, 2.4, 0, C.cY); g.restore(); }
+        }
+      }
+      function leafRest(x, y) { g.save(); g.translate(x, y); poly([[0, 0], [14, -8], [30, -4], [16, 4]], C.leafD); poly([[2, -0.5], [14, -6.5], [27, -3.5], [16, 2.5]], C.leaf); g.restore(); }
+
+      // ============================================================ scene: x-ray inside the chrysalis (soup, cell groups, new body)
+      var DISCS = [[-6, 24], [6, 24], [-7, 36], [7, 36], [0, 14], [-3, 46], [3, 46], [0, 30]];
+      function scene_inside(t) {
+        var cam = camAt([[T.INSIDE - 0.2, 90, 169, 1.03], [T.DISCS, 90, 169, 1.06], [T.BREAK, 90, 170, 1.1]], t);
+        if (t > T.INSIDE && t < T.DISCS + 1) shake(cam, t, lastOf(BL, t), 1.5, 0.12);
+        bg(t); setCam(cam, 1); twig();
+        var HX = 90, HY = 182, s = 1.9;
+        character(function () { chrysalis(HX, HY, s, t, {}); });
+        // the x-ray window = the whole chrysalis
+        g.save(); chrysPath(HX, HY, s * 0.88); g.clip();
+        var melt = clamp01((t - T.INSIDE - 0.2) / (T.DISCS + 0.9 - T.INSIDE - 0.2));
+        g.fillStyle = mix(C.chD, C.soupD, melt); chrysPath(HX, HY, s); g.fill();
+        // soup level rises
+        var lv = HY + 110 - melt * 100;
+        rect(HX - 40, lv, 80, 140, C.soup);
+        for (var w = 0; w < 6; w++) disc(HX - 25 + w * 10, lv, 4 + Math.sin(t * 6 + w) * 1.2, C.soup);
+        // the curled caterpillar dissolving
+        if (melt < 1) {
+          g.save(); g.globalAlpha = 1 - melt * 0.9; g.translate(HX, HY + 64); g.rotate(-Math.PI / 2); g.scale(1, 1 - melt * 0.6);
+          character(function () { catSide(18, 0, 0.62, t, { chomp: t < 13.6 ? 0.6 : 0 }); });
+          g.restore();
+        }
+        // blorp bubbles
+        for (var b = 0; b < BL.length; b++) { var bu = (t - BL[b]) / 0.8; if (bu < 0 || bu > 1) continue; var bx = HX - 14 + hash1(b * 2.7) * 28; g.globalAlpha = 1 - bu; disc(bx, HY + 96 - bu * 70, 2 + (b % 3), C.soupD); disc(bx - 0.6, HY + 95.4 - bu * 70, 0.8, C.white); g.globalAlpha = 1; }
+        // the surviving cell groups (imaginal discs) glow, then the new body grows from them
+        if (t > T.DISCS) {
+          var nd = Math.min(DISCS.length, countOf(SP, t) + 2), bd = clamp01((t - T.BUILD) / (T.BREAK - T.BUILD - 0.1));
+          lighter();
+          for (var d = 0; d < nd; d++) glow(HX + DISCS[d][0] * s, HY + DISCS[d][1] * s, 5 + Math.sin(t * 8 + d) * 1.2, "#ffc83a", 0.7 * (1 - bd * 0.6));
+          normalBlend();
+          for (var d2 = 0; d2 < nd; d2++) disc(HX + DISCS[d2][0] * s, HY + DISCS[d2][1] * s, 1.6, C.gold);
+          if (bd > 0) {
+            g.save(); g.translate(HX, HY + 32 * s); g.scale(0.42 * bd, 0.62 * bd); butterfly(0, 0, 1, t, { flap: 0.75 });
+            g.restore();
+          }
+        }
+        g.restore();
+        if (t > T.DISCS + 0.2 && t < T.BUILD) { worldText("CELL", HX - 56, HY + 66, 1, C.gold); worldText("GROUPS", HX - 56, HY + 74, 1, C.gold); line(HX - 38, HY + 72, HX - 14, HY + 70, 1, C.gold); }
+        if (t > 12.3 && t < 13.6) sbubble(cam, HX + 40, HY + 50, "WAIT, WHAT?", C.pink);
+        worldText("X-RAY", HX - 46, HY + 40, 1, C.cyan);
+      }
+
+      // ============================================================ scene: it climbs out and pumps its wings
+      function pumpK(t) { if (t < T.PUMP) return 0.28; var n = countOf(PU, t), lp = lastOf(PU, t); var k = 0.28 + 0.18 * Math.max(0, n - 1) + 0.18 * clamp01((t - lp) / 0.3); return Math.min(1, k); }
+      function scene_emerge(t) {
+        var cam = camAt([[T.HIT, 90, 172, 1.18], [T.PUMP, 90, 170, 1.1], [T.LAY, 90, 168, 1.0]], t);
+        shake(cam, t, T.HIT, 6, 0.4);
+        bg(t); setCam(cam, 1); grass(t); twig(); leafRest(30, 186);
+        var HX = 90, HY = 182;
+        g.globalAlpha = 0.55; character(function () { chrysalis(HX, HY, 1.4, t, { clear: true }); }); g.globalAlpha = 1;
+        // split shell edge
+        poly([[HX - 8, HY + 74], [HX - 3, HY + 66], [HX, HY + 72], [HX + 4, HY + 65], [HX + 8, HY + 74]], C.sky2);
+        var k = pumpK(t), fl = t < T.PUMP ? 0.6 : 0.6 - 0.6 * clamp01((t - T.PUMP) / 1.4);
+        character(function () { butterfly(HX, HY + 96, 0.95, t, { wing: k, flap: Math.max(0, fl), crumple: 1 - k }); });
+        if (t > 19.0 && t < 20.1) sbubble(cam, HX + 40, HY + 80, "TA-DA!", C.pink);
+      }
+
+      function sceneAt(t) { return t < T.HANG ? "leaf" : t < T.INSIDE ? "hang" : t < T.HIT ? "inside" : t < T.LAY ? "emerge" : "leaf"; }
+
+      function drawUI(t) {
+        var day, l2 = "", c1 = C.gold, c2 = C.white;
+        if (t < T.HATCH || t >= T.CTA) { day = 0; l2 = "EGG: 1.2 MM"; }
+        else if (t < T.EAT) { day = Math.min(4, Math.round(4 * clamp01((t - T.HATCH) / 0.55))); var sh = t < T.CRACK + 0.6 ? 100 : Math.round(100 * (1 - clamp01((t - T.CRACK - 0.6) / (T.EAT - T.CRACK - 0.7)))); l2 = t > T.CRACK ? "EGGSHELL LEFT: " + sh + "%" : "HATCHING..."; }
+        else if (t < T.HANG) { var u = clamp01((t - T.EAT) / (T.HANG - T.EAT - 0.2)); day = Math.round(4 + 12 * u); l2 = "WEIGHT: X" + Math.round(Math.pow(2000, u)); c2 = u > 0.9 ? C.gold : C.white; }
+        else if (t < T.INSIDE) { day = 16; l2 = t < T.SPLIT ? "SHAPE: J" : "STAGE: CHRYSALIS"; }
+        else if (t < T.BREAK) {
+          day = Math.round(16 + 9 * clamp01((t - T.INSIDE) / (T.BREAK - T.INSIDE)));
+          if (t < T.DISCS) { l2 = "CATERPILLAR: " + Math.round(100 * (1 - clamp01((t - T.INSIDE - 0.2) / (T.DISCS + 0.9 - T.INSIDE - 0.2)))) + "%"; c2 = C.red; }
+          else if (t < T.BUILD) { l2 = "CELL GROUPS: " + Math.min(8, countOf(SP, t) + 2); c2 = C.gold; }
+          else { l2 = "NEW BODY: " + Math.round(100 * clamp01((t - T.BUILD) / (T.BREAK - T.BUILD - 0.1))) + "%"; c2 = C.green; }
+        }
+        else if (t < T.HIT) { return; }
+        else if (t < T.LAY) { day = 26; l2 = t < T.PUMP ? "STAGE: BUTTERFLY" : "WINGS: " + Math.round(100 * pumpK(t)) + "%"; c2 = t < T.PUMP ? C.gold : C.white; }
+        else { day = 30; l2 = t >= T.EGG ? "EGGS LAID: 1" : "LOOKING FOR MILKWEED"; }
+        counterLines("DAY " + day, c1, 3, l2, c2);
+      }
+
+      KIT.start(C, T, {
+        scenes: { leaf: scene_leaf, hang: scene_hang, inside: scene_inside, emerge: scene_emerge }, sceneAt: sceneAt, ui: drawUI, hitCol: "#ffffff",
+        cuts: [[T.HANG, "leaf", "hang"], [T.INSIDE, "hang", "inside"], [T.HIT, "inside", "emerge"], [T.LAY, "emerge", "leaf"]],
+      });
+    </script>
+  </body>
+</html>
