@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Where Sunlight Never Reaches</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #02040e; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #02040e; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "Where Sunlight Never Reaches" (the Mariana Trench) — text cards + sound only (STYLE_GUIDE.md section 6), safe zone
+      (section 8): counter at canvas y 66, small captions in the MIDDLE (canvas y 320), action above (world y 58-148) and
+      below (185-235). One continuous dive: surface -> 200 m -> 1,000 m -> 8,000 m -> Challenger Deep.
+      Facts: Challenger Deep ~10,935 m (Greenaway et al. 2021, Geosci. Lett.; NOAA); Everest 8,849 m (2020 survey);
+      sunlight ~1% by 200 m, none past ~1,000 m (NOAA Ocean Service); pressure ~1,071 atm / 1,086 bar at the bottom
+      (NOAA); Mariana snailfish ~8,000 m (Gerringer et al. 2017, Zootaxa 4358: 161); amphipods (Hirondellea gigas) and
+      xenophyophores live at the bottom (Kobayashi et al. 2012; Gooday et al. 2017); styrofoam cups shrink at depth
+      (a classic deep-dive demo: the air is squeezed out of the foam).
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="34" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="34" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="34" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        sky1: "#3a9aff", sky2: "#9ae0ff", sun: "#fff07a", sea0: "#2a9ae8", sea1: "#1a5ab8", sea2: "#0a2470", sea3: "#06123a", sea4: "#02040e",
+        foam: "#e8f8ff", ray: "#bfe8ff", snow: "#9ab0c8",
+        sub: "#ffc83a", subD: "#c88a1a", subL: "#ffe68a", glass: "#9ae8ff", glassD: "#3a8ab8", metal: "#8a90a8", metalD: "#4a5068",
+        beam: "#fff27a", eyeW: "#ffffff", ink: "#0a0614", mouth: "#7a1a3a", blush: "#ff8a9a",
+        ang: "#3a2a4a", angD: "#22182e", angL: "#5a4a6a", lure: "#7affea", tooth: "#ffffff",
+        snail: "#ffc4d0", snailD: "#e88aa0", snailL: "#ffe4ea",
+        floor: "#3a3440", floorD: "#26222c", floorL: "#5a5262", dust: "#7a7080",
+        amph: "#fff0e0", amphD: "#d8c0a8", xeno: "#c8b8a0", xenoD: "#9a8a72",
+        rock: "#8a8a98", rockD: "#5a5a68", snowC: "#ffffff", trench: "#0a2470",
+        cup: "#ffffff", cupD: "#c8c8d0",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function depth(t) {
+        var K = T.DEPTH;
+        for (var i = 0; i < K.length - 1; i++) if (t >= K[i][0] && t < K[i + 1][0]) return K[i][1] + (K[i + 1][1] - K[i][1]) * ease((t - K[i][0]) / (K[i + 1][0] - K[i][0]));
+        return K[K.length - 1][1];
+      }
+      function whenDepth(m) { for (var t = T.DIVE; t < T.HIT; t += 0.02) if (depth(t) >= m) return t; return T.HIT; }
+      var MARKS = [[200, "200 M"], [1000, "1,000 M"], [4000, "4,000 M"], [8000, "8,000 M"]].map(function (m) { return [whenDepth(m[0]), m[1]]; });
+      function fmt(n) { n = Math.round(n); return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+      function seaCol(d) {
+        if (d < 200) return mix(C.sea0, C.sea1, d / 200);
+        if (d < 1000) return mix(C.sea1, C.sea3, (d - 200) / 800);
+        return mix(C.sea3, C.sea4, Math.min(1, (d - 1000) / 2000));
+      }
+      function lightK(d) { return d < 200 ? 1 - 0.99 * d / 200 : Math.max(0, 0.01 * (1 - (d - 200) / 800)); }
+
+      // ============================================================ the submarine (centre x, y), facing right, ~60 wide
+      function subC(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s, s); g.rotate(o.tilt || 0);
+        // propeller
+        var pr = Math.sin(t * 30);
+        ell(-31, 0, 2, 8 * Math.abs(pr) + 1, 0, C.metalD); rect(-30, -1.5, 5, 3, C.metal);
+        // body
+        rrect(-27, -14, 52, 28, 13, C.subD); rrect(-26, -15, 50, 27, 12, C.sub); ell(-8, -10, 16, 3, 0, C.subL);
+        rect(-6, -22, 16, 9, C.subD); rect(-5, -23, 14, 8, C.sub); line(4, -23, 6, -30, 1, C.metalD); disc(6, -31, 1.4, o.lamp ? C.red : C.metal);
+        // arm
+        line(14, 10, 22, 16, 2, C.metalD); line(22, 16, 28, 14, 2, C.metalD);
+        // face: two porthole eyes + smile on the front
+        disc(6, -3, 6, C.subD); disc(18, -3, 6, C.subD);
+        disc(6, -3, 5, C.glass); disc(18, -3, 5, C.glass);
+        var lk = o.look || 0, sq = o.squint ? 0.5 : 1;
+        disc(7 + lk, -3, 2.2 * sq + 0.3, C.ink); disc(19 + lk, -3, 2.2 * sq + 0.3, C.ink); disc(6 + lk, -4.2, 0.8, C.white); disc(18 + lk, -4.2, 0.8, C.white);
+        disc(2, 4, 1.8, C.blush); disc(23, 3, 1.8, C.blush);
+        if (o.mood === "o") ell(13, 7, 2, 2.4, 0, C.mouth); else if (o.mood === "worried") arcS(13, 10, 3, Math.PI + 0.4, -0.4, 1, C.mouth); else arcS(13, 5, 3.4, 0.3, Math.PI - 0.3, 1.1, C.mouth);
+        // headlight
+        rect(23, 2, 4, 5, C.metal); disc(26, 4.5, 2, C.beam);
+        g.restore();
+      }
+      function sub(x, y, s, t, o) { character(function () { subC(x, y, s, t, o); }); }
+      function headlight(x, y, s, len, alpha) {
+        g.save(); g.globalAlpha = alpha;
+        var x0 = x + 26 * s, y0 = y + 4.5 * s;
+        var gr = g.createLinearGradient(x0, y0, x0 + len, y0);
+        gr.addColorStop(0, "rgba(255,242,122,0.8)"); gr.addColorStop(1, "rgba(255,242,122,0)");
+        g.fillStyle = gr; g.beginPath(); g.moveTo(x0, y0 - 2); g.lineTo(x0 + len, y0 - len * 0.38); g.lineTo(x0 + len, y0 + len * 0.42); g.lineTo(x0, y0 + 3); g.closePath(); g.fill();
+        g.restore();
+      }
+      function sunbeam(x, y, s, t, a, sleepy) {
+        if (a <= 0.02) return;
+        g.save(); g.globalAlpha = a;
+        lighter(); glow(x, y, 14 * s, C.beam, 0.5); normalBlend();
+        character(function () {
+          g.save(); g.translate(x, y); g.scale(s, s); g.rotate(t * 0.8);
+          for (var k = 0; k < 8; k++) { var an = k * 0.785; poly([[Math.cos(an - 0.25) * 6, Math.sin(an - 0.25) * 6], [Math.cos(an) * 11, Math.sin(an) * 11], [Math.cos(an + 0.25) * 6, Math.sin(an + 0.25) * 6]], C.beam); }
+          g.restore();
+          g.save(); g.translate(x, y); g.scale(s, s);
+          disc(0, 0, 7, C.sun);
+          if (sleepy) { line(-4, -1, -1, -1, 0.8, C.ink); line(1, -1, 4, -1, 0.8, C.ink); ell(0, 3, 1.4, 1.8, 0, C.mouth); }
+          else { disc(-2.5, -1, 1, C.ink); disc(2.5, -1, 1, C.ink); arcS(0, 1.2, 2.2, 0.3, Math.PI - 0.3, 0.8, C.ink); }
+          g.restore();
+        });
+        g.restore();
+      }
+      function snow(t, d, n, col) {
+        for (var k = 0; k < n; k++) {
+          var x = hash1(k) * 190 - 5, y = ((hash1(k + 30) * 340 - d * 0.35 - t * 6) % 340 + 340) % 340 - 10;
+          rect(x, y, 1, 1, col || C.snow);
+        }
+      }
+      function amphipod(x, y, s, t, k, wave) {
+        character(function () {
+          g.save(); g.translate(x, y); g.scale(s, s);
+          var w = Math.sin(t * 12 + k);
+          for (var l = 0; l < 4; l++) line(-4 + l * 3, 3, -5 + l * 3 + w, 7, 0.8, C.amphD);
+          for (var sgm = 0; sgm < 5; sgm++) ell(-6 + sgm * 3.2, -sgm * 0.4 + Math.abs(sgm - 2) * 0.6, 3, 3.6, 0, sgm % 2 ? C.amphD : C.amph);
+          line(8, -3, 13, -8 + w, 0.7, C.amphD); line(8, -3, 14, -5 - w, 0.7, C.amphD);
+          disc(8, -1.5, 1.2, C.ink); disc(7.6, -2, 0.4, C.white);
+          if (wave) line(6, 1, 9 + w * 2, -4, 1, C.amphD);
+          g.restore();
+        });
+      }
+      function xeno(x, y, s, t, blink) {
+        character(function () {
+          g.save(); g.translate(x, y); g.scale(s, s);
+          disc(-6, 0, 7, C.xenoD); disc(4, -2, 8, C.xenoD); disc(0, 3, 8, C.xenoD);
+          disc(-6, -0.5, 6, C.xeno); disc(4, -2.5, 7, C.xeno); disc(0, 2.5, 7, C.xeno);
+          for (var k = 0; k < 6; k++) disc(-8 + k * 3, -2 + (k % 2) * 4, 0.8, C.xenoD);
+          if (blink) { line(-3, 0, -1, 0, 0.8, C.ink); line(3, 0, 5, 0, 0.8, C.ink); } else { disc(-2, 0, 1, C.ink); disc(4, 0, 1, C.ink); }
+          arcS(1, 2, 1.8, 0.3, Math.PI - 0.3, 0.7, C.ink);
+          g.restore();
+        });
+      }
+
+      // ============================================================ 1 + end. the bottom: Challenger Deep in the dark
+      function scene_bottom(t) {
+        var tt = tapeT(t, T);
+        var land = tt > T.HIT - 0.5 ? clamp01((tt - T.HIT + 0.5) / 0.5) : 1;
+        var cam = tt < T.SURF ? { x: 90, y: 158, z: 1.06 } : camAt([[T.HIT - 0.5, 90, 150, 1.0], [T.HIT + 0.6, 90, 158, 1.06], [T.CTA, 90, 158, 1.06]], tt);
+        shake(cam, tt, T.HIT, 8, 0.6);
+        sky([[0, C.sea4], [1, "#0a0a18"]]);
+        setCam(cam, 1);
+        snow(tt, 0, 50, C.snow);
+        // the sea floor (above the caption) + the sediment below it
+        poly([[-20, 142], [30, 138], [80, 141], [130, 136], [200, 140], [200, 340], [-20, 340]], C.floorD);
+        poly([[-20, 145], [30, 141], [80, 144], [130, 139], [200, 143], [200, 340], [-20, 340]], C.floor);
+        for (var r = 0; r < 14; r++) ell(hash1(r) * 180, 150 + hash1(r + 5) * 170, 4 + hash1(r) * 6, 1.6, 0, C.floorL);
+        var subY = lerp(40, 116, easeOut(land));
+        var lightOn = tt < T.SURF || tt > T.HIT + 0.4;
+        if (lightOn) headlight(54, subY, 1.1, 110, 0.9);
+        // dust cloud on touchdown
+        if (tt > T.HIT && tt < T.HIT + 1.6) { var dp = (tt - T.HIT) / 1.6; g.globalAlpha = 1 - dp; for (var k = 0; k < 12; k++) { var a = Math.PI + Math.PI * hash1(k), rr = dp * (25 + 20 * hash1(k + 3)); disc(54 + Math.cos(a) * rr * 1.4, 138 + Math.sin(a) * rr * 0.4, 6 * (1 - dp) + 2, C.dust); } g.globalAlpha = 1; }
+        sub(54, subY, 1.1, tt, { lamp: true, look: 1, mood: tt > T.HIT && tt < T.LIFE ? "o" : "happy" });
+        // amphipods: one in the headlight (frame 1), a swarm from LIFE
+        var n = tt < T.SURF ? 1 : tt < T.LIFE ? 0 : 1 + countOf([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(function (k) { return T.LIFE + 0.2 + k * 0.17; }), tt);
+        for (var a2 = 0; a2 < n; a2++) {
+          var hx = a2 === 0 ? 122 : 96 + hash1(a2 + 2) * 60, hy = a2 === 0 ? 128 : 92 + hash1(a2 + 8) * 40;
+          var arrive = a2 === 0 ? 1 : easeOut((tt - (T.LIFE + 0.2 + (a2 - 1) * 0.17)) / 0.4);
+          amphipod(lerp(200, hx, arrive) + Math.sin(tt * 2 + a2) * 3, hy + Math.sin(tt * 3 + a2 * 2) * 2, a2 === 0 ? 1.3 : 0.9, tt, a2, a2 === 0);
+        }
+        if (tt < T.SURF && tt > 0.5) bubble(124, 106, "HI!", C.ink);
+        // the xenophyophore below the caption
+        if (tt > T.STILL || tt < T.SURF) xeno(126, 206, 1.4, tt, Math.floor(tt * 1.5) % 4 === 0);
+        if (tt > T.STILL + 0.4 && tt < T.AWAY) bubble(126, 186, "HELLO", C.ink);
+        xeno(40, 212, 0.9, tt, Math.floor(tt * 1.2 + 1) % 5 === 0);
+        if (tt > T.CTA + 0.4) worldText("?", 70, 80 + Math.sin(tt * 6), 2, C.gold);
+        if (tt > T.AWAY && tt < T.CTA) for (var sp = 0; sp < 8; sp++) { var an = sp * 0.785 + tt; disc(110 + Math.cos(an) * 34, 112 + Math.sin(an) * 18, 1, sp % 2 ? C.gold : C.cyan); }
+        vignette(0.6, "rgba(0,0,10,");
+      }
+
+      // ============================================================ 2. the surface
+      function scene_surface(t) {
+        var cam = camAt([[T.SURF, 90, 150, 1.15], [T.DIVE, 90, 162, 1.0]], t);
+        sky([[0, C.sky1], [0.4, C.sky2], [0.41, C.sea0], [1, C.sea1]]);
+        setCam(cam, 0.4); disc(140, 60, 14, C.sun); lighter(); glow(140, 60, 30, C.sun, 0.4); normalBlend();
+        setCam(cam, 1);
+        var sea = 128;
+        rect(-20, sea, 230, 220, C.sea0);
+        for (var k = 0; k < 6; k++) { g.globalAlpha = 0.35; poly([[30 + k * 25, sea], [40 + k * 25, sea], [10 + k * 25, 330], [-10 + k * 25, 330]], C.ray); g.globalAlpha = 1; }
+        var dip = clamp01((t - T.DIVE + 0.4) / 0.4);
+        sub(80, sea - 6 + Math.sin(t * 3) * 1.5 + dip * 14, 1.2, t, { tilt: Math.sin(t * 2) * 0.05 + dip * 0.3, mood: "happy" });
+        for (var w = -1; w < 12; w++) { var wx = w * 18 + (t * 8) % 18; ell(wx, sea + 1, 10, 2.4, 0, C.foam); }
+        sunbeam(126, 92 + Math.sin(t * 3) * 3, 1, t, 1, false);
+        if (t > T.SURF + 0.9) bubble(126, 70, "LET'S GO!", C.ink);
+        worldText("PACIFIC OCEAN", 90, 196, 1, C.white);
+        vignette(0.3, "rgba(0,10,40,");
+      }
+
+      // ============================================================ 3. Everest fits inside
+      function scene_everest(t) {
+        var cam = { x: 90, y: 160, z: 1.0 };
+        shake(cam, t, T.EVER + 1.1, 5, 0.35);
+        sky([[0, C.sea3], [0.21, C.sea1], [0.22, C.sea0], [1, C.sea4]]);
+        setCam(cam, 1);
+        var sea = 72, bot = 146, km = (bot - sea) / 10.935;
+        poly([[-20, sea], [200, sea], [200, 340], [-20, 340]], C.sea1);
+        poly([[-20, 80], [44, 82], [76, bot], [96, bot], [140, 84], [200, 82], [200, 340], [-20, 340]], C.floorD);
+        poly([[-20, 84], [44, 86], [78, bot + 2], [94, bot + 2], [138, 88], [200, 86], [200, 340], [-20, 340]], C.floor);
+        var drop = easeOut(clamp01((t - T.EVER - 0.3) / 0.8));
+        var peak = bot - 8.849 * km, base = bot;
+        g.save(); g.translate(0, lerp(-110, 0, drop));
+        poly([[60, base], [86, peak], [112, base]], C.rock); poly([[86, peak], [98, base], [112, base]], C.rockD);
+        poly([[80.5, peak + 9], [86, peak], [91.5, peak + 9], [87, peak + 7], [84, peak + 10]], C.snowC);
+        g.restore();
+        if (t > T.EVER + 1.2) {
+          line(104, sea, 104, peak, 1, C.gold); line(100, sea, 108, sea, 1, C.gold); line(100, peak, 108, peak, 1, C.gold);
+          worldText("2 KM SPARE", 140, sea + 3, 1, C.gold);
+          worldText("EVEREST", 76, peak + 30, 1, C.white);
+        }
+        worldText("SEA LEVEL", 34, sea + 3, 1, C.white);
+        sub(146, sea - 4, 0.4, t, { mood: "o", look: -1 });
+        vignette(0.35, "rgba(0,0,20,");
+      }
+
+      // ============================================================ 4. the dive (one continuous camera journey down)
+      function scene_dive(t) {
+        var d = depth(t), lk = lightK(d);
+        var cam = { x: 90, y: 160, z: 1.0 };
+        if (t > T.PRESS) shake(cam, t, T.PRESS + Math.floor((t - T.PRESS) / 0.85) * 0.85, 2 + (t - T.PRESS) * 0.5, 0.3);
+        screen(); g.fillStyle = seaCol(d); g.fillRect(0, 0, W, H);
+        setCam(cam, 1);
+        // sun rays from above (fade by 200 m, gone by 1,000 m)
+        if (lk > 0.003) { g.globalAlpha = Math.min(0.4, lk * 0.6 + 0.03); for (var k = 0; k < 6; k++) { var sx = 20 + k * 30 + Math.sin(t + k) * 4; poly([[sx, -10], [sx + 10, -10], [sx - 14, 340], [sx - 30, 340]], C.ray); } g.globalAlpha = 1; }
+        snow(t, d, 60, d > 1000 ? C.snow : C.foam);
+        // depth marks scrolling past on the left
+        MARKS.forEach(function (m) { var y = 112 + (m[0] - t) * 70; if (y > 66 && y < 144) { line(4, y, 22, y, 1, C.white); worldText(m[1], 20 + m[1].length * 3, y - 9, 1, C.white); } });
+        var subX = 88, subY = 112 + Math.sin(t * 1.6) * 2;
+        var dark = d > 600;
+        if (dark) headlight(subX, subY, 1.2, 100, 0.85);
+        // the sunbeam friend: dims, yawns, gives up at 1,000 m
+        var sbA = t < T.DARK + 0.9 ? 1 : 0;
+        if (t < T.DARK + 1.0) sunbeam(48 + Math.sin(t * 2) * 3, 78 - Math.max(0, t - T.DARK - 0.6) * 60, 0.9, t, sbA, t > T.FADE + 1.0);
+        if (t > T.DARK + 0.3 && t < T.DARK + 0.9) bubble(50, 62, "I'M OUT.", C.ink);
+        // the anglerfish
+        if (t > T.GLOW && t < T.PRESS + 0.3) {
+          var ax = lerp(-30, 140, easeOut(clamp01((t - T.GLOW) / 1.4))), ay = 82;
+          lighter(); glow(ax + 18, ay - 18, 16, C.lure, 0.8); normalBlend();
+          character(function () {
+            g.save(); g.translate(ax, ay);
+            poly([[-14, 0], [-24, -8], [-24, 8]], C.angD);
+            ell(0, 0, 15, 12, 0, C.ang); ell(-3, -5, 8, 3, 0, C.angL);
+            line(4, -11, 12, -20, 1, C.angL); line(12, -20, 18, -18, 1, C.angL); disc(18, -18, 2.4, C.lure);
+            ell(12, 4, 6, 4 + Math.sin(t * 6) * 1.2, 0, C.ink);
+            for (var tth = 0; tth < 4; tth++) { poly([[8 + tth * 2.5, 1], [9.2 + tth * 2.5, 4], [10.4 + tth * 2.5, 1]], C.tooth); poly([[8 + tth * 2.5, 8], [9.2 + tth * 2.5, 5], [10.4 + tth * 2.5, 8]], C.tooth); }
+            disc(5, -4, 2.6, C.eyeW); disc(5.6, -4, 1.2, C.ink);
+            g.restore();
+          });
+        }
+        var fear = t > T.GLOW + 0.8 && t < T.PRESS + 0.3;
+        sub(subX, subY, 1.2, t, { lamp: true, mood: fear || (t > T.PRESS && t < T.FISH) ? "o" : "happy", look: t > T.GLOW && t < T.PRESS ? -1 : 0, squint: t > T.PRESS && t < T.CUP });
+        if (t > T.PRESS && t < T.FISH) for (var c = 0; c < 3; c++) { var cp = ((t - T.PRESS) * 1.2 + c / 3) % 1; g.globalAlpha = 1 - cp; line(subX - 34 - cp * 8, subY - 8 + c * 8, subX - 40 - cp * 8, subY - 10 + c * 8, 1, C.white); line(subX + 36 + cp * 8, subY - 8 + c * 8, subX + 42 + cp * 8, subY - 10 + c * 8, 1, C.white); g.globalAlpha = 1; }
+        // the snailfish
+        if (t > T.FISH && t < T.HIT) {
+          var fx = lerp(200, 120, easeOut(clamp01((t - T.FISH) / 0.8))), fy = 88 + Math.sin(t * 4) * 2;
+          character(function () {
+            g.save(); g.translate(fx, fy);
+            var w = Math.sin(t * 8) * 3;
+            poly([[6, -4], [26, -2 + w], [28, 2 + w], [6, 5]], C.snailD); ell(0, 0, 10, 7, 0, C.snail); ell(2, -3, 5, 2, 0, C.snailL);
+            disc(-5, -1, 1.6, C.ink); arcS(-7, 2, 1.6, 0.3, Math.PI - 0.3, 0.7, C.ink);
+            g.restore();
+          });
+          if (t > T.FISH + 0.6) bubble(fx - 4, 72, "HI!", C.ink);
+        }
+        // below the caption: depth bar, or the foam cup
+        if (t > T.CUP && t < T.FISH + 0.3) {
+          var steps = countOf([T.CUP + 0.4, T.CUP + 0.85, T.CUP + 1.3], t), sc = [1, 0.8, 0.62, 0.45][steps];
+          g.globalAlpha = 0.35; cupDraw(62, 210, 1, true); g.globalAlpha = 1;
+          cupDraw(118, 210 + (1 - sc) * 14, sc, false);
+          worldText("BEFORE", 62, 232, 1, C.white); worldText("AFTER", 118, 232, 1, C.gold);
+        } else {
+          rect(30, 200, 120, 4, C.metalD);
+          var px = 30 + 120 * Math.min(1, d / 10935);
+          rect(30, 200, px - 30, 4, C.cyan);
+          disc(px, 202, 3, C.sub);
+          worldText("0", 30, 208, 1, C.white); worldText("11 KM", 150, 208, 1, C.white);
+        }
+        vignette(0.5, "rgba(0,0,10,");
+      }
+      function cupDraw(x, y, s, ghost) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        poly([[-12, -16], [12, -16], [8, 12], [-8, 12]], ghost ? C.white : C.cupD); poly([[-11, -15], [11, -15], [7.4, 11], [-7.4, 11]], C.cup);
+        rect(-13, -18, 26, 3, C.cupD);
+        if (!ghost) { disc(-3, -4, 1.4, C.ink); disc(3, -4, 1.4, C.ink); ell(0, 2, 1.6, 2, 0, C.mouth); }
+        g.restore();
+      }
+
+      function sceneAt(t) {
+        var tt = tapeT(t, T);
+        return tt < T.SURF ? "bottom" : tt < T.DIVE ? "surface" : tt < T.EVER ? "dive" : tt < T.FADE ? "everest" : tt < T.HIT ? "dive" : "bottom";
+      }
+      function drawUI(t) {
+        var tt = tapeT(t, T), d = depth(tt);
+        if (tt < T.SURF) counterLines("10,935 M", C.cyan, 3, "SUNLIGHT: 0%", C.white);
+        else if (tt < T.DIVE) counterLines("DEPTH 0 M", C.cyan, 3, "PACIFIC OCEAN", C.white);
+        else if (tt >= T.EVER && tt < T.FADE) counterLines("EVEREST 8,849 M", C.gold, 3, "TRENCH 10,935 M", C.cyan);
+        else if (tt < T.HIT) {
+          var l2 = tt < T.GLOW ? "SUNLIGHT " + (lightK(d) >= 0.01 ? Math.round(lightK(d) * 100) : lightK(d) > 0 ? "~1" : "0") + "%" : "PRESSURE X" + fmt(1 + d / 10.2);
+          counterLines(fmt(d) + " M", d > 1000 ? C.cyan : C.white, 3, l2, tt > T.PRESS ? C.gold : C.white);
+        }
+        else if (tt < T.LIFE) counterLines("10,935 M", C.cyan, 3, "PRESSURE X1,073", C.gold);
+        else counterLines("LIFE: YES", C.green, 3, "10,935 M DOWN", C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { bottom: scene_bottom, surface: scene_surface, dive: scene_dive, everest: scene_everest },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.dust,
+        cuts: [[T.SURF, "bottom", "surface"], [T.DIVE, "surface", "dive"], [T.EVER, "dive", "everest"], [T.FADE, "everest", "dive"]],
+      });
+    </script>
+  </body>
+</html>

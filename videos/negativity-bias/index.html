@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Your Brain Doesn't Care If You're Happy</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #120a24; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #120a24; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "Your Brain Doesn't Care If You're Happy" (negativity bias) — text cards + sound only (STYLE_GUIDE.md section 6),
+      safe zone (section 8): counter at canvas y 66, small captions in the MIDDLE (canvas y 320), action above them
+      (world y 60-145) and below them (world y 185-230).
+      Facts: Baumeister et al. (2001) "Bad is stronger than good", Rev. Gen. Psychol. 5: 323; Rozin & Royzman (2001)
+      "Negativity bias, negativity dominance, and contagion", Pers. Soc. Psychol. Rev. 5: 296; Vaish, Grossmann &
+      Woodward (2008) Psychol. Bull. 134: 383 (the evolutionary threat-detection account).
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="33.4" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="33.4" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="33.4" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        bg1: "#120a24", bg2: "#2a1650", net: "#4a2a80", netL: "#7a4ac8",
+        br: "#ff8ab8", brD: "#d85a90", brL: "#ffc4dc", stem: "#c84a80",
+        eyeW: "#ffffff", ink: "#0a0614", blush: "#ff5a7a", mouth: "#7a1a3a", tongue: "#ff6a8a",
+        helm: "#6a8a3a", helmD: "#4a6a2a", helmL: "#8aaa4a",
+        heart: "#ff3a5a", heartL: "#ff8a9a", rad: "#3ae86a", radD: "#1a7a3a",
+        phone: "#22223a", phoneL: "#3a3a5a", scr: "#f4f2fa", scrD: "#d8d4e8", row: "#e8e4f4",
+        av1: "#5ac8ff", av2: "#ffc83a", av3: "#9a6aff", av4: "#3ae86a",
+        red: "#ff3a4a", redD: "#a01a2a", blue: "#3a6aff", cloud: "#5a5a78", cloudD: "#3a3a52", rain: "#8ab8ff",
+        paper: "#f1eef4", note: "#ffe66a", noteD: "#d8b83a", pop1: "#ff4a4a", popW: "#fff4dc",
+        sky1: "#ff9a4a", sky2: "#ffd88a", sun: "#fff0a0", grass: "#c8a83a", grassD: "#8a7a2a", bushG: "#3a8a3a", bushD: "#2a5a2a",
+        skin: "#c88a5a", skinD: "#9a6a3a", fur: "#8a5a2a", furD: "#5a3a1a", hair: "#3a2414", berry: "#c82a6a",
+        tig: "#ff8a2a", tigD: "#c85a1a", tigW: "#fff4e0", tigE: "#ffe03a",
+        rock: "#3a3448", rockD: "#241e30", rockL: "#5a5470", wood: "#8a5a3a", woodD: "#5a3a24", metal: "#c8ccd8", metalD: "#8a90a8",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", white: "#ffffff",
+      };
+      DISSOLVE = 0.12;
+
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function halfEll(x, y, rx, ry, col) { g.fillStyle = col; g.beginPath(); g.ellipse(x, y, rx, ry, 0, Math.PI, 2 * Math.PI); g.closePath(); g.fill(); }
+      function pingsBefore(t) { return countOf(T.PINGS || [], t); }
+
+      // ============================================================ the brain (centre x, y), ~64 wide at s 1
+      // o: mood happy|sad|alarm|nope|o|blow|calm, look (-1..1), helmet 0..1 (dropping on), siren, swat (0..1 arm swing),
+      //    wave, sweat, popcorn
+      function brainC(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s, s);
+        var bob = Math.sin(t * 3) * 0.8, look = o.look || 0, m = o.mood || "happy";
+        g.translate(0, bob);
+        // noodle arms (nerves) behind the body
+        var la = o.swat ? lerp(0.6, -2.0, Math.sin(Math.PI * clamp01(o.swat))) : 0.6 + Math.sin(t * 2) * 0.1;
+        var ra = o.wave ? -1.0 + Math.sin(t * 10) * 0.45 : o.popcorn ? 0.15 : 0.6 + Math.sin(t * 2) * 0.1;
+        [[-27, 8, -Math.cos(la), Math.sin(la), -1], [27, 8, Math.cos(ra), Math.sin(ra), 1]].forEach(function (a) {
+          var ex = a[0] + a[2] * 14, ey = a[1] + a[3] * 14, mx = (a[0] + ex) / 2 + a[4] * 2, my = (a[1] + ey) / 2 + 3;
+          line(a[0], a[1], mx, my, 3, C.brD); line(mx, my, ex, ey, 3, C.brD); disc(ex, ey, 3.2, C.br);
+        });
+        // stem
+        rrect(-5, 16, 10, 14, 4, C.stem);
+        // body + lobes
+        ell(0, 0, 32, 23, 0, C.brD);
+        var lobes = [[-20, -9, 14], [-5, -15, 15], [11, -14, 14], [23, -4, 12], [-25, 5, 11], [24, 8, 11], [0, 6, 22]];
+        lobes.forEach(function (l) { disc(l[0], l[1] + 0.8, l[2], C.brD); });
+        lobes.forEach(function (l) { disc(l[0], l[1], l[2] - 0.8, C.br); });
+        ell(-10, -18, 9, 4, -0.2, C.brL); disc(14, -20, 3, C.brL);
+        // folds
+        arcS(-14, -12, 6, 3.6, 5.6, 1, C.brD); arcS(6, -10, 7, 3.4, 5.2, 1, C.brD); arcS(20, -2, 5, 4.0, 6.0, 1, C.brD);
+        arcS(-24, 0, 4, 4.6, 6.6, 1, C.brD); line(0, -27, 1, -14, 1, C.brD);
+        // face
+        var ey = 3, sq = m === "blow" ? 0.6 : 1;
+        disc(-10, ey, 5.6, C.eyeW); disc(10, ey, 5.6, C.eyeW);
+        var pr = m === "alarm" || m === "o" ? 1.6 : 2.6;
+        disc(-10 + look * 2, ey + 0.5, pr, C.ink); disc(10 + look * 2, ey + 0.5, pr, C.ink);
+        disc(-11 + look * 2, ey - 0.8, 0.8, C.eyeW); disc(9 + look * 2, ey - 0.8, 0.8, C.eyeW);
+        if (m === "nope" || m === "sad") { line(-15, -4 + (m === "sad" ? 1 : 2), -5, -5 + (m === "sad" ? -1 : 0), 1.4, C.ink); line(15, -4 + (m === "sad" ? 1 : 2), 5, -5 + (m === "sad" ? -1 : 0), 1.4, C.ink); }
+        if (m === "alarm") { line(-15, -6, -5, -4, 1.4, C.ink); line(15, -6, 5, -4, 1.4, C.ink); }
+        if (m === "calm") { rect(-15.5, ey - 6, 11, 3.2, C.br); rect(4.5, ey - 6, 11, 3.2, C.br); }
+        disc(-19, 10, 2.6, C.blush); disc(19, 10, 2.6, C.blush);
+        if (m === "happy" || m === "calm") { arcS(0, 9, 5, 0.3, Math.PI - 0.3, 1.4, C.mouth); }
+        else if (m === "sad") { arcS(0, 16, 4.5, Math.PI + 0.4, -0.4, 1.4, C.mouth); }
+        else if (m === "nope") { line(-4, 13, 4, 12, 1.4, C.mouth); }
+        else if (m === "alarm" || m === "o") { ell(0, 13, 3.4, 4, 0, C.mouth); ell(0, 14.5, 2, 1.6, 0, C.tongue); }
+        else if (m === "blow") { disc(0, 12, 2, C.mouth); disc(-16, 11, 4, C.br); disc(16, 11, 4, C.br); }
+        if (o.sweat) { var sp = (t * 1.5) % 1; ell(26, -6 + sp * 10, 1.6, 2.4, 0, C.cyan); }
+        // the helmet + radar dish
+        var h = o.helmet || 0;
+        if (h > 0) {
+          var hy = lerp(-70, 0, easeOut(h));
+          halfEll(0, -10 + hy, 35, 22, C.helmD); halfEll(0, -11 + hy, 33, 20, C.helm);
+          rect(-36, -11 + hy, 72, 4, C.helmD); ell(-12, -24 + hy, 9, 3, -0.3, C.helmL);
+          line(10, -30 + hy, 14, -40 + hy, 1.4, C.metalD);
+          g.save(); g.translate(14, -41 + hy); g.rotate(Math.sin(t * 3) * 0.8);
+          halfEll(0, 0, 6, 3, C.metal); disc(0, -1, 1, C.red); g.restore();
+        }
+        if (o.siren) {
+          var on = Math.floor(t * 8) % 2 === 0;
+          rrect(-6, -36 + (h > 0 ? -2 : 4), 12, 7, 3, on ? C.red : C.blue); rect(-7, -30 + (h > 0 ? -2 : 4), 14, 2, C.metalD);
+        }
+        g.restore();
+        if (o.siren) { lighter(); glow(x, y - (h > 0 ? 38 : 32) * s, 22 * s, Math.floor(t * 8) % 2 === 0 ? C.red : C.blue, 0.45); normalBlend(); }
+      }
+      function heartC(x, y, s, rot, t) {
+        character(function () {
+          g.save(); g.translate(x, y); g.scale(s, s); g.rotate(rot || 0);
+          disc(-5, -3, 6, C.heart); disc(5, -3, 6, C.heart); poly([[-10.5, -1], [10.5, -1], [0, 11]], C.heart);
+          disc(-6, -5, 2, C.heartL);
+          disc(-3, -1, 1.3, C.ink); disc(3, -1, 1.3, C.ink); arcS(0, 1.5, 2, 0.3, Math.PI - 0.3, 0.8, C.ink);
+          g.restore();
+        });
+      }
+      function brainDraw(x, y, s, t, o) { character(function () { brainC(x, y, s, t, o); }); }
+
+      // ============================================================ backdrops
+      function neural(cam, t) {
+        sky([[0, C.bg1], [1, C.bg2]]);
+        setCam(cam, 0.4);
+        for (var k = 0; k < 22; k++) {
+          var ax = hash1(k) * 200 - 10, ay = hash1(k + 40) * 340 - 10, bx = hash1(k + 7) * 200 - 10, by = hash1(k + 70) * 340 - 10;
+          line(ax, ay, bx, by, 0.6, C.net);
+          var p = (t * 0.4 + hash1(k + 3)) % 1;
+          disc(lerp(ax, bx, p), lerp(ay, by, p), 1, C.netL);
+          disc(ax, ay, 1.4, C.net);
+        }
+        setCam(cam, 1);
+      }
+      function pulses(cx, cy, t, col) {
+        (T.PINGS || []).forEach(function (p) {
+          var a = t - p;
+          if (a >= 0 && a < 0.7) { g.globalAlpha = 1 - a / 0.7; arcS(cx, cy, 20 + a * 110, 0, 6.2832, 1.2, col); g.globalAlpha = 1; }
+        });
+      }
+
+      // ============================================================ 1. hook: the brain swats happiness away; job #1
+      function scene_brain(t) {
+        var cam = camAt([[0, 90, 160, 1.1], [T.SURV, 90, 160, 1.0], [T.MEM, 90, 158, 1.08]], t);
+        neural(cam, t);
+        var helm = clamp01((t - T.SURV - 0.05) / 0.3);
+        if (t > T.SURV) pulses(90, 112, t, C.rad);
+        var sw = clamp01((t - 1.35) / 0.35);
+        brainDraw(90, 115, 1.25, t, { mood: t < 1.4 ? "happy" : t < 3.8 ? "nope" : t < T.SURV + 0.5 ? "o" : "alarm", look: t < 1.5 ? -1 : 0,
+          swat: t > 1.35 && t < 1.7 ? sw : 0, helmet: helm });
+        if (t < 1.55) heartC(lerp(20, 50, clamp01(t / 1.4)), 92 + Math.sin(t * 4) * 3, 1.2, Math.sin(t * 3) * 0.2, t);
+        else if (t < 2.6) { var f = (t - 1.55) / 1.05; heartC(50 + f * 120, 92 - f * 70 + f * f * 20, 1.2 * (1 - f * 0.4), f * 9, t); }
+        if (t > 1.65 && t < 3.9) bubble(124, 68, "NOPE.", C.ink);
+        if (t > T.SURV + 0.8) bubble(126, 66, "DANGER?", C.redD);
+        vignette(0.45, "rgba(10,0,20,");
+      }
+
+      // ============================================================ 2. the cringe on repeat; the compliment thrown away
+      function replayPhase(t) { var l = lastOf(T.REPLAYS, t); return l < 0 ? 0 : clamp01((t - l) / 0.62); }
+      function kid(x, y, s, t, fall) {
+        character(function () {
+          g.save(); g.translate(x, y); g.scale(s, s); g.rotate(fall * 1.45);
+          var wk = Math.sin(t * 16) * (1 - fall);
+          rect(-4 + wk, 4, 3, 12, C.blue); rect(1 - wk, 4, 3, 12, C.blue);
+          rrect(-6, -12, 12, 18, 3, C.gold);
+          line(-5, -8, -9 - wk * 2, 0, 2.4, C.skin); line(5, -8, 9 + wk * 2, 0 - fall * 6, 2.4, C.skin);
+          disc(0, -18, 7, C.skin); halfEll(0, -19, 7.5, 6, C.hair);
+          disc(2.5, -17, 1, C.ink); disc(-1.5, -17, 1, C.ink);
+          if (fall > 0.5) ell(0.5, -13.5, 2, 1.4, 0, C.mouth); else arcS(0.5, -15, 1.8, 0.3, Math.PI - 0.3, 0.7, C.ink);
+          g.restore();
+        });
+      }
+      function scene_memory(t) {
+        var cam = camAt([[T.MEM, 90, 160, 1.0], [T.FEED, 90, 156, 1.06]], t);
+        sky([[0, "#0a0614"], [1, "#1e1238"]]);
+        setCam(cam, 1);
+        // the cinema screen
+        rect(22, 56, 136, 88, C.ink); rect(24, 58, 132, 84, "#3a5a8a");
+        rect(24, 120, 132, 22, "#5a8a5a");
+        var p = replayPhase(t), fallen = clamp01((p - 0.32) / 0.14);
+        var kx = 50 + Math.min(p, 0.4) * 120;
+        kid(kx, 112 + fallen * 6, 1.1, t, fallen);
+        ell(90, 126, 6, 2, 0, C.gold);                          // the banana peel
+        if (fallen > 0.9 && p < 0.85) { worldText("OOF", kx + 18, 92, 1, C.white); }
+        if (p > 0.78) for (var r = 0; r < 4; r++) rect(24, 60 + hash1(r + Math.floor(t * 20)) * 80, 132, 2, C.white);
+        worldText("REPLAY #" + countOf(T.REPLAYS, t), 56, 62, 1, C.red);
+        disc(30, 64, 2, Math.floor(t * 3) % 2 ? C.red : C.redD);
+        // the compliment note, crumpled into the bin
+        var nk = clamp01((t - T.MEM - 2.3) / 0.6);
+        rect(16, 210, 14, 16, C.metalD); rect(15, 208, 16, 3, C.metal);
+        if (nk < 1) {
+          g.save(); g.translate(lerp(36, 23, nk), lerp(196, 206, nk * nk)); g.scale(1 - nk * 0.8, 1 - nk * 0.8); g.rotate(nk * 4);
+          rect(-14, -8, 28, 16, C.noteD); rect(-14, -9, 28, 15, C.note);
+          worldText("NICE", 0, -7, 1, C.ink); worldText("SMILE!", 0, -0.5, 1, C.ink);
+          g.restore();
+        }
+        // the brain with popcorn, glued to the screen
+        brainDraw(88, 214, 0.78, t, { mood: p > 0.4 && p < 0.8 ? "o" : "sad", look: 0, helmet: 1, popcorn: true });
+        rect(105, 212, 12, 13, C.white); for (var st = 0; st < 3; st++) rect(106 + st * 4, 212, 2, 13, C.red);
+        for (var q = 0; q < 5; q++) disc(107 + q * 2.2, 211 - (q % 2) * 1.5, 2, C.popW);
+        if (t > T.MEM + 3.1) bubble(120, 187, "AGAIN!", C.ink);
+        vignette(0.5, "rgba(0,0,10,");
+      }
+
+      // ============================================================ 3. the feed: 99 nice comments, 1 bad one, the day is ruined
+      var WORDS = ["NICE!", "LOVE IT", "SO GOOD", "WOW", "GOAT", "10/10", "FIRE", "CUTE!", "LEGEND", "YES!"];
+      var AVS = ["av1", "av2", "av3", "av4"];
+      function commentRow(x, y, k, bad) {
+        rrect(x, y, 84, 13, 3, bad ? "#ffd8dc" : C.row);
+        disc(x + 7, y + 6.5, 4.5, bad ? C.red : C[AVS[k % 4]]);
+        if (bad) { line(x + 4.5, y + 4, x + 6.5, y + 5, 0.8, C.ink); line(x + 9.5, y + 4, x + 7.5, y + 5, 0.8, C.ink); line(x + 5, y + 9, x + 9, y + 9, 0.8, C.ink); }
+        else { disc(x + 5.5, y + 5.5, 0.7, C.ink); disc(x + 8.5, y + 5.5, 0.7, C.ink); arcS(x + 7, y + 7, 1.6, 0.3, Math.PI - 0.3, 0.6, C.ink); }
+        var w = bad ? "MID." : WORDS[k % WORDS.length];
+        g.fillStyle = bad ? C.red : C.ink;
+        worldText(w, x + 16 + w.length * 3, y + 3.5, 1, bad ? C.red : C.ink);
+        if (!bad) { disc(x + 76, y + 5.5, 1.8, C.heart); disc(x + 79, y + 5.5, 1.8, C.heart); poly([[x + 74.3, y + 6.2], [x + 80.7, y + 6.2], [x + 77.5, y + 9.6]], C.heart); }
+      }
+      function mood(t) { return t < T.BAD ? 100 : t < T.RUIN ? Math.round(lerp(100, 40, clamp01((t - T.BAD) / 1.8))) : Math.max(3, Math.round(lerp(40, 3, clamp01((t - T.RUIN) / 1.7)))); }
+      function scene_phone(t) {
+        var zb = t > T.BAD ? easeOut((t - T.BAD) / 0.4) : 0;
+        var cam = camAt([[T.FEED, 90, 160, 1.0], [T.BAD, 90, 160, 1.0]], t);
+        shake(cam, t, T.BAD, 6, 0.5);
+        neural(cam, t);
+        if (t > T.BAD && Math.floor(t * 8) % 2 === 0 && t < T.RUIN) { screen(); g.globalAlpha = 0.25; rect(0, 0, W, H, C.red); g.globalAlpha = 1; setCam(cam, 1); }
+        rrect(36, 58, 108, 90, 9, C.phone); rrect(38, 60, 104, 86, 8, C.phoneL); rect(42, 66, 96, 77, C.scr);
+        rect(80, 61, 20, 3, C.phone);
+        g.save(); g.beginPath(); g.rect(42, 66, 96, 77); g.clip();
+        if (t < T.RUIN) {
+          var n = countOf(T.COMMENTS, t);
+          for (var i = 0; i < n; i++) {
+            var age = n - 1 - i, slide = clamp01((t - T.COMMENTS[n - 1]) / 0.08);
+            var y = 127 - age * 15 + (1 - slide) * 15 - (t > T.BAD ? 15 : 0);
+            if (y > 52 && y < 146) commentRow(48, y, i, false);
+          }
+          if (t > T.BAD) commentRow(48, 127 - (1 - easeOut((t - T.BAD) / 0.1)) * -15, 0, true);
+        } else {
+          rect(42, 66, 96, 77, "#ffd8dc");
+          worldText("MID.", 90, 92 + Math.sin(t * 20) * 0.6, 3, C.red);
+          for (var e = 0; e < 4; e++) worldText("MID.", 56 + (e % 2) * 68, 72 + Math.floor(e / 2) * 54, 1, C.redD);
+        }
+        g.restore();
+        // the brain below the caption
+        var br = t < T.BAD ? "happy" : t < T.RUIN ? "alarm" : "sad";
+        if (t > T.RUIN) {
+          ell(90, 186, 26, 7, 0, C.cloudD); disc(78, 183, 9, C.cloud); disc(94, 180, 11, C.cloud); disc(106, 185, 7, C.cloud);
+          for (var d = 0; d < 9; d++) { var rp = (t * 2.2 + hash1(d)) % 1; line(70 + d * 5, 192 + rp * 34, 69 + d * 5, 196 + rp * 34, 1, C.rain); }
+        }
+        brainDraw(90, 216, 0.78, t, { mood: br, look: t < T.BAD ? 0 : 0, helmet: 1, siren: t > T.BAD && t < T.RUIN, sweat: t > T.BAD });
+        if (t < T.BAD) { for (var hh = 0; hh < 4; hh++) { var hp = (t * 0.9 + hh / 4) % 1; heartC(130 + Math.sin(hp * 6 + hh) * 4, 140 - hp * 70, 0.45, 0, t); } }
+        vignette(0.4, "rgba(10,0,20,");
+      }
+
+      // ============================================================ 4. expecting the worst
+      function worstIcon(k, x, y, s, t) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        disc(0, 0, 17, C.white);
+        if (k === 0) { ell(0, -2, 11, 6, 0, C.cloud); disc(-4, -5, 6, C.cloud); disc(4, -6, 7, C.cloud); poly([[0, 1], [5, 1], [1, 7], [4, 7], [-3, 15], [0, 8], [-3, 8]], C.gold); }
+        else if (k === 1) { rect(-8, -11, 16, 21, C.scrD); rect(-7, -10, 14, 19, C.paper); worldText("F", 0, -6, 2, C.red); }
+        else if (k === 2) { rrect(-6, -11, 12, 22, 2, C.phone); rect(-5, -9, 10, 17, C.cyan); line(-4, -6, 2, 0, 0.8, C.ink); line(2, 0, -2, 6, 0.8, C.ink); line(2, 0, 4, -3, 0.8, C.ink); }
+        else if (k === 3) { rect(-9, -8, 18, 15, C.paper); worldText("BILL", 0, -6, 1, C.ink); worldText("$$$", 0, 1, 1, C.red); }
+        else { disc(0, 0, 13, C.ink); disc(-5, -2, 2.5, C.tigE); disc(5, -2, 2.5, C.tigE); rect(-6, -2.5, 2, 1, C.ink); rect(4, -2.5, 2, 1, C.ink); }
+        g.restore();
+      }
+      function scene_worst(t) {
+        var cam = camAt([[T.WORST, 90, 160, 1.0], [T.BREAK, 90, 162, 1.12]], t);
+        neural(cam, t);
+        pulses(90, 214, t, C.red);
+        var spots = [[52, 78], [128, 72], [90, 104], [46, 128], [134, 126]];
+        for (var k = 0; k < 5; k++) {
+          var th = T.WORSTS[k];
+          if (t > th) {
+            var p = Math.min(pop(t, th), 1.1), wob = Math.sin(t * 5 + k) * 1.5;
+            for (var d = 0; d < 3; d++) disc(lerp(90, spots[k][0], 0.2 + d * 0.2), lerp(190, spots[k][1], 0.2 + d * 0.2), 1.5 + d, C.white);
+            worstIcon(k, spots[k][0], spots[k][1] + wob, p, t);
+          }
+        }
+        brainDraw(90, 216, 0.8, t, { mood: "alarm", look: Math.sin(t * 7), helmet: 1, siren: true, sweat: true });
+        vignette(0.5, "rgba(20,0,10,");
+      }
+
+      // ============================================================ 5. the name: one bad rock outweighs five hearts
+      function scene_name(t) {
+        var cam = camAt([[T.HIT, 90, 160, 1.12], [T.CAVE, 90, 160, 1.0]], t);
+        shake(cam, t, T.HIT + 1.9, 6, 0.4);
+        neural(cam, t);
+        var nh = countOf([0, 1, 2, 3, 4].map(function (k) { return T.HIT + 0.6 + k * 0.22; }), t);
+        var rockIn = t > T.HIT + 1.9;
+        var tilt = rockIn ? lerp(-0.12, 0.32, easeOut((t - T.HIT - 1.9) / 0.35)) : -0.025 * nh;
+        // stand
+        rect(87, 80, 6, 58, C.woodD); rect(70, 136, 40, 6, C.woodD); disc(90, 80, 4, C.gold);
+        var bx = Math.cos(tilt) * 44, by = Math.sin(tilt) * 44;
+        line(90 - bx, 80 - by, 90 + bx, 80 + by, 3, C.gold);
+        var L = [90 - bx, 80 - by], R = [90 + bx, 80 + by];
+        [L, R].forEach(function (pp) { line(pp[0], pp[1], pp[0] - 13, pp[1] + 22, 0.8, C.metal); line(pp[0], pp[1], pp[0] + 13, pp[1] + 22, 0.8, C.metal); g.fillStyle = C.metalD; g.beginPath(); g.ellipse(pp[0], pp[1] + 22, 16, 5, 0, 0, Math.PI); g.closePath(); g.fill(); rect(pp[0] - 16, pp[1] + 21, 32, 2, C.metal); });
+        for (var h = 0; h < nh; h++) {
+          var drop = clamp01((t - (T.HIT + 0.6 + h * 0.22)) / 0.12);
+          heartC(L[0] - 9 + (h % 3) * 9, lerp(L[1] - 20, L[1] + 14 - Math.floor(h / 3) * 8, drop), 0.55, 0, t);
+        }
+        if (rockIn) {
+          var rd = clamp01((t - T.HIT - 1.8) / 0.12);
+          character(function () {
+            g.save(); g.translate(R[0], lerp(R[1] - 30, R[1] + 11, rd));
+            poly([[-12, 8], [-14, -2], [-7, -11], [3, -12], [12, -5], [13, 6]], C.rockD); poly([[-11, 6], [-12, -2], [-6, -9], [3, -10], [10, -4], [11, 5]], C.rock);
+            rect(-6, -6, 4, 1.4, C.rockL); line(-7, -4, -2, -2, 1, C.ink); line(7, -4, 2, -2, 1, C.ink);
+            disc(-4, 0, 1.4, C.red); disc(4, 0, 1.4, C.red); arcS(0, 6, 3, Math.PI + 0.5, -0.5, 1, C.ink);
+            g.restore();
+          });
+        }
+        worldText("GOOD", L[0], L[1] + 27, 1, C.green); if (rockIn) worldText("BAD", R[0], R[1] + 27, 1, C.red);
+        brainDraw(90, 216, 0.8, t, { mood: rockIn ? "o" : "happy", look: rockIn ? 1 : -1, helmet: 1 });
+        vignette(0.45, "rgba(10,0,20,");
+      }
+
+      // ============================================================ 6. 50,000 BC: the bush rustles
+      function caveman(x, y, s, t, run, scared) {
+        character(function () {
+          g.save(); g.translate(x, y); g.scale(s, s);
+          var wk = run ? Math.sin(t * 22) : 0;
+          line(-3, 8, -5 - wk * 5, 22, 3.4, C.skin); line(3, 8, 5 + wk * 5, 22, 3.4, C.skin);
+          rrect(-8, -10, 16, 20, 4, C.fur); poly([[-8, 6], [8, 6], [6, 12], [-6, 12]], C.furD); line(-8, -8, 8, 4, 1.4, C.furD);
+          var arm = scared ? -2.4 : -0.3 + Math.sin(t * 3) * 0.2;
+          line(-7, -7, -7 + Math.cos(arm + Math.PI) * 11, -7 + Math.sin(arm + Math.PI) * -11 * -1, 3, C.skin);
+          line(7, -7, 7 + Math.cos(arm) * -11 * -1, -7 + Math.sin(arm) * 11, 3, C.skin);
+          disc(0, -18, 9, C.skin); halfEll(0, -19, 10, 9, C.hair); rect(-10, -20, 4, 8, C.hair);
+          disc(4, -18, 2, C.eyeW); disc(-2, -18, 2, C.eyeW); disc(4.5 + (scared ? 0.8 : 0), -18, 0.9, C.ink); disc(-1.5 + (scared ? 0.8 : 0), -18, 0.9, C.ink);
+          if (scared) ell(2, -12, 2.4, 2.8, 0, C.mouth); else arcS(2, -14, 2.4, 0.3, Math.PI - 0.3, 0.8, C.ink);
+          g.restore();
+        });
+      }
+      function scene_cave(t) {
+        var cam = camAt([[T.CAVE, 90, 160, 1.0], [T.PRED, 98, 150, 1.12], [T.SAME, 90, 150, 1.12]], t);
+        shake(cam, t, T.PRED, 9, 0.6);
+        sky([[0, C.sky1], [1, C.sky2]]);
+        setCam(cam, 0.3); disc(40, 70, 16, C.sun);
+        setCam(cam, 0.6); poly([[-20, 150], [30, 128], [70, 140], [120, 122], [200, 146], [200, 170], [-20, 170]], C.grassD);
+        setCam(cam, 1);
+        rect(-20, 140, 230, 200, C.grass); for (var gk = 0; gk < 30; gk++) line(hash1(gk) * 190, 142 + hash1(gk + 9) * 90, hash1(gk) * 190 + 1, 138 + hash1(gk + 9) * 90, 1, C.grassD);
+        // the berry bush (left) and the big bush (right)
+        disc(34, 128, 12, C.bushD); disc(30, 124, 10, C.bushG); for (var b = 0; b < 5; b++) disc(24 + b * 3.5, 120 + (b % 2) * 6, 1.6, C.berry);
+        var rs = t > T.CAVE + 1.0 && t < T.PRED ? Math.sin(t * 40) * 1.6 : 0;
+        var tg = clamp01((t - T.PRED) / 0.25);
+        if (t > T.PRED) {
+          character(function () {
+            g.save(); g.translate(132 - tg * 8, 112 - tg * 6);
+            disc(0, 0, 15, C.tig); ell(0, 6, 10, 7, 0, C.tigW);
+            poly([[-14, -6], [-10, -18], [-4, -10]], C.tig); poly([[14, -6], [10, -18], [4, -10]], C.tig);
+            for (var s2 = -1; s2 <= 1; s2++) line(s2 * 6, -14, s2 * 5, -8, 1.6, C.ink);
+            line(-15, 0, -9, 1, 1.4, C.ink); line(15, 0, 9, 1, 1.4, C.ink);
+            ell(-5, -3, 3, 2.4, 0, C.tigE); ell(5, -3, 3, 2.4, 0, C.tigE); rect(-5.5, -5, 1, 4, C.ink); rect(4.5, -5, 1, 4, C.ink);
+            ell(0, 8, 5, 4 * tg, 0, C.mouth); poly([[-3, 5], [-2, 8], [-1, 5]], C.white); poly([[3, 5], [2, 8], [1, 5]], C.white);
+            disc(0, 3, 1.6, C.ink);
+            g.restore();
+          });
+        } else if (t > T.CAVE + 1.4) {
+          lighter(); glow(124, 116, 4, C.tigE, 0.6); glow(136, 116, 4, C.tigE, 0.6); normalBlend();
+        }
+        disc(132 + rs, 126, 20, C.bushD); disc(122 + rs, 120, 14, C.bushG); disc(142 + rs, 122, 13, C.bushG); disc(132 + rs, 114, 12, C.bushG);
+        if (t > T.CAVE + 1.4 && t < T.PRED) { disc(124, 116, 1.6, C.tigE); disc(136, 116, 1.6, C.tigE); }
+        // the caveman: berries, then RUN
+        var run = clamp01((t - T.PRED - 0.4) / 1.2);
+        caveman(lerp(66, -30, run * run), 118 - (t > T.PRED && t < T.PRED + 0.4 ? Math.sin((t - T.PRED) / 0.4 * Math.PI) * 10 : 0), 1.2, t, run > 0, t > T.PRED);
+        if (t > T.CAVE + 1.0 && t < T.PRED) bubble(70, 76, "?", C.ink);
+        if (t > T.PRED + 0.2 && t < T.PRED + 1.4) bubble(lerp(66, -30, run * run) + 6, 76, "RUN!", C.redD);
+        vignette(0.35, "rgba(40,10,0,");
+      }
+
+      // ============================================================ 7. same alarm for a comment
+      function scene_same(t) {
+        var cam = camAt([[T.SAME, 90, 160, 1.05], [T.CALM, 90, 160, 1.0]], t);
+        neural(cam, t);
+        pulses(90, 214, t, C.red);
+        var a1 = clamp01((t - T.SAME - 0.2) / 0.2), a2 = clamp01((t - T.SAME - 1.0) / 0.2);
+        // left: the tiger
+        rrect(18, 62, 64, 74, 5, a1 > 0 && Math.floor(t * 8) % 2 ? C.red : C.ink); rect(21, 65, 58, 68, C.sky1);
+        character(function () {
+          g.save(); g.translate(50, 102); g.scale(1.3, 1.3);
+          disc(0, 0, 15, C.tig); ell(0, 6, 10, 7, 0, C.tigW); poly([[-14, -6], [-10, -18], [-4, -10]], C.tig); poly([[14, -6], [10, -18], [4, -10]], C.tig);
+          for (var s2 = -1; s2 <= 1; s2++) line(s2 * 6, -14, s2 * 5, -8, 1.6, C.ink);
+          ell(-5, -3, 3, 2.4, 0, C.tigE); ell(5, -3, 3, 2.4, 0, C.tigE); rect(-5.5, -5, 1, 4, C.ink); rect(4.5, -5, 1, 4, C.ink);
+          ell(0, 8, 5, 4, 0, C.mouth); disc(0, 3, 1.6, C.ink);
+          g.restore();
+        });
+        // right: the comment
+        rrect(98, 62, 64, 74, 5, a2 > 0 && Math.floor(t * 8) % 2 ? C.red : C.ink); rect(101, 65, 58, 68, "#ffd8dc");
+        worldText("MID.", 130, 92, 2, C.red);
+        // the equals sign
+        if (t > T.SAME + 0.7) { var pe = Math.min(pop(t, T.SAME + 0.7), 1.1); g.save(); g.translate(90, 99); g.scale(pe, pe); rect(-6, -5, 12, 3, C.gold); rect(-6, 2, 12, 3, C.gold); g.restore(); }
+        brainDraw(90, 216, 0.8, t, { mood: "alarm", look: t < T.SAME + 1.0 ? -1 : 1, helmet: 1, siren: true, sweat: true });
+        vignette(0.45, "rgba(20,0,10,");
+      }
+
+      // ============================================================ 8. calm: blow the cloud away (ends back on frame 1)
+      function scene_calm(t) {
+        var tt = tapeT(t, T);
+        var cam = camAt([[T.CALM, 90, 158, 1.08], [T.CTA, 90, 160, 1.0], [T.STOP, 90, 160, 1.1]], tt);
+        neural(cam, tt);
+        var blowing = tt > T.CALM + 0.3 && tt < T.CALM + 1.25, gone = clamp01((tt - T.CALM - 0.35) / 0.9);
+        if (gone < 1) {
+          g.save(); g.translate(lerp(46, -40, gone * gone), lerp(74, 52, gone)); g.rotate(-gone);
+          character(function () {
+            ell(0, 0, 22, 10, 0, C.cloudD); disc(-8, -4, 10, C.cloud); disc(8, -6, 12, C.cloud);
+            disc(-5, -2, 1.3, C.ink); disc(4, -2, 1.3, C.ink); line(-7, -5, -3, -4, 0.8, C.ink); line(6, -5, 2, -4, 0.8, C.ink);
+          });
+          worldText("MID.", 0, 4, 1, C.white);
+          g.restore();
+        }
+        if (blowing) for (var w = 0; w < 5; w++) { var wp = (tt * 3 + w / 5) % 1; line(70 - wp * 30, 104 - w * 5 - wp * 8, 64 - wp * 30, 103 - w * 5 - wp * 8, 1, C.white); }
+        if (tt > T.CALM + 1.25) for (var s = 0; s < 8; s++) { var a = s * 0.785 + tt, r = 50 + Math.sin(tt * 2 + s) * 4; disc(90 + Math.cos(a) * r, 110 + Math.sin(a) * r * 0.7, 1.2, s % 2 ? C.gold : C.white); }
+        brainDraw(90, 115, 1.25, tt, { mood: blowing ? "blow" : tt < T.CALM + 0.3 ? "sad" : tt < T.CTA ? "calm" : "happy", look: blowing ? -1 : 0,
+          wave: tt > T.CTA + 0.3, helmet: 1 - clamp01((tt - T.CALM - 1.3) / 0.3) });
+        if (tt > T.CALM + 1.4 && tt < T.CTA) bubble(122, 68, "BYE, MID.", C.ink);
+        if (tt > T.CTA + 0.2) heartC(lerp(-10, 20, clamp01((tt - T.CTA - 0.2) / 1.6)), 92 + Math.sin(tt * 4) * 3, 1.2, Math.sin(tt * 3) * 0.2, tt);
+        vignette(0.45, "rgba(10,0,20,");
+      }
+
+      function sceneAt(t) {
+        var tt = tapeT(t, T);
+        return tt < T.MEM ? "brain" : tt < T.FEED ? "memory" : tt < T.WORST ? "phone" : tt < T.HIT ? "worst" : tt < T.CAVE ? "name"
+          : tt < T.SAME ? "cave" : tt < T.CALM ? "same" : "calm";
+      }
+      function pad4(n) { return ("0000" + n).slice(-4); }
+      function drawUI(t) {
+        var tt = tapeT(t, T), scans = "SCANS " + pad4(pingsBefore(tt));
+        if (tt < T.SURV) counterLines("HAPPY? NOPE", C.pink, 3, "PRIORITY LIST", C.white);
+        else if (tt < T.MEM) counterLines("#1 SURVIVE", C.green, 3, scans, C.white);
+        else if (tt < T.FEED) counterLines("REPLAYS X" + countOf(T.REPLAYS, tt), C.pink, 3, "COMPLIMENTS: 0", C.white);
+        else if (tt < T.BAD) counterLines("NICE " + Math.round(99 * countOf(T.COMMENTS, tt) / T.COMMENTS.length), C.green, 3, "MOOD 100%", C.white);
+        else if (tt < T.WORST) counterLines("NICE 99 BAD 1", C.red, 3, "MOOD " + mood(tt) + "%", mood(tt) < 50 ? C.red : C.white);
+        else if (tt < T.HIT) counterLines("WORST CASES " + countOf(T.WORSTS, tt), C.red, 3, scans, C.white);
+        else if (tt < T.CAVE) counterLines("BAD WINS", C.gold, 3, scans, C.white);
+        else if (tt < T.PRED) counterLines("50,000 BC", C.gold, 3, "THREAT: ???", C.white);
+        else if (tt < T.SAME) counterLines("50,000 BC", C.gold, 3, "THREAT: TIGER!", C.red);
+        else if (tt < T.CALM) counterLines("ALARM 100%", C.red, 3, "TIGER = COMMENT", C.white);
+        else counterLines("MOOD " + Math.round(lerp(3, 100, clamp01((tt - T.CALM - 1.3) / 0.9))) + "%", C.green, 3, scans, C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { brain: scene_brain, memory: scene_memory, phone: scene_phone, worst: scene_worst, name: scene_name, cave: scene_cave, same: scene_same, calm: scene_calm },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.gold,
+        cuts: [[T.MEM, "brain", "memory"], [T.FEED, "memory", "phone"], [T.WORST, "phone", "worst"], [T.CAVE, "name", "cave"],
+          [T.SAME, "cave", "same"], [T.CALM, "same", "calm"]],
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Why Doesn't Your Stomach Digest Itself?</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #1a0a14; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #1a0a14; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "Why Doesn't Your Stomach Digest Itself?" — text cards + sound only (STYLE_GUIDE.md section 6), safe zone (section 8):
+      counter at canvas y 66, small captions in the MIDDLE (canvas y 320), action above (world y 58-148) and below (185-235).
+      Facts: gastric acid pH ~1.5-3.5 (HCl, with pepsin it digests protein); the mucus-bicarbonate barrier keeps the pH at
+      the epithelial surface near neutral (Allen & Flemstrom 2005, Am J Physiol Cell Physiol 288: C1; Johansson et al. 2000,
+      Am J Physiol 279: G1247); surface mucous cells are renewed every ~3-5 days; most peptic ulcers come from H. pylori or
+      NSAIDs (Lanas & Chan 2017, Lancet 390: 613); spicy food does not cause ulcers (NIDDK; it can worsen symptoms).
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="34.4" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="34.4" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="34.4" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        bg1: "#1a0a14", bg2: "#3a1428", vein: "#5a1a34",
+        wall: "#ff6a7a", wallD: "#c83a5a", wallL: "#ffa0aa", lin: "#ffc4c8", linD: "#e88a98",
+        acid: "#8ae83a", acidD: "#4aa82a", acidL: "#d8ff8a", lumen: "#1e3a14", lumenL: "#2e5a1e",
+        eyeW: "#ffffff", ink: "#0a0614", mouth: "#7a1a3a", tongue: "#ff6a8a", blush: "#ff3a6a",
+        meat: "#a8503a", meatD: "#7a3424", fat: "#ffe4d0",
+        mucus: "#6ac8ff", mucusL: "#b8e8ff", mucusD: "#3a8ad8", ion: "#ff3a3a", ionD: "#a81a1a",
+        bic: "#3a8aff", bicL: "#9ac8ff", cell: "#ffb0b8", cellD: "#e07a8a", nuc: "#a04a8a", nucL: "#c86aa8",
+        hp: "#c8a83a", hpD: "#8a6a1a", pill: "#ffffff", pillR: "#ff4a4a", bottle: "#ff9a2a", chili: "#ff2a2a", chiliG: "#3ac84a",
+        sore: "#a01a2a", soreL: "#ff4a3a", shield: "#3ae8ff",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+        ph0: "#ff2a2a", ph2: "#ff8a2a", ph4: "#ffe03a", ph7: "#3ac84a", ph10: "#3a8aff", ph14: "#8a3aff",
+      };
+      DISSOLVE = 0.12;
+
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function bgBody(cam, t) {
+        sky([[0, C.bg1], [1, C.bg2]]);
+        setCam(cam, 0.4);
+        for (var k = 0; k < 9; k++) { var y0 = hash1(k) * 340; g.globalAlpha = 0.6; line(-10, y0, 200, y0 + 40 * Math.sin(k + t * 0.3), 3, C.vein); g.globalAlpha = 1; }
+        setCam(cam, 1);
+      }
+
+      // ============================================================ the stomach (centre x, y): a J-shaped bag, cut away to show the acid
+      // o: mood happy|o|worried|ouch|proud, look, acid 0..1 (level), slosh, ulcer 0..1, shield 0..1, wave
+      function stomachShape(c) {
+        ell(8, 4, 46, 32, -0.25, c); ell(-24, 18, 24, 18, 0.2, c);
+        g.save(); g.translate(-22, -20); g.rotate(-0.3); rrect(-7, -19, 14, 23, 6, c); g.restore();     // oesophagus
+        g.save(); g.translate(-38, 30); g.rotate(0.5); rrect(-6, -2, 12, 22, 5, c); g.restore();         // duodenum
+      }
+      function stomachC(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s, s);
+        g.translate(0, Math.sin(t * 2.5) * 0.8);
+        stomachShape(C.wall);
+        // the cut-away inside
+        g.save(); ell(9, 6, 40, 26, -0.25, C.lin); ell(-22, 18, 19, 13, 0.2, C.lin);
+        g.beginPath(); g.ellipse(9, 6, 40, 26, -0.25, 0, 6.2832); g.ellipse(-22, 18, 19, 13, 0.2, 0, 6.2832); g.clip();
+        var lvl = lerp(36, 2, o.acid === undefined ? 1 : o.acid);
+        g.beginPath(); g.moveTo(-60, 60);
+        for (var xx = -60; xx <= 60; xx += 4) g.lineTo(xx, lvl + Math.sin(xx * 0.15 + t * 4) * 1.6 + (o.slosh || 0) * Math.sin(xx * 0.05 + t * 8) * 3);
+        g.lineTo(60, 60); g.closePath(); g.fillStyle = C.acid; g.fill();
+        rect(-60, lvl + 5, 120, 3, C.acidL);
+        for (var b = 0; b < 9; b++) { var bp = (t * (0.6 + hash1(b) * 0.6) + hash1(b + 4)) % 1; disc(-40 + hash1(b + 9) * 80, lerp(34, lvl + 2, bp), 1 + hash1(b) * 1.4, C.acidL); }
+        if (o.ulcer) { ell(36, 18, 7 * o.ulcer, 4 * o.ulcer, -0.6, C.sore); ell(36, 18, 4 * o.ulcer, 2 * o.ulcer, -0.6, C.soreL); }
+        g.restore();
+        // folds (rugae) on the upper wall
+        arcS(10, -18, 10, 3.6, 5.4, 1, C.wallD); arcS(-12, -6, 7, 3.8, 5.6, 1, C.wallD);
+        ell(-4, -20, 10, 3, -0.3, C.wallL);
+        // face on the upper wall
+        var m = o.mood || "happy", lk = o.look || 0;
+        disc(18, -14, 5, C.eyeW); disc(32, -18, 5, C.eyeW);
+        var pr = m === "o" || m === "ouch" ? 1.6 : 2.4;
+        if (m === "ouch") { line(14, -16, 22, -13, 1.4, C.ink); line(14, -11, 22, -14, 1.4, C.ink); line(28, -20, 36, -17, 1.4, C.ink); line(28, -15, 36, -18, 1.4, C.ink); }
+        else { disc(18 + lk * 2, -13.5, pr, C.ink); disc(32 + lk * 2, -17.5, pr, C.ink); disc(17 + lk * 2, -15, 0.8, C.eyeW); disc(31 + lk * 2, -19, 0.8, C.eyeW); }
+        if (m === "worried") { line(14, -21, 21, -19, 1.2, C.ink); line(29, -25, 36, -24, 1.2, C.ink); }
+        if (m === "proud") { line(14, -20, 21, -21, 1.2, C.ink); line(29, -25, 36, -25, 1.2, C.ink); }
+        disc(12, -6, 2.2, C.blush); disc(38, -11, 2.2, C.blush);
+        if (m === "happy" || m === "proud") arcS(26, -9, 4, 0.3, Math.PI - 0.3, 1.3, C.mouth);
+        else if (m === "o") { ell(26, -6, 2.6, 3.2, 0, C.mouth); }
+        else if (m === "worried") arcS(26, -3, 3.5, Math.PI + 0.4, -0.4, 1.3, C.mouth);
+        else { rrect(21, -8, 10, 4, 2, C.mouth); rect(22, -8, 8, 1.2, C.white); }
+        if (o.wave) { var wa = Math.sin(t * 10) * 0.4; line(50, -6, 58 + Math.cos(-1 + wa) * 6, -14 + Math.sin(-1 + wa) * 6, 3, C.wallD); disc(58 + Math.cos(-1 + wa) * 6, -14 + Math.sin(-1 + wa) * 6, 3, C.wall); }
+        g.restore();
+      }
+      function stomach(x, y, s, t, o) { character(function () { stomachC(x, y, s, t, o); }); }
+      function shieldGlow(x, y, s, t, k) {
+        if (k <= 0) return;
+        lighter(); glow(x + 5 * s, y + 4 * s, 70 * s, C.shield, 0.35 * k); normalBlend();
+        g.save(); g.globalAlpha = k; g.translate(x, y);
+        for (var a = 0; a < 6; a++) { var an = t * 1.2 + a * 1.047; disc(Math.cos(an) * 64 * s, Math.sin(an) * 46 * s, 2, C.shield); }
+        g.restore();
+      }
+      function phStrip(t, val, y) {
+        var cols = [C.ph0, C.ph2, C.ph4, C.ph7, C.ph10, C.ph14], x0 = 36, w = 108;
+        for (var i = 0; i < 6; i++) rect(x0 + i * w / 6, y, w / 6 + 0.5, 6, cols[i]);
+        worldText("0", x0, y + 9, 1, C.white); worldText("7", x0 + w / 2, y + 9, 1, C.white); worldText("14", x0 + w, y + 9, 1, C.white);
+        var ax = x0 + w * val / 14;
+        poly([[ax - 4, y - 8 + Math.sin(t * 6)], [ax + 4, y - 8 + Math.sin(t * 6)], [ax, y - 2 + Math.sin(t * 6)]], C.white);
+      }
+      function steak(x, y, s, rot) {
+        g.save(); g.translate(x, y); g.scale(s, s); g.rotate(rot);
+        poly([[-10, -6], [6, -8], [11, 0], [6, 7], [-8, 6], [-12, 0]], C.meatD); poly([[-9, -5], [5, -7], [9, 0], [5, 5], [-7, 5], [-10, 0]], C.meat);
+        line(-6, -2, 5, 1, 1.4, C.fat); line(-3, 3, 4, -4, 0.8, C.meatD);
+        g.restore();
+      }
+
+      // ============================================================ 1. the acid bag: a steak dissolves; "why not me?"
+      function meatLeft(t) { return 1 - clamp01((t - T.MEAT - 0.4) / 1.8); }
+      function scene_stomach(t) {
+        var tt = tapeT(t, T);
+        var cam = camAt([[0, 90, 158, 1.08], [T.MEAT, 90, 160, 1.0], [T.ASK, 90, 160, 1.0], [T.ZOOM, 92, 156, 1.1]], tt);
+        if (tt > T.TWIST) cam = { x: 90, y: 158, z: 1.08 };
+        shake(cam, tt, T.MEAT + 0.25, 4, 0.3);
+        bgBody(cam, tt);
+        var end = tt > T.TWIST;
+        if (end) shieldGlow(88, 104, 1, tt, clamp01((tt - T.TWIST - 0.2) / 0.4));
+        var mood = tt < T.ASK ? "happy" : tt < T.ASK + 0.6 ? "o" : tt < T.ZOOM ? "worried" : end ? (tt < T.CTA ? "proud" : "happy") : "happy";
+        stomach(88, 104, 1, tt, { mood: mood, look: tt > T.ASK && tt < T.ZOOM ? -1 : 0, slosh: tt > T.MEAT && tt < T.ASK ? 1 : 0.3, wave: tt > T.CTA + 0.3 });
+        // the steak: drops down the oesophagus into the acid and dissolves
+        if (!end && tt > T.MEAT - 0.3 && tt < T.ASK) {
+          var f = clamp01((tt - T.MEAT + 0.3) / 0.55), ml = meatLeft(tt);
+          if (ml > 0.02) steak(lerp(58, 82, f), lerp(30, 118, f * f), 0.9 * (0.35 + 0.65 * ml), tt * (f < 1 ? 6 : 0.5));
+          if (f >= 1) for (var s = 0; s < 6; s++) { var sp = (tt * 2 + s / 6) % 1; disc(78 + Math.sin(s * 2 + tt * 5) * 8, 116 - sp * 14, 1.2, C.acidL); }
+        }
+        if (tt > T.ASK + 0.5 && tt < T.ZOOM) bubble(126, 64, "ME?!", C.ink);
+        // the chilli friend at the end
+        if (tt > T.CTA) chili(lerp(200, 150, easeOut((tt - T.CTA) / 0.5)), 128 - Math.abs(Math.sin(tt * 6)) * 6, 1, tt, "happy");
+        phStrip(tt, 1.5, 192);
+        worldText(end ? "PROTECTED" : "STOMACH ACID", 90, 214, 1, end ? C.cyan : C.acid);
+        vignette(0.45, "rgba(20,0,10,");
+      }
+
+      // ============================================================ 2. the zoom into the wall
+      function zoomAt(t) { return Math.exp(Math.log(1000) * ease((t - T.ZOOM - 0.1) / (T.MUCUS - T.ZOOM - 0.2))); }
+      function scene_zoom(t) {
+        var z = Math.min(zoomAt(t), 16), k = clamp01((z - 1) / 4);
+        var sx = lerp(138, 90, k), sy = lerp(100, 110, k);
+        var cam = { x: 138 - (sx - 90) / z, y: 100 - (sy - 160) / z, z: z };
+        bgBody(cam, t);
+        setCam(cam, 1);
+        character(function () { stomachC(88, 104, 1, t, { mood: "o" }); });
+        // the target reticle
+        screen();
+        var p = 0.5 + 0.5 * Math.sin(t * 10);
+        g.strokeStyle = C.white; g.lineWidth = 1;
+        g.strokeRect(sx - 18 - p * 3, sy - 18 - p * 3, 36 + p * 6, 36 + p * 6);
+        vignette(0.5, "rgba(20,0,10,");
+      }
+
+      // ============================================================ 3. the wall, close up: acid / mucus / cells
+      var SURF = 92;          // the mucus surface when it's fully grown
+      function mucusTop(t) { return t < T.MUCUS ? 126 : lerp(126, SURF, easeOut((t - T.MUCUS) / 0.8)); }
+      function crackK(t) { return t < T.BREAK ? 0 : clamp01((t - T.BREAK) / 0.3); }
+      function ionC(x, y, s, t, k) {
+        character(function () {
+          g.save(); g.translate(x, y); g.scale(s, s); g.rotate(t * 3 + k);
+          for (var a = 0; a < 8; a++) { var an = a * 0.785; poly([[Math.cos(an - 0.3) * 5, Math.sin(an - 0.3) * 5], [Math.cos(an) * 8, Math.sin(an) * 8], [Math.cos(an + 0.3) * 5, Math.sin(an + 0.3) * 5]], C.ionD); }
+          disc(0, 0, 5.6, C.ion);
+          g.restore();
+          g.save(); g.translate(x, y); g.scale(s, s);
+          line(-3.5, -2.5, -1, -1.5, 0.9, C.ink); line(3.5, -2.5, 1, -1.5, 0.9, C.ink);
+          disc(-2, 0, 0.9, C.ink); disc(2, 0, 0.9, C.ink); line(-1.5, 2.6, 1.5, 2.6, 0.8, C.ink);
+          g.restore();
+        });
+        worldText("H+", x, y - 13 * s, 1, C.white);
+      }
+      function bicC(x, y, s, t) {
+        character(function () {
+          g.save(); g.translate(x, y); g.scale(s, s);
+          disc(0, 0, 5, C.bic); disc(-1.5, -1.5, 1.6, C.bicL);
+          disc(-1.8, -0.3, 0.8, C.ink); disc(1.8, -0.3, 0.8, C.ink); arcS(0, 1, 1.6, 0.3, Math.PI - 0.3, 0.7, C.ink);
+          g.restore();
+        });
+      }
+      function cellsRow(t) {
+        var cw = 24, n = 8, cr = crackK(t);
+        g.save(); g.beginPath(); g.rect(-20, 0, 220, 262); g.clip();
+        for (var i = 0; i < n; i++) {
+          var x = -6 + i * cw;
+          // renewal: three cells flake off (i = 2, 4, 6) and new ones slide up
+          var fi = [2, 4, 6].indexOf(i), off = 0, newY = 0, old = true;
+          if (fi >= 0 && t > T.FLAKE[fi]) {
+            var u = t - T.FLAKE[fi];
+            if (u < 0.45) { off = u; } else { old = false; newY = (1 - easeOut((u - 0.45) / 0.35)) * 40; }
+          }
+          var scared = t > T.BREAK && t < T.ULCER;
+          (function (x, i, off, newY, old) {
+            character(function () {
+              if (old && off > 0) { g.save(); g.translate(x + cw / 2 + off * 30 * (i % 4 === 0 ? -1 : 1), 128 - off * 60); g.rotate(off * 2); g.translate(-(x + cw / 2), -128); }
+              var y0 = 120 + newY;
+              rrect(x + 1, y0, cw - 2, 140, 6, C.cellD); rrect(x + 2, y0 + 1, cw - 4, 138, 5, old || off > 0 ? C.cell : C.wallL);
+              ell(x + cw / 2, y0 + 92, 6, 9, 0, C.nuc); disc(x + cw / 2 - 1.5, y0 + 89, 2, C.nucL);
+              // face near the top (above the caption band)
+              var ey = y0 + 13;
+              disc(x + cw / 2 - 4, ey, 2.4, C.eyeW); disc(x + cw / 2 + 4, ey, 2.4, C.eyeW);
+              var lk = Math.sin(t * 2 + i) * 0.6;
+              disc(x + cw / 2 - 4 + lk, ey + 0.3, scared ? 0.8 : 1.2, C.ink); disc(x + cw / 2 + 4 + lk, ey + 0.3, scared ? 0.8 : 1.2, C.ink);
+              if (scared) ell(x + cw / 2, ey + 6, 1.6, 2, 0, C.mouth);
+              else arcS(x + cw / 2, ey + 3.5, 2, 0.3, Math.PI - 0.3, 0.8, C.mouth);
+              if (old && off > 0) g.restore();
+            });
+            if (old && off > 0 && off < 0.4) worldText("BYE!", x + cw / 2 + off * 30 * (i % 4 === 0 ? -1 : 1), 104 - off * 60, 1, C.white);
+          })(x, i, off, newY, old);
+        }
+        g.restore();
+      }
+      function scene_micro(t) {
+        var cam = camAt([[T.MUCUS, 90, 160, 1.15], [T.BICARB, 90, 160, 1.0], [T.HIT, 90, 160, 1.0], [T.HIT + 0.6, 90, 150, 1.1]], t);
+        shake(cam, t, T.HIT, 8, 0.6);
+        sky([[0, C.lumen], [0.45, C.lumenL], [1, C.bg2]]);
+        setCam(cam, 1);
+        // acid haze
+        for (var b = 0; b < 14; b++) { var bp = (t * 0.3 + hash1(b)) % 1; disc(hash1(b + 3) * 180, 20 + bp * 70, 1 + hash1(b) * 1.5, C.acidD); }
+        cellsRow(t);
+        // the mucus shield (a gel with a wobbly surface), cracked open after BREAK
+        var mt = mucusTop(t), cr = crackK(t);
+        if (t > T.MUCUS) {
+          g.save(); g.globalAlpha = 0.82;
+          g.beginPath(); g.moveTo(-10, 132);
+          for (var xx = -10; xx <= 190; xx += 3) g.lineTo(xx, mt + Math.sin(xx * 0.12 + t * 3) * 2);
+          g.lineTo(190, 132); g.closePath(); g.fillStyle = C.mucus; g.fill();
+          g.globalAlpha = 1;
+          for (var xx2 = -10; xx2 <= 190; xx2 += 3) rect(xx2, mt + Math.sin(xx2 * 0.12 + t * 3) * 2, 3, 1.5, C.mucusL);
+          for (var q = 0; q < 10; q++) disc(hash1(q + 20) * 180, lerp(mt + 6, 128, hash1(q + 31)), 1.2, C.mucusL);
+          g.restore();
+          if (cr > 0) {
+            // the hole: acid floods down onto the cells
+            poly([[70, mt - 3], [110, mt - 3], [100, 128], [80, 128]], C.lumenL);
+            poly([[72, mt], [108, mt], [98, 126], [82, 126]], C.acid);
+            line(70, mt, 62, mt + 14, 1, C.mucusD); line(110, mt, 120, mt + 16, 1, C.mucusD); line(64, mt + 8, 56, mt + 22, 1, C.mucusD);
+            for (var d = 0; d < 6; d++) { var dp = (t * 2 + d / 6) % 1; disc(84 + d * 2.5, lerp(mt, 126, dp), 1.6, C.acidL); }
+            if (t > T.HIT) { lighter(); glow(90, 128, 18, C.soreL, 0.5 + 0.3 * Math.sin(t * 12)); normalBlend(); }
+          }
+        }
+        // acid ions: bouncing off the shield (DEFL), later neutralised (NEUTS), later pouring through the crack
+        (T.DEFL || []).forEach(function (e, k) {
+          var a = t - e; if (a < -0.5 || a > 0.5) return;
+          var x = 18 + hash1(k + 7) * 144, yy = mt - 9 - (Math.abs(a) / 0.5) * (mt - 76);
+          ionC(x + a * 20, yy, 0.9, t, k);
+          if (Math.abs(a) < 0.08) { lighter(); glow(x, mt - 2, 8, C.white, 0.7); normalBlend(); }
+        });
+        (T.RISE || []).forEach(function (e, k) {
+          var a = t - e; if (a < 0 || a > 1.2) return;
+          bicC(14 + hash1(k + 50) * 152, lerp(124, mt + 8, clamp01(a / 1.0)), 0.8, t);
+        });
+        (T.NEUTS || []).forEach(function (e, k) {
+          var a = t - e, x = 20 + hash1(k + 70) * 140; if (a < -0.45 || a > 0.4) return;
+          if (a < 0) { ionC(x, lerp(68, mt + 4, (a + 0.45) / 0.45), 0.8, t, k); bicC(x, lerp(124, mt + 8, (a + 0.45) / 0.45), 0.8, t); }
+          else { var r = a / 0.4; g.globalAlpha = 1 - r; for (var sp = 0; sp < 6; sp++) disc(x + Math.cos(sp) * r * 12, mt + 6 + Math.sin(sp) * r * 8, 1.2, C.white); g.globalAlpha = 1; worldText("H2O", x, mt - 6 - r * 10, 1, C.mucusL); }
+        });
+        if (t > T.HIT) for (var k2 = 0; k2 < 5; k2++) { var ip = ((t - T.HIT) * 0.9 + k2 / 5) % 1; ionC(80 + k2 * 5 + Math.sin(k2 * 3) * 6, lerp(64, mt + 14, ip), 0.8, t, k2); }
+        // layer labels on the left
+        if (t > T.MUCUS + 0.6 && t < T.BREAK) { worldText("ACID", 22, 74, 1, C.acid); worldText("MUCUS", 26, mt + 12, 1, C.white); }
+        // the "where are we" mini-map below the caption
+        screen();
+        rrect(130, 196, 34, 26, 4, "rgba(10,6,20,0.8)");
+        g.save(); g.translate(144, 209); g.scale(0.22, 0.22); stomachShape(C.wall); g.restore();
+        g.strokeStyle = C.gold; g.lineWidth = 1; g.strokeRect(151, 206, 6, 6);
+        vignette(0.4, "rgba(10,10,0,");
+      }
+
+      // ============================================================ 4. the ulcer
+      function scene_ulcer(t) {
+        var cam = camAt([[T.ULCER, 100, 130, 1.5], [T.ULCER + 0.8, 90, 158, 1.0], [T.PYLORI, 90, 158, 1.02]], t);
+        shake(cam, t, T.ULCER + 0.3, 6, 0.4);
+        bgBody(cam, t);
+        var ulc = clamp01((t - T.ULCER) / 0.4);
+        stomach(88, 104, 1, t, { mood: "ouch", ulcer: ulc, slosh: 0.6 });
+        if (t > T.ULCER + 0.4) { lighter(); glow(122, 118, 14, C.soreL, 0.4 + 0.3 * Math.sin(t * 10)); normalBlend(); }
+        if (t > T.ULCER + 0.5) bubble(124, 64, "OUCH!", C.ink);
+        // the sore, magnified below the caption
+        if (t > T.ULCER + 0.6) {
+          var p = Math.min(pop(t, T.ULCER + 0.6), 1.1);
+          g.save(); g.translate(90, 205); g.scale(p, p);
+          disc(0, 0, 22, C.white); disc(0, 0, 20, C.cell); ell(0, 2, 12, 7, 0, C.sore); ell(0, 2, 7, 4, 0, C.soreL);
+          g.restore();
+        }
+        vignette(0.5, "rgba(30,0,10,");
+      }
+
+      // ============================================================ 5. the causes: H. pylori, painkillers, (not) chilli
+      function pylori(x, y, s, t) {
+        character(function () {
+          g.save(); g.translate(x, y); g.scale(s, s); g.rotate(-0.4);
+          for (var f = 0; f < 4; f++) { var w = Math.sin(t * 14 + f) * 3; line(-18, -2 + f * 1.3, -26, -6 + f * 3 + w, 1, C.hpD); line(-26, -6 + f * 3 + w, -32, -4 + f * 3 - w, 1, C.hpD); }
+          for (var k = 0; k < 6; k++) { var xx = -16 + k * 6.5, yy = Math.sin(k * 1.4 + t * 10) * 3; disc(xx, yy, 5.5, C.hpD); }
+          for (var k2 = 0; k2 < 6; k2++) { var x2 = -16 + k2 * 6.5, y2 = Math.sin(k2 * 1.4 + t * 10) * 3; disc(x2, y2 - 0.5, 4.6, C.hp); }
+          var hx = 17, hy = Math.sin(5 * 1.4 + t * 10) * 3;
+          disc(hx - 2, hy - 2, 2.2, C.eyeW); disc(hx + 3, hy - 2, 2.2, C.eyeW); disc(hx - 1.5, hy - 1.8, 1, C.ink); disc(hx + 3.5, hy - 1.8, 1, C.ink);
+          line(hx - 4, hy - 5, hx - 0.5, hy - 4, 0.9, C.ink); line(hx + 5, hy - 5, hx + 1.5, hy - 4, 0.9, C.ink);
+          arcS(hx + 0.5, hy + 0.5, 2.6, 0.2, Math.PI - 0.2, 0.9, C.ink);
+          g.restore();
+        });
+      }
+      function chili(x, y, s, t, m) {
+        character(function () {
+          g.save(); g.translate(x, y); g.scale(s, s);
+          g.beginPath(); g.moveTo(-6, -14); g.quadraticCurveTo(10, -10, 7, 6); g.quadraticCurveTo(3, 18, -10, 22); g.quadraticCurveTo(-2, 10, -6, -14); g.fillStyle = C.chili; g.fill();
+          rect(-8, -18, 6, 5, C.chiliG); line(-5, -18, -2, -24, 1.6, C.chiliG);
+          disc(-2, -6, 2, C.eyeW); disc(4, -6, 2, C.eyeW); disc(-1.6, -5.8, 0.9, C.ink); disc(4.4, -5.8, 0.9, C.ink);
+          if (m === "shrug") { line(-3, 0, 3, 0, 0.9, C.ink); line(-9, -2, -14, -6, 1.4, C.chili); line(9, -2, 14, -6, 1.4, C.chili); }
+          else arcS(1, -2, 2.4, 0.3, Math.PI - 0.3, 0.9, C.ink);
+          g.restore();
+        });
+      }
+      function scene_causes(t) {
+        var cam = camAt([[T.PYLORI, 90, 160, 1.0], [T.TWIST, 90, 160, 1.04]], t);
+        bgBody(cam, t);
+        var ph = t < T.PAIN ? 0 : t < T.SPICY ? 1 : 2;
+        // the stomach, smaller, below the caption
+        stomach(86, 214, 0.55, t, { mood: ph === 2 ? "happy" : "worried", ulcer: ph < 2 ? 1 : 0.4, slosh: 0.4, look: -1 });
+        if (ph === 0) {
+          var dx = clamp01((t - T.PYLORI) / 1.2);
+          // a slab of mucus being corkscrewed into
+          rect(20, 120, 140, 24, C.mucus); for (var q = 0; q < 8; q++) disc(30 + q * 17, 126 + (q % 2) * 8, 1.4, C.mucusL);
+          pylori(lerp(-20, 92, easeOut(dx)), 92 + dx * 22 + Math.sin(t * 6) * 2, 1.3, t);
+          if (dx > 0.9) { poly([[86, 120], [100, 120], [96, 144], [90, 144]], C.lumenL); }
+          if (t > T.PYLORI + 1.3) bubble(110, 66, "HEHE", C.ink);
+        } else if (ph === 1) {
+          // the pill bottle tips; pills rain down
+          g.save(); g.translate(140, 70); g.rotate(-2.2 * clamp01((t - T.PAIN) / 0.3));
+          rrect(-9, -14, 18, 26, 3, C.bottle); rect(-10, -18, 20, 5, C.white); rect(-7, -6, 14, 8, C.white); worldText("RX", 0, -4.5, 1, C.red);
+          g.restore();
+          (T.PILLS || []).forEach(function (e, k) {
+            var a = t - e; if (a < 0) return;
+            var x = 128 - a * 40 - k * 5, y = Math.min(70 + a * a * 140, 140 - (k % 3) * 4);
+            g.save(); g.translate(x, y); g.rotate(a * 6 + k);
+            rrect(-5, -2.2, 10, 4.4, 2.2, C.pill); rrect(0, -2.2, 5, 4.4, 2.2, C.pillR); g.restore();
+          });
+          worldText("IBUPROFEN", 60, 64, 1, C.white); worldText("ASPIRIN", 60, 74, 1, C.white);
+        } else {
+          var hop = Math.abs(Math.sin((t - T.SPICY) * 6)) * 8 * (1 - clamp01((t - T.SPICY) / 1.2));
+          chili(90, 118 - hop, 2, t, t > T.SPICY + 0.9 ? "shrug" : "happy");
+          if (t > T.SPICY + 1.0) {
+            var p = Math.min(pop(t, T.SPICY + 1.0), 1.1);
+            g.save(); g.translate(90, 112); g.scale(p, p); g.globalAlpha = 0.9;
+            line(-24, -24, 24, 24, 5, C.red); line(24, -24, -24, 24, 5, C.red); g.restore(); g.globalAlpha = 1;
+          }
+          if (t > T.SPICY + 1.4) bubble(126, 64, "NOT ME!", C.ink);
+        }
+        vignette(0.45, "rgba(20,0,10,");
+      }
+
+      function sceneAt(t) {
+        var tt = tapeT(t, T);
+        return tt < T.ZOOM ? "stomach" : tt < T.MUCUS ? "zoom" : tt < T.ULCER ? "micro" : tt < T.PYLORI ? "ulcer" : tt < T.TWIST ? "causes" : "stomach";
+      }
+      function drawUI(t) {
+        var tt = tapeT(t, T);
+        if (tt < T.MEAT) counterLines("ACID PH 1.5", C.acid, 3, "HYDROCHLORIC", C.white);
+        else if (tt < T.ASK) counterLines("MEAT " + Math.round(100 * meatLeft(tt)) + "%", meatLeft(tt) < 0.3 ? C.red : C.gold, 3, "DISSOLVING...", C.white);
+        else if (tt < T.ZOOM) counterLines("WALL 100%", C.green, 3, "SAME MEAT...", C.white);
+        else if (tt < T.MUCUS) counterLines("ZOOM X" + Math.round(zoomAt(tt)), C.gold, 3, "INTO THE WALL", C.white);
+        else if (tt < T.NEUT) counterLines("SHIELD ON", C.cyan, 3, "BOUNCES " + countOf(T.DEFL, tt), C.white);
+        else if (tt < T.RENEW) counterLines("PH AT WALL ~7", C.green, 3, "NEUTRALISED " + countOf(T.NEUTS, tt), C.white);
+        else if (tt < T.HIT) counterLines("NEW CELLS " + countOf(T.FLAKE, tt), C.green, 3, "EVERY 3-5 DAYS", C.white);
+        else if (tt < T.ULCER) counterLines("SHIELD 0%", C.red, 3, "ACID LEAKING!", C.red);
+        else if (tt < T.PYLORI) counterLines("ULCER!", C.red, 3, "A SORE IN THE WALL", C.white);
+        else if (tt < T.PAIN) counterLines("CAUSE #1", C.gold, 3, "H. PYLORI BUG", C.white);
+        else if (tt < T.SPICY) counterLines("CAUSE #2", C.gold, 3, "NSAID PILLS", C.white);
+        else if (tt < T.TWIST) counterLines("MYTH BUSTED", C.pink, 3, "SPICY CAN STING THO", C.white);
+        else counterLines("SHIELD 100%", C.cyan, 3, "ACID PH 1.5", C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { stomach: scene_stomach, zoom: scene_zoom, micro: scene_micro, ulcer: scene_ulcer, causes: scene_causes },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.soreL,
+        cuts: [[T.ZOOM, "stomach", "zoom"], [T.MUCUS, "zoom", "micro"], [T.ULCER, "micro", "ulcer"], [T.PYLORI, "ulcer", "causes"], [T.TWIST, "causes", "stomach"]],
+      });
+    </script>
+  </body>
+</html>
