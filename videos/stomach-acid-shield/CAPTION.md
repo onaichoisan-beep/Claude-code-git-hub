@@ -8,4 +8,4 @@ Your stomach isn't indestructible. It's just very well defended. Tag a chilli lo
 
 Sources: Allen & Flemström (2005) American Journal of Physiology, Cell Physiology; Lanas & Chan (2017) The Lancet, "Peptic ulcer disease"; NIDDK, "Symptoms & Causes of Peptic Ulcers"
 
-#stomach #digestion #ulcer #humanbody #biology #science #pixelart
+#stomach #digestion #ulcer #humanbody #biology

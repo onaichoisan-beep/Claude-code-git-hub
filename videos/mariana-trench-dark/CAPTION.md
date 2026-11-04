@@ -8,4 +8,4 @@ Even in the darkest depths of our planet, life finds a way. Would you go down? ð
 
 Sources: NOAA Ocean Exploration & NOAA Ocean Service; Greenaway et al. (2021) Geoscience Letters; Gerringer et al. (2017) Zootaxa (Mariana snailfish)
 
-#marianatrench #deepsea #ocean #challengerdeep #science #pixelart
+#marianatrench #deepsea #ocean #challengerdeep #science

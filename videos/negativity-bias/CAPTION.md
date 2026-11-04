@@ -8,4 +8,4 @@ So remember: not every negative thought deserves your attention. Send this to an
 
 Sources: Baumeister et al. (2001) "Bad Is Stronger Than Good", Review of General Psychology; Rozin & Royzman (2001) Personality and Social Psychology Review; Vaish, Grossmann & Woodward (2008) Psychological Bulletin
 
-#negativitybias #psychology #brain #overthinking #mentalhealth #science #pixelart
+#negativitybias #psychology #brain #overthinking #mentalhealth
