@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>These Aren't Its Eyes</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #7ac86a; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #7ac86a; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "These Aren't Its Eyes" (the zombie snail) — text cards + sound only, story loop (STYLE_GUIDE sections 6 + 9), safe
+      zone (section 8), layout checked with _engine/qa_layout.js. Facts: the flatworm Leucochloridium paradoxum forms
+      pulsating, banded broodsacs in the eye-stalks of amber snails (Succinea); infected snails spend more time in
+      exposed, brighter places (Wesolowska & Wesolowski 2014, J. Zool.); birds peck the caterpillar-like broodsacs, the
+      worms mature in the bird's gut, eggs leave in the droppings and are eaten by snails; snails can regrow tentacles.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="29.2" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="29.2" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="29.2" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        sky0: "#8ad8ff", sky1: "#e0f8ff", sun: "#fff07a", shade: "#2a6a3a", leaf: "#4ac85a", leafD: "#2a9a3a", leafL: "#8ae87a",
+        soil: "#6a4a2a", soilD: "#4a3218", stem: "#3a9a3a",
+        body: "#e8c890", bodyD: "#b8945a", shell: "#c87a3a", shellD: "#8a4a1a", shellL: "#f0b06a",
+        sacG: "#3ae86a", sacY: "#ffe83a", sacD: "#1a8a3a",
+        bird: "#a8743a", birdD: "#6a4422", birdL: "#f0e0c8", beak: "#ffc83a",
+        xr0: "#0a1a2a", xr1: "#14283a", ghost: "#9ab8c8", worm: "#3ae86a", egg: "#ffffff", poop: "#e8e8d8",
+        ink: "#0a0614", mouth: "#7a1a3a", eyeW: "#ffffff", blush: "#ff8a9a",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      var GROUND = 138;
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function say(x, y, str) { g.save(); screen(); bubble(x, y, str, C.ink); g.restore(); }
+      function label(str, x, y, col) { g.save(); screen(); worldText(str, x, y + 1, 1, C.ink); worldText(str, x, y, 1, col || C.white); g.restore(); }
+      function pulseK(t) { var d = t - lastOf(T.PULSES, t); return d >= 0 && d < 0.35 ? Math.sin(d / 0.35 * Math.PI) : 0; }
+
+      // ============================================================ the snail (x = foot centre, y = ground), facing right
+      function snailC(x, y, s, t, o) {
+        o = o || {};
+        var inf = o.infected, pk = inf ? pulseK(t) : 0, xr = o.xray;
+        g.save(); g.translate(x, y); g.scale(s, s);
+        g.globalAlpha = xr ? 0.55 : 1;
+        var bc = xr ? C.ghost : C.body, bd = xr ? C.ghost : C.bodyD;
+        ell(2, -4, 22, 5, 0, bd); ell(2, -4.6, 21, 4.2, 0, bc);
+        // head + tentacles (infected: swollen, banded, pulsing)
+        ell(19, -9, 6, 6, 0, bc);
+        var tl = [[17, -13, 13, -26], [22, -13, 24, -27]];
+        tl.forEach(function (tt, i) {
+          if (o.bitten && i === 1) { line(tt[0], tt[1], tt[0] + 1, tt[1] - 4, 2, bd); return; }
+          if (inf) {
+            var w = 4.2 + 1.6 * pk;
+            line(tt[0], tt[1], tt[2], tt[3], w + 1, C.sacD);
+            for (var b = 0; b < 4; b++) { var u = b / 3.5, bx = lerp(tt[0], tt[2], u), by = lerp(tt[1], tt[3], u); disc(bx, by, w * 0.55, b % 2 ? C.sacY : C.sacG); }
+            disc(tt[2], tt[3], 2.2, C.ink);
+          } else { line(tt[0], tt[1], tt[2], tt[3], 1.6, bd); disc(tt[2], tt[3], 1.8, C.ink); disc(tt[2] + 0.4, tt[3] - 0.4, 0.5, C.white); }
+        });
+        line(24, -9, 30, -6, 1.2, bd);
+        if (o.chew) ell(25, -6, 1.6, 1 + Math.abs(Math.sin(t * 10)), 0, C.mouth); else arcS(23, -7.5, 1.6, 0.2, Math.PI - 0.6, 0.7, C.mouth);
+        // shell
+        disc(-4, -15, 13, xr ? C.ghost : C.shellD); disc(-4, -15.5, 12, xr ? C.ghost : C.shell);
+        g.strokeStyle = xr ? C.white : C.shellD; g.lineWidth = 1.2; g.beginPath(); for (var a = 0; a < 14; a += 0.3) { var r = 1 + a * 0.75; g.lineTo(-4 + Math.cos(a) * r, -15.5 + Math.sin(a) * r); } g.stroke();
+        ell(-8, -22, 4, 2, -0.6, xr ? C.white : C.shellL);
+        g.globalAlpha = 1;
+        if (xr) {         // the worm network inside, feeding the stalks
+          g.strokeStyle = C.worm; g.lineWidth = 1.6;
+          g.beginPath(); g.moveTo(-6, -12); g.bezierCurveTo(4, -2, 10, -6, 17, -13); g.lineTo(13, -26); g.moveTo(17, -13); g.lineTo(24, -27); g.stroke();
+          for (var k = 0; k < 6; k++) disc(-8 + k * 4, -10 + Math.sin(k + t * 3) * 2, 1.4, C.worm);
+        }
+        g.restore();
+      }
+      function snail(x, y, s, t, o) { character(function () { snailC(x, y, s, t, o); }); }
+      function birdC(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s * (o.flip ? -1 : 1), s);
+        var f = o.fly ? Math.sin(t * 16) * 8 : 0;
+        poly([[-9, 0], [-20, -4], [-19, 3]], C.birdD);
+        if (o.fly) poly([[-2, -4], [-10, -16 - f], [6, -5]], C.birdD);
+        ell(0, 0, 10, 7, -0.1, C.bird); ell(1, 2, 6, 4, 0, C.birdL);
+        if (!o.fly) poly([[-6, -3], [6, -2], [-9, 3]], C.birdD);
+        disc(9, -6, 5.5, C.bird);
+        var pk = o.peck ? Math.max(0, Math.sin(t * 9)) * 3 : 0;
+        poly([[13, -7 + pk], [20, -5 + pk], [13, -4 + pk]], C.beak);
+        disc(10.5, -7.5, 1.8, C.eyeW); disc(11, -7.4, 1, C.ink);
+        if (!o.fly) { line(-1, 6, -2, 11, 1, C.beak); line(3, 6, 3, 11, 1, C.beak); }
+        if (o.xray) { g.globalAlpha = 0.9; g.strokeStyle = C.worm; g.lineWidth = 1.4; g.beginPath(); for (var a = 0; a < 6; a += 0.3) g.lineTo(-4 + a * 1.4, 1 + Math.sin(a * 2 + t * 4) * 1.6); g.stroke(); g.globalAlpha = 1; }
+        g.restore();
+      }
+      function bird(x, y, s, t, o) { character(function () { birdC(x, y, s, t, o); }); }
+      function garden(t, cam, sunK) {
+        sky([[0, C.sky0], [0.55, C.sky1], [1, C.sky1]]);
+        setCam(cam, 0.5); disc(150, 66, 10, C.sun); lighter(); glow(150, 66, 26 + 6 * (sunK || 0), C.sun, 0.35 + 0.3 * (sunK || 0)); normalBlend();
+        setCam(cam, 1);
+        rect(-60, GROUND, 300, 240, C.soilD); rect(-60, GROUND, 300, 3, C.soil);
+        // a big leaf that makes shade on the left, a stem going up on the right
+        line(30, GROUND, 30, 88, 3, C.stem); ell(18, 86, 30, 9, -0.2, C.leafD); ell(18, 85, 28, 8, -0.2, C.leaf); line(-8, 90, 44, 82, 0.8, C.leafD);
+        g.save(); g.globalAlpha = 0.35; poly([[-12, 90], [48, 82], [56, GROUND], [-12, GROUND]], C.shade); g.restore();
+        line(140, GROUND, 136, 96, 3, C.stem); ell(118, 98, 26, 6, 0.15, C.leafD); ell(118, 97, 25, 5, 0.15, C.leafL);
+      }
+
+      // ============================================================ scenes
+      function scene_garden(t) {
+        var tt = tapeT(t, T);
+        var cam = tt < T.PULSE ? camAt([[0, 110, 149, 1.9], [T.PULSE, 104, 148, 1.7]], tt) : tt < T.SHADE ? { x: 100, y: 148, z: 1.6 } : { x: 90, y: 160, z: 1.0 };
+        var sunK = tt >= T.SUN && tt < T.HIT ? 1 : 0;
+        garden(tt, cam, sunK);
+        // the normal snail hiding in the shade (SHADE onwards)
+        if (tt >= T.SHADE && tt < T.HIT) snail(22, GROUND, 0.8, tt, {});
+        // the infected snail: on the ground, then up the stem onto the sunny leaf
+        var sx = 110, sy = GROUND;
+        if (tt >= T.SUN && tt < T.HIT) { var p = clamp01((tt - T.SUN) / 1.6); sx = lerp(110, 116, p); sy = lerp(GROUND, 96, ease(p)); }
+        snail(sx, sy, tt < T.SHADE ? 1.4 : 1.1, tt, { infected: true });
+        if (tt >= T.BIRD && tt < T.HIT) { var bp = easeOut(clamp01((tt - T.BIRD) / 0.9)); bird(lerp(-20, 74, bp), lerp(76, 86, bp), 1.3, tt, { fly: bp < 1 }); if (bp >= 1 && tt < T.HIT - 0.15) say(48, 68, "YUM!"); }
+        if (tt >= T.SHADE && tt < T.SUN) label("NORMAL", 22, 196, C.white);
+        if (tt >= T.SHADE && tt < T.HIT) label("INFECTED", 116, 196, C.green);
+      }
+      function scene_xray(t) {
+        var cam = camAt([[T.HIT, 96, 142, 1.8], [T.NEED, 96, 142, 1.7]], t);
+        shake(cam, t, T.HIT, 6, 0.5);
+        sky([[0, C.xr0], [1, C.xr1]]); setCam(cam, 1);
+        for (var l = 0; l < 6; l++) line(40, 90 + l * 8, 150, 90 + l * 8, 0.3, "#1a3a4a");
+        snail(92, 130, 1.4, t, { infected: true, xray: true });
+        if (t >= T.NAME) label("FLATWORM", 90, 196, C.green);
+      }
+      function scene_drive(t) {
+        var tt = tapeT(t, T);
+        var cam = { x: 90, y: 160, z: 1.0 };
+        garden(tt, cam, 1);
+        var drive = tt >= T.DRIVE && tt < T.BITE;
+        var sx = 116, sy = 96;
+        if (tt < T.DRIVE) { sx = 80; sy = GROUND; }
+        if (drive) { var p = clamp01((tt - T.DRIVE) / 1.6); sx = lerp(80, 116, p); sy = lerp(GROUND, 96, ease(p)); }
+        var bitten = tt > T.BITE + 0.8;
+        if (tt < T.GROW) snail(sx, sy, 1.1, tt, { infected: !bitten || true, bitten: bitten });
+        // puppet strings from the worm, pulling the snail up (DRIVE)
+        if (drive || tt < T.DRIVE) { g.strokeStyle = C.worm; g.lineWidth = 0.6; line(sx + 14, sy - 30, sx + 14, 60, 0.6, C.worm); line(sx + 24, sy - 30, sx + 24, 60, 0.6, C.worm); rect(sx + 6, 58, 26, 3, C.worm); }
+        if (tt < T.DRIVE) { bird(40, 84, 1.0, tt, {}); line(52, 84, 70, 98, 1.2, C.gold); poly([[70, 95], [74, 100], [67, 100]], C.gold); label("TARGET: BIRD", 90, 196, C.gold); }
+        if (tt >= T.BITE && tt < T.GROW) { var bp = easeOut(clamp01((tt - T.BITE) / 0.7)); bird(lerp(-20, 146, bp), lerp(78, 80, bp), 1.2, tt, { fly: bp < 1, flip: true, peck: bp >= 1 && tt < T.BITE + 1.2 }); if (bitten) label("SNAIL: OK", 90, 196, C.green); }
+        if (tt >= T.GROW && tt < T.POOP) { sky([[0, C.xr0], [1, C.xr1]]); setCam(cam, 1); character(function () { birdC(90, 104, 3.2, tt, { xray: true }); }); label("WORM GROWS", 90, 196, C.green); }
+        if (tt >= T.POOP && tt < T.EATS) { rect(20, 92, 150, 4, "#6a4a32"); bird(110, 82, 1.2, tt, {}); var dp = clamp01((tt - T.POOP - 0.3) / 0.5); disc(100, lerp(92, 132, dp), 3, C.poop); for (var e = 0; e < 4; e++) disc(98 + e * 1.4, lerp(92, 132, dp) - 0.5, 0.6, C.ink); label("EGGS", 90, 196, C.white); }
+        if (tt >= T.EATS) { disc(100, 132, 3, C.poop); snail(76, GROUND, 1.2, tt, { chew: true, infected: tt > T.EATS + 1.2 }); }
+      }
+
+      function sceneAt(t) {
+        var tt = tapeT(t, T);
+        return tt < T.HIT ? "garden" : tt < T.NEED ? "xray" : "drive";
+      }
+      function drawUI(t) {
+        var tt = tapeT(t, T);
+        if (tt < T.HIT) counterLines("PULSES: " + countOf(T.PULSES, tt), C.green, 3, tt < T.SUN ? "EYE-STALKS" : tt < T.BIRD ? "SUN: FULL" : "BIRD: COMING", C.ink);
+        else if (tt < T.NEED) counterLines("PARASITE!", C.red, 3, "IN BOTH STALKS", C.white);
+        else { var st = tt < T.GROW ? 1 : tt < T.POOP ? 2 : tt < T.EATS ? 3 : 4; counterLines("STAGE " + st + "/4", C.green, 3, ["SNAIL", "BIRD", "POOP", "SNAIL AGAIN"][st - 1], tt >= T.GROW && tt < T.POOP ? C.white : C.ink); }
+      }
+
+      KIT.start(C, T, {
+        scenes: { garden: scene_garden, xray: scene_xray, drive: scene_drive },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.green,
+        cuts: [[T.HIT, "garden", "xray"], [T.NEED, "xray", "drive"]],
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Where Did Your First 3 Years Go?</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #2a2050; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #2a2050; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "Where Did Your First 3 Years Go?" (infantile amnesia) — narrated story (Kokoro af_heart), story loop (STYLE_GUIDE
+      7 + 9), safe zone (section 8), layout checked with _engine/qa_layout.js. Facts: adults rarely remember anything
+      before ~3-3.5 years (infantile/childhood amnesia); in an awake-infant fMRI study, babies whose hippocampus was more
+      active when first seeing an image later looked longer at it, evidence of memory encoding from about 12 months
+      (Yates et al. 2025, Science 387: 676); so the problem may be retrieval ("maybe locked", hedged); in mice, infant
+      memories thought lost were reactivated with optogenetics (light) (Guskjolen et al. 2018, Current Biology).
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="59.2" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="59.2" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="59.2" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        bg0: "#3a2a6a", bg1: "#1a1438", room0: "#ffe8f0", room1: "#ffc8d8", photo: "#fff8ec", photoD: "#d8ccb8", fadeC: "#c8c0d0",
+        skin: "#ffc8a0", skinD: "#d8946a", hair: "#3a2418", diaper: "#ffffff", cake: "#ff9ad8", cakeD: "#d8608a", candle: "#ffd23a",
+        mri: "#e8eef4", mriD: "#a8b4c8", screenC: "#0a2a3a", screenL: "#3ae8ff", brain: "#ff9ac0", brainD: "#d8608a", hippo: "#ffd23a",
+        lock: "#ffc83a", lockD: "#b8861a", mouse: "#d8d8e8", mouseD: "#9a9ab0", beam: "#3ae8ff", sand: "#ffe0a0", sea: "#3a9aff",
+        ink: "#0a0614", mouth: "#7a1a3a", eyeW: "#ffffff", blush: "#ff8a9a",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function say(x, y, str) { g.save(); screen(); bubble(x, y, str, C.ink); g.restore(); }
+      function label(str, x, y, col) { g.save(); screen(); worldText(str, x, y + 1, 1, C.ink); worldText(str, x, y, 1, col || C.white); g.restore(); }
+
+      function babyC(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s, s);
+        var st = o.step ? Math.sin(t * 6) : 0;
+        line(-3, -6, -4 - st * 2, 0, 3, C.skinD); line(3, -6, 4 + st * 2, 0, 3, C.skinD);
+        ell(0, -10, 7, 6, 0, C.skin); rrect(-6, -9, 12, 6, 2, C.diaper);
+        line(-6, -14, -10, -10 + (o.wave ? -8 : 0), 2.4, C.skin); line(6, -14, 10, -10, 2.4, C.skin);
+        disc(0, -25, 10, C.skinD); disc(0, -25.5, 9.4, C.skin); line(0, -35, 2, -38, 1, C.hair);
+        if (o.stare) { disc(-3.5, -26, 2.2, C.eyeW); disc(3.5, -26, 2.2, C.eyeW); disc(-3.2, -26, 1.3, C.ink); disc(3.8, -26, 1.3, C.ink); }
+        else { disc(-3.5, -26, 1.4, C.ink); disc(3.5, -26, 1.4, C.ink); disc(-3.9, -26.6, 0.5, C.white); disc(3.1, -26.6, 0.5, C.white); }
+        if (o.talk) ell(0, -20.5, 1.8, 1.6 + Math.abs(Math.sin(t * 8)), 0, C.mouth); else arcS(0, -21.5, 2.4, 0.3, Math.PI - 0.3, 0.8, C.mouth);
+        disc(-6.5, -22, 1.5, C.blush); disc(6.5, -22, 1.5, C.blush);
+        g.restore();
+      }
+      function baby(x, y, s, t, o) { character(function () { babyC(x, y, s, t, o); }); }
+      function polaroid(x, y, w, h, fade, inner, rot) {
+        g.save(); g.translate(x, y); g.rotate(rot || 0);
+        rect(-w / 2 - 1, -h / 2 - 1, w + 2, h + 8, C.photoD); rect(-w / 2, -h / 2, w, h + 6, C.photo);
+        g.save(); g.beginPath(); g.rect(-w / 2 + 3, -h / 2 + 3, w - 6, h - 6); g.clip(); rect(-w / 2, -h / 2, w, h, C.room1); inner(); g.restore();
+        if (fade > 0) { g.globalAlpha = fade; rect(-w / 2 + 3, -h / 2 + 3, w - 6, h - 6, C.fadeC); g.globalAlpha = 1; if (fade > 0.7) worldText("?", 0, -5, 2, C.ink); }
+        g.restore();
+      }
+
+      // ============================================================ scenes
+      function scene_photos(t) {
+        var tt = tapeT(t, T);
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.bg0], [1, C.bg1]]); setCam(cam, 1);
+        var M = T.MEMS, fd = function (i) { return tt < T.GONE ? (tt > M[i] + 0.5 ? clamp01((tt - M[i] - 0.5) / 0.8) : 0) : 1; };
+        if (tt < T.FIRSTS) fd = function () { return clamp01(tt / 1.5) * 0.9; };
+        polaroid(44, 92, 46, 46, fd(0), function () { rect(-23, 6, 46, 20, C.sand); character(function () { babyC(0, 18, 0.9, tt, { step: true }); }); }, -0.12);
+        polaroid(92, 84, 46, 46, fd(1), function () { character(function () { babyC(0, 18, 0.9, tt, { talk: true }); }); worldText("MAMA", 10, -18, 1, C.ink); }, 0.05);
+        polaroid(140, 96, 46, 46, fd(2), function () { rect(-12, 4, 24, 12, C.cakeD); rect(-11, 3, 22, 11, C.cake); rect(-1, -6, 2, 9, C.candle); disc(0, -8, 2, "#ff8a3a"); }, 0.12);
+        if (tt >= T.GONE) { label("DELETED?", 90, 196, C.red); }
+      }
+      function scene_timeline(t) {
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.bg0], [1, C.bg1]]); setCam(cam, 1);
+        // a life timeline: age 0 .. 10, the first 3 years dark
+        rect(20, 120, 140, 4, C.white); rect(20, 120, 42, 4, "#5a4a7a");
+        for (var a = 0; a <= 10; a++) { line(20 + a * 14, 116, 20 + a * 14, 128, 1, C.white); worldText("" + a, 20 + a * 14, 130, 1, C.white); }
+        g.save(); g.globalAlpha = 0.6; rect(20, 76, 42, 44, C.ink); g.restore(); worldText("?", 41, 92, 2, C.white);
+        if (t >= T.THREE) { var k = pop(t, T.THREE + 0.3); g.save(); g.translate(62, 100); g.scale(k, k); poly([[0, 16], [-5, 6], [5, 6]], C.gold); disc(0, 0, 8, C.gold); worldText("1ST", 0, -3, 1, C.ink); g.restore(); }
+        baby(116, 112, 1.1, t, {});
+        if (t >= T.Q) label("SAVED? OR NOT?", 90, 196, C.gold);
+      }
+      function scene_scan(t) {
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.room0], [1, C.room1]]); setCam(cam, 1);
+        // the scanner ring with a baby inside, the picture screen above
+        disc(70, 116, 30, C.mriD); disc(70, 116, 27, C.mri); disc(70, 116, 15, "#3a3a5a");
+        rect(30, 128, 90, 6, C.mriD);
+        character(function () { babyC(70, 128, 0.8, t, { stare: t >= T.LIT }); });
+        rrect(116, 62, 50, 40, 3, C.ink); rect(119, 65, 44, 34, C.screenC);
+        var pics = T.PICT, pi = countOf(pics, t) - 1;
+        if (t >= T.AGAIN) pi = 0;
+        if (pi >= 0) { g.save(); g.translate(141, 82); if (pi === 0) { disc(0, 0, 8, C.skin); disc(-3, -1, 1, C.ink); disc(3, -1, 1, C.ink); arcS(0, 2, 2, 0.3, 2.8, 0.8, C.mouth); } if (pi === 1) { rrect(-7, -6, 14, 12, 3, C.red); disc(-3, -1, 1, C.white); } if (pi === 2) { rect(-16, 2, 32, 10, C.sand); rect(-16, -12, 32, 14, C.sea); } g.restore(); }
+        // the brain readout + looking-time bar (under the caption)
+        if (t >= T.LIT && t < T.ONE) { g.save(); screen(); ell(52, 206, 16, 11, 0, C.brainD); ell(52, 205.5, 15, 10, 0, C.brain); var gl = 0.5 + 0.5 * Math.sin(t * 6); disc(56, 209, 3 + gl, C.hippo); worldText("LOOK TIME", 120, 194, 1, C.white); rect(90, 204, 64, 8, C.ink); rect(92, 206, 60 * clamp01((t - T.LIT - 0.5) / 2.5), 4, C.green); g.restore(); }
+        if (t >= T.ONE) label("FROM AGE ~1", 90, 196, C.gold);
+      }
+      function scene_lock(t) {
+        var mice = t >= T.MICE && t < T.STILL;
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.bg0], [1, C.bg1]]); setCam(cam, 1);
+        if (!mice) {
+          ell(90, 104, 46, 34, 0, C.brainD); ell(90, 103, 44, 32, 0, C.brain);
+          for (var k = 0; k < 6; k++) arcS(60 + k * 12, 96 + (k % 2) * 8, 6, 0.3, 2.8, 1.2, C.brainD);
+          // a vault of polaroids with a padlock
+          rrect(72, 92, 36, 28, 3, "#5a4a7a"); for (var p = 0; p < 3; p++) rect(76 + p * 10, 98, 8, 9, C.photo);
+          var open = t >= T.STILL;
+          rrect(84, 112, 12, 10, 2, C.lockD); rrect(85, 113, 10, 8, 2, C.lock); arcS(90, 112 - (open ? 3 : 0), 4, Math.PI, 0, 1.6, C.lockD);
+          if (t >= T.KEY) { g.save(); g.translate(132, 78); g.rotate(-0.6); disc(0, 0, 5, C.gold); disc(0, 0, 2, C.bg1); rect(4, -1, 14, 2.4, C.gold); rect(14, 1, 2, 4, C.gold); g.restore(); worldText("?", 150, 66, 2, C.gold); }
+        } else {
+          rect(20, 128, 140, 10, "#3a3050");
+          character(function () { g.save(); g.translate(86, 124); ell(0, 0, 14, 8, 0, C.mouseD); ell(0, -0.6, 13, 7, 0, C.mouse); disc(12, -4, 6, C.mouse); disc(10, -10, 3.4, C.mouseD); disc(15, -4, 1.2, C.ink); disc(18, -3, 1, C.pink); line(-13, 2, -26, 4, 1, C.mouseD); g.restore(); });
+          g.save(); g.globalAlpha = 0.35; poly([[96, 60], [104, 60], [104, 116], [94, 116]], C.beam); g.restore(); disc(100, 116, 3, C.beam);
+          var on = clamp01((t - W14()) / 0.4);
+          if (on > 0) { polaroid(140, 86, 30, 30, 1 - on, function () { worldText("BABY", 0, -4, 1, C.ink); }, 0.1); }
+          label("LIGHT = RECALL", 90, 196, C.cyan);
+        }
+      }
+      function W14() { return T.MICE + 2.2; }
+      function scene_ask(t) {
+        var tt = tapeT(t, T);
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.bg0], [1, C.bg1]]); setCam(cam, 1);
+        character(function () { g.save(); g.translate(70, 120); disc(0, 0, 22, C.skinD); disc(0, -0.6, 21, C.skin); ell(0, -14, 21, 9, 0, C.hair); disc(-7, 0, 2, C.ink); disc(7, 0, 2, C.ink); arcS(0, 8, 4, 0.3, Math.PI - 0.3, 1.2, C.mouth); disc(-12, 6, 2.6, C.blush); disc(12, 6, 2.6, C.blush); g.restore(); });
+        disc(100, 96, 3, C.white); disc(108, 88, 4, C.white);
+        polaroid(138, 76, 40, 34, 0.75, function () { character(function () { babyC(0, 14, 0.7, tt, {}); }); }, 0.08);
+        label("COMMENT IT", 90, 196, C.gold);
+      }
+
+      function sceneAt(t) {
+        var tt = tapeT(t, T);
+        return tt < T.NAME ? "photos" : tt < T.SCAN ? "timeline" : tt < T.LOCKED ? "scan" : tt < T.ASK ? "lock" : "ask";
+      }
+      function drawUI(t) {
+        var tt = tapeT(t, T);
+        if (tt < T.NAME) counterLines("REMEMBERED: 0", C.red, 3, "DAYS LIVED: 1,000", C.white);
+        else if (tt < T.SCAN) counterLines(tt < T.THREE ? "INFANTILE" : "1ST MEMORY", C.gold, 3, tt < T.THREE ? "AMNESIA" : "AGE ~3", C.white);
+        else if (tt < T.LOCKED) counterLines(tt < T.HIT ? "STUDY: 2025" : "MEMORY: SAVED", tt < T.HIT ? C.cyan : C.green, 3, tt < T.HIT ? "BABY BRAIN SCAN" : "FROM ~12 MONTHS", tt >= T.SCAN ? C.ink : C.white);
+        else if (tt < T.ASK) counterLines(tt < T.MICE ? "DELETED? NO" : tt < T.STILL ? "MICE: RECALLED" : "STATUS: LOCKED", tt < T.MICE ? C.green : C.gold, 3, tt < T.KEY ? "MAYBE LOCKED" : "KEY: MISSING", C.white);
+        else counterLines("YOUR EARLIEST", C.gold, 3, "MEMORY?", C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { photos: scene_photos, timeline: scene_timeline, scan: scene_scan, lock: scene_lock, ask: scene_ask },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.white,
+        cuts: [[T.NAME, "photos", "timeline"], [T.SCAN, "timeline", "scan"], [T.LOCKED, "scan", "lock"], [T.ASK, "lock", "ask"]],
+      });
+    </script>
+  </body>
+</html>

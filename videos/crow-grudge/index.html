@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Crows That Never Forget</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #8ac8f0; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #8ac8f0; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "The Crows That Never Forget" — narrated story (Kokoro af_heart), STYLE_GUIDE sections 7 + 9 (story loop), safe zone
+      (section 8), layout checked with _engine/qa_layout.js. Facts: University of Washington researchers (Marzluff and
+      colleagues) wore a "caveman" mask while trapping and banding 7 American crows on the Seattle campus in 2006; crows
+      later scolded and mobbed anyone wearing that mask; the share of crows scolding rose from ~26 % to ~66 % over about
+      five years, including crows never trapped and young hatched later, i.e. learned socially from parents and others;
+      a neutral mask, or no mask, drew no scolding (Cornell, Marzluff et al. 2010, Animal Behaviour 79: 699).
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="54.9" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="54.9" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="54.9" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        sky0: "#5aa8e8", sky1: "#c8ecff", night0: "#0a0a24", night1: "#1a1a44", cloud: "#ffffff",
+        brick: "#c86a4a", brickD: "#9a4a32", win: "#ffe8a0", grass: "#4ab85a", grassD: "#2a8a3a", path: "#d8c8a8", pathD: "#b8a888",
+        bark: "#6a4a32", barkD: "#4a3222", leaf: "#3aa85a", leafD: "#1a7a3a",
+        crow: "#2a2a3e", crowD: "#14141f", crowL: "#4a4a6a", beak: "#3a3a4a", eyeC: "#ffffff",
+        skin: "#ffc8a0", skinD: "#d8946a", hair: "#3a2418", coat: "#ffffff", coatD: "#c8d0dc", pants: "#3a3a5a", shirt2: "#3ac86a",
+        mask: "#a8743a", maskD: "#6a4422", maskH: "#3a2214",
+        net: "#e8e8f0", tag: "#ff3a4a", tag2: "#3ae8ff",
+        ink: "#0a0614", mouth: "#7a1a3a", eyeW: "#ffffff", blush: "#ff8a9a",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      var GROUND = 138;
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function say(x, y, str) { g.save(); screen(); bubble(x, y, str, C.ink); g.restore(); }
+      function label(str, x, y, col) { g.save(); screen(); worldText(str, x, y + 1, 1, C.ink); worldText(str, x, y, 1, col || C.white); g.restore(); }
+
+      // ============================================================ a crow (side view, facing right unless flip)
+      function crowC(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s * (o.flip ? -1 : 1), s);
+        var fl = o.fly ? Math.sin(t * 18 + (o.seed || 0)) : 0, caw = o.caw ? Math.abs(Math.sin(t * 10 + (o.seed || 0))) : 0;
+        poly([[-10, -2], [-20, 2], [-19, 6], [-8, 3]], C.crowD);                                  // tail
+        if (o.fly) { poly([[-4, -4], [-12, -16 - 10 * fl], [4, -6]], C.crowD); poly([[-2, -3], [-8, 8 + 6 * fl], [6, -1]], C.crowL); }
+        ell(0, 0, 11, 7, -0.15, C.crow); ell(-1, -2, 7, 3, -0.2, C.crowL);
+        if (!o.fly) { poly([[-6, -3], [6, -2], [-10, 4]], C.crowD); line(-1, 6, -2, 12, 1, C.beak); line(3, 6, 3, 12, 1, C.beak); }
+        disc(10, -6, 6, C.crow);
+        poly([[14, -8 - caw], [22, -5.5], [14, -4 + caw * 0.3]], C.beak); if (caw > 0.3) poly([[14, -4], [21, -3 + caw * 2], [14, -2.5]], C.beak);
+        disc(11.5, -7.5, 2, C.eyeC); disc(12.2, -7.3, 1.1, C.ink);
+        if (o.angry) line(8.5, -10.5, 14, -9, 1, C.ink);
+        if (o.tag) { rect(-2, 10, 2.4, 1.6, C.tag); }
+        if (o.baby) { disc(5, -11, 1.6, C.crowL); disc(8, -12, 1.4, C.crowL); }
+        g.restore();
+      }
+      function crow(x, y, s, t, o) { character(function () { crowC(x, y, s, t, o); }); }
+      // a person (front); mask = the caveman mask
+      function personC(x, y, s, t, o) {
+        o = o || {};
+        var wk = o.walk ? Math.sin(t * 9) : 0;
+        g.save(); g.translate(x, y); g.scale(s, s);
+        rect(-6, -16, 5, 16, C.pants); rect(1, -16, 5, 16, C.pants); rect(-7 + wk, -1, 6, 2, C.ink); rect(1 - wk, -1, 6, 2, C.ink);
+        var sh = o.shirt || C.coat;
+        rrect(-9, -34, 18, 20, 4, o.shirt ? sh : C.coatD); rrect(-8.5, -34, 17, 19, 4, sh);
+        var aL = o.armL || [-12, -17 - wk * 2], aR = o.armR || [12, -17 + wk * 2];
+        line(-9, -31, aL[0], aL[1], 3, sh); line(9, -31, aR[0], aR[1], 3, sh); disc(aL[0], aL[1], 2, C.skin); disc(aR[0], aR[1], 2, C.skin);
+        if (o.mask) {
+          disc(0, -43, 9.5, C.maskD); disc(0, -43.5, 9, C.mask);
+          for (var h = -3; h <= 3; h++) poly([[h * 2.6 - 1.4, -50], [h * 2.6, -56 - (h % 2) * 2], [h * 2.6 + 1.4, -50]], C.maskH);
+          rect(-7.5, -47, 15, 2.6, C.maskH);
+          disc(-3.5, -43, 1.8, C.ink); disc(3.5, -43, 1.8, C.ink);
+          rect(-4, -38.5, 8, 2, C.maskH); for (var tt = -3; tt <= 2; tt += 2) rect(tt, -38.5, 1, 1.2, C.white);
+        } else {
+          disc(0, -43, 9, C.skinD); disc(0, -43.5, 8.4, C.skin); ell(0, -49.5, 8.6, 4.4, 0, o.hair || C.hair);
+          disc(-3.5, -43, 1.3, C.ink); disc(3.5, -43, 1.3, C.ink);
+          if (o.mood === "o") ell(0, -38, 1.4, 1.8, 0, C.mouth); else arcS(0, -39, 2.2, 0.3, Math.PI - 0.3, 0.8, C.mouth);
+          disc(-6, -40, 1.3, C.blush); disc(6, -40, 1.3, C.blush);
+        }
+        g.restore();
+      }
+      function person(x, y, s, t, o) { character(function () { personC(x, y, s, t, o); }); }
+      function campus(t, cam, night) {
+        sky(night ? [[0, C.night0], [1, C.night1]] : [[0, C.sky0], [0.5, C.sky1], [1, C.sky1]]);
+        setCam(cam, 0.5);
+        if (night) for (var s = 0; s < 30; s++) rect(hash1(s) * 200 - 10, hash1(s + 3) * 120 + 30, 1, 1, C.white);
+        else for (var c = 0; c < 3; c++) { var cx = ((c * 70 - t * 3) % 240 + 240) % 240 - 30; ell(cx, 74 + c * 6, 14, 4, 0, C.cloud); }
+        rect(-30, 92, 90, 46, night ? "#3a2a2a" : C.brick); rect(120, 98, 90, 40, night ? "#3a2a2a" : C.brick);
+        for (var w = 0; w < 4; w++) { rect(-20 + w * 20, 100, 8, 10, night ? "#ffe8a0" : C.win); rect(130 + w * 18, 106, 7, 9, night ? "#5a4a3a" : C.win); }
+        setCam(cam, 1);
+        rect(-60, GROUND, 300, 240, night ? "#1a2a1a" : C.grassD); rect(-60, GROUND, 300, 3, night ? "#2a3a2a" : C.grass);
+        poly([[60, GROUND], [120, GROUND], [150, 330], [30, 330]], night ? "#2a2a2a" : C.path);
+      }
+      function tree(x, night) {
+        rect(x - 4, 70, 8, GROUND - 70, night ? "#2a1a12" : C.barkD); rect(x - 3, 70, 6, GROUND - 70, night ? "#3a2a1a" : C.bark);
+        disc(x, 64, 20, night ? "#0a2a14" : C.leafD); disc(x - 10, 70, 13, night ? "#0a2a14" : C.leaf); disc(x + 11, 69, 13, night ? "#0a2a14" : C.leaf);
+        line(x + 2, 86, x + 28, 80, 2.5, night ? "#2a1a12" : C.barkD);
+      }
+      function scold(t) {          // share of crows scolding the mask (shared with the counter)
+        if (t < T.WALK) return 0.66;
+        if (t < T.Y2) return 0.26;
+        if (t < T.HOW) return lerp(0.26, 0.66, clamp01((t - T.Y2) / (T.HOW - T.Y2)));
+        return 0.66;
+      }
+      function mob(t, n, cx, cy, spread) {
+        for (var i = 0; i < n; i++) {
+          var a = i * 2.4 + t * (1.2 + (i % 3) * 0.3), r = spread * (0.6 + 0.4 * hash1(i));
+          var x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r * 0.42 - 6;
+          crow(x, y, 0.75, t, { fly: true, caw: i % 2 === 0, angry: true, flip: Math.cos(a + 1.57) < 0, seed: i });
+        }
+      }
+
+      // ============================================================ scenes
+      function scene_campus(t) {
+        var tt = tapeT(t, T);
+        var cam = tt < T.MASK ? { x: 90, y: 160, z: 1.0 } : { x: 90, y: 160, z: 1.0 };
+        shake(cam, tt, T.HIT, 6, 0.5);
+        campus(tt, cam, false);
+        tree(28, false); tree(154, false);
+        // who walks: the masked scientist, then the innocent volunteer, then no mask
+        var innocent = tt >= T.INNOCENT && tt < T.WITHOUT, nomask = tt >= T.WITHOUT;
+        var px = tt < T.MASK ? 90 : lerp(70, 104, ((tt * 0.25) % 1));
+        person(90, GROUND, 1.2, tt, { mask: !nomask, walk: tt > T.WALK, shirt: innocent ? C.shirt2 : null, mood: "o" });
+        if (nomask) { label("NO MASK", 90, 196, C.green); crow(28 + 22, 84, 0.8, tt, {}); crow(154 - 26, 82, 0.8, tt, { flip: true }); return; }
+        var n = Math.round(2 + 12 * scold(tt));
+        if (tt >= T.INNOCENT && tt < T.ANYWAY) n = 2;
+        mob(tt, n, 90, 100, 50);
+        if (tt >= T.Y2) { var yr = tt < T.Y5 ? 2 : 5; rrect(18, 120, 28, 14, 2, C.white); worldText("YR " + yr, 32, 124, 1, C.ink); }
+      }
+      function scene_catch(t) {
+        var cam = { x: 90, y: 160, z: 1.0 };
+        campus(t, cam, false);
+        tree(150, false);
+        var tag = t >= T.TAG, rel = t > T.TAG + 1.6;
+        person(62, GROUND, 1.2, t, { mask: true, armR: [18, -30] });
+        // the net (a loop on a pole) with crows inside, then tagging and release
+        if (!rel) {
+          line(84, 102, 104, 86, 1.5, C.bark);
+          g.save(); g.globalAlpha = 0.85; ell(114, 86, 14, 10, 0, C.net); g.restore();
+          var n = Math.min(7, Math.floor((t - T.MASK) * 3) + 1);
+          for (var i = 0; i < n; i++) crow(108 + (i % 3) * 6, 84 + Math.floor(i / 3) * 4, 0.45, t, { seed: i, tag: tag, caw: true });
+          g.strokeStyle = C.coatD; g.lineWidth = 0.6; for (var k = -3; k <= 3; k++) { line(100 + k * 4, 78, 104 + k * 4, 96, 0.5, C.coatD); }
+        } else {
+          for (var j = 0; j < 7; j++) { var p = clamp01((t - T.TAG - 1.6) / 1.2); crow(110 + j * 5 * p, Math.max(70, 88 - p * 12 - j * 1.5), 0.6, t, { fly: true, tag: true, seed: j }); }
+        }
+        if (tag && !rel) label("TAGGED", 114, 196, C.red);
+        label(t < T.TAG ? "7 CROWS" : rel ? "RELEASED" : "", 114, 186, C.gold);
+      }
+      function scene_teach(t) {
+        var test = t >= T.TEST;
+        var cam = { x: 90, y: 160, z: 1.0 };
+        campus(t, cam, false);
+        // a branch across the top, the parent pointing its beak, the chick learning
+        rect(-10, 104, 150, 5, C.barkD); rect(-10, 104, 150, 3, C.bark);
+        crow(48, 100, 1.5, t, { angry: true, caw: Math.sin(t * 3) > 0 });
+        crow(86, 101, 1.0, t, { baby: true, caw: t > T.TAUGHT + 1.0 && Math.sin(t * 4 + 1) > 0 });
+        // the poster of the face (the mask) they look at
+        rrect(116, 64, 38, 40, 3, C.ink); rrect(117.5, 65.5, 35, 37, 2, C.white); g.save(); g.beginPath(); g.rect(117.5, 65.5, 35, 37); g.clip(); character(function () { personC(135, 128, 1.0, t, { mask: true }); }); g.restore();
+        if (t > T.TAUGHT + 0.3 && t < T.TEST - 0.2) say(58, 68, "DANGER!");
+      }
+      function scene_night(t) {
+        var tt = tapeT(t, T);
+        var cam = { x: 90, y: 160, z: 1.0 };
+        campus(tt, cam, true);
+        tree(40, true); tree(140, true);
+        for (var i = 0; i < 9; i++) { var x = [24, 46, 64, 120, 140, 160, 36, 150, 92][i], y = [74, 60, 84, 62, 76, 86, 92, 98, 70][i]; var bl = Math.floor(tt * 1.5 + i) % 7 === 0; if (!bl) { disc(x, y, 1.6, C.white); disc(x + 3.5, y, 1.6, C.white); disc(x + 0.4, y, 0.8, C.ink); disc(x + 3.9, y, 0.8, C.ink); } }
+        person(90, GROUND, 1.1, tt, { mood: "o" });
+      }
+
+      function sceneAt(t) {
+        var tt = tapeT(t, T);
+        return tt < T.MASK ? "campus" : tt < T.WALK ? "catch" : tt < T.HOW ? "campus" : tt < T.INNOCENT ? "teach" : tt < T.NICE ? "campus" : "night";
+      }
+      function drawUI(t) {
+        var tt = tapeT(t, T), sc = Math.round(100 * scold(tt));
+        if (tt < T.MASK) counterLines("SCOLDING " + sc + "%", C.red, 3, "1 MAN VS CROWS", C.ink);
+        else if (tt < T.WALK) counterLines("YEAR 1: 2006", C.gold, 3, "CROWS CAUGHT: 7", C.ink);
+        else if (tt < T.INNOCENT) counterLines("SCOLDING " + sc + "%", C.red, 3, tt < T.Y2 ? "YEAR 1" : tt < T.Y5 ? "YEAR 2" : "YEAR 5", C.ink);
+        else if (tt < T.WITHOUT) counterLines("MASK = DANGER", C.red, 3, tt < T.HIT ? "NEW PERSON" : "SCREAMED AT", C.ink);
+        else if (tt < T.NICE) counterLines("SCOLDING 0%", C.green, 3, "NO MASK", C.ink);
+        else counterLines("CROWS: 66%", C.gold, 3, "STILL WATCHING", C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { campus: scene_campus, catch: scene_catch, teach: scene_teach, night: scene_night },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.white,
+        cuts: [[T.MASK, "campus", "catch"], [T.WALK, "catch", "campus"], [T.HOW, "campus", "teach"], [T.INNOCENT, "teach", "campus"], [T.NICE, "campus", "night"]],
+      });
+    </script>
+  </body>
+</html>

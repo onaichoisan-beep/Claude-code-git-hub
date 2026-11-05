@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>You Can't Unsee Your Nose</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #2a2a4a; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #2a2a4a; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "You Can't Unsee Your Nose" — interactive text cards + sound (STYLE_GUIDE 6 + 9), safe zone (section 8), layout
+      checked with _engine/qa_layout.js. Facts: your nose is in each eye's field of view, but the brain filters out
+      unchanging input (sensory adaptation / perceptual filling-in), the same way you stop feeling your socks or watch
+      or hearing a fridge hum; attention brings it back; each eye sees the nose on its own side, so with one eye closed
+      you see one side of it; the awareness fades again within minutes.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="29.2" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="29.2" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="29.2" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        room0: "#ffe8c8", room1: "#f0c898", wall: "#ffd8a8", win: "#9ad8ff", winD: "#6ab0e0", plant: "#3ac86a", desk: "#a8743a",
+        book: "#e83a3a", page: "#fff8e8", phone: "#2a2a3a", screenC: "#3a8aff", screenL: "#9ad8ff",
+        nose: "#ffb894", noseD: "#e08a6a", lid: "#1a1428",
+        brain: "#ff9ac0", brainD: "#d8608a", eraser: "#ff8aa8", eraserB: "#3a8aff",
+        sock: "#3ac86a", sockD: "#1a8a4a", watch: "#c8c8d8", watchD: "#6a6a7a", fridge: "#e8eef4", fridgeD: "#b8c0cc", grey: "#8a8a9a",
+        skin: "#ffc8a0", skinD: "#d8946a", hair: "#3a2418",
+        ink: "#0a0614", mouth: "#7a1a3a", eyeW: "#ffffff", blush: "#ff8a9a",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function say(x, y, str) { g.save(); screen(); bubble(x, y, str, C.ink); g.restore(); }
+      function label(str, x, y, col) { g.save(); screen(); worldText(str, x, y + 1, 1, C.ink); worldText(str, x, y, 1, col || C.white); g.restore(); }
+      // how visible the nose is (shared with the counter)
+      function vis(t) {
+        if (t < T.DELETE) return 1;
+        if (t < T.IGNORE) return 1 - clamp01((t - T.DELETE - 0.4) / 1.4);
+        if (t < T.HIT) return 0;
+        if (t < T.FADE) return 1;
+        if (t < T.CTA) return 1 - 0.7 * clamp01((t - T.FADE - 0.6) / 1.4);
+        return 1;
+      }
+      // the view through your eyes: a room / a book / a phone, with your nose at the bottom middle (left + right copies)
+      function view(t, what, k, oneEye) {
+        sky([[0, C.room0], [1, C.room1]]);
+        screen();
+        if (what === "room") { rect(20, 66, 60, 50, C.winD); rect(22, 68, 56, 46, C.win); line(50, 68, 50, 114, 1, C.winD); rect(110, 96, 50, 6, C.desk); disc(140, 86, 10, C.plant); rect(136, 92, 8, 6, C.desk); }
+        if (what === "book") { rect(30, 68, 120, 70, C.book); rect(33, 70, 56, 66, C.page); rect(91, 70, 56, 66, C.page); for (var l = 0; l < 9; l++) { rect(38, 76 + l * 6, 46, 1.2, C.grey); rect(96, 76 + l * 6, 46, 1.2, C.grey); } }
+        if (what === "phone") { rrect(54, 62, 72, 80, 8, C.phone); rect(60, 70, 60, 64, C.screenC); for (var p = 0; p < 4; p++) rect(64, 76 + p * 14, 52, 10, C.screenL); }
+        if (k > 0.02) {
+          g.save(); g.globalAlpha = 0.55 * k;
+          if (oneEye !== "right") { ell(74, 150, 18, 30, 0.35, C.noseD); ell(76, 152, 15, 27, 0.35, C.nose); }
+          if (oneEye !== "left") { ell(106, 150, 18, 30, -0.35, C.noseD); ell(104, 152, 15, 27, -0.35, C.nose); }
+          g.restore();
+        }
+        // the edge of the view (eye socket shadow)
+        var vg = g.createRadialGradient(90, 104, 46, 90, 104, 110); vg.addColorStop(0, "rgba(10,6,20,0)"); vg.addColorStop(1, "rgba(10,6,20,0.85)"); g.fillStyle = vg; g.fillRect(0, 0, 180, 320);
+        rect(0, 150, 180, 170, "#1a1428");
+      }
+      function brainC(x, y, s, t) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        ell(0, 0, 16, 12, 0, C.brainD); ell(0, -0.5, 15, 11, 0, C.brain);
+        g.strokeStyle = C.brainD; g.lineWidth = 1; for (var k = 0; k < 4; k++) { g.beginPath(); g.arc(-9 + k * 6, -4 + (k % 2) * 3, 3, 0.3, 2.8); g.stroke(); }
+        disc(-5, 2, 1.4, C.ink); disc(5, 2, 1.4, C.ink); line(-7, -1, -3, 0, 0.8, C.ink); line(3, 0, 7, -1, 0.8, C.ink); arcS(1, 5, 3, 0.1, Math.PI - 0.8, 0.9, C.mouth);
+        g.restore();
+      }
+
+      // ============================================================ scenes
+      function scene_view(t) {
+        var tt = tapeT(t, T);
+        var what = tt < T.EVERY ? "room" : tt < T.PAGE ? "book" : tt < T.WHY ? "phone" : tt < T.SOCKS ? "room" : tt < T.CLOSE ? "book" : tt < T.FADE ? "room" : tt < T.CTA ? "phone" : "room";
+        var one = tt >= T.CLOSE && tt < T.TWO ? "left" : null;
+        var k = vis(tt);
+        if (tt >= T.HIT && tt < T.HIT + 0.3) k = 1 + 0.3 * Math.sin((tt - T.HIT) / 0.3 * Math.PI);
+        view(tt, what, Math.min(1, k), one);
+        // the brain with the eraser, rubbing the nose out (DELETE)
+        if ((tt >= T.DELETE && tt < T.IGNORE) || (tt >= T.FADE + 0.4 && tt < T.CTA)) {
+          var rx = 92 + Math.sin(tt * 18) * 10;
+          character(function () { brainC(142, 80, 1.3, tt); });
+          rect(rx - 6, 120, 14, 8, C.eraser); rect(rx - 6, 116, 14, 4, C.eraserB); line(128, 88, rx, 116, 1.5, C.brainD);
+        }
+        // one eye closed: a winking face icon below the caption
+        if (one) { g.save(); screen(); disc(90, 204, 13, C.skinD); disc(90, 203.5, 12.4, C.skin); ell(90, 194, 12, 5, 0, C.hair); line(80, 202, 86, 202, 1.2, C.ink); disc(96, 202, 1.8, C.ink); g.restore(); }
+        if (tt >= T.TWO && tt < T.FADE) { label("LEFT EYE", 52, 196, C.white); label("RIGHT EYE", 128, 196, C.white); }
+        if (tt >= T.CTA + 0.5) say(90, 70, "SORRY.");
+      }
+      function scene_things(t) {
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, "#2a2a4a"], [1, "#141428"]]); setCam(cam, 1);
+        var items = [["SOCKS", 40, T.SOCKS], ["WATCH", 90, T.SOCKS + 1.0], ["FRIDGE", 140, T.FRIDGE]];
+        items.forEach(function (it, i) {
+          if (t < it[2]) return;
+          var fade = clamp01((t - it[2] - 0.8) / 0.8), col = function (a, b) { return fade > 0.5 ? C.grey : a; };
+          g.save(); g.translate(it[1], 100);
+          if (i === 0) { poly([[-6, -14], [4, -14], [4, 4], [12, 8], [12, 14], [-6, 14]], col(C.sock)); rect(-6, -14, 10, 4, col(C.sockD)); }
+          if (i === 1) { rect(-4, -16, 8, 32, col(C.watchD)); disc(0, 0, 9, col(C.watchD)); disc(0, 0, 7.5, col(C.watch)); line(0, 0, 0, -5, 1, C.ink); line(0, 0, 4, 1, 1, C.ink); }
+          if (i === 2) { rect(-12, -22, 24, 40, col(C.fridgeD)); rect(-11, -21, 22, 38, col(C.fridge)); line(-11, -6, 11, -6, 1, C.fridgeD); rect(7, -16, 2, 6, C.grey); if (fade < 0.5) for (var w = 0; w < 3; w++) arcS(16, 0, 4 + w * 4, -0.8, 0.8, 1, C.cyan); }
+          g.restore();
+          label(fade > 0.5 ? "IGNORED" : it[0], it[1], 128, fade > 0.5 ? C.grey : C.white);
+        });
+        if (t < T.SOCKS) { character(function () { brainC(90, 100, 2.0, t); }); label("FILTER: ON", 90, 196, C.green); }
+      }
+
+      function sceneAt(t) { var tt = tapeT(t, T); return tt >= T.IGNORE && tt < T.HIT ? "things" : "view"; }
+      function drawUI(t) {
+        var tt = tapeT(t, T), v = Math.round(100 * vis(tt));
+        var l2 = tt < T.WHY ? "ALL DAY, EVERY DAY" : tt < T.IGNORE ? "BRAIN: EDITING" : tt < T.HIT ? "FILTER: ON" : tt < T.CLOSE ? "NOTICED!" : tt < T.TWO ? "ONE EYE" : tt < T.FADE ? "NOSES SEEN: 2" : tt < T.CTA ? "FADING..." : "BACK AGAIN";
+        counterLines("NOSE: " + v + "%", v > 50 ? C.red : C.green, 3, l2, tt >= T.IGNORE && tt < T.HIT ? C.white : C.ink);
+      }
+
+      KIT.start(C, T, {
+        scenes: { view: scene_view, things: scene_things },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.nose,
+        cuts: [[T.IGNORE, "view", "things"], [T.HIT, "things", "view"]],
+      });
+    </script>
+  </body>
+</html>

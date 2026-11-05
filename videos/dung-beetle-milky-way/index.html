@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Beetle That Uses the Galaxy</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a0a2a; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a0a2a; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "The Beetle That Uses the Galaxy" (dung beetles + the Milky Way) — narrated story (Kokoro af_heart), story loop
+      (STYLE_GUIDE 7 + 9), safe zone (section 8), layout checked with _engine/qa_layout.js. Facts: ball-rolling dung beetles
+      roll away from the dung pile in straight lines to escape competitors; they climb the ball and rotate ("dance") to take
+      a celestial snapshot (el Jundi et al. 2016); Scarabaeus satyrus orients by the Milky Way on moonless nights: in the
+      Johannesburg planetarium they rolled straight under the full sky or only the Milky Way, and lost direction with no
+      stars or with little caps blocking their view (Dacke et al. 2013, Current Biology 23: 298); the first animal shown
+      to orient using the Milky Way.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="54.0" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="54.0" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="54.0" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        night0: "#06061e", night1: "#141438", milky: "#8a7ac8", milkyL: "#d8d0ff", star: "#ffffff", starY: "#fff0a0",
+        day0: "#4aa8f0", day1: "#ffe8a8", sun: "#fff07a", grass: "#c8a04a", grassD: "#9a7a2a", ground: "#8a6a3a", groundD: "#5a4422",
+        nightG: "#2a2418", nightGD: "#16120c", dome: "#1a1a3a", domeL: "#2a2a5a",
+        beetle: "#2a2a3a", beetleL: "#5a5a8a", beetleS: "#8a8ac8", ball: "#8a5a2a", ballD: "#5a3a18", ballL: "#b8844a",
+        hat: "#ff3a4a", rice: "#fff8e8", track: "#ffc83a", trackBad: "#ff3a4a",
+        ink: "#0a0614", mouth: "#7a1a3a", eyeW: "#ffffff", blush: "#ff8a9a",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      var GROUND = 138;
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function say(x, y, str) { g.save(); screen(); bubble(x, y, str, C.ink); g.restore(); }
+      function label(str, x, y, col) { g.save(); screen(); worldText(str, x, y + 1, 1, C.ink); worldText(str, x, y, 1, col || C.white); g.restore(); }
+
+      // ============================================================ the beetle pushing its ball (x = ball centre)
+      function ballC(x, y, r, t) { disc(x, y, r, C.ballD); disc(x, y - 0.5, r - 0.8, C.ball); var a = -t * 3; for (var k = 0; k < 5; k++) disc(x + Math.cos(a + k * 1.26) * r * 0.55, y + Math.sin(a + k * 1.26) * r * 0.55, 1, C.ballL); }
+      function beetleC(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s, s);
+        var w = Math.sin(t * 14);
+        // head-down pushing pose: body tilted, back legs up on the ball (to the right)
+        g.save(); g.rotate(o.top ? 0 : -0.5);
+        for (var l = 0; l < 3; l++) line(-4 + l * 4, 3, -6 + l * 4 + w * 1.5, 9, 1.2, C.beetle);
+        line(6, -1, 12, -5 + w, 1.2, C.beetle); line(5, 1, 12, 2 - w, 1.2, C.beetle);
+        ell(0, 0, 8, 5.5, 0, C.beetle); ell(-1, -2, 5, 2, -0.1, C.beetleL); line(0, -5, 0, 5, 0.6, C.beetleS);
+        disc(-8, 1, 3.4, C.beetle); for (var h = 0; h < 4; h++) line(-10, -1 + h * 1.4, -12.5, -2 + h * 1.8, 0.8, C.beetle);
+        disc(-8.5, -0.5, 1.2, C.eyeW); disc(-9, -0.4, 0.6, C.ink);
+        if (o.hat) { rect(-12, -4.5, 8, 2, C.hat); rect(-10.5, -8, 5, 4, C.hat); }
+        g.restore();
+        g.restore();
+      }
+      function roller(x, y, s, t, o) {   // ball + beetle together; the ball rolls to the right
+        o = o || {};
+        var r = 9 * s;
+        if (!o.top) { ballC(x, y - r, r, t); character(function () { beetleC(x - r - 5 * s, y - 6 * s, s, t, o); }); }
+        else { ballC(x, y - r, r, t * 0.3); g.save(); g.translate(x, y - 2 * r - 3 * s); g.rotate(Math.sin(t * 6) * 0.8); character(function () { beetleC(0, 0, s, t, { top: true, hat: o.hat }); }); g.restore(); }
+      }
+      function nightSky(t, cam, stars, milky) {
+        sky([[0, C.night0], [1, C.night1]]);
+        setCam(cam, 0.4);
+        if (milky > 0) { g.save(); g.globalAlpha = 0.55 * milky; g.translate(90, 80); g.rotate(-0.5); ell(0, 0, 150, 18, 0, C.milky); ell(0, 0, 150, 8, 0, C.milkyL); g.restore(); for (var m = 0; m < 50; m++) { var u = hash1(m + 80) * 2 - 1; var mx = 90 + u * 120 * Math.cos(-0.5), my = 80 + u * 120 * Math.sin(-0.5) + (hash1(m + 90) - 0.5) * 16; g.globalAlpha = milky; rect(mx, my, 1, 1, C.milkyL); g.globalAlpha = 1; } }
+        if (stars > 0) for (var s = 0; s < 70; s++) { var tw = 0.5 + 0.5 * Math.sin(t * 3 + s); g.globalAlpha = stars * (0.5 + 0.5 * tw); rect(hash1(s) * 220 - 20, hash1(s + 5) * 150 + 20, s % 7 ? 1 : 1.6, s % 7 ? 1 : 1.6, s % 5 ? C.star : C.starY); } g.globalAlpha = 1;
+      }
+      function ground(cam, night) { setCam(cam, 1); rect(-60, GROUND, 300, 240, night ? C.nightGD : C.groundD); rect(-60, GROUND, 300, 3, night ? C.nightG : C.ground); for (var k = 0; k < 14; k++) { var gx = k * 14 - 6; line(gx, GROUND, gx + 2, GROUND - 6, 1, night ? C.nightG : C.grassD); } }
+      // the track diagram (screen space, under the caption): a straight escape or a lost circle
+      function track(t, t0, mode) {
+        g.save(); screen();
+        rect(30, 184, 120, 38, "rgba(10,6,20,0.6)"); g.strokeStyle = C.white; g.lineWidth = 0.6; g.strokeRect(30.5, 184.5, 119, 37);
+        var p = clamp01((t - t0) / 2.2), cx = 90, cy = 203;
+        g.strokeStyle = mode === "straight" ? C.track : C.trackBad; g.lineWidth = 1.4; g.beginPath(); g.moveTo(cx, cy);
+        for (var i = 1; i <= 40 * p; i++) { var u = i / 40; if (mode === "straight") g.lineTo(cx + u * 52, cy - u * 8); else { var a = u * 9; g.lineTo(cx + Math.cos(a) * 6 * (1 + u) - 6, cy + Math.sin(a) * 6 * (1 + u) * 0.8); } }
+        g.stroke(); disc(cx, cy, 2, C.ball);
+        g.restore();
+      }
+
+      // ============================================================ scenes
+      function scene_night(t) {      // frame 1 + the end (Milky Way over the savanna)
+        var tt = tapeT(t, T);
+        var cam = { x: 90, y: 160, z: 1.0 };
+        nightSky(tt, cam, 1, 1); ground(cam, true);
+        var x = 46 + ((tt * 10) % 100);
+        if (tt >= T.BRAIN) x = 76;
+        roller(x, GROUND, tt >= T.BRAIN && tt < T.END ? 1.6 : 1.3, tt, {});
+        if (tt >= T.BRAIN && tt < T.FIRST) { g.save(); screen(); ell(90, 204, 9, 3.5, 0.2, C.rice); worldText("RICE", 90, 212, 1, C.white); disc(66, 204, 2.4, C.beetleS); worldText("BRAIN", 60, 212, 1, C.cyan); g.restore(); }
+        if (tt >= T.FIRST && tt < T.END) label("FIRST ANIMAL EVER", 90, 196, C.gold);
+      }
+      function scene_day(t) {
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.day0], [0.6, C.day1], [1, C.day1]]); setCam(cam, 0.5); disc(146, 62, 10, C.sun); lighter(); glow(146, 62, 24, C.sun, 0.4); normalBlend();
+        ground(cam, false);
+        // the dung pile + rivals
+        ell(26, GROUND, 18, 10, 0, C.ballD); ell(26, GROUND - 2, 15, 8, 0, C.ball);
+        var steal = t >= T.STEAL && t < T.TRICK;
+        var x = lerp(46, 112, clamp01((t - T.AFRICA - 1.0) / 4.0));
+        if (t >= T.TRICK) x = lerp(80, 130, clamp01((t - T.TRICK) / 3));
+        roller(x, GROUND, 1.25, t, {});
+        if (steal) for (var r = 0; r < 3; r++) { var rp = clamp01((t - T.STEAL - r * 0.25) / 0.8); character(function () { beetleC(lerp(-10, x - 30 - r * 12, rp), GROUND - 5, 0.8, t + r, { top: true }); }); }
+        if (steal && t > T.STEAL + 0.8) say(52, 78, "MINE!");
+        if (t >= T.TRICK) track(t, T.TRICK + 0.4, "straight");
+      }
+      function scene_dance(t) {
+        var night = t >= T.NIGHT;
+        var cam = { x: 90, y: 160, z: 1.0 };
+        if (night) nightSky(t, cam, 0, 0); else { sky([[0, C.day0], [0.6, C.day1], [1, C.day1]]); setCam(cam, 0.5); if (t >= T.SUN) { disc(146, 66, 12, C.sun); lighter(); glow(146, 66, 30, C.sun, 0.5); normalBlend(); } }
+        ground(cam, night);
+        roller(90, GROUND, 1.6, t, { top: t < T.SUN });
+        if (t >= T.PICTURE && t < T.SUN) { var f = t - T.PICTURE; if (f < 0.3) { lighter(); glow(90, 70, 60, C.white, 0.6 * (1 - f / 0.3)); normalBlend(); } rrect(120, 66, 30, 22, 3, C.ink); disc(135, 77, 6, C.beetleS); disc(135, 77, 3, C.ink); }
+        if (night) { worldText("?", 60, 84, 2, C.gold); worldText("?", 122, 78, 2, C.gold); label("NO MOON", 90, 196, C.white); }
+      }
+      function scene_planet(t) {
+        var cam = { x: 90, y: 160, z: 1.0 };
+        var stars = t < T.ON ? 0 : t < T.OFF ? 1 : 0, milky = t >= T.MILKY && t < T.HATS ? 1 : (t >= T.HATS ? 1 : 0);
+        if (t >= T.HATS) stars = 1;
+        nightSky(t, cam, stars * (t < T.ON + 0.4 && t >= T.ON ? (t - T.ON) / 0.4 : 1), milky);
+        // the dome edge
+        setCam(cam, 1); g.strokeStyle = C.domeL; g.lineWidth = 2; g.beginPath(); g.arc(90, 160, 110, Math.PI * 1.12, Math.PI * 1.88); g.stroke();
+        ground(cam, true);
+        var hat = t >= T.HATS && t < T.OFFHAT;
+        var mode = (t >= T.OFF && t < T.MILKY) || (t >= T.HATSON && t < T.OFFHAT) ? "lost" : "straight";
+        var x = mode === "lost" ? 90 + Math.cos(t * 2.5) * 22 : 44 + ((t * 12) % 100);
+        roller(x, GROUND, 1.3, t, { hat: hat });
+        var t0 = mode === "lost" ? (t >= T.HATSON ? T.HATSON : T.OFF) : (t >= T.OFFHAT ? T.OFFHAT : t >= T.AGAIN ? T.AGAIN : T.ON);
+        if (t >= T.ON) track(t, t0 + 0.2, mode);
+        if (t < T.ON) { label("PLANETARIUM", 90, 196, C.cyan); }
+      }
+
+      function sceneAt(t) {
+        var tt = tapeT(t, T);
+        return tt < T.AFRICA ? "night" : tt < T.DANCE ? "day" : tt < T.PLANET ? "dance" : tt < T.BRAIN ? "planet" : "night";
+      }
+      function drawUI(t) {
+        var tt = tapeT(t, T), c2 = C.white;
+        if (tt < T.AFRICA) counterLines("MAP: MILKY WAY", C.milkyL, 2, "CARGO: POOP", c2);
+        else if (tt < T.DANCE) counterLines(tt < T.STEAL ? "BALL: READY" : tt < T.TRICK ? "THIEVES: 3" : "PATH: STRAIGHT", tt < T.STEAL ? C.green : tt < T.TRICK ? C.red : C.gold, 3, "AFRICA", C.ink);
+        else if (tt < T.NIGHT) counterLines(tt < T.SUN ? "SKY PHOTO" : "COMPASS: SUN", C.gold, 3, tt < T.SUN ? "DANCE: SPIN" : "DAYTIME", C.ink);
+        else if (tt < T.PLANET) counterLines("COMPASS: ???", C.red, 3, "MOONLESS NIGHT", c2);
+        else if (tt < T.ON) counterLines("TEST 1", C.cyan, 3, "PLANETARIUM", c2);
+        else { var st = tt < T.OFF ? ["STARS: ON", "STRAIGHT"] : tt < T.MILKY ? ["STARS: OFF", "LOST"] : tt < T.HATS ? ["MILKY WAY", "STRAIGHT"] : tt < T.OFFHAT ? ["HATS: ON", "LOST"] : tt < T.BRAIN ? ["HATS: OFF", "STRAIGHT"] : tt < T.FIRST ? ["TINY BRAIN", "GALAXY MAP"] : ["FIRST ANIMAL", "MILKY WAY"]; counterLines(st[0], st[1] === "LOST" ? C.red : C.gold, 3, st[1], c2); }
+      }
+
+      KIT.start(C, T, {
+        scenes: { night: scene_night, day: scene_day, dance: scene_dance, planet: scene_planet },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.milkyL,
+        cuts: [[T.AFRICA, "night", "day"], [T.DANCE, "day", "dance"], [T.PLANET, "dance", "planet"], [T.BRAIN, "planet", "night"]],
+      });
+    </script>
+  </body>
+</html>

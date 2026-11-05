@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Your Brain Isn't Freezing</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #ffd8e8; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #ffd8e8; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "Your Brain Isn't Freezing" (brain freeze / sphenopalatine ganglioneuralgia) — text cards + sound only, story loop
+      (STYLE_GUIDE 6 + 9), safe zone (section 8), layout checked with _engine/qa_layout.js. Facts (mechanism hedged as
+      "doctors think"): cold on the palate makes blood vessels there constrict then rapidly dilate; trigeminal nerve
+      fibres signal pain that is referred to the forehead (Serrador et al. 2012, FASEB J.; Mages et al. 2017); pressing
+      the tongue or thumb to the roof of the mouth, or sipping something warm, rewarms the palate and usually stops it.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="29.2" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="29.2" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="29.2" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        bg0: "#ffd8e8", bg1: "#ffb8d0", sun: "#fff07a", floor: "#c86a8a", xr0: "#0a1a3a", xr1: "#142a50",
+        skin: "#ffc8a0", skinD: "#d8946a", hair: "#3a2418", shirt: "#3ac8ff", pants: "#3a3a5a",
+        cone: "#e8a858", coneD: "#b8783a", ice: "#ff9ad8", iceL: "#ffd4f0", ice2: "#9ae8ff",
+        head: "#ffd8c0", headD: "#c89478", brain: "#ff9ac0", palate: "#ff7a8a", tongue: "#ff5a7a", nerve: "#ffd23a", vessel: "#ff3a4a",
+        cold: "#9ae8ff", warm: "#ff8a3a", bolt: "#fff07a",
+        ink: "#0a0614", mouth: "#7a1a3a", eyeW: "#ffffff", blush: "#ff8a9a",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function say(x, y, str) { g.save(); screen(); bubble(x, y, str, C.ink); g.restore(); }
+      function label(str, x, y, col) { g.save(); screen(); worldText(str, x, y + 1, 1, C.ink); worldText(str, x, y, 1, col || C.white); g.restore(); }
+      function pain(t) {
+        if (t < T.NOT) return clamp01(t / 1.2);
+        if (t < T.COLD) return 1;
+        if (t < T.HIT) return clamp01((t - T.COLD) / (T.BREAK - T.COLD));
+        if (t < T.FIX) return 1;
+        if (t < T.GONE) return 1 - clamp01((t - T.TONGUE) / 3.0);
+        return 0;
+      }
+
+      // ============================================================ the kid with an ice cream (front)
+      function kidC(x, y, s, t, o) {
+        o = o || {};
+        var p = o.pain || 0, sh = p > 0.5 ? Math.sin(t * 40) * 0.8 : 0;
+        g.save(); g.translate(x + sh, y); g.scale(s, s);
+        rect(-6, -16, 5, 16, C.pants); rect(1, -16, 5, 16, C.pants); rect(-7, -1, 6, 2, C.ink); rect(1, -1, 6, 2, C.ink);
+        rrect(-9, -34, 18, 20, 4, C.shirt);
+        // left hand: on the forehead when it hurts; right hand: the cone
+        var lh = p > 0.4 ? [-5, -50] : [-12, -17];
+        line(-9, -31, lh[0], lh[1], 3, C.shirt); disc(lh[0], lh[1], 2.2, C.skin);
+        line(9, -31, 14, -26, 3, C.shirt); disc(14, -26, 2.2, C.skin);
+        poly([[11, -28], [17, -28], [14, -18]], C.cone); for (var k = 0; k < 3; k++) line(12 + k * 1.6, -27, 13.5 + k, -21, 0.4, C.coneD);
+        disc(14, -31, 4, C.ice); disc(13, -32, 1.6, C.iceL);
+        disc(0, -43, 9, C.skinD); disc(0, -43.5, 8.4, C.skin); ell(0, -49.5, 8.6, 4.4, 0, C.hair);
+        if (p > 0.4) { line(-5, -44, -1.5, -43, 1, C.ink); line(1.5, -43, 5, -44, 1, C.ink); ell(0, -38, 2.4, 1.6, 0, C.mouth); rect(-2, -38.8, 4, 0.8, C.white); }
+        else { disc(-3.5, -43, 1.3, C.ink); disc(3.5, -43, 1.3, C.ink); arcS(0, -39, 2.4, 0.3, Math.PI - 0.3, 0.8, C.mouth); }
+        disc(-6, -40, 1.3, C.blush); disc(6, -40, 1.3, C.blush);
+        g.restore();
+      }
+      function kid(x, y, s, t, o) { character(function () { kidC(x, y, s, t, o); }); }
+      function bolt(x, y, k) { if (k <= 0.05) return; g.save(); g.translate(x, y); g.scale(k, k); poly([[0, -10], [6, -10], [2, -2], [7, -2], [-3, 10], [0, 1], [-5, 1]], C.bolt); g.restore(); }
+
+      // ============================================================ scenes
+      function scene_kid(t) {
+        var tt = tapeT(t, T);
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.bg0], [1, C.bg1]]); setCam(cam, 0.5); disc(148, 66, 10, C.sun); setCam(cam, 1);
+        rect(-60, 138, 300, 240, C.floor);
+        var p = pain(tt);
+        kid(90, 138, 1.25, tt, { pain: p });
+        bolt(122, 72, p * (0.8 + 0.2 * Math.sin(tt * 20))); bolt(58, 76, p * (0.8 + 0.2 * Math.sin(tt * 23 + 1)));
+        if (tt < T.NOT && tt > 0.4) say(130, 76, "OWW!");
+        if (tt >= T.CTA + 0.4) say(124, 80, "YUM!");
+      }
+      function headXray(t, o) {
+        o = o || {};
+        sky([[0, C.xr0], [1, C.xr1]]); screen(); g.translate(9 * RES / RES, 18); g.scale(0.9, 0.9);
+        // a head in profile (facing right), cut open
+        disc(84, 98, 40, C.headD); disc(84, 97.5, 39, C.head); poly([[118, 96], [130, 108], [120, 112]], C.head);
+        ell(78, 82, 28, 18, 0, C.brain); for (var k = 0; k < 5; k++) arcS(62 + k * 8, 80 + (k % 2) * 5, 4, 0.3, 2.8, 1, "#d8608a");
+        // mouth + the palate (roof) + tongue
+        g.fillStyle = "#7a1a3a"; g.beginPath(); g.moveTo(96, 112); g.quadraticCurveTo(110, 106, 124, 114); g.lineTo(124, 124); g.quadraticCurveTo(108, 128, 96, 122); g.closePath(); g.fill();
+        line(96, 112, 124, 112, 2.4, C.palate);
+        var tp = o.tongue || 0;
+        ell(108, 122 - 8 * tp, 12, 4, -0.1, C.tongue);
+        // the cold blob of ice cream on the palate
+        if (o.cold) { disc(112, 114, 4, C.ice2); disc(118, 115, 3, C.ice); }
+        // the blood vessel just above the palate (widens), the nerve going up to the forehead
+        var vw = o.vessel ? 2 + 2.5 * o.vessel : 2;
+        line(94, 108, 124, 106, vw, C.vessel);
+        if (o.nerve) {
+          g.strokeStyle = C.nerve; g.lineWidth = 1.4; g.beginPath(); g.moveTo(110, 108); g.quadraticCurveTo(118, 88, 112, 66); g.stroke();
+          var sp = o.spark; if (sp !== undefined) { var u = sp % 1, px = u < 0.5 ? lerp(110, 118, u * 2) : lerp(118, 112, (u - 0.5) * 2), py = lerp(108, 66, u); disc(px, py, 2.4, C.bolt); }
+        }
+        if (o.warm) { lighter(); glow(110, 112, 16 * o.warm, C.warm, 0.6 * o.warm); normalBlend(); }
+        if (o.wrong) { g.strokeStyle = C.red; g.lineWidth = 1.6; g.beginPath(); g.arc(112, 64, 7, 0, 6.28); g.stroke(); bolt(112, 64, 0.8); }
+        disc(108, 90, 1.8, C.ink);
+      }
+      function scene_xray(t) {
+        var cam = { x: 90, y: 160, z: 1.0 };
+        var o = { cold: t >= T.COLD && t < T.FIX, vessel: t >= T.VESSEL && t < T.FIX ? clamp01((t - T.VESSEL) / 1.0) : 0, nerve: t >= T.NERVE, spark: t >= T.NERVE && t < T.HIT ? (t - T.NERVE) * 0.8 : undefined, wrong: t >= T.HIT && t < T.FIX, tongue: t >= T.TONGUE ? clamp01((t - T.TONGUE - 0.2) / 0.5) : 0, warm: t >= T.WARM ? clamp01((t - T.WARM) / 0.6) : 0 };
+        headXray(t, o);
+        var lb = t < T.VESSEL ? ["ROOF OF MOUTH", C.palate] : t < T.NERVE ? ["BLOOD VESSEL", C.vessel] : t < T.HIT ? ["NERVE", C.nerve] : t < T.FIX ? ["FOREHEAD?!", C.red] : t < T.TONGUE ? ["5 SECONDS", C.gold] : ["TONGUE", C.tongue];
+        label(lb[0], 90, 196, lb[1]);
+        if (t >= T.FIX) { g.save(); screen(); rect(40, 208, 100, 8, C.ink); rect(42, 210, 96 * pain(t), 4, pain(t) > 0.5 ? C.red : C.green); g.restore(); }
+      }
+
+      function sceneAt(t) { var tt = tapeT(t, T); return tt < T.COLD || tt >= T.GONE ? "kid" : "xray"; }
+      function drawUI(t) {
+        var tt = tapeT(t, T), p = Math.round(100 * pain(tt));
+        var l2 = tt < T.NOT ? "BRAIN FREEZE" : tt < T.COLD ? "BRAIN: FINE" : tt < T.HIT ? "SIGNAL SENT" : tt < T.FIX ? "WRONG SPOT" : tt < T.GONE ? "FIX: TONGUE" : "ICE CREAM: OK";
+        counterLines("PAIN " + p + "%", p > 50 ? C.red : C.green, 3, l2, sceneAt(t) === "xray" ? C.white : C.ink);
+      }
+
+      KIT.start(C, T, {
+        scenes: { kid: scene_kid, xray: scene_xray },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.cold,
+        cuts: [[T.COLD, "kid", "xray"], [T.GONE, "xray", "kid"]],
+      });
+    </script>
+  </body>
+</html>

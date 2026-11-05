@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Your Fingers Wrinkle on Purpose</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #8ad8f0; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #8ad8f0; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "Your Fingers Wrinkle on Purpose" — text cards + sound only, story loop (STYLE_GUIDE 6 + 9), safe zone (section 8),
+      layout checked with _engine/qa_layout.js. Facts: water-induced wrinkling of fingers and toes is an active,
+      nerve-controlled vasoconstriction (it doesn't happen in digits with cut nerves; Lewis & Pickering 1936; used
+      clinically as a bedside nerve test, O'Riain 1973); it takes ~5 minutes in warm water; hypothesis: wrinkles work like
+      rain treads and improve grip on wet objects (Changizi et al. 2011; Kareklas et al. 2013) — other studies found no
+      benefit (Haseleu et al. 2014), so "studies are still mixed".
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="29.2" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="29.2" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="29.2" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        tile: "#e8f4fa", tileD: "#c8dce8", water: "#6ac8f0", waterL: "#b8ecff", tub: "#ffffff", tubD: "#c8d0dc", bubb: "#ffffff",
+        skin: "#ffc8a0", skinD: "#d8946a", skinW: "#e8a880", nail: "#ffe4d4",
+        xr0: "#0a1a3a", xr1: "#142a50", bone: "#e8e8f4", nerve: "#ffd23a", vessel: "#ff3a4a",
+        tyre: "#2a2a34", tyreL: "#5a5a6a", rim: "#c8c8d8", rain: "#9ad8ff", sky0: "#5a6a8a", sky1: "#8a9ab8", card: "#fff8e8",
+        ink: "#0a0614", mouth: "#7a1a3a", eyeW: "#ffffff", blush: "#ff8a9a",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function say(x, y, str) { g.save(); screen(); bubble(x, y, str, C.ink); g.restore(); }
+      function label(str, x, y, col) { g.save(); screen(); worldText(str, x, y + 1, 1, C.ink); worldText(str, x, y, 1, col || C.white); g.restore(); }
+      function wrinkles(t) { if (t < T.WHY) return countOf(T.WRINKS, t); if (t >= T.CUT && t < T.TEST) return 0; return T.WRINKS.length; }
+
+      // ============================================================ a big fingertip (pointing up) with a face, n wrinkle lines
+      function fingerC(x, y, s, t, n, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s, s);
+        rrect(-14, -44, 28, 50, 14, C.skinD); rrect(-13, -44, 26, 50, 13, n > 8 ? C.skinW : C.skin);
+        rrect(-8, -42, 16, 14, 7, C.nail); ell(-3, -38, 3, 1.6, 0, C.white);
+        g.strokeStyle = C.skinD; g.lineWidth = 0.8;
+        for (var k = 0; k < Math.min(n, 23); k++) { var yy = -26 + (k % 12) * 2.6, xo = k >= 12 ? 1.5 : -1.5; g.beginPath(); g.moveTo(-11 + xo, yy); g.quadraticCurveTo(0, yy + 2.4 * (k % 2 ? 1 : -1), 11 + xo, yy + 0.6); g.stroke(); }
+        if (!o.noFace) { disc(-4, -16, 1.8, C.eyeW); disc(4, -16, 1.8, C.eyeW); disc(-4, -16, 1.1, C.ink); disc(4, -16, 1.1, C.ink);
+          if (o.mood === "o") ell(0, -9, 1.6, 2, 0, C.mouth); else arcS(0, -11, 2.6, 0.3, Math.PI - 0.3, 0.9, C.mouth); disc(-8, -11, 1.4, C.blush); disc(8, -11, 1.4, C.blush); }
+        g.restore();
+      }
+      function finger(x, y, s, t, n, o) { character(function () { fingerC(x, y, s, t, n, o); }); }
+      function bath(t, cam) {
+        sky([[0, C.tile], [1, C.tileD]]); setCam(cam, 1);
+        for (var i = 0; i < 10; i++) for (var j = 0; j < 4; j++) { g.strokeStyle = C.tileD; g.lineWidth = 0.6; g.strokeRect(i * 20 - 10, 58 + j * 20, 20, 20); }
+        rrect(-10, 118, 200, 60, 10, C.tubD); rect(-6, 122, 192, 50, C.water);
+        for (var b = 0; b < 12; b++) { var bx = (hash1(b) * 200 + t * 6) % 200 - 10; disc(bx, 122 + Math.sin(t * 2 + b) * 1.5, 3 + (b % 3), C.bubb); }
+      }
+
+      // ============================================================ scenes
+      function scene_bath(t) {
+        var tt = tapeT(t, T);
+        var cam = { x: 90, y: 160, z: 1.0 };
+        bath(tt, cam);
+        var n = wrinkles(tt);
+        if (tt < T.ONLY || tt >= T.CTA) finger(90, 140, 1.5, tt, n, { mood: n > 8 ? "o" : "" });
+        else if (tt < T.TIME) { finger(56, 140, 1.15, tt, n, {}); character(function () { g.save(); g.translate(124, 132); rrect(-12, -10, 24, 18, 8, C.skinD); rrect(-11, -10, 22, 17, 8, C.skinW); for (var k = 0; k < 5; k++) line(-8, -6 + k * 2.6, 8, -5 + k * 2.6, 0.6, C.skinD); disc(-4, -2, 1.2, C.ink); disc(4, -2, 1.2, C.ink); g.restore(); }); label("FINGERS", 56, 196, C.ink); label("TOES", 124, 196, C.ink); g.save(); screen(); rect(14, 74, 28, 16, C.card); worldText("ARM", 28, 79, 1, C.ink); line(16, 76, 40, 88, 1.4, C.red); g.restore(); }
+        else { finger(90, 140, 1.3, tt, n, {}); g.save(); screen(); disc(146, 82, 13, C.white); g.strokeStyle = C.ink; g.lineWidth = 1; g.beginPath(); g.arc(146, 82, 13, 0, 6.28); g.stroke(); var a = -1.57 + clamp01((tt - T.TIME) / 1.6) * 6.28 * (5 / 60); line(146, 82, 146 + Math.cos(a) * 10, 82 + Math.sin(a) * 10, 1.2, C.red); worldText("5 MIN", 146, 98, 1, C.ink); g.restore(); }
+        if (tt >= T.WHY && tt < T.NERVE) { worldText("?", 132, 70, 2, C.red); worldText("?", 44, 80, 2, C.red); }
+      }
+      function scene_xray(t) {
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.xr0], [1, C.xr1]]); setCam(cam, 1); g.translate(0, 10);
+        var cut = t >= T.CUT && t < T.TEST;
+        var sig = t >= T.NERVE && t < T.CUT ? 1 : t >= T.TEST ? 1 : 0;
+        // finger outline + bone + nerve + vessels
+        g.save(); g.globalAlpha = 0.35; rrect(60, 56, 60, 100, 28, C.skin); g.restore();
+        g.strokeStyle = C.skin; g.lineWidth = 1; g.beginPath(); g.moveTo(60, 156); g.lineTo(60, 84); g.arc(90, 84, 30, Math.PI, 0); g.lineTo(120, 156); g.stroke();
+        rrect(82, 76, 16, 70, 7, C.bone);
+        var vw = t >= T.HIT && !cut ? 1.2 : 3;
+        line(72, 150, 72, 78, vw, C.vessel); line(108, 150, 108, 78, vw, C.vessel);
+        line(78, 150, 78, 70, 1.6, C.nerve);
+        if (cut) { line(70, 118, 86, 112, 2, C.ink); line(70, 112, 86, 118, 2, C.ink); rect(74, 112, 8, 6, C.xr0); }
+        if (sig && !cut) { var p = ((t * 1.5) % 1); disc(78, lerp(150, 70, p), 2.4, C.gold); }
+        // the skin surface: wrinkles appear as the vessels shrink
+        var wn = cut ? 0 : t >= T.HIT ? 10 : 0;
+        g.strokeStyle = C.skinD; g.lineWidth = 1; for (var k = 0; k < wn; k++) { g.beginPath(); g.moveTo(62, 90 + k * 6); g.quadraticCurveTo(90, 93 + k * 6 + (k % 2 ? 3 : -3), 118, 90 + k * 6); g.stroke(); }
+        if (t >= T.TEST) { g.save(); screen(); rect(126, 66, 34, 40, C.card); worldText("TEST", 143, 70, 1, C.ink); line(130, 82, 156, 82, 1, C.ink); line(130, 90, 150, 90, 1, C.ink); worldText("OK", 143, 96, 1, C.green); g.restore(); }
+        label(cut ? "NO SIGNAL" : t >= T.HIT ? "VESSELS SHRINK" : "NERVE SIGNAL", 90, 196, cut ? C.red : C.gold);
+      }
+      function scene_grip(t) {
+        var tyres = t >= T.TYRES;
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.sky0], [1, C.sky1]]); setCam(cam, 1);
+        for (var r = 0; r < 30; r++) { var rx = hash1(r) * 190 - 5, ry = ((hash1(r + 4) * 160 + t * 120) % 160) + 50; line(rx, ry, rx - 1, ry + 5, 0.8, C.rain); }
+        // a car tyre with treads vs the wrinkled fingertip
+        g.save(); g.translate(48, 104); g.rotate(t * 0.8); disc(0, 0, 26, C.tyre); for (var k = 0; k < 16; k++) { var a = k * 0.39; rect(Math.cos(a) * 22 - 1.5, Math.sin(a) * 22 - 1.5, 3, 3, C.tyreL); } disc(0, 0, 13, C.rim); disc(0, 0, 4, C.tyreL); g.restore();
+        finger(128, 140, 1.1, t, T.WRINKS.length, { mood: tyres ? "" : "o" });
+        worldText("=", 90, 98, 2, C.gold);
+        label(t >= T.MIXED && t < T.TYRES ? "THEORY" : "TREADS", 90, 196, C.gold);
+      }
+
+      function sceneAt(t) { var tt = tapeT(t, T); return tt < T.NERVE || tt >= T.CTA ? "bath" : tt < T.THEORY ? "xray" : "grip"; }
+      function drawUI(t) {
+        var tt = tapeT(t, T), n = wrinkles(tt);
+        var l2 = tt < T.ONLY ? "BATH TIME" : tt < T.TIME ? "FINGERS + TOES" : tt < T.WHY ? "~5 MINUTES" : tt < T.NERVE ? "WHY?" : tt < T.CUT ? "NERVES: ON" : tt < T.TEST ? "NERVE: CUT" : tt < T.THEORY ? "NERVE TEST" : tt < T.CTA ? "GRIP: THEORY" : "BATH TIME";
+        counterLines("WRINKLES: " + n, n > 0 ? C.pink : C.cyan, 3, l2, sceneAt(t) === "bath" ? C.ink : C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { bath: scene_bath, xray: scene_xray, grip: scene_grip },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.white,
+        cuts: [[T.NERVE, "bath", "xray"], [T.THEORY, "xray", "grip"], [T.CTA, "grip", "bath"]],
+      });
+    </script>
+  </body>
+</html>

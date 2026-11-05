@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Who Keeps Breaking My Aquarium?</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a1a3a; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a1a3a; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "Who Keeps Breaking My Aquarium?" (the mantis shrimp) — narrated mystery (Kokoro af_heart), story loop with false
+      suspects (STYLE_GUIDE sections 7 + 9), safe zone (section 8), layout checked with _engine/qa_layout.js. Facts:
+      peacock mantis shrimp (~10 cm) strike with club-like appendages at ~23 m/s (~80 km/h) with accelerations around
+      10,000 g, fast enough to make cavitation bubbles (Patek, Korff & Caldwell 2004, Nature; Patek & Caldwell 2005, J.
+      Exp. Biol.); aquarium keepers report cracked tank glass; their eyes carry 12-16 photoreceptor types vs our 3, yet in
+      tests they discriminate colours worse than humans (Thoen et al. 2014, Science). The aquarium story is fiction.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="56.0" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="56.0" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="56.0" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        wat0: "#2a8ae8", wat1: "#1a4ab8", dark0: "#06102a", dark1: "#0a1a3a", glassE: "#c8e8ff", crack: "#ffffff",
+        sand: "#e8c878", sandD: "#c8a058", rock: "#7a7a92", rockD: "#545468", weed: "#3ac86a", weedD: "#1a8a4a", room: "#2a2a3a",
+        mBody: "#3ae88a", mBodyD: "#1a9a5a", mOr: "#ff8a3a", mBlue: "#3aa8ff", mRed: "#ff4a6a", mEye: "#c8a8ff",
+        crab: "#ff6a3a", crabD: "#b8401a", shell: "#e8d0a8", shellD: "#b89a6a",
+        eel: "#8a9a3a", eelD: "#5a6a1a", octo: "#ff7aa8", octoD: "#c84a7a", puff: "#ffd23a", puffD: "#c8a01a", spike: "#c88a1a",
+        bubb: "#c8f4ff", beam: "#fff07a",
+        ink: "#0a0614", mouth: "#7a1a3a", eyeW: "#ffffff", blush: "#ff8a9a",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      var GROUND = 136;
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function say(x, y, str) { g.save(); screen(); bubble(x, y, str, C.ink); g.restore(); }
+      function label(str, x, y, col) { g.save(); screen(); worldText(str, x, y + 1, 1, C.ink); worldText(str, x, y, 1, col || C.white); g.restore(); }
+      function lastClick(t) { return lastOf(T.CLICKS, t); }
+
+      // ============================================================ the mantis shrimp (side view, facing right)
+      function mantisC(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s, s);
+        poly([[-30, -2], [-38, -8], [-40, 2], [-36, 6]], C.mBlue);
+        for (var k = 0; k < 6; k++) { var sx = -28 + k * 5.5; ell(sx, -3, 4, 5.5 - k * 0.15, 0, k % 2 ? C.mBodyD : C.mBody); rect(sx - 0.5, -8, 1, 2, C.mOr); }
+        for (var l = 0; l < 4; l++) line(-20 + l * 6, 2, -22 + l * 6 + Math.sin(t * 8 + l), 8, 1, C.mOr);
+        ell(8, -4, 9, 6.5, 0, C.mBodyD); ell(8, -4.6, 8.4, 5.8, 0, C.mBody);
+        // the eyes on stalks (big, googly, with a mid-band)
+        line(12, -9, 14, -17, 1.4, C.mBodyD); line(16, -9, 20, -16, 1.4, C.mBodyD);
+        ell(14, -19, 3, 3.6, 0, C.mEye); ell(20.5, -18, 3, 3.6, 0, C.mEye); rect(11.2, -19.4, 5.6, 0.9, C.ink); rect(17.7, -18.4, 5.6, 0.9, C.ink);
+        disc(14.6, -19.8, 0.9, C.ink); disc(21.1, -18.8, 0.9, C.ink);
+        // the club (folded, or striking)
+        var st = o.strike || 0;
+        g.save(); g.translate(14, 1); g.rotate(-1.4 + 1.5 * st);
+        line(0, 0, 8, 0, 2.4, C.mRed); disc(9.5, 0, 2.8, C.mRed); disc(9.5, 0, 1.4, C.mOr);
+        g.restore();
+        line(17, -8, 30, -14 + Math.sin(t * 3) * 2, 0.6, C.mOr);
+        arcS(16, -2, 1.6, 0.2, Math.PI - 0.6, 0.7, C.mouth);
+        g.restore();
+      }
+      function mantis(x, y, s, t, o) { character(function () { mantisC(x, y, s, t, o); }); }
+      function eelC(x, y, s, t) { g.save(); g.translate(x, y); g.scale(s, s); rect(-20, -8, 26, 16, C.rockD); rect(-19, -7, 24, 14, "#3a3a4a"); var w = Math.sin(t * 2); ell(8, w, 10, 5, 0, C.eelD); ell(8, w - 0.5, 9.4, 4.4, 0, C.eel); line(5, w - 2, 13, w - 3, 0.8, C.ink); disc(13, w - 1.5, 1, C.ink); arcS(15, w + 1.5, 1.6, 0.2, Math.PI - 0.8, 0.7, C.mouth); g.restore(); }
+      function octoC(x, y, s, t) { g.save(); g.translate(x, y); g.scale(s, s); for (var k = 0; k < 6; k++) { var a = Math.PI * (0.15 + k * 0.14); g.strokeStyle = C.octoD; g.lineWidth = 3; g.beginPath(); g.moveTo(Math.cos(a) * 6, 2); g.quadraticCurveTo(Math.cos(a) * 14, 8 + Math.sin(t * 3 + k) * 2, Math.cos(a) * 18, 12); g.stroke(); } ell(0, -6, 12, 11, 0, C.octoD); ell(0, -6.6, 11, 10, 0, C.octo); disc(-4, -5, 2.2, C.eyeW); disc(4, -5, 2.2, C.eyeW); disc(-4, -4.6, 1.2, C.ink); disc(4, -4.6, 1.2, C.ink); arcS(0, -1, 2, 0.3, Math.PI - 0.3, 0.7, C.mouth); g.restore(); }
+      function puffC(x, y, s, t, o) { o = o || {}; g.save(); g.translate(x, y); g.scale(s, s); poly([[-12, 0], [-19, -5], [-19, 5]], C.puffD); for (var k = 0; k < 12; k++) { var a = k * 0.52; poly([[Math.cos(a - 0.1) * 11, Math.sin(a - 0.1) * 11], [Math.cos(a) * 14, Math.sin(a) * 14], [Math.cos(a + 0.1) * 11, Math.sin(a + 0.1) * 11]], C.spike); } disc(0, 0, 11.5, C.puffD); disc(0, -0.5, 11, C.puff); if (o.sleep) { line(2, -4, 6, -4, 0.9, C.ink); } else { disc(4, -4, 2.4, C.eyeW); disc(4.6, -4, 1.3, C.ink); } ell(9, 2, 1.6, 1.2, 0, C.mouth); g.restore(); }
+      function crabC(x, y, s, t, o) { o = o || {}; g.save(); g.translate(x, y); g.scale(s, s); if (o.smashed) { for (var k = 0; k < 6; k++) { var a = k * 1.05; poly([[Math.cos(a) * 4, Math.sin(a) * 2], [Math.cos(a) * 9 + 2, Math.sin(a) * 4], [Math.cos(a + 0.5) * 7, Math.sin(a + 0.5) * 3]], k % 2 ? C.crab : C.crabD); } g.restore(); return; } for (var l = 0; l < 3; l++) { line(-6 - l * 2, 2, -10 - l * 2, 6, 1, C.crabD); line(6 + l * 2, 2, 10 + l * 2, 6, 1, C.crabD); } ell(0, 0, 9, 6, 0, C.crabD); ell(0, -0.5, 8.4, 5.4, 0, C.crab); disc(-3, -6, 1.4, C.ink); disc(3, -6, 1.4, C.ink); g.restore(); }
+      function snailShell(x, y, s, broken) { g.save(); g.translate(x, y); g.scale(s, s); if (broken) { poly([[-5, 0], [-1, -6], [1, 0]], C.shell); poly([[2, 0], [5, -5], [7, 0]], C.shellD); } else { disc(0, -4, 5, C.shellD); disc(0, -4.4, 4.5, C.shell); arcS(0, -4.4, 2.4, 0, 4, 0.8, C.shellD); } g.restore(); }
+      function tank(t, cam, night, crackK) {
+        sky([[0, C.room], [1, "#141420"]]);
+        setCam(cam, 1);
+        rect(4, 62, 172, 90, night ? C.dark0 : C.wat1); g.fillStyle = vgrad(62, 152, night ? [[0, C.dark1], [1, C.dark0]] : [[0, C.wat0], [1, C.wat1]]); g.fillRect(4, 62, 172, 90);
+        rect(4, GROUND, 172, 16, night ? "#4a4030" : C.sandD); rect(4, GROUND, 172, 4, night ? "#6a5a40" : C.sand);
+        ell(30, GROUND, 16, 8, 0, C.rockD); ell(30, GROUND - 1, 15, 7, 0, night ? "#3a3a4a" : C.rock);
+        for (var w = 0; w < 3; w++) { var wx = 150 + w * 6; line(wx, GROUND, wx + Math.sin(t * 2 + w) * 3, 104 - w * 5, 2, C.weedD); line(wx, GROUND, wx + Math.sin(t * 2 + w) * 3, 105 - w * 5, 1, night ? "#1a5a2a" : C.weed); }
+        for (var b = 0; b < 8; b++) { var by = ((hash1(b) * 90 - t * 12) % 80 + 80) % 80 + 66; disc(14 + b * 21, by, 0.9, C.bubb); }
+        g.strokeStyle = C.glassE; g.lineWidth = 2; g.strokeRect(4, 62, 172, 90);
+        if (crackK > 0) { g.strokeStyle = C.crack; g.lineWidth = 1; g.beginPath(); var cx = 128, cy = 86; for (var r = 0; r < 6; r++) { var a = r * 1.05 + 0.3, L = 22 * crackK; g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a) * L * 0.5 + 2, cy + Math.sin(a) * L * 0.5); g.lineTo(cx + Math.cos(a + 0.2) * L, cy + Math.sin(a + 0.2) * L); } g.stroke(); }
+      }
+
+      // ============================================================ scenes
+      function scene_tank(t) {
+        var tt = tapeT(t, T);
+        var night = tt < T.LIGHT + 0.6 && !(tt >= T.LIST && tt < T.CRACK) || (tt >= T.CLICK);
+        if (tt >= T.TANK && tt < T.CLICK) night = false;
+        var cam = { x: 90, y: 160, z: 1.0 };
+        var lc = lastClick(tt); shake(cam, tt, lc, 4, 0.2); shake(cam, tt, T.HIT, 6, 0.4);
+        var crackK = tt < T.CRAB ? 1 : (tt >= W2() && tt < T.TANK) ? clamp01((tt - W2()) / 0.3) : (tt >= T.CLICK ? clamp01((tt - (T.CLICKS[T.CLICKS.length - 1])) / 0.3) * 0.5 : 0);
+        tank(tt, cam, night, crackK);
+        // frame 1 + mornings: the victims
+        if (tt < T.NIGHT) { crabC(70, GROUND - 2, 1.4, tt, { smashed: true }); if (tt >= T.SHELL || tt < T.CRAB) { snailShell(100, GROUND, 1.4, true); snailShell(114, GROUND, 1.2, true); } if (tt >= T.CRAB && tt < T.SHELL) character(function () { crabC(110, GROUND - 3, 1.3, tt, {}); }); }
+        // who is out there? the reveal: the mantis by the crack
+        var showM = tt >= T.HIT && tt < T.TANK;
+        if (showM) mantis(108, GROUND - 6, tt < T.CRAB ? 0.9 : 1.3, tt, { strike: tt - lc < 0.15 ? 1 : 0 });
+        if (tt >= T.PUNCH && tt < T.EYES) { snailShell(150, GROUND, 1.6, tt - T.CLICKS[3] > 0); }
+        if (tt >= T.BUBBLE && tt < T.GLASS) for (var b = 0; b < 12; b++) { var p = ((tt - T.BUBBLE) * 1.5 + b / 12) % 1; disc(136 + Math.cos(b) * 8 * p, 120 - p * 20 + Math.sin(b * 2) * 4, 1.2 + p, C.bubb); }
+        // night: a flashlight cone sweeping
+        if (night && tt >= T.NIGHT && tt < T.LIGHT) { g.save(); g.globalAlpha = 0.22; var ax = 60 + Math.sin(tt * 1.3) * 40; poly([[ax - 6, 62], [ax + 6, 62], [ax + 26, GROUND], [ax - 26, GROUND]], C.beam); g.restore(); worldText("?", 90 + Math.sin(tt * 2) * 30, 100, 2, C.gold); }
+        if (tt >= T.TANK && tt < T.CLICK) { g.strokeStyle = C.glassE; g.lineWidth = 4; g.strokeRect(4, 62, 172, 90); mantis(92, GROUND - 6, 1.1, tt, {}); label("EXTRA THICK", 90, 196, C.cyan); }
+        if (tt >= T.CLICK) { lighter(); glow(98, 112, 10, C.mEye, 0.5); normalBlend(); disc(96, 112, 1.6, C.mEye); disc(103, 113, 1.6, C.mEye); }
+      }
+      function W2() { return T.CLICKS[2]; }
+      function scene_suspects(t) {
+        var cam = { x: 90, y: 160, z: 1.0 };
+        tank(t, cam, false, 0);
+        var who = t < T.OCTO ? 0 : t < T.PUFF ? 1 : 2;
+        rrect(26, 66, 128, 66, 4, C.paper); rrect(28, 68, 124, 62, 3, "#e8eef4");
+        worldText("SUSPECT " + (who + 1), 90, 71, 1, C.ink);
+        if (who === 0) character(function () { eelC(88, 100, 1.6, t); });
+        if (who === 1) character(function () { octoC(90, 102, 1.4, t); });
+        if (who === 2) character(function () { puffC(90, 100, 1.4, t, { sleep: true }); });
+        var nameT = [T.EEL, T.OCTO, T.PUFF][who];
+        if (t > nameT + 1.0) { g.save(); g.translate(122, 118); g.rotate(-0.3); worldText("X", 0, -6, 3, C.red); g.restore(); }
+        label(["TOO LAZY", "NO HARD PARTS", "ASLEEP"][who], 90, 196, C.red);
+      }
+      function scene_punch(t) {
+        var cam = camAt([[T.PUNCH, 112, 148, 1.8], [T.GLASS, 104, 150, 1.5]], t);
+        var lc = lastClick(t); shake(cam, t, lc, 5, 0.2);
+        tank(t, cam, false, 0);
+        mantis(100, GROUND - 6, 1.3, t, { strike: t - lc < 0.15 ? 1 : 0 });
+        snailShell(130, GROUND, 1.6, t > T.CLICKS[4]);
+        if (t - lc < 0.2) for (var b = 0; b < 8; b++) { var a = b * 0.785, r = 3 + (t - lc) * 40; disc(126 + Math.cos(a) * r, GROUND - 6 + Math.sin(a) * r, 1, C.bubb); }
+      }
+      function scene_eyes(t) {
+        var wrong = t >= T.WRONG;
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.dark1], [1, C.dark0]]); setCam(cam, 1);
+        // the shrimp eye vs a human eye, colour sensors as dots
+        character(function () { ell(52, 98, 26, 32, 0, C.mEye); rect(26, 95, 52, 6, C.ink); disc(52, 98, 7, C.ink); });
+        var n = Math.min(16, Math.floor((t - T.EYES - 0.6) / 0.06) + 1);
+        var cols = [C.red, C.mOr, C.gold, C.green, C.cyan, C.mBlue, C.pink, "#a85aff"];
+        for (var k = 0; k < n; k++) disc(32 + (k % 4) * 13, 74 + Math.floor(k / 4) * 15, 3, cols[k % 8]);
+        character(function () { ell(132, 98, 20, 14, 0, C.white); disc(132, 98, 8, "#7a4a2a"); disc(132, 98, 3.5, C.ink); });
+        if (t > T.EYES + 2.4) { disc(120, 124, 3, C.red); disc(132, 124, 3, C.green); disc(144, 124, 3, C.mBlue); }
+        label("SHRIMP: 16", 52, 186, C.gold); label("YOU: 3", 132, 186, C.white);
+        if (wrong) { g.save(); g.translate(52, 98); g.rotate(-0.25); worldText("WORSE!", 0, -4, 2, C.red); g.restore(); }
+      }
+
+      function sceneAt(t) {
+        var tt = tapeT(t, T);
+        return tt < T.EEL ? "tank" : tt < T.CRACK ? "suspects" : tt < T.PUNCH ? "tank" : tt < T.GLASS ? "punch" : tt < T.EYES ? "tank" : tt < T.NEED ? "eyes" : "tank";
+      }
+      function drawUI(t) {
+        var tt = tapeT(t, T);
+        if (tt < T.LIST) counterLines("CRABS LOST: " + (tt < T.CRAB ? 7 : tt < T.SHELL ? 8 : 9), C.red, 3, tt < T.NIGHT ? "SHELLS: CRACKED" : "NIGHT CAM", C.white);
+        else if (tt < T.CRACK) counterLines("SUSPECTS: 3", C.gold, 3, "ELIMINATED: " + countOf([T.EEL + 1, T.OCTO + 1, T.PUFF + 1], tt), C.white);
+        else if (tt < T.HIT) counterLines("GLASS: CRACKED", C.red, 3, "WHO?", C.white);
+        else if (tt < T.PUNCH) counterLines("FOUND IT", C.green, 3, "MANTIS SHRIMP", C.white);
+        else if (tt < T.EYES) counterLines("PUNCH " + Math.round(80 * clamp01((tt - T.PUNCH - 0.6) / 1.2)) + " KM/H", C.red, 3, "10 CM SHRIMP", C.white);
+        else if (tt < T.NEED) counterLines("COLOUR SENSORS", C.gold, 3, "16 VS 3", C.white);
+        else counterLines("PUNCH: 80 KM/H", C.red, 3, tt < T.TANK ? "JUST PUNCH" : tt < T.CLICK ? "NEW TANK" : "CLICK...", C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { tank: scene_tank, suspects: scene_suspects, punch: scene_punch, eyes: scene_eyes },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.white,
+        cuts: [[T.EEL, "tank", "suspects"], [T.CRACK, "suspects", "tank"], [T.PUNCH, "tank", "punch"], [T.GLASS, "punch", "tank"], [T.EYES, "tank", "eyes"], [T.NEED, "eyes", "tank"]],
+      });
+    </script>
+  </body>
+</html>

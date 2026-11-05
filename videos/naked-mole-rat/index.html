@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>This Rat Shouldn't Exist</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #5a3a22; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #5a3a22; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "This Rat Shouldn't Exist" (the naked mole-rat) — text cards + sound only, story loop (STYLE_GUIDE 6 + 9), safe zone
+      (section 8), layout checked with _engine/qa_layout.js. Facts: lives 30+ years (record ~37) vs ~2-4 for similar-sized
+      rodents; cancer is extremely rare (Buffenstein 2008; Delaney et al. 2016); insensitive to acid pain (Park et al.
+      2008, PLoS Biol.); survived 18 minutes without oxygen by switching to fructose metabolism (Park et al. 2017,
+      Science); eusocial colonies with one breeding queen (Jarvis 1981); its mortality risk does not rise with age (Ruby,
+      Smith & Buffenstein 2018, eLife).
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="29.2" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="29.2" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="29.2" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        soil0: "#7a5232", soil1: "#4a3018", soilL: "#9a6a42", tunnel: "#2a1a0e", root: "#c8a070", stone: "#8a7a6a",
+        rat: "#ffb8b0", ratD: "#d8847a", ratL: "#ffe0d8", tooth: "#fff8d8", claw: "#e8d8b8",
+        cell: "#a85ad8", acid: "#9aff3a", acidD: "#5ab81a", bottle: "#c8e8ff", o2: "#3ae8ff", crown: "#ffd23a", graph: "#3ae86a",
+        card: "#fff4dc", cardD: "#c8b890",
+        ink: "#0a0614", mouth: "#7a1a3a", eyeW: "#ffffff", blush: "#ff6a8a",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function say(x, y, str) { g.save(); screen(); bubble(x, y, str, C.ink); g.restore(); }
+      function label(str, x, y, col) { g.save(); screen(); worldText(str, x, y + 1, 1, C.ink); worldText(str, x, y, 1, col || C.white); g.restore(); }
+
+      // ============================================================ the naked mole-rat (side view, facing right)
+      function ratC(x, y, s, t, o) {
+        o = o || {};
+        var w = Math.sin(t * 8) * 0.6;
+        g.save(); g.translate(x, y); g.scale(s, s);
+        line(-22, 2, -30, 4 + w, 2, C.ratD);
+        for (var l = 0; l < 4; l++) { var lx = -14 + l * 9; line(lx, 6, lx + Math.sin(t * 10 + l) * 1.5, 11, 2.4, C.ratD); rect(lx - 1 + Math.sin(t * 10 + l) * 1.5, 10.5, 3, 1, C.claw); }
+        ell(0, 0, 24, 10, 0, C.ratD); ell(0, -0.8, 23, 9, 0, C.rat);
+        for (var k = 0; k < 7; k++) arcS(-16 + k * 5, -2, 5, Math.PI * 1.15, Math.PI * 1.85, 0.6, C.ratD);      // wrinkles
+        ell(-6, -5, 10, 2.4, 0, C.ratL);
+        ell(23, -2, 9, 7, 0, C.ratD); ell(23, -2.6, 8.4, 6.4, 0, C.rat);
+        rect(29.5, 1.5, 1.6, 5, C.tooth); rect(31.4, 1.5, 1.6, 5, C.tooth);                                    // the buck teeth
+        disc(31, -1, 1.4, C.ratD);
+        if (o.sleep) line(23, -5, 26, -5, 0.8, C.ink); else disc(25, -5, 0.9, C.ink);
+        if (o.crown) { poly([[16, -8], [17, -14], [20, -10], [23, -15], [26, -10], [29, -14], [30, -8]], C.crown); }
+        disc(19, -1, 1.4, C.blush);
+        if (o.mood === "smug") arcS(28, 1, 1.6, 0.2, Math.PI - 0.6, 0.7, C.mouth);
+        g.restore();
+      }
+      function rat(x, y, s, t, o) { character(function () { ratC(x, y, s, t, o); }); }
+      function soil(t, cam) {
+        sky([[0, C.soil0], [1, C.soil1]]); setCam(cam, 1);
+        for (var p = 0; p < 30; p++) disc(hash1(p) * 190 - 5, 60 + hash1(p + 7) * 260, 1 + hash1(p + 3) * 2, p % 3 ? C.soilL : C.stone);
+        for (var r = 0; r < 4; r++) { var rx = 20 + r * 44; line(rx, 58, rx + 6, 82, 1, C.root); line(rx + 6, 82, rx + 2, 92, 0.8, C.root); }
+        ell(80, 118, 90, 22, 0, C.tunnel); ell(80, 120, 88, 18, 0, "#1e120a");
+      }
+      function ruleIcon(i, t, x, y) {          // the thing each rule is about (above the caption, right of the rat)
+        g.save(); g.translate(x, y);
+        if (i === 0) { rrect(-16, -16, 32, 30, 3, C.card); rect(-16, -16, 32, 8, C.red); worldText("YEARS", 0, -15, 1, C.white); worldText("37", 0, -3, 2, C.ink); }
+        if (i === 1) { disc(0, 0, 11, C.cell); for (var k = 0; k < 6; k++) disc(Math.cos(k) * 7, Math.sin(k) * 7, 2, "#7a3aa8"); line(-13, -13, 13, 13, 3, C.red); line(-13, 13, 13, -13, 3, C.red); }
+        if (i === 2) { rrect(-7, -16, 14, 28, 3, C.bottle); rect(-6, -2, 12, 13, C.acid); rect(-3, -20, 6, 5, C.cardD); worldText("0", 16, -10, 1, C.green); worldText("OUCH", 0, 16, 1, C.white); }
+        if (i === 3) { disc(0, 0, 12, C.o2); worldText("O2", 0, -3.5, 1, C.ink); line(-14, -14, 14, 14, 3, C.red); worldText("18 MIN", 0, 16, 1, C.gold); }
+        if (i === 4) { for (var w = 0; w < 5; w++) { character(function () { ratC(-14 + (w % 3) * 14, -4 + Math.floor(w / 3) * 14, 0.28, t + w, {}); }); } worldText("UP TO 300", 0, 18, 1, C.white); }
+        if (i === 5) { rect(-18, -16, 36, 30, C.card); line(-14, 10, -14, -12, 1, C.ink); line(-14, 10, 16, 10, 1, C.ink); g.strokeStyle = C.red; g.lineWidth = 1; g.beginPath(); g.moveTo(-14, 8); g.quadraticCurveTo(6, 8, 14, -12); g.stroke(); line(-14, 2, 16, 2, 1.6, C.graph); worldText("RISK", 0, -15, 1, C.ink); }
+        g.restore();
+      }
+      function ruleAt(t) { return t < T.R1 ? -1 : t < T.R2 ? 0 : t < T.R3 ? 1 : t < T.R4 ? 2 : t < T.R5 ? 3 : t < T.HIT ? 4 : t < T.QUEEN ? 5 : -1; }
+
+      // ============================================================ scenes
+      function scene_tunnel(t) {
+        var tt = tapeT(t, T);
+        var cam = tt < T.UGLY ? camAt([[0, 76, 150, 1.6], [T.UGLY, 80, 154, 1.4]], tt) : { x: 90, y: 160, z: 1.0 };
+        shake(cam, tt, lastOf(T.STAMPS, tt), 5, 0.25);
+        soil(tt, cam);
+        var r = ruleAt(tt);
+        var queen = tt >= T.QUEEN && tt < T.SCI;
+        var rx = tt < T.R1 ? 70 : r >= 0 ? 52 : 70;
+        rat(rx, 120, tt < T.UGLY ? 1.3 : r >= 0 ? 0.95 : 1.15, tt, { crown: queen, mood: tt >= T.CTA ? "smug" : "", sleep: tt >= T.SCI && tt < T.CTA });
+        if (r >= 0) { ruleIcon(r, tt, 136, 100); var st = T.STAMPS[r]; if (tt > st) { var k = pop(tt, st); g.save(); g.translate(136, 129); g.rotate(-0.12); g.scale(k, k); rrect(-22, -6, 44, 12, 2, C.red); worldText("BROKEN", 0, -3.5, 1, C.white); g.restore(); } }
+        if (queen) for (var w = 0; w < 4; w++) rat(110 + w * 14, 128 - (w % 2) * 6, 0.35, tt + w, {});
+        if (tt >= T.SCI && tt < T.CTA) { g.save(); screen(); rect(118, 78, 44, 28, C.card); worldText("LAB", 140, 82, 1, C.ink); for (var l = 0; l < 3; l++) rect(122, 92 + l * 4, 36, 1, C.cardD); g.restore(); }
+        // progress pips below the caption
+        g.save(); screen();
+        var n = countOf(T.STAMPS, tt);
+        for (var i = 0; i < 6; i++) { rect(38 + i * 18, 194, 14, 10, C.ink); if (i < n) rect(40 + i * 18, 196, 10, 6, C.red); }
+        g.restore();
+        if (tt < T.UGLY && tt > 0.5) say(120, 70, "WHAT?");
+        if (tt >= T.CTA + 0.5) say(116, 74, "BOTH.");
+      }
+
+      function drawUI(t) {
+        var tt = tapeT(t, T), n = countOf(T.STAMPS, tt);
+        if (tt < T.R1) counterLines("RULES BROKEN: 0", C.gold, 2, "NAKED MOLE-RAT", C.white);
+        else if (tt < T.QUEEN) counterLines("RULES BROKEN: " + n, n >= 6 ? C.red : C.gold, 2, ["LIFESPAN", "CANCER", "PAIN", "OXYGEN", "COLONY", "AGING"][Math.max(0, ruleAt(tt))], C.white);
+        else if (tt < T.SCI) counterLines("QUEENS: 1", C.gold, 3, "COLONY: UP TO 300", C.white);
+        else counterLines("RULES BROKEN: 6", C.red, 2, tt < T.CTA ? "AGE: 37 YEARS" : "UGLY. IMMORTAL?", C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { a: scene_tunnel, b: scene_tunnel },
+        sceneAt: function (t) { var tt = tapeT(t, T); return (tt < T.R1 || (tt >= T.R2 && tt < T.R3) || (tt >= T.R4 && tt < T.R5) || (tt >= T.HIT && tt < T.QUEEN) || tt >= T.SCI) ? "a" : "b"; },
+        ui: drawUI, hitCol: C.white,
+        cuts: [[T.R1, "a", "b"], [T.R2, "b", "a"], [T.R3, "a", "b"], [T.R4, "b", "a"], [T.R5, "a", "b"], [T.QUEEN, "a", "b"], [T.SCI, "b", "a"]],
+      });
+    </script>
+  </body>
+</html>
