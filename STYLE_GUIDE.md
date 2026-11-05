@@ -148,3 +148,15 @@ also crop ~9% off each side. So:
   a caption covers a character, a bubble covers a character / the counter / another bubble, a bubble leaves the safe box,
   or a character enters the counter band. It must print "layout OK" before the render.
 
+## 9. Storytelling (owner's references, Nov 5 2026): `references/storytelling-loop-and-lunch-lady.md`
+
+Learn the STORY, not the look. Every video follows the story loop: **make them care (stakes: someone to root for,
+something at risk, why now) -> make them curious (say the big question out loud) -> surprise them (name the obvious
+answer, then reveal another) -> make them curious again (rehook as soon as a question is answered)**.
+From the lunch-lady reel: an impossible world rule in line 1 and the mystery in line 2; a fast proof montage of 3-4
+specific, escalating examples, each ending on a punchline; signpost cards ("BUT HERE'S THE THING", "THEN ONE DAY,
+EVERYTHING CHANGED"); fair clues that point to the twist and come back as callbacks; a villain + a deadline with a day
+counter; escalating steps; a sensory climax, a false payoff, then the twist in 3 short lines; end on a joke or a
+question. Specific numbers and names, a punchline on every beat, no dead cards, never silent. Narrated (only when the
+owner asks): first person, conversational, ~4 words/s, no pause over ~0.2 s, short lines that each change the picture.
+

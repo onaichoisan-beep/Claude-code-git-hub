@@ -36,6 +36,13 @@ checklist; captions that build word by word; NO beat: a low drone + literal fole
 The owner prefers it FAST (memory-loss-except-you): 1-3-word caption cards, a shot every 1-2 s, a dark pulse + effects on
 almost every phrase. Voices: Kokoro-82M (`_engine/make_voices_kokoro.py`, narrator af_heart) — the owner finds edge-tts robotic.
 
+## Storytelling (owner's references, Nov 5 2026): STYLE_GUIDE.md section 9
+
+Before writing cards, outline the story loop: STAKES (who, what's at risk, why now) -> BIG QUESTION (said out loud) ->
+TWIST (reject the obvious answer) -> REHOOK (a new question right after every answer). Use a proof montage with
+punchlines, "BUT HERE'S THE THING" / "THEN ONE DAY..." signposts, fair clues + callbacks, a deadline counter, a
+false payoff before the reveal, and a button line at the end. Full breakdown: `references/storytelling-loop-and-lunch-lady.md`.
+
 ## Safe zone (owner's rule, Nov 2 2026): STYLE_GUIDE.md section 8
 
 Keep every counter, text card, bubble, face and key object inside **x 120-840, y 190-1350** of the 1080x1920 frame
