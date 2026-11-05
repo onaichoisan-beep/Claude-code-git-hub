@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Koala Did It</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #1a1630; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #1a1630; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "The Koala Did It" (koala fingerprints) — fiction detective framing around a real fact; text cards + sound only
+      (STYLE_GUIDE.md section 6), safe zone (section 8), layout checked with _engine/qa_layout.js.
+      Facts: koala fingerprints have loops, whorls and arches so similar to human ones that they are very hard to tell
+      apart, even under a microscope (Henneberg, Lambert & Leigh 1997, "Fingerprint homoplasy: koalas and humans",
+      naturalSCIENCE); they evolved independently of primate fingerprints (convergent evolution), probably for grip and
+      touch while handling eucalyptus; koalas eat almost only eucalyptus leaves. The cookie theft is fiction.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="27.9" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="27.9" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="27.9" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        night: "#1a1630", night2: "#2a2450", wall: "#3a3460", wallL: "#4a4478", floor: "#5a3a2a", floorD: "#3a2418",
+        kit: "#ffe8c8", kitD: "#e8c898", tile: "#f4dcb4", counter: "#c87a4a", counterD: "#8a4a2a",
+        jar: "#9ad8ff", jarD: "#5aa8d8", jarL: "#e0f6ff", cookie: "#d8943a", cookieD: "#9a5a1a", choc: "#4a2a1a",
+        print: "#3a2a5a", printBg: "#fff4dc", glassRim: "#c8a050", glow: "#ffe87a",
+        skin: "#ffc8a0", skinD: "#d8946a", coat: "#c8a058", coatD: "#8a6a32", hat: "#6a4a2a", hatD: "#4a3018",
+        shirtB: "#3a7aff", shirtR: "#ff4a4a", shirtP: "#a85ad8", pants: "#3a3a5a", hairB: "#4a2a1a", hairG: "#d8d8e0", hairY: "#ffd23a",
+        koala: "#9aa0b0", koalaD: "#6a7080", koalaL: "#e8ecf4", knose: "#1a1a24",
+        euca: "#5ab88a", eucaD: "#2a8a5a", branch: "#8a6a4a", branchD: "#5a4230",
+        scan: "#3ae86a", alarm: "#ff3a4a",
+        ink: "#0a0614", mouth: "#7a1a3a", eyeW: "#ffffff", blush: "#ff8a9a",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      var GROUND = 138;
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function say(x, y, str) { g.save(); screen(); bubble(x, y, str, C.ink); g.restore(); }
+      function label(str, x, y, col) { g.save(); screen(); worldText(str, x, y + 1, 1, C.ink); worldText(str, x, y, 1, col || C.white); g.restore(); }
+
+      // ============================================================ a fingerprint (whorl) with loops
+      function fprint(cx, cy, r, col, seed, k) {
+        k = k === undefined ? 1 : k;
+        g.save(); g.strokeStyle = col; g.lineWidth = Math.max(0.8, r / 22); g.lineCap = "round";
+        for (var i = 1; i <= 9; i++) {
+          var rr = r * i / 9;
+          if (i / 9 > k + 0.12) break;
+          var gap = hash1(seed + i) * 6.28, gw = 0.35 + 0.3 * hash1(seed + i * 3);
+          g.beginPath(); g.ellipse(cx + Math.sin(i + seed) * r * 0.04, cy, rr * 0.72, rr, 0.12 * Math.sin(seed), gap + gw, gap + 6.28 - gw); g.stroke();
+        }
+        g.restore();
+      }
+      function magnifier(cx, cy, r, inner, t) {
+        line(cx + r * 0.7, cy + r * 0.7, cx + r * 1.25, cy + r * 1.25, r * 0.18, C.hatD);
+        disc(cx, cy, r + 3, C.glassRim); disc(cx, cy, r, C.printBg);
+        g.save(); g.beginPath(); g.arc(cx, cy, r, 0, 6.28); g.clip(); inner(); g.restore();
+        ell(cx - r * 0.4, cy - r * 0.5, r * 0.25, r * 0.12, -0.6, C.white);
+      }
+      // ============================================================ people (front view, x = centre, y = feet)
+      function personC(x, y, s, t, o) {
+        o = o || {};
+        var kid = o.kid ? 0.72 : 1;
+        g.save(); g.translate(x, y); g.scale(s * kid, s * kid);
+        rect(-6, -16, 5, 16, C.pants); rect(1, -16, 5, 16, C.pants);
+        rect(-7, -1, 6, 2, C.ink); rect(1, -1, 6, 2, C.ink);
+        var shirt = o.shirt || C.shirtB;
+        if (o.coat) { rrect(-10, -34, 20, 22, 4, C.coatD); rrect(-9, -34, 18, 21, 4, C.coat); line(0, -33, 0, -14, 0.8, C.coatD); }
+        else rrect(-9, -34, 18, 20, 4, shirt);
+        line(-9, -31, -12, -18 + (o.wave ? -12 : 0), 3, o.coat ? C.coat : shirt); line(9, -31, 12, -18, 3, o.coat ? C.coat : shirt);
+        disc(-12, -17 + (o.wave ? -12 : 0), 2, C.skin); disc(12, -17, 2, C.skin);
+        // head
+        disc(0, -42, 8.5, C.skinD); disc(0, -42.5, 8, C.skin);
+        if (o.granny) { disc(0, -49, 7, C.hairG); disc(0, -55, 3.5, C.hairG); rect(-8, -48, 16, 4, C.hairG); }
+        else if (o.kid) { disc(0, -48, 7, C.hairY); rect(-8, -48, 16, 3, C.hairY); }
+        else if (!o.hat) { ell(0, -48, 8, 4, 0, C.hairB); }
+        if (o.hat) { rect(-12, -49, 24, 3, C.hatD); rrect(-7, -57, 14, 9, 3, C.hat); rect(-7, -51, 14, 2, C.hatD); }
+        var eo = o.look || 0;
+        disc(-3 + eo, -43, 1.3, C.ink); disc(3 + eo, -43, 1.3, C.ink);
+        if (o.granny) { g.strokeStyle = C.ink; g.lineWidth = 0.6; g.beginPath(); g.arc(-3, -43, 2.4, 0, 6.28); g.stroke(); g.beginPath(); g.arc(3, -43, 2.4, 0, 6.28); g.stroke(); }
+        if (o.mustache) { ell(-2.5, -38.6, 3, 1.4, 0.2, C.hairB); ell(2.5, -38.6, 3, 1.4, -0.2, C.hairB); }
+        if (o.mood === "o") ell(0, -36.5, 1.4, 1.7, 0, C.mouth); else if (o.mood === "sad") arcS(0, -34.5, 2.2, Math.PI + 0.5, -0.5, 0.8, C.mouth); else arcS(0, -38, 2.4, 0.3, Math.PI - 0.3, 0.8, C.mouth);
+        if (o.crumbs) for (var c = 0; c < 6; c++) rect(-4 + c * 1.6, -37.5 + (c % 2) * 1.4, 1.1, 1.1, C.cookie);
+        if (o.sweat) ell(8, -47, 1.2, 2, 0, C.cyan);
+        if (o.mag) { line(12, -17, 18, -26, 1.5, C.hatD); disc(20, -29, 4.6, C.glassRim); disc(20, -29, 3.6, C.jarL); }
+        g.restore();
+      }
+      function person(x, y, s, t, o) { character(function () { personC(x, y, s, t, o); }); }
+      function koalaC(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s, s);
+        ell(0, -12, 11, 12, 0, C.koalaD); ell(0, -12.5, 10, 11, 0, C.koala); ell(0, -9, 6, 7, 0, C.koalaL);
+        line(-8, -14, -11, -4 + (o.wave ? -14 : 0), 3.4, C.koala); line(8, -14, 11, -4, 3.4, C.koala);
+        // ears
+        disc(-11, -36, 7, C.koalaD); disc(11, -36, 7, C.koalaD); disc(-11, -36, 6, C.koala); disc(11, -36, 6, C.koala); disc(-11, -35.5, 3.6, C.koalaL); disc(11, -35.5, 3.6, C.koalaL);
+        disc(0, -30, 11, C.koalaD); disc(0, -30.5, 10.3, C.koala);
+        ell(0, -27.5, 3.6, 5, 0, C.knose); ell(-1, -29.5, 1, 1.6, 0, "#4a4a5a");
+        if (o.blink) { line(-7, -32, -4, -32, 0.9, C.ink); line(4, -32, 7, -32, 0.9, C.ink); }
+        else { disc(-5.5, -32, 1.5, C.ink); disc(5.5, -32, 1.5, C.ink); disc(-5.9, -32.6, 0.5, C.white); disc(5.1, -32.6, 0.5, C.white); }
+        if (o.chew) { var ch = Math.abs(Math.sin(t * 10)); ell(0, -21.5, 2, 0.8 + ch, 0, C.mouth); line(1, -21, 9, -18 + ch, 1.4, C.eucaD); ell(10, -17.5 + ch, 3, 1.4, 0.4, C.euca); }
+        else arcS(0, -22.5, 2, 0.3, Math.PI - 0.3, 0.8, C.mouth);
+        disc(-7.5, -26, 1.6, C.blush); disc(7.5, -26, 1.6, C.blush);
+        g.restore();
+      }
+      function koala(x, y, s, t, o) { character(function () { koalaC(x, y, s, t, o); }); }
+      function room(cam, kitchen) {
+        sky([[0, kitchen ? C.kit : C.wall], [1, kitchen ? C.kitD : C.night2]]);
+        setCam(cam, 1);
+        if (kitchen) { for (var i = 0; i < 9; i++) for (var j = 0; j < 4; j++) rect(i * 22 - 8 + (j % 2) * 11, 64 + j * 14, 20, 12, C.tile); }
+        rect(-60, GROUND, 300, 240, kitchen ? C.counterD : C.floorD); rect(-60, GROUND, 300, 3, kitchen ? C.counter : C.floor);
+      }
+      function jar(x, y, s, open) {
+        g.save(); g.translate(x, y); g.scale(s, s);
+        rrect(-14, -30, 28, 30, 6, C.jarD); rrect(-13, -29, 26, 28, 6, C.jar); rect(-10, -26, 4, 20, C.jarL);
+        for (var c = 0; c < 2; c++) { disc(-4 + c * 8, -6, 5, C.cookieD); disc(-4 + c * 8, -6.5, 4.4, C.cookie); disc(-5 + c * 8, -7, 0.9, C.choc); }
+        if (!open) { rect(-15, -34, 30, 5, C.jarD); }
+        g.restore();
+      }
+
+      // ============================================================ scenes
+      function scene_match(t) {
+        var tt = tapeT(t, T);
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.night], [1, C.night2]]); setCam(cam, 1);
+        magnifier(86, 106, 35, function () { fprint(86, 106, 28, C.print, 4, clamp01(tt / 0.8)); for (var s2 = 0; s2 < 3; s2++) { var sy = 72 + ((tt * 60 + s2 * 25) % 70); rect(50, sy, 72, 1.5, C.scan); } }, tt);
+        if (tt > 0.95) { g.save(); g.translate(86, 106); g.rotate(-0.25); var k = pop(tt, 0.95); g.scale(k, k); rrect(-26, -9, 52, 18, 3, C.red); rrect(-24, -7, 48, 14, 2, C.white); worldText("NOT HUMAN", 0, -3.5, 1, C.red); g.restore(); }
+        koala(152, GROUND + 10, 0.9, tt, { blink: Math.floor(tt * 2) % 3 === 2 });
+        label("EVIDENCE #1", 90, 196, C.gold);
+      }
+      function scene_kitchen(t) {
+        var lid = t >= T.LID;
+        var cam = lid ? camAt([[T.LID, 128, 150, 1.55], [T.RIDGE, 130, 148, 1.7]], t) : camAt([[T.SCENE, 90, 160, 1.0], [T.LID, 96, 160, 1.04]], t);
+        room(cam, true);
+        // the counter with the jar and the lid on its side
+        jar(118, GROUND, 1.2, true);
+        g.save(); g.translate(140, GROUND - 3); g.rotate(-0.2); rect(-15, -2, 30, 5, C.jarD); rect(-14, -1, 28, 3, C.jar); g.restore();
+        for (var c = 0; c < 9; c++) rect(96 + hash1(c) * 50, GROUND - 1 - hash1(c + 3) * 2, 1.5, 1.5, C.cookieD);
+        if (lid) { var gl = clamp01((t - T.LID - 0.5) / 0.8); g.save(); g.globalAlpha = gl; fprint(134, GROUND - 4, 3.2, C.print, 2); fprint(144, GROUND - 6, 3.2, C.print, 6); g.restore(); lighter(); glow(139, GROUND - 5, 14 * gl, C.glow, 0.4); normalBlend(); }
+        // the detective (with a dusting brush on the lid shot)
+        if (!lid) person(52, GROUND, 1.05, t, { coat: true, hat: true, mustache: true, mag: true, look: 1 });
+        else { var bx = 146 + Math.sin(t * 9) * 4; line(bx, GROUND - 8, bx + 10, GROUND - 22, 1.6, C.hat); ell(bx - 1, GROUND - 7, 3.6, 2, 0.5, C.koalaL); }
+        if (!lid) { for (var f = 0; f < 3; f++) { if (t > T.SCENE + 0.5 + f * 0.45 && t < T.SCENE + 0.65 + f * 0.45) { lighter(); glow(90, 100, 80, C.white, 0.6); normalBlend(); } } }
+        if (!lid && t > T.SCENE + 0.6 && t < T.LID - 0.2) say(62, 64, "COOKIE THIEF!");
+        if (lid && t > T.LID + 1.1 && t < T.RIDGE - 0.2) say(96, 68, "DUSTING...");
+      }
+      function scene_print(t) {
+        var cam = camAt([[T.RIDGE, 90, 160, 1.0], [T.LINEUP, 90, 160, 1.05]], t);
+        sky([[0, C.night], [1, C.night2]]); setCam(cam, 1);
+        magnifier(90, 102, 31, function () { fprint(90, 102, 26, C.print, 6); }, t);
+        var lab = [["LOOP", 34, 84, T.RIDGE + 0.3, 72, 92], ["WHORL", 142, 96, T.RIDGE + 0.8, 92, 102], ["RIDGE", 34, 120, T.RIDGE + 1.3, 70, 114]];
+        lab.forEach(function (L) { if (t > L[3]) { line(L[1], L[2], L[4], L[5], 1, C.gold); disc(L[4], L[5], 1.5, C.gold); var k = pop(t, L[3]); g.save(); g.translate(L[1], L[2]); g.scale(k, k); rrect(-L[0].length * 3 - 3, -5, L[0].length * 6 + 5, 10, 2, C.gold); worldText(L[0], 0, -3.5, 1, C.ink); g.restore(); } });
+      }
+      function scene_lineup(t) {
+        var tt = tapeT(t, T);
+        var cam = tt < T.HIT ? { x: 90, y: 160, z: 1.0 } : camAt([[T.HIT, 124, 153, 1.35], [T.LOOK, 122, 153, 1.32]], tt);
+        shake(cam, tt, T.HIT, 7, 0.5);
+        room(cam, false);
+        for (var h = 0; h < 5; h++) line(-10, GROUND - h * 14, 200, GROUND - h * 14, 0.6, C.wallL);
+        var X = [28, 62, 96, 130];
+        var cur = countOf(T.SCANS, tt) - 1;
+        X.forEach(function (x, i) {
+          var on = tt >= T.HIT ? (i === 3) : true;
+          if (!on) return;
+          if (i === 0) person(x, GROUND, 1.05, tt, { shirt: C.shirtB, mood: i === cur ? "o" : "" });
+          if (i === 1) person(x, GROUND, 1.05, tt, { shirt: C.shirtR, kid: true, mood: i === cur ? "o" : "" });
+          if (i === 2) person(x, GROUND, 1.05, tt, { shirt: C.shirtP, granny: true, mood: i === cur ? "o" : "" });
+          if (i === 3) koala(x, GROUND, 1.05, tt, { wave: tt > T.HIT + 0.6, blink: Math.floor(tt * 1.7) % 4 === 0 });
+          g.globalAlpha = 1;
+          if (tt < T.HIT) { rect(x - 8, GROUND + 3, 16, 7, C.white); worldText("" + (i + 1), x, GROUND + 4, 1, C.ink); }
+        });
+        // the scanner beam + results (in screen space above each head)
+        if (cur >= 0 && tt < T.HIT) { var sx = X[cur], p = clamp01((tt - T.SCANS[cur]) / 0.7); g.globalAlpha = 0.35; rect(sx - 13, 70, 26, GROUND - 70, C.scan); g.globalAlpha = 1; rect(sx - 13, lerp(70, GROUND, p), 26, 1.5, C.scan); }
+        if (tt < T.HIT) for (var i2 = 0; i2 <= cur; i2++) { if (tt - T.SCANS[i2] < 0.75 && i2 === cur) continue; var r = T.RESULTS[i2]; label(r + "%", X[i2], 76, r > 90 ? C.green : C.red); }
+        if (tt >= T.HIT) { lighter(); glow(130, 112, 40, C.glow, 0.35); normalBlend(); }
+        if (tt > T.HIT + 0.6 && tt < T.LOOK - 0.2) say(90, 68, "WHO, ME?");
+      }
+      function scene_compare(t) {
+        var micro = t >= T.MICRO;
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.night], [1, C.night2]]); setCam(cam, 1);
+        magnifier(48, 100, 27, function () { fprint(48, 100, 24, C.print, 4); }, t);
+        magnifier(132, 100, 27, function () { fprint(132, 100, 24, C.print, 4.6); }, t);
+        worldText("=", 90, 96, 2, C.gold);
+        if (micro) for (var k = 0; k < 2; k++) { var cx = k ? 132 : 48; g.strokeStyle = C.scan; g.lineWidth = 1; g.strokeRect(cx - 31, 69, 62, 62); var sy = 70 + ((t * 50) % 60); rect(cx - 30, sy, 60, 1.2, C.scan); }
+        g.save(); screen();
+        person(48, 222, 0.7, t, { shirt: C.shirtB }); koala(132, 222, 0.75, t, {});
+        g.restore();
+        label("HUMAN", 48, 136, C.white); label("KOALA", 132, 136, C.white);
+      }
+      function scene_evolve(t) {
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.night], [1, C.night2]]); setCam(cam, 1);
+        var k = clamp01((t - T.EVOLVE - 0.1) / 0.4);
+        line(90, 136, 90, 136 - 30 * k, 2, C.gold);
+        if (k >= 1) { var k2 = clamp01((t - T.EVOLVE - 0.5) / 0.4); line(90, 106, lerp(90, 46, k2), lerp(106, 84, k2), 2, C.gold); line(90, 106, lerp(90, 134, k2), lerp(106, 84, k2), 2, C.gold); }
+        if (t > T.EVOLVE + 0.9) {
+          character(function () { g.save(); g.translate(46, 76); disc(0, 0, 9, C.skinD); disc(0, -0.5, 8.5, C.skin); ell(0, -6, 8, 4, 0, C.hairB); disc(-3, -1, 1.2, C.ink); disc(3, -1, 1.2, C.ink); arcS(0, 3, 2.2, 0.3, Math.PI - 0.3, 0.8, C.mouth); g.restore(); });
+          koala(134, 96, 0.75, t, {});
+          fprint(46, 98, 5, C.gold, 1); fprint(134, 106, 5, C.gold, 2);
+        }
+        label("ANCESTOR", 90, 196, C.white);
+        if (t > T.EVOLVE + 0.9) { label("PRIMATES", 46, 208, C.gold); label("MARSUPIALS", 134, 208, C.gold); }
+      }
+      function scene_tree(t) {
+        var tt = tapeT(t, T);
+        var cam = tt < T.EUCA ? camAt([[T.GRIP, 54, 134, 1.4], [T.EUCA, 64, 138, 1.3]], tt) : camAt([[T.EUCA, 90, 160, 1.0], [T.WHO, 90, 160, 1.0]], tt);
+        sky([[0, "#3a8ae8"], [0.6, "#9ad8ff"], [1, "#d8f0ff"]]); setCam(cam, 1);
+        rect(-60, GROUND, 300, 240, "#3a9a4a"); rect(-60, GROUND, 300, 3, "#5ac85a");
+        rect(150, 40, 10, 100, C.branchD); rect(151, 40, 8, 100, C.branch);
+        line(160, 100, 10, 106, 5, C.branchD); line(160, 100, 10, 106, 3, C.branch);
+        for (var l = 0; l < 7; l++) { var lx = 20 + l * 18, ly = 110 + (l % 2) * 6; ell(lx, ly, 5, 2.4, 0.6, C.eucaD); ell(lx, ly - 0.5, 4.4, 1.8, 0.6, C.euca); }
+        koala(50, 106, 1.0, tt, { chew: tt >= T.EUCA, blink: Math.floor(tt * 1.4) % 4 === 0 });
+        // paws gripping the branch
+        character(function () { disc(40, 105, 3, C.koala); disc(60, 105, 3, C.koala); });
+        if (tt < T.EUCA) { fprint(40, 105, 1.6, C.koalaD, 2); fprint(60, 105, 1.6, C.koalaD, 3); }
+        if (tt >= T.WHO) {
+          var dx = lerp(200, 118, easeOut(clamp01((tt - T.WHO) / 0.9)));
+          person(dx, GROUND, 1.0, tt, { coat: true, hat: true, mustache: true, crumbs: true, sweat: tt > T.WHO + 1.0, mood: tt > T.WHO + 1.0 ? "o" : "", look: -1 });
+          if (tt > T.WHO + 1.0) say(116, 68, "NOT ME.");
+        }
+        if (tt > T.EUCA + 0.5 && tt < T.WHO - 0.2) say(106, 68, "COOKIES? EW.");
+      }
+
+      function sceneAt(t) {
+        var tt = tapeT(t, T);
+        return tt < T.SCENE ? "match" : tt < T.RIDGE ? "kitchen" : tt < T.LINEUP ? "print" : tt < T.LOOK ? "lineup" : tt < T.EVOLVE ? "compare" : tt < T.GRIP ? "evolve" : "tree";
+      }
+      function drawUI(t) {
+        var tt = tapeT(t, T);
+        if (tt < T.SCENE) counterLines("MATCH 99%", C.green, 3, "SPECIES: ???", C.white);
+        else if (tt < T.RIDGE) counterLines("CASE #042", C.gold, 3, "COOKIES: 0", C.red);
+        else if (tt < T.LINEUP) counterLines("SCANNING...", C.cyan, 3, "EVIDENCE #1", C.white);
+        else if (tt < T.HIT) { var cur = countOf(T.SCANS, tt) - 1; var m = cur < 0 ? 0 : Math.round(T.RESULTS[cur] * clamp01((tt - T.SCANS[cur]) / 0.7)); counterLines("MATCH " + m + "%", m > 90 ? C.green : C.cyan, 3, "SUSPECT " + Math.max(1, cur + 1) + "/4", C.white); }
+        else if (tt < T.LOOK) counterLines("MATCH 99%", C.green, 3, "SUSPECT: KOALA", C.gold);
+        else if (tt < T.EUCA) counterLines("KOALA = HUMAN?", C.gold, 3, "FINGERPRINTS", C.white);
+        else counterLines("SUSPECTS: 1", C.gold, 3, "COOKIES: 0", C.red);
+      }
+
+      KIT.start(C, T, {
+        scenes: { match: scene_match, kitchen: scene_kitchen, print: scene_print, lineup: scene_lineup, compare: scene_compare, evolve: scene_evolve, tree: scene_tree },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.glow,
+        cuts: [[T.SCENE, "match", "kitchen"], [T.RIDGE, "kitchen", "print"], [T.LINEUP, "print", "lineup"], [T.LOOK, "lineup", "compare"], [T.EVOLVE, "compare", "evolve"], [T.GRIP, "evolve", "tree"]],
+      });
+    </script>
+  </body>
+</html>

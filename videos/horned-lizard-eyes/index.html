@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Lizard That Cries Blood</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #f0a050; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #f0a050; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "The Lizard That Cries Blood" (Texas horned lizard, Phrynosoma cornutum) — text cards + sound only (STYLE_GUIDE.md
+      section 6), safe zone (section 8). Facts: first it puffs up and relies on camouflage; as a last resort it raises
+      the blood pressure in its head and squirts blood from sinuses at the eyes, up to ~1.5 m (5 ft); the blood carries
+      chemicals that canids (coyotes, foxes, dogs) find foul, so they drop it and gag; birds such as hawks are not put
+      off (Sherbrooke & Middendorf 2001, 2004, Copeia; Middendorf & Sherbrooke 1992). Stylised as a pixel jet, no gore.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="27.9" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="27.9" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="27.9" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        sky0: "#3a8ae8", sky1: "#8ad0ff", sky2: "#ffd89a", sun: "#fff07a",
+        sand: "#f0c070", sandD: "#d89a4a", sandL: "#ffe0a0", mesa: "#d8703a", mesaD: "#a84a2a", cact: "#3aa85a", cactD: "#1a7a3a",
+        liz: "#d8a868", lizD: "#a8743a", lizL: "#f4d098", spot: "#7a4a2a", horn: "#f4e4c4", hornD: "#c8a878",
+        coy: "#b8a088", coyD: "#8a7058", coyL: "#e8dcc8", nose: "#2a1a1a", tongue: "#ff7a9a",
+        hawk: "#8a5a3a", hawkD: "#5a3a22", hawkL: "#f0e0c8", beak: "#ffc83a",
+        blood: "#d8203a", bloodD: "#9a1028", sweat: "#9ae8ff",
+        ink: "#0a0614", mouth: "#7a1a3a", eyeW: "#ffffff", blush: "#ff7a7a",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      var GROUND = 136;
+      function say(x, y, str) { g.save(); screen(); bubble(x, y, str, C.ink); g.restore(); }
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+
+      // ============================================================ the horned lizard (x = body centre, y = ground), facing right
+      function lizC(x, y, s, t, o) {
+        o = o || {};
+        var pf = o.puff || 0, red = o.red || 0, flat = o.flat || 0, walk = o.walk ? Math.sin(t * 14) : 0;
+        g.save(); g.translate(x, y); g.scale(s, s * (1 - flat * 0.45));
+        // legs
+        line(-10, -3, -13 + walk * 2, 0, 2.4, C.lizD); line(10, -3, 8 - walk * 2, 0, 2.4, C.lizD);
+        line(-6, -3, -4 - walk * 2, 0, 2.4, C.liz); line(14, -3, 17 + walk * 2, 0, 2.4, C.liz);
+        // tail
+        poly([[-18, -7], [-38, -2 + Math.sin(t * 3)], [-18, -2]], C.lizD);
+        // body (puffs up)
+        var rx = 20 * (1 + pf * 0.25), ry = 8 * (1 + pf * 0.7), by = -8 - pf * 4;
+        for (var sp = 0; sp < 9; sp++) { var sx = -16 + sp * 4.2; poly([[sx - 1.6, by + ry * 0.75], [sx, by + ry + 2.5], [sx + 1.6, by + ry * 0.75]], C.hornD); }
+        ell(0, by, rx, ry, 0, C.lizD); ell(-1, by - 1, rx - 1.5, ry - 1.5, 0, C.liz); ell(-3, by - ry * 0.5, rx * 0.6, ry * 0.25, 0, C.lizL);
+        for (var dk = 0; dk < 6; dk++) ell(-13 + dk * 5, by - 2 + (dk % 2) * 3, 2.2, 1.4, 0, C.spot);
+        for (var bs = 0; bs < 6; bs++) { var bx = -12 + bs * 5; poly([[bx - 1, by - ry + 1.5], [bx, by - ry - 2], [bx + 1, by - ry + 1.5]], C.hornD); }
+        // head (reddens with the pressure)
+        var hx = 22 + pf * 3, hy = -10 - pf * 3;
+        var hc = red > 0 ? mix(C.liz, C.red, red * 0.8) : C.liz;
+        ell(hx, hy, 10, 7, 0, C.lizD); ell(hx, hy - 0.5, 9, 6.2, 0, hc);
+        // the crown of horns
+        [[-6, -2, -13, -12], [-3, -5, -7, -15], [0, -6, -1, -15], [3, -6, 5, -13]].forEach(function (h) { poly([[hx + h[0] - 1.6, hy + h[1] + 1], [hx + h[2], hy + h[3]], [hx + h[0] + 1.6, hy + h[1] + 1]], C.horn); });
+        // eye
+        var ex = hx + 2.5, ey = hy - 1.6;
+        if (o.wink) line(ex - 2, ey, ex + 2, ey, 0.9, C.ink);
+        else { disc(ex, ey, 2.6, red > 0.6 ? C.blood : C.eyeW); disc(ex, ey, 2.0, C.eyeW); disc(ex + 0.6, ey + 0.2, 1.2, C.ink); disc(ex, ey - 0.7, 0.45, C.white); }
+        line(ex - 3, ey - 3.2 - (o.angry ? 0 : 0.6), ex + 2.5, ey - (o.angry ? 1.8 : 3.4), 0.9, C.ink);
+        if (o.mood === "o") ell(hx + 7, hy + 3, 1.3, 1.6, 0, C.mouth); else if (o.mood === "sad") arcS(hx + 6, hy + 5.5, 2, Math.PI + 0.5, -0.4, 0.8, C.mouth); else arcS(hx + 5.5, hy + 2, 2.4, 0.2, Math.PI - 0.9, 0.8, C.mouth);
+        if (red > 0.2) for (var st = 0; st < 3; st++) line(hx - 4 + st * 4, hy - 16 - red * 2, hx - 4 + st * 4, hy - 19 - red * 3, 0.8, C.red);
+        if (o.sweat) { ell(hx - 7, hy - 6, 1.2, 1.8, 0, C.sweat); }
+        g.restore();
+      }
+      function lizard(x, y, s, t, o) { character(function () { lizC(x, y, s, t, o); }); }
+      // ============================================================ the coyote (facing left; x = body centre, y = ground)
+      function coyC(x, y, s, t, o) {
+        o = o || {};
+        var run = o.run ? Math.sin(t * 22) : 0, sniff = o.sniff ? Math.sin(t * 18) * 0.8 : 0;
+        g.save(); g.translate(x, y); g.scale(s * (o.right ? -1 : 1), s);
+        line(-12, -14, -14 + run * 4, 0, 3, C.coyD); line(12, -14, 14 - run * 4, 0, 3, C.coyD);
+        line(-8, -14, -6 - run * 4, 0, 3, C.coy); line(16, -14, 18 + run * 4, 0, 3, C.coy);
+        poly([[20, -22], [36, -30 + run * 2], [34, -24], [22, -16]], C.coyD); disc(35, -28 + run * 2, 2.6, C.coyL);
+        ell(4, -20, 18, 9, 0, C.coy); ell(4, -16, 13, 4, 0, C.coyL);
+        // head
+        var hx = -16, hy = -30 + (o.low ? 8 : 0);
+        ell(hx, hy, 9, 8, 0, C.coy); poly([[hx - 6, hy - 2], [hx - 18 + sniff, hy + 1], [hx - 17 + sniff, hy + 5], [hx - 5, hy + 5]], C.coy);
+        disc(hx - 17.5 + sniff, hy + 1.5, 1.8, C.nose);
+        poly([[hx - 2, hy - 6], [hx + 1, hy - 17], [hx + 5, hy - 5]], C.coyD); poly([[hx - 1, hy - 7], [hx + 1, hy - 14], [hx + 3.5, hy - 6]], C.coyL);
+        if (o.x) { line(hx - 6, hy - 4, hx - 2, hy, 1, C.ink); line(hx - 6, hy, hx - 2, hy - 4, 1, C.ink); }
+        else { disc(hx - 4, hy - 2, 2.2, C.eyeW); disc(hx - 4.8, hy - 1.8, 1.2, C.ink); line(hx - 7, hy - 5 + (o.smug ? 1 : 0), hx - 1, hy - 4.6, 0.9, C.ink); }
+        if (o.tongue) { ell(hx - 13, hy + 7.5, 2, 3.5, 0.3, C.tongue); }
+        if (o.blood) { for (var b = 0; b < 5; b++) disc(hx - 8 + b * 2.5, hy - 2 + (b % 2) * 3, 1.5, C.blood); }
+        g.restore();
+      }
+      function coyote(x, y, s, t, o) { character(function () { coyC(x, y, s, t, o); }); }
+      function hawkC(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s * (o.flip ? -1 : 1), s);
+        var f = Math.sin(t * 9) * 6;
+        poly([[-4, -2], [-26, -10 - f], [-30, -4 - f], [-6, 4]], C.hawkD); poly([[4, -2], [26, -10 - f], [30, -4 - f], [6, 4]], C.hawkD);
+        poly([[-8, 6], [0, 18], [8, 6]], C.hawkD);
+        ell(0, 2, 8, 10, 0, C.hawk); ell(0, 4, 5, 6, 0, C.hawkL);
+        disc(0, -8, 6, C.hawk); poly([[3, -8], [9, -6], [3, -4]], C.beak);
+        disc(1, -9.5, 1.8, C.eyeW); disc(1.6, -9.3, 1, C.ink); line(-3, -12, 3, -11, 0.9, C.ink);
+        g.restore();
+      }
+      function hawk(x, y, s, t, o) { character(function () { hawkC(x, y, s, t, o); }); }
+      // the blood jet from the eye (x0,y0) to (x1,y1): a parabola of pixel drops
+      function jet(x0, y0, x1, y1, k, t) {
+        for (var i = 0; i < 26; i++) {
+          var u = i / 25;
+          if (u > k) break;
+          var x = lerp(x0, x1, u), y = lerp(y0, y1, u) - Math.sin(u * Math.PI) * 14;
+          disc(x, y, 1.6 - u * 0.6, i % 3 ? C.blood : C.bloodD);
+        }
+        if (k >= 1) for (var d = 0; d < 5; d++) disc(x1 + (hash1(d) - 0.5) * 8, y1 + hash1(d + 3) * 10 + (t * 20 % 6), 0.9, C.blood);
+      }
+      function desert(t, cam) {
+        sky([[0, C.sky0], [0.3, C.sky1], [0.45, C.sky2], [1, C.sky2]]);
+        setCam(cam, 0.3); disc(140, 70, 12, C.sun); lighter(); glow(140, 70, 26, C.sun, 0.4); normalBlend();
+        poly([[-20, 120], [10, 120], [16, 96], [52, 96], [58, 120], [210, 120], [210, 200], [-20, 200]], C.mesaD);
+        poly([[-20, 122], [12, 122], [18, 99], [50, 99], [56, 122], [210, 122], [210, 200], [-20, 200]], C.mesa);
+        setCam(cam, 1);
+        rect(-60, GROUND - 4, 300, 240, C.sandD); poly([[-60, GROUND - 2], [40, GROUND - 4], [120, GROUND - 1], [240, GROUND - 3], [240, 400], [-60, 400]], C.sand);
+        for (var p = 0; p < 16; p++) rect(hash1(p) * 220 - 20, GROUND + 6 + hash1(p + 7) * 90, 2, 1, C.sandL);
+        // a cactus
+        rect(-6, GROUND - 34, 7, 34, C.cactD); rect(-5, GROUND - 34, 5, 34, C.cact); rect(-14, GROUND - 24, 8, 4, C.cact); rect(-14, GROUND - 32, 4, 10, C.cact);
+      }
+
+      // ============================================================ the one desert scene
+      function scene_desert(t) {
+        var tt = tapeT(t, T);
+        var cam;
+        if (tt < T.MEET) cam = camAt([[0, 100, 150, 1.5], [T.MEET, 100, 150, 1.4]], tt);
+        else if (tt < T.COYOTE) cam = { x: 70, y: 145, z: 1.5 };
+        else if (tt < T.PRESS) cam = { x: 96, y: 160, z: 1.15 };
+        else if (tt < T.HIT) cam = camAt([[T.PRESS, 96, 160, 1.15], [T.BREAK, 82, 146, 1.7]], tt);
+        else if (tt < T.HAWK) cam = camAt([[T.HIT, 96, 160, 1.2], [T.RANGE, 90, 162, 1.0]], tt);
+        else cam = camAt([[T.HAWK, 90, 160, 1.0], [T.CTA, 90, 160, 1.0], [T.CTA + 0.8, 70, 152, 1.3]], tt);
+        if (tt > T.PRESS && tt < T.BREAK) { var lp = lastOf(T.PUMPS, tt); shake(cam, tt, lp, 1.5 + 3 * (tt - T.PRESS) / 2.5, 0.12); }
+        shake(cam, tt, T.HIT, 8, 0.5);
+        desert(tt, cam);
+        var LX = 60;
+        // ---- the lizard
+        var lx = tt >= T.MEET && tt < T.COYOTE ? lerp(-20, LX, easeOut(clamp01((tt - T.MEET) / 1.4))) : LX;
+        var puff = tt > T.PUFF && tt < T.FAIL + 0.6 ? ease(clamp01((tt - T.PUFF - 0.2) / 0.8)) * (tt > T.FAIL ? 1 - clamp01((tt - T.FAIL) / 0.6) : 1) : 0;
+        var red = tt > T.PRESS && tt < T.HIT + 0.3 ? clamp01((tt - T.PRESS) / (T.BREAK - T.PRESS)) : 0;
+        var flat = tt > T.HIDE && tt < T.CTA ? clamp01((tt - T.HIDE - 0.2) / 0.5) : 0;
+        var lizA = 1 - 0.6 * flat;
+        g.globalAlpha = lizA;
+        lizard(lx, GROUND, 1.25, tt, { puff: puff, red: red, walk: tt >= T.MEET && tt < T.MEET + 1.4, flat: flat, mood: (tt > T.FAIL && tt < T.PRESS) || (tt > T.HAWK && tt < T.HIDE) ? "o" : "happy", angry: tt > T.PRESS && tt < T.FLEE, sweat: tt > T.FAIL && tt < T.PRESS, wink: tt > T.CTA + 1.2 });
+        g.globalAlpha = 1;
+        var EX = lx + 1.25 * (24.5 + puff * 3), EY = GROUND - 1.25 * (11.6 + puff * 3);
+        // ---- the coyote
+        var CX = 136;
+        var showC = tt < T.MEET || (tt >= T.COYOTE && tt < T.HAWK);
+        if (showC) {
+          var cx = tt < T.MEET ? CX : tt < T.COYOTE + 1.2 ? lerp(220, CX, easeOut((tt - T.COYOTE) / 1.2)) : tt < T.FLEE ? CX : lerp(CX, 260, easeOut(clamp01((tt - T.FLEE - 0.2) / 1.0)));
+          var hitC = tt < T.MEET || (tt > T.HIT && tt < T.FLEE);
+          coyote(cx, GROUND, 1.0, tt, { sniff: tt > T.COYOTE + 0.4 && tt < T.PUFF, x: tt > T.TASTE && tt < T.FLEE, tongue: tt > T.TASTE && tt < T.FLEE, blood: hitC, low: tt > T.COYOTE + 0.4 && tt < T.PUFF, smug: tt > T.FAIL && tt < T.PRESS, run: tt > T.FLEE + 0.2, right: tt > T.FLEE + 0.2 });
+        }
+        // ---- the jet (frame 1, the HIT, the range demo)
+        var CF = [CX - 34, GROUND - 32];
+        if (tt < T.MEET) jet(EX, EY, CF[0], CF[1], clamp01(tt / 0.4), tt);
+        if (tt > T.HIT && tt < T.TASTE) jet(EX, EY, CF[0], CF[1], clamp01((tt - T.HIT) / 0.3), tt);
+        if (tt > T.CTA + 1.0 && tt < T.CTA + 1.5) jet(EX, EY, EX + 30, EY - 4, clamp01((tt - T.CTA - 1.0) / 0.25), tt);
+        // ---- the hawk
+        if (tt > T.HAWK) {
+          var hp = clamp01((tt - T.HAWK) / 1.2);
+          var hx = tt < T.HIDE + 0.4 ? lerp(190, lx + 26, easeOut(hp)) : lx + 26 + Math.sin((tt - T.HIDE) * 2.5) * 30;
+          var hy = tt < T.HIDE + 0.4 ? lerp(76, 96, easeOut(hp)) : 96 + Math.cos((tt - T.HIDE) * 2.5) * 5;
+          if (tt < T.CTA + 0.8) hawk(hx + (tt > T.CTA ? (tt - T.CTA) * 160 : 0), hy, 1.0, tt, { flip: Math.cos((tt - T.HIDE) * 2.5) < 0 && tt > T.HIDE + 0.4 });
+        }
+        // ---- speech bubbles (above the action)
+        if (tt > T.MEET + 1.4 && tt < T.COYOTE - 0.2) say(64, 70, "HOWDY.");
+        if (tt > T.COYOTE + 1.2 && tt < T.PUFF) say(112, 68, "LUNCH?");
+        if (tt > T.PUFF + 1.0 && tt < T.FAIL) say(52, 72, "I'M HUGE!");
+        if (tt > T.FAIL + 0.6 && tt < T.PRESS - 0.2) say(110, 66, "NICE TRY.");
+        if (tt > T.TASTE + 0.4 && tt < T.FLEE) say(104, 70, "BLEH!");
+        if (tt > T.FLEE + 0.4 && tt < T.HAWK - 0.2) say(72, 76, "AND STAY OUT!");
+        if (tt > T.HAWK + 0.9 && tt < T.HIDE) say(38, 98, "UH OH.");
+        if (tt > T.HIDE + 1.1 && tt < T.CTA) say(90, 66, "WHERE'D IT GO?");
+        // ---- below the caption: the pressure gauge, then the range ruler
+        if (tt > T.PRESS && tt < T.HIT + 1.8) {
+          var pr = tt > T.HIT ? 1 : red;
+          g.save(); screen(); rect(40, 196, 100, 10, C.ink); rect(42, 198, 96 * pr, 6, pr > 0.8 ? C.red : C.gold);
+          worldText("PRESSURE", 90, 210, 1, C.ink); g.restore();
+        } else if (tt > T.RANGE && tt < T.TASTE + 0.3) {
+          var k = clamp01((tt - T.RANGE - 0.3) / 1.0);
+          line(30, 198, 30 + 120 * k, 198, 2, C.ink);
+          for (var m = 0; m <= 15 * k; m++) line(30 + m * 8, 194, 30 + m * 8, m % 5 ? 198 : 202, 1, C.ink);
+          worldText("0", 30, 205, 1, C.ink); if (k >= 1) worldText("1.5 M", 150, 205, 1, C.bloodD);
+        }
+        vignette(0.2, "rgba(80,30,0,");
+      }
+
+      function sceneAt(t) { var tt = tapeT(t, T); return tt < T.MEET || (tt >= T.COYOTE && tt < T.PRESS) || (tt >= T.RANGE && tt < T.HAWK) || tt >= T.CTA ? "a" : "b"; }
+      function drawUI(t) {
+        var tt = tapeT(t, T);
+        if (tt < T.MEET) counterLines("RANGE 1.5 M", C.red, 3, "PLAN B", C.white);
+        else if (tt < T.COYOTE) counterLines("DANGER: 0", C.green, 3, "PHRYNOSOMA", C.white);
+        else if (tt < T.PUFF) counterLines("DANGER: 1", C.gold, 3, "COYOTE NEAR", C.white);
+        else if (tt < T.PRESS) { var sz = tt < T.FAIL ? 1 + 0.5 * clamp01((tt - T.PUFF - 0.2) / 0.8) : 1.5 - 0.5 * clamp01((tt - T.FAIL) / 0.6); counterLines(tt < T.FAIL ? "PLAN A" : "PLAN A: FAIL", tt < T.FAIL ? C.gold : C.red, 3, "SIZE X" + sz.toFixed(1), C.white); }
+        else if (tt < T.HIT) counterLines("PLAN B", C.red, 3, "PRESSURE " + Math.round(100 * clamp01((tt - T.PRESS) / (T.BREAK - T.PRESS))) + "%", C.gold);
+        else if (tt < T.RANGE) counterLines("SQUIRT!", C.red, 3, "PRESSURE 100%", C.white);
+        else if (tt < T.FLEE) counterLines("RANGE " + (1.5 * clamp01((tt - T.RANGE - 0.3) / 1.0)).toFixed(1) + " M", C.red, 3, "PLAN B", C.white);
+        else if (tt < T.HAWK) counterLines("LIZARD 1", C.green, 3, "COYOTE 0", C.white);
+        else if (tt < T.HIDE) counterLines("DANGER: 2", C.red, 3, "HAWK!", C.white);
+        else if (tt < T.CTA) counterLines("PLAN C", C.gold, 3, "CAMOUFLAGE", C.white);
+        else counterLines("LIZARD 2", C.green, 3, "PREDATORS 0", C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { a: scene_desert, b: scene_desert },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.blood,
+        cuts: [[T.MEET, "a", "b"], [T.COYOTE, "b", "a"], [T.HAWK, "a", "b"]],
+      });
+    </script>
+  </body>
+</html>

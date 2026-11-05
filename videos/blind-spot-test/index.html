@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>There's a Hole in Your Vision</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #1a2a4a; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #1a2a4a; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "There's a Hole in Your Vision" (the blind spot) — an interactive test, text cards + sound only (STYLE_GUIDE.md
+      section 6), safe zone (section 8), layout checked with _engine/qa_layout.js. The X and the dot sit ~120 world px
+      apart (about 2/3 of the screen width, ~4.5-5 cm on a phone): with the left eye closed and the right eye on the X,
+      the dot falls on the right eye's blind spot (~15 degrees to the temporal side) at roughly 15-25 cm. Facts: the optic
+      disc, where the optic nerve and blood vessels leave the eye, has no rods or cones; the brain fills in the gap
+      ("perceptual filling-in", Ramachandran 1992; Komatsu 2006, Nat. Rev. Neurosci.), and with both eyes open each eye
+      covers the other's blind spot.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="29.2" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="29.2" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="29.2" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        bg0: "#2a3a6a", bg1: "#141a38", card: "#eef0f4", cardD: "#c8ccd8",
+        white: "#ffffff", sclera: "#f4f6fa", scleraD: "#c8d0e0", iris: "#3a8aff", irisD: "#1a5ac8", pupil: "#0a0614", vein: "#ff8a9a",
+        vitreous: "#cfeaff", lens: "#9ae0ff", nerve: "#ffc83a", nerveD: "#c8901a", ray: "#fff07a",
+        cR: "#ff4a5a", cG: "#3ad86a", cB: "#3a8aff", rod: "#c8c8d8",
+        brain: "#ff9ac0", brainD: "#d8608a", brush: "#8a5a3a", paint: "#3ad8a8",
+        p1: "#3ad8a8", p2: "#2aa888", skin: "#ffc8a0", skinD: "#d8946a", hair: "#3a2418", cone: "#fff07a",
+        phone: "#2a2a3a", screenC: "#9ae0ff",
+        ink: "#0a0614", mouth: "#7a1a3a", eyeW: "#ffffff", blush: "#ff8a9a",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function label(str, x, y, col) { g.save(); screen(); worldText(str, x, y + 1, 1, C.ink); worldText(str, x, y, 1, col || C.white); g.restore(); }
+      function say(x, y, str) { g.save(); screen(); bubble(x, y, str, C.ink); g.restore(); }
+      function night() { sky([[0, C.bg0], [1, C.bg1]]); }
+
+      // ============================================================ the eyeball (front view, a character)
+      function eyeballC(x, y, r, t, o) {
+        o = o || {};
+        disc(x, y, r, C.scleraD); disc(x, y - 0.6, r - 1, C.sclera);
+        for (var v = 0; v < 4; v++) { var a = v * 1.6 + 0.4; line(x + Math.cos(a) * r * 0.95, y + Math.sin(a) * r * 0.95, x + Math.cos(a + 0.2) * r * 0.65, y + Math.sin(a + 0.2) * r * 0.65, 0.7, C.vein); }
+        var lx = Math.sin(t * 1.3) * r * 0.08;
+        disc(x + lx, y, r * 0.42, C.irisD); disc(x + lx, y - 0.5, r * 0.38, C.iris); disc(x + lx, y, r * 0.18, C.pupil);
+        ell(x + lx - r * 0.14, y - r * 0.16, r * 0.08, r * 0.05, -0.5, C.white);
+        if (o.hole) { var hp = 0.5 + 0.5 * Math.sin(t * 4); disc(x + r * 0.62, y + r * 0.05, r * (0.12 + 0.02 * hp), C.ink); }
+        // lids
+        var bl = o.blink ? 1 : 0;
+        if (bl) { g.fillStyle = C.skin; g.beginPath(); g.arc(x, y, r + 0.5, Math.PI, 0); g.fill(); line(x - r, y, x + r, y, 1, C.skinD); }
+      }
+      // ============================================================ the test card: X on the left, dot on the right
+      var TX = 28, TD = 150, TY = 104;
+      function testCard(t, dotOn) {
+        sky([[0, C.card], [1, C.cardD]]);
+        screen();
+        line(TX - 7, TY - 7, TX + 7, TY + 7, 3, C.ink); line(TX - 7, TY + 7, TX + 7, TY - 7, 3, C.ink);
+        if (dotOn) disc(TD, TY, 6.5, C.red);
+      }
+      function stepIcon(t) {
+        g.save(); screen();
+        if (t < T.STARE) {          // a face with the LEFT eye closed
+          disc(90, 204, 15, C.skinD); disc(90, 203.5, 14.4, C.skin); ell(90, 193, 14, 6, 0, C.hair);
+          line(80, 202, 86, 202, 1.2, C.ink); disc(97, 202, 2, C.ink); arcS(90, 208, 3, 0.3, Math.PI - 0.3, 1, C.mouth);
+          worldText("LEFT", 66, 220, 1, C.ink);
+        } else if (t < T.MOVE) {    // right eye -> X
+          disc(130, 204, 6, C.sclera); disc(130, 204, 3, C.iris); line(122, 204, 44, 204, 1, C.ink); poly([[44, 201], [38, 204], [44, 207]], C.ink); worldText("X", 30, 200, 1, C.ink);
+        } else {                    // the phone moving closer
+          var k = (t * 0.6) % 1, s = 0.8 + 0.4 * k;
+          rrect(90 - 9 * s, 204 - 15 * s, 18 * s, 30 * s, 3, C.phone); rect(90 - 7 * s, 204 - 12 * s, 14 * s, 24 * s, C.screenC);
+          worldText("~20 CM", 90, 222, 1, C.ink);
+        }
+        g.restore();
+      }
+
+      // ============================================================ scenes
+      function scene_eye(t) {
+        var tt = tapeT(t, T);
+        var cam = camAt([[0, 90, 160, 1.0], [T.PROVE, 90, 160, 1.06]], tt);
+        night(); setCam(cam, 1);
+        for (var s = 0; s < 24; s++) rect(hash1(s) * 180, hash1(s + 4) * 150 + 40, 1, 1, C.cardD);
+        character(function () { eyeballC(90, 112, 33, tt, { hole: true, blink: Math.floor(tt * 1.6) % 5 === 4 }); });
+        if (tt > 0.6) { worldText("?", 140, 76, 2, C.gold); }
+        label("YOUR EYE", 90, 196, C.gold);
+      }
+      function scene_test(t) {
+        var tt = tapeT(t, T);
+        var dot = !(tt > T.HIT && tt < T.SPOT);          // after the HIT we hide the dot for a beat (what they just saw)
+        testCard(tt, tt < T.PROVE + 0.5 ? clamp01((tt - T.PROVE) / 0.4) > 0.5 : dot);
+        if (tt >= T.CLOSE && tt < T.HIT) stepIcon(tt);
+        if (tt >= T.HIT && tt < T.SPOT) { g.save(); screen(); for (var p = 0; p < 8; p++) { var a = p * 0.785, r = 4 + (tt - T.HIT) * 30; disc(TD + Math.cos(a) * r, TY + Math.sin(a) * r, 1.2, C.gold); } g.restore(); label("POOF", TD - 4, 120, C.red); }
+        if (tt >= T.CTA) label("TRY AGAIN", 90, 200, C.ink);
+      }
+      function scene_cross(t) {
+        var nerve = t >= T.NERVE;
+        night(); setCam({ x: 90, y: 160, z: 1.0 }, 1);
+        var cx = 84, cy = 102, R = 40;
+        disc(cx, cy, R + 2, C.scleraD); disc(cx, cy, R, C.sclera); disc(cx, cy, R - 4, C.vitreous);
+        ell(cx - R + 6, cy, 4, 12, 0, C.lens);
+        // the optic nerve leaving at the back (right), slightly below centre
+        var na = 0.25, nx = cx + Math.cos(na) * R, ny = cy + Math.sin(na) * R;
+        rect(nx - 2, ny - 5, 160 - nx, 10, C.nerveD); rect(nx - 2, ny - 4, 160 - nx, 8, C.nerve);
+        // the retina: light sensors along the back, none on the nerve exit
+        for (var a = -1.6; a <= 1.6; a += 0.09) { if (Math.abs(a - na) < 0.16) continue; var px = cx + Math.cos(a) * (R - 5), py = cy + Math.sin(a) * (R - 5); disc(px, py, 1.4, [C.cR, C.cG, C.cB, C.rod][Math.round((a + 2) * 11) % 4]); }
+        // light rays from the left focus on the retina; the one on the nerve: no signal
+        var rays = [-0.5, 0.0, na];
+        rays.forEach(function (ra, i) { var p = clamp01((t - T.SPOT - 0.3 - i * 0.25) / 0.6); var tx = cx + Math.cos(ra) * (R - 5), ty = cy + Math.sin(ra) * (R - 5); line(-10, cy + (i - 1) * 6, lerp(-10, cx - R + 6, Math.min(1, p * 2)), cy + (i - 1) * 6, 1, C.ray); if (p > 0.5) line(cx - R + 6, cy + (i - 1) * 6, lerp(cx - R + 6, tx, (p - 0.5) * 2), lerp(cy + (i - 1) * 6, ty, (p - 0.5) * 2), 1, C.ray); });
+        if (nerve) { var k = pop(t, T.NERVE + 0.3); g.save(); g.translate(nx - 4, ny - 2); g.scale(k, k); g.strokeStyle = C.red; g.lineWidth = 1.5; g.beginPath(); g.arc(0, 0, 7, 0, 6.28); g.stroke(); g.restore(); label("NO SIGNAL", 90, 196, C.red); label("NERVE", 146, 124, C.nerve); }
+        else label("BLIND SPOT", 90, 196, C.gold);
+      }
+      function brainC(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s, s);
+        ell(0, 0, 16, 12, 0, C.brainD); ell(0, -0.5, 15, 11, 0, C.brain);
+        g.strokeStyle = C.brainD; g.lineWidth = 1; for (var k = 0; k < 4; k++) { g.beginPath(); g.arc(-9 + k * 6, -4 + (k % 2) * 3, 3, 0.3, 2.8); g.stroke(); }
+        disc(-5, 2, 1.4, C.ink); disc(5, 2, 1.4, C.ink);
+        if (o.sly) { line(-7, -0.5, -3, 0.3, 0.8, C.ink); line(3, 0.3, 7, -0.5, 0.8, C.ink); arcS(1, 5, 3, 0.1, Math.PI - 0.8, 0.9, C.mouth); }
+        else arcS(0, 5, 2.4, 0.3, Math.PI - 0.3, 0.8, C.mouth);
+        g.restore();
+      }
+      function scene_fill(t) {
+        night(); setCam({ x: 90, y: 160, z: 1.0 }, 1);
+        // the picture you "see": a pattern with a hole that gets painted over
+        for (var i = 0; i < 8; i++) for (var j = 0; j < 5; j++) rect(26 + i * 16, 64 + j * 16, 16, 16, (i + j) % 2 ? C.p1 : C.p2);
+        var k = clamp01((t - T.FILL - 0.3) / 1.4), hx = 98, hy = 96;
+        g.save(); g.beginPath(); g.arc(hx, hy, 12 * (1 - k) + 0.01, 0, 6.28); g.clip(); rect(hx - 14, hy - 14, 28, 28, C.ink); g.restore();
+        // the brain with a brush
+        var bx = hx + 22 + Math.sin(t * 10) * 3 * (k < 1 ? 1 : 0), by = hy + 18;
+        character(function () { brainC(bx + 6, by + 14, 1.0, t, {}); });
+        line(bx - 6, by + 8, hx + 4, hy + 4, 2, C.brush); disc(hx + 4, hy + 4, 2.6, C.paint);
+        label(k < 1 ? "PAINTING..." : "FIXED!", 90, 196, k < 1 ? C.gold : C.green);
+      }
+      function scene_both(t) {
+        night(); setCam({ x: 90, y: 160, z: 1.0 }, 1);
+        // top-down head with two eyes; each eye's field (gold lines) and its blind spot (red wedge) inside the other's field
+        var hx = 90, hy = 130, L = clamp01((t - T.BOTH - 0.2) / 0.6);
+        var eyes = [[hx - 7, hy - 12, -1], [hx + 7, hy - 12, 1]];
+        eyes.forEach(function (e, i) {
+          var ex = e[0], ey = e[1], d = e[2];
+          var a0 = -Math.PI / 2 - 0.75 + d * 0.2, a1 = -Math.PI / 2 + 0.75 + d * 0.2, R = 62 * L;
+          g.strokeStyle = i ? C.cyan : C.gold; g.lineWidth = 1; g.globalAlpha = 0.9;
+          g.beginPath(); g.moveTo(ex, ey); g.lineTo(ex + Math.cos(a0) * R, ey + Math.sin(a0) * R); g.moveTo(ex, ey); g.lineTo(ex + Math.cos(a1) * R, ey + Math.sin(a1) * R); g.stroke();
+          g.globalAlpha = 1;
+          var ba = -Math.PI / 2 + d * 0.5;                    // blind spot ~15 degrees to the outer side
+          if (L >= 1) poly([[ex, ey], [ex + Math.cos(ba - 0.05) * 58, ey + Math.sin(ba - 0.05) * 58], [ex + Math.cos(ba + 0.05) * 58, ey + Math.sin(ba + 0.05) * 58]], C.red);
+        });
+        if (t > T.BOTH + 1.0) { var k = clamp01((t - T.BOTH - 1.0) / 0.4); g.globalAlpha = k; disc(hx - 7 + Math.cos(-Math.PI / 2 - 0.5) * 50, hy - 12 + Math.sin(-Math.PI / 2 - 0.5) * 50, 4, C.green); disc(hx + 7 + Math.cos(-Math.PI / 2 + 0.5) * 50, hy - 12 + Math.sin(-Math.PI / 2 + 0.5) * 50, 4, C.green); g.globalAlpha = 1; }
+        character(function () { disc(hx, hy, 15, C.skinD); disc(hx, hy, 14, C.hair); ell(hx, hy - 11, 10, 5, 0, C.skin); disc(hx - 7, hy - 12, 2.4, C.white); disc(hx + 7, hy - 12, 2.4, C.white); disc(hx - 7, hy - 13, 1.2, C.ink); disc(hx + 7, hy - 13, 1.2, C.ink); });
+        label("EACH EYE COVERS", 90, 196, C.white); label("THE OTHER'S GAP", 90, 206, C.gold);
+      }
+      function scene_fake(t) {
+        night(); setCam({ x: 90, y: 160, z: 1.0 }, 1);
+        character(function () { brainC(90, 118, 2.4, t, { sly: true }); });
+        for (var q = 0; q < 4; q++) { var a = t * 1.5 + q * 1.57; worldText("?", 90 + Math.cos(a) * 52, 114 + Math.sin(a) * 22, 1, C.gold); }
+        say(90, 70, "TRUST ME.");
+      }
+
+      function sceneAt(t) {
+        var tt = tapeT(t, T);
+        return tt < T.PROVE ? "eye" : tt < T.SPOT ? "test" : tt < T.FILL ? "cross" : tt < T.BOTH ? "fill" : tt < T.FAKE ? "both" : tt < T.CTA ? "fake" : "test";
+      }
+      function drawUI(t) {
+        var tt = tapeT(t, T), dark = tt >= T.PROVE && tt < T.SPOT || tt >= T.CTA;
+        var c2 = dark ? C.ink : C.white;
+        if (tt < T.PROVE) counterLines("BLIND SPOTS: 2", C.gold, 3, "ONE PER EYE", C.white);
+        else if (tt < T.CLOSE) counterLines("THE TEST", C.irisD, 3, "READY?", c2);
+        else if (tt < T.STARE) counterLines("STEP 1/3", C.irisD, 3, "CLOSE LEFT EYE", c2);
+        else if (tt < T.MOVE) counterLines("STEP 2/3", C.irisD, 3, "STARE AT X", c2);
+        else if (tt < T.HIT) counterLines("STEP 3/3", C.irisD, 3, "SLOWLY CLOSER", c2);
+        else if (tt < T.SPOT) counterLines("DOT: GONE?", C.red, 3, "YOUR BLIND SPOT", c2);
+        else if (tt < T.FILL) counterLines("LIGHT CELLS: 0", C.red, 3, "AT THE NERVE", C.white);
+        else if (tt < T.BOTH) counterLines("GAP FILLED", C.green, 3, "BY YOUR BRAIN", C.white);
+        else if (tt < T.FAKE) counterLines("2 EYES", C.gold, 3, "2 GAPS HIDDEN", C.white);
+        else if (tt < T.CTA) counterLines("BRAIN: EDITING", C.pink, 3, "ALL DAY", C.white);
+        else counterLines("TRY IT AGAIN", C.irisD, 3, "CLOSE LEFT EYE", c2);
+      }
+
+      KIT.start(C, T, {
+        scenes: { eye: scene_eye, test: scene_test, cross: scene_cross, fill: scene_fill, both: scene_both, fake: scene_fake },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.card,
+        cuts: [[T.PROVE, "eye", "test"], [T.SPOT, "test", "cross"], [T.FILL, "cross", "fill"], [T.BOTH, "fill", "both"], [T.FAKE, "both", "fake"], [T.CTA, "fake", "test"]],
+      });
+    </script>
+  </body>
+</html>

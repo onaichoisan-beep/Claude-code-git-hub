@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>A Bucket of Slime in One Second</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a2470; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a2470; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "A Bucket of Slime in One Second" (the hagfish) — text cards + sound only (STYLE_GUIDE.md section 6), safe zone
+      (section 8). Facts: hagfish slime (mucus + protein threads from ~100 slime glands) expands up to ~10,000x in
+      seawater within a fraction of a second (Fudge et al. 2005, J. Exp. Biol.; Böni et al. 2016); it clogs predators'
+      gills and sharks spit it out (Zintzen et al. 2011, Sci. Rep.); hagfish tie themselves in an overhand knot and slide
+      it down the body to scrape slime off; 13 July 2017, US Highway 101 near Depoe Bay, Oregon: a truck carrying about
+      7,500 lb (3,400 kg) of hagfish lost its load and slimed the road and a car (Oregon State Police / news reports).
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="29.2" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="29.2" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="29.2" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        sea0: "#1a7ad8", sea1: "#0a4aa8", sea2: "#06246a", ray: "#5ab0f0", foam: "#c8f0ff",
+        hag: "#f0a0b8", hagD: "#c8708a", hagL: "#ffd0dc",
+        slime: "#d8f87a", slimeD: "#a8d84a", slimeL: "#f4ffc8",
+        shark: "#8a9ab8", sharkD: "#5a6a88", sharkL: "#c8d4e8", belly: "#f0f4fa", gum: "#e05a7a", tooth: "#ffffff", sick: "#9ad86a",
+        sky: "#7ad0ff", skyL: "#c8ecff", cloud: "#ffffff", hill: "#2a8a4a", hillD: "#1a6a3a", tree: "#1a5a32",
+        road: "#4a4a58", roadL: "#6a6a7a", stripe: "#ffd23a", grass: "#3ab85a",
+        truck: "#e8e8f0", truckD: "#a8a8b8", cab: "#e83a3a", cabD: "#a81a2a", tyre: "#1a1a24", win: "#9ae0ff",
+        car: "#3a8aff", carD: "#1a5ac8", box: "#3a6ab8",
+        ink: "#0a0614", mouth: "#7a1a3a", eyeW: "#ffffff", blush: "#ff7a9a",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      // speech bubble placed in SCREEN space (unscaled by the camera zoom), in clear sky above the subject
+      function say(x, y, str) { g.save(); screen(); bubble(x, y, str, C.ink); g.restore(); }
+      function fmt(n) { n = Math.round(n); return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+
+      // ============================================================ the hagfish: a body along a path (head first)
+      function hagPath(x, y, len, dir, t, amp) {
+        var pts = [];
+        for (var i = 0; i <= 26; i++) { var d = i / 26 * len; pts.push([x - Math.cos(dir) * d + Math.sin(dir) * Math.sin(t * 6 - i * 0.45) * (amp || 3) * (i / 26), y - Math.sin(dir) * d + Math.cos(dir) * Math.sin(t * 6 - i * 0.45) * (amp || 3) * (i / 26)]); }
+        return pts;
+      }
+      function hagC(pts, s, o) {
+        o = o || {};
+        var n = pts.length;
+        for (var i = n - 1; i >= 0; i--) { var r = s * (i < 3 ? 4.6 : 5 - 2.6 * (i / n)); disc(pts[i][0], pts[i][1] + 0.6 * s, r, C.hagD); }
+        for (var j = n - 1; j >= 0; j--) { var r2 = s * (j < 3 ? 4.0 : 4.4 - 2.4 * (j / n)); disc(pts[j][0], pts[j][1], r2, C.hag); }
+        for (var k = 2; k < n - 2; k += 2) disc(pts[k][0], pts[k][1] - 1.6 * s, 0.8 * s, C.hagL);
+        if (o.glands) for (var gl = 3; gl < n - 2; gl += 2) { disc(pts[gl][0], pts[gl][1] + 2 * s, 1 * s, o.glands > 0.5 ? C.slime : C.white); }
+        // head
+        var hx = pts[0][0], hy = pts[0][1], ax = pts[0][0] - pts[1][0], ay = pts[0][1] - pts[1][1], al = Math.hypot(ax, ay) || 1; ax /= al; ay /= al;
+        var px = -ay, py = ax;
+        for (var b = -1; b <= 1; b += 2) { line(hx + ax * 3 * s, hy + ay * 3 * s + b * s, hx + ax * 6.5 * s + px * b * 1.5 * s, hy + ay * 6.5 * s + py * b * 1.5 * s + b * 1.5 * s, 0.7 * s, C.hagD); }
+        var ex = hx + ax * 0.5 * s - px * 1.8 * s, ey = hy + ay * 0.5 * s - Math.abs(py) * 1.8 * s - 0.6 * s;
+        if (o.squint) { line(ex - 1.2 * s, ey, ex + 1.2 * s, ey, 0.7 * s, C.ink); }
+        else { disc(ex, ey, 1.5 * s, C.eyeW); disc(ex + ax * 0.4 * s, ey + 0.3 * s, 0.85 * s, C.ink); }
+        if (o.mood === "o") disc(hx + ax * 3.4 * s, hy + ay * 3.4 * s + 1 * s, 1.1 * s, C.mouth); else arcS(hx + ax * 2.6 * s, hy + 0.8 * s, 1.2 * s, 0.3, Math.PI - 0.3, 0.6 * s, C.mouth);
+      }
+      function hag(pts, s, o) { character(function () { hagC(pts, s, o); }); }
+      function slimeBlob(x, y, r, t, k) {
+        var w = Math.sin(t * 5 + k) * 0.08;
+        ell(x, y, r * (1 + w), r * (1 - w), 0, C.slimeD); ell(x - r * 0.1, y - r * 0.1, r * 0.92 * (1 + w), r * 0.88 * (1 - w), 0, C.slime); ell(x - r * 0.35, y - r * 0.4, r * 0.3, r * 0.15, -0.4, C.slimeL);
+      }
+      function slimeCloud(cx, cy, R, t) {
+        for (var k = 0; k < 12; k++) { var a = k * 0.53 + hash1(k) * 0.4, rr = R * (0.35 + 0.5 * hash1(k + 3)); slimeBlob(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.7, R * (0.35 + 0.15 * hash1(k + 6)), t, k); }
+        slimeBlob(cx, cy, R * 0.55, t, 99);
+      }
+      // ============================================================ the shark (facing right; x,y = snout)
+      function sharkC(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s * (o.flip ? -1 : 1), s);
+        var w = Math.sin(t * 5) * 3, sick = o.sick || 0;
+        poly([[-70, -2], [-88, -16 + w], [-82, 0], [-90, 14 + w]], C.sharkD);
+        poly([[-40, -14], [-30, -32], [-22, -14]], C.sharkD);
+        ell(-34, 0, 36, 15, 0, sick > 0.5 ? C.sick : C.shark); ell(-30, 6, 28, 8, 0, C.belly); ell(-36, -8, 20, 4, 0, C.sharkL);
+        poly([[-30, 10], [-20, 22], [-16, 10]], C.sharkD);
+        for (var gl = 0; gl < 3; gl++) line(-20 - gl * 3.5, -5, -21 - gl * 3.5, 5, 0.9, o.clog ? C.slimeD : C.sharkD);
+        // jaw
+        var open = o.open || 0;
+        if (open > 0) {
+          poly([[0, 0], [-14, -2], [-14, 10 * open]], C.gum);
+          for (var k = 0; k < 4; k++) { poly([[-12 + k * 3, -1.5], [-11 + k * 3, 2], [-10 + k * 3, -1.5]], C.tooth); poly([[-12 + k * 3, 9 * open], [-11 + k * 3, 5.5 * open], [-10 + k * 3, 9 * open]], C.tooth); }
+        }
+        // eye
+        if (o.xeye) { line(-12, -8, -8, -4, 1, C.ink); line(-12, -4, -8, -8, 1, C.ink); }
+        else { disc(-10, -6, 2.6, C.eyeW); disc(-9.4, -6, 1.5, C.ink); disc(-10, -6.8, 0.5, C.white); line(-14, -10.5, -7, -9, 1, C.ink); }
+        g.restore();
+      }
+      function shark(x, y, s, t, o) { character(function () { sharkC(x, y, s, t, o); }); }
+      function seaBg(t) {
+        sky([[0, C.sea0], [0.55, C.sea1], [1, C.sea2]]);
+        g.globalAlpha = 0.22; for (var k = 0; k < 5; k++) { var sx = 20 + k * 38 + Math.sin(t * 0.7 + k) * 5; poly([[sx, -10], [sx + 12, -10], [sx - 16, 330], [sx - 34, 330]], C.ray); } g.globalAlpha = 1;
+        for (var b = 0; b < 14; b++) { var bx = hash1(b) * 180, by = ((hash1(b + 9) * 330 - t * (10 + b % 4 * 4)) % 330 + 330) % 330; disc(bx + Math.sin(t * 2 + b) * 2, by, 0.9 + (b % 3) * 0.4, C.foam); }
+      }
+
+      // ============================================================ 1. the attack (frame 1 .. the spit)
+      function slimeR(t) {
+        if (t < T.BURST) return t < T.MEET ? 5 + t * 3 : 4;
+        return 4 + 30 * easeOut(clamp01((t - T.BURST) / (T.GROWN + 0.6 - T.BURST)));
+      }
+      function scene_attack(t) {
+        var tt = tapeT(t, T);
+        var cam;
+        if (tt < T.MEET) cam = camAt([[0, 84, 156, 1.15], [T.MEET, 84, 160, 1.05]], tt);
+        else if (tt < T.GLAND) cam = camAt([[T.MEET, 118, 136, 1.9], [T.GLAND, 118, 136, 1.8]], tt);
+        else cam = camAt([[T.GLAND, 100, 147, 1.4], [T.BURST, 96, 156, 1.15], [T.GROWN, 90, 163, 1.0]], tt);
+        if (tt > T.BURST) shake(cam, tt, lastOf(T.SQUELCH, tt), 2.5, 0.15);
+        seaBg(tt); setCam(cam, 1);
+        var spit = tt >= T.SPIT, fled = clamp01((tt - T.SPIT - 0.6) / 1.2);
+        var sx = spit ? lerp(64, -70, easeOut(fled)) : 64, sick = tt > T.CLOG ? 1 : 0;
+        var open = tt < T.MEET ? 0.9 : tt < T.SPIT ? 0.7 : tt < T.SPIT + 0.5 ? 1 : 0;
+        // the hagfish: tail in the shark's mouth at first, then it wriggles free to the right
+        var hx = tt < T.MEET ? 104 : 116, hy = 104;
+        var pts = hagPath(hx + Math.sin(tt * 3) * 2, hy, 46, Math.PI * 0.05, tt, 3.5);
+        if (!spit || tt < T.SPIT + 0.3) shark(sx, 108, 1.0, tt, { open: open, sick: sick, clog: tt > T.CLOG, xeye: tt > T.CLOG + 0.6 && tt < T.SPIT, flip: false });
+        hag(pts, 1.25, { glands: tt > T.GLAND && tt < T.BURST ? (Math.floor(tt * 8) % 2 ? 1 : 0.2) : 0, mood: tt > T.BURST && tt < T.SPIT ? "o" : "happy", squint: spit });
+        var R = slimeR(tt);
+        if (tt < T.SPIT) character(function () { slimeCloud(lerp(70, 84, clamp01((tt - T.BURST) / 2)), 108, R, tt); });
+        else {
+          // spat-out slime glob drifting, shark fleeing
+          slimeCloud(lerp(70, 50, clamp01((tt - T.SPIT) / 1.5)), lerp(108, 92, clamp01((tt - T.SPIT) / 1.5)), lerp(34, 18, clamp01((tt - T.SPIT) / 1.5)), tt);
+          if (tt > T.SPIT + 0.3) shark(sx, 112, 1.0, tt, { open: 0, sick: 1, flip: true, xeye: false });
+          if (tt > T.SPIT + 0.9 && tt < T.KNOT - 0.2) say(40, 70, "NOPE!");
+        }
+        if (tt > T.CLOG + 0.3 && tt < T.SPIT) say(118, 66, "*GAG*");
+        if (tt > T.MEET + 0.6 && tt < T.GLAND - 0.2) say(90, 68, "I'M SLIMY.");
+        // below the caption: the slime meter (a bucket that fills)
+        if (tt > T.BURST - 0.1 && tt < T.SPIT) {
+          var f = clamp01((R - 4) / 30);
+          rect(70, 186, 40, 34, C.ink); rect(72, 188, 36, 30, C.truckD);
+          rect(72, 218 - 30 * f, 36, 30 * f, C.slime); line(66, 186, 114, 186, 2, C.ink);
+          arcS(90, 190, 22, Math.PI + 0.3, -0.3, 1.2, C.ink);
+          worldText("BUCKET", 90, 224 - 1, 1, C.white);
+        }
+        vignette(0.35, "rgba(0,10,40,");
+      }
+      // ============================================================ 2. the knot: tie it, slide it down, scrape it off
+      function knotPts(t, u) {
+        // body from head (left) to tail (right) with a loop at fraction u
+        var pts = [], x0 = 40, y0 = 100, L = 100, kx = x0 + u * L;
+        for (var i = 0; i <= 40; i++) {
+          var d = i / 40 * (L + 40), x, y;
+          if (x0 + d < kx) { x = x0 + d; y = y0 + Math.sin(t * 4 + i * 0.4) * 1.5; }
+          else if (x0 + d < kx + 40) { var a = (x0 + d - kx) / 40 * 6.28; x = kx + Math.sin(a) * 11; y = y0 - 11 + Math.cos(a) * 11; }
+          else { x = x0 + d - 40; y = y0 + Math.sin(t * 4 + i * 0.4) * 1.5; }
+          pts.push([x, y]);
+        }
+        return pts;
+      }
+      function scene_knot(t) {
+        var cam = camAt([[T.KNOT, 90, 140, 1.25], [T.ROAD, 90, 144, 1.15]], t);
+        seaBg(t); setCam(cam, 1);
+        var tie = clamp01((t - T.KNOT - 0.2) / 0.8), u = lerp(0.12, 0.92, ease(clamp01((t - T.KNOT - 1.0) / (T.ROAD - T.KNOT - 1.4))));
+        var pts = tie < 1 ? hagPath(40 + 100 * 0 + 0, 100, 100, Math.PI, t, 2).map(function (p, i) { return p; }) : knotPts(t, u);
+        if (tie < 1) {
+          // coiling into the knot
+          pts = knotPts(t, 0.12).map(function (p, i, arr) { var st = [40 + i / 40 * 140 * (i <= 40 ? 1 : 1), 100]; return [lerp(Math.min(40 + i / 40 * 140, 180), p[0], tie), lerp(100, p[1], tie)]; });
+        }
+        // the slime: still on the body behind the knot (tail side); scraped-off blobs fall
+        var kx = 40 + u * 100;
+        hag(pts, 1.2, { mood: t > T.SCRAPE + 1.4 ? "happy" : "o" });
+        for (var k = 0; k < 7; k++) { var bx = 50 + k * 14; if (bx > kx + 6 || tie < 1) slimeBlob(bx, 98 + (k % 2) * 3, 5, t, k); }
+        var fallen = countOf(T.SCRAPES, t);
+        for (var f = 0; f < fallen; f++) { var ft = T.SCRAPES[f], q = t - ft; slimeBlob(56 + f * 12 + q * 4, 106 + q * 22, 4, t, f + 20); }
+        if (t > T.SCRAPE + 1.2 && t < T.ROAD - 0.2) say(90, 68, "SQUEAKY CLEAN!");
+        // below: the knot diagram
+        g.strokeStyle = C.gold; g.lineWidth = 1.5; g.beginPath(); g.moveTo(52, 206); g.lineTo(78, 206); g.arc(90, 200, 9, Math.PI * 0.8, Math.PI * 2.6); g.lineTo(128, 206); g.stroke();
+        worldText("OVERHAND KNOT", 90, 214, 1, C.white);
+        vignette(0.35, "rgba(0,10,40,");
+      }
+      // ============================================================ 3. Highway 101, July 2017
+      function truckC(x, y, s, t, tip) {
+        g.save(); g.translate(x, y); g.rotate(tip * 0.5); g.scale(s, s);
+        rect(-40, -26, 56, 26, C.truckD); rect(-39, -27, 54, 25, C.truck);
+        worldText("HAGFISH", -12, -19, 1, C.box);
+        rrect(16, -22, 22, 22, 4, C.cabD); rrect(16, -23, 21, 21, 4, C.cab); rect(26, -20, 9, 8, C.win);
+        disc(-28, 2, 5, C.tyre); disc(-16, 2, 5, C.tyre); disc(28, 2, 5, C.tyre); disc(-28, 2, 2, C.truckD); disc(-16, 2, 2, C.truckD); disc(28, 2, 2, C.truckD);
+        // the cab's face (the truck is a character)
+        disc(31, -15.5, 1.4, C.ink); disc(34.5, -15.5, 1.4, C.ink);
+        g.restore();
+      }
+      function carC(x, y, s, t, slimed, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s, s);
+        rrect(-22, -12, 44, 12, 4, C.carD); rrect(-21, -13, 42, 12, 4, C.car); rrect(-12, -22, 24, 11, 4, C.car); rect(-9, -20, 18, 7, C.win);
+        disc(-13, 1, 4.5, C.tyre); disc(13, 1, 4.5, C.tyre);
+        // face on the windscreen
+        disc(-4, -17, 1.6, C.eyeW); disc(4, -17, 1.6, C.eyeW); disc(-4, -16.6, 0.9, C.ink); disc(4, -16.6, 0.9, C.ink);
+        if (o.mood === "o") ell(0, -7, 1.6, 2, 0, C.mouth); else arcS(0, -8, 2.2, 0.3, Math.PI - 0.3, 0.9, C.mouth);
+        if (slimed > 0) {
+          for (var k = 0; k < 9; k++) { var bx = -20 + k * 5, h = (3 + 4 * hash1(k)) * slimed; ell(bx, -22 + (k % 3) * 4, 4, 3, 0, C.slime); rect(bx - 1.5, -20 + (k % 3) * 4, 3, h + 6, C.slime); disc(bx, -14 + (k % 3) * 4 + h, 1.8, C.slime); }
+          var wa = Math.sin(t * 7) * 0.9;
+          line(-6, -13, -6 + Math.cos(-1.57 + wa) * 9, -13 + Math.sin(-1.57 + wa) * 9, 1, C.ink);
+        }
+        g.restore();
+      }
+      function scene_road(t) {
+        var tt = tapeT(t, T);
+        var cam = tt < T.HIT ? camAt([[T.ROAD, 90, 170, 1.0], [T.HIT, 100, 166, 1.1]], tt) : tt < T.CARS ? camAt([[T.HIT, 100, 168, 1.25], [T.CARS, 90, 170, 1.0]], tt) : { x: 90, y: 168, z: 1.0 };
+        shake(cam, tt, T.HIT, 9, 0.6);
+        sky([[0, C.sky], [0.45, C.skyL], [1, C.skyL]]);
+        setCam(cam, 0.4);
+        for (var c = 0; c < 4; c++) { var cx = ((c * 60 - tt * 3) % 240 + 240) % 240 - 30; ell(cx, 60 + c * 8, 16, 5, 0, C.cloud); ell(cx + 10, 56 + c * 8, 10, 5, 0, C.cloud); }
+        poly([[-20, 120], [30, 96], [80, 112], [130, 92], [210, 116], [210, 340], [-20, 340]], C.hillD);
+        for (var tr = 0; tr < 10; tr++) { var tx = tr * 22 + 4, ty = 112 - (tr % 3) * 5; poly([[tx, ty - 16], [tx - 6, ty], [tx + 6, ty]], C.tree); }
+        setCam(cam, 1);
+        rect(-40, 126, 260, 4, C.grass); rect(-40, 130, 260, 24, C.road); rect(-40, 130, 260, 1, C.roadL);
+        for (var s2 = 0; s2 < 12; s2++) rect(((s2 * 24 - (tt < T.HIT ? tt * 60 : T.HIT * 60)) % 288 + 288) % 288 - 50, 141, 12, 2, C.stripe);
+        rect(-40, 154, 260, 200, C.grass);
+        // US 101 sign below the caption
+        rect(118, 212, 2, 18, C.truckD); poly([[106, 200], [132, 200], [132, 214], [119, 220], [106, 214]], C.white); worldText("101", 119, 204, 1, C.ink); worldText("US", 119, 192, 1, C.white);
+        if (tt < T.HIT) {
+          var tx2 = lerp(40, 100, (tt - T.ROAD) / (T.HIT - T.ROAD));
+          character(function () { truckC(tx2, 138, 1.0, tt, 0); });
+        } else {
+          var tp = easeOut(clamp01((tt - T.HIT) / 0.4));
+          character(function () { truckC(100, 138, 1.0, tt, tp * 0.9); });
+          // the spill: hagfish and slime all over the road
+          var sp = clamp01((tt - T.HIT) / 1.6);
+          for (var k = 0; k < 7; k++) { var px = 30 + k * 18 + hash1(k) * 6, py = 134 + hash1(k + 4) * 14; slimeBlob(px, py, 4 + 5 * sp * hash1(k + 9), tt, k); }
+          var nf = Math.min(6, Math.floor((tt - T.HIT) * 5) + (tt > T.SPILL ? 6 : 0));
+          for (var f = 0; f < nf; f++) { hag(hagPath(28 + f * 20, 132 + (f % 2) * 8, 14, (f % 2 ? 0.2 : Math.PI - 0.2), tt + f, 2), 0.55, {}); }
+        }
+        if (tt > T.CARS) {
+          var cs = clamp01((tt - T.CARS) / 1.2);
+          character(function () { carC(lerp(-30, 52, easeOut(clamp01((tt - T.CARS) / 0.6))), 146, 1.3, tt, cs, { mood: "o" }); });
+          if (tt > T.CARS + 1.0 && tt < T.CTA) say(44, 70, "EWWW!");
+        }
+        if (tt > T.CTA + 0.4) say(120, 70, "OOPS.");
+        if (tt > T.SPILL && tt < T.CARS - 0.2) say(56, 70, "FREEDOM!");
+      }
+
+      function sceneAt(t) {
+        var tt = tapeT(t, T);
+        return tt < T.KNOT ? "attack" : tt < T.ROAD ? "knot" : "road";
+      }
+      function drawUI(t) {
+        var tt = tapeT(t, T);
+        var score = tt < T.SPIT ? "SHARK 1 HAG 0" : "SHARK 0 HAG 1";
+        if (tt < T.BURST) counterLines(score, tt < T.SPIT ? C.cyan : C.green, 3, "SLIME X1", C.white);
+        else if (tt < T.KNOT) { var R = slimeR(tt), x = tt > T.GROWN + 0.55 ? 10000 : Math.max(1, Math.round(Math.pow(10000, clamp01((R - 4) / 30)))); counterLines(score, tt < T.SPIT ? C.cyan : C.green, 3, "SLIME X" + fmt(x), tt > T.GROWN ? C.gold : C.white); }
+        else if (tt < T.ROAD) { var c = Math.round(100 * clamp01((tt - T.KNOT - 1.0) / (T.ROAD - T.KNOT - 1.4))); counterLines("SHARK 0 HAG 1", C.green, 3, "CLEANING " + c + "%", c >= 100 ? C.green : C.gold); }
+        else if (tt < T.HIT) counterLines("13 JULY 2017", C.cyan, 3, "US HIGHWAY 101", C.white);
+        else counterLines("3,400 KG", C.gold, 3, "OF HAGFISH", C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { attack: scene_attack, knot: scene_knot, road: scene_road },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.slime,
+        cuts: [[T.KNOT, "attack", "knot"], [T.ROAD, "knot", "road"]],
+      });
+    </script>
+  </body>
+</html>

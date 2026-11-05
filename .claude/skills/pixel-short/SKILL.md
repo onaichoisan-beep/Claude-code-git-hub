@@ -41,6 +41,10 @@ almost every phrase. Voices: Kokoro-82M (`_engine/make_voices_kokoro.py`, narrat
 Keep every counter, text card, bubble, face and key object inside **x 120-840, y 190-1350** of the 1080x1920 frame
 (canvas x 40-280, y 64-450; world x 20-140, y 32-225), clear of the Reels status bar, right icon column and bottom
 profile/caption rows. Caption lines max 16 characters, max 2 lines. Snapshot once with `window.PX_SAFE_GUIDE = true`.
+**Text never covers the subject (owner, Nov 5 2026):** run `node videos/_engine/qa_layout.js videos/<slug>` and fix
+every reported frame (caption/bubble over a character, bubble over the counter or off the safe box) until it prints
+"layout OK"; then look at the snapshots too. Wrap key non-living subjects (e.g. a slime cloud) in `character()` so the
+check sees them. `videos/_engine/render_queue.sh <slug>...` renders projects one after another.
 
 ## The look: SHARP HD pixel art (owner's rule, Oct 2026; full rules in /STYLE_GUIDE.md)
 

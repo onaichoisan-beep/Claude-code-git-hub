@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Frog That Freezes Solid</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #9ad0f0; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #9ad0f0; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "The Frog That Freezes Solid" (wood frog, Rana/Lithobates sylvatica) — text cards + sound only (STYLE_GUIDE.md
+      section 6), safe zone (section 8), layout checked with _engine/qa_layout.js. Facts: in winter up to ~65-70% of its
+      body water freezes; the heart stops and breathing stops; the liver floods the cells with glucose as a
+      cryoprotectant (Storey & Storey); Alaskan wood frogs survived field temperatures down to about -18 °C and up to
+      ~218 consecutive frozen days, about 7 months (Larson et al. 2014, J. Exp. Biol. 217: 2193); they thaw in spring
+      and the heart restarts. The mechanism is studied for organ cryopreservation (hedged: "may help").
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="28.4" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="28.4" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="28.4" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        skyA: "#7ac0f0", skyAL: "#ffe0b0", skyW: "#9ab8d8", skyWL: "#e0ecf8", skyN: "#1a2048", skyS: "#7ad0ff", skySL: "#d8f4ff",
+        leaf: "#e8742a", leafD: "#b84a1a", leafY: "#f0b83a", bark: "#6a4a32", barkD: "#4a3222", ground: "#8a5a32", groundD: "#6a4222",
+        snow: "#f4f8ff", snowD: "#c8d8ec", grass: "#5ac85a", grassD: "#2a9a3a", flower: "#ff8ac8",
+        frog: "#c8945a", frogD: "#9a6a3a", frogL: "#e8c088", belly: "#f4e4c0", mask: "#4a2a1a", iris: "#e8c03a",
+        ice: "#9ae8ff", iceL: "#e0faff", iceD: "#5ab8e0",
+        panel: "#0a1a14", ecg: "#3ae86a", sugar: "#ffffff",
+        lab: "#e0ecf4", labD: "#b0c4d4", table: "#8a9ab0", cool: "#3a8aff", heartC: "#ff4a6a",
+        ink: "#0a0614", mouth: "#7a1a3a", eyeW: "#ffffff", blush: "#ff8a9a",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      var GROUND = 136;
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function say(x, y, str) { g.save(); screen(); bubble(x, y, str, C.ink); g.restore(); }
+
+      // ============================================================ the wood frog (x = body centre, y = ground), facing right
+      function frogC(x, y, s, t, o) {
+        o = o || {};
+        var ice = o.ice || 0, hop = o.hop || 0, st = o.stretch || 0;
+        var body = ice > 0 ? mix(C.frog, C.ice, ice * 0.6) : C.frog, bodyD = ice > 0 ? mix(C.frogD, C.iceD, ice * 0.6) : C.frogD;
+        g.save(); g.translate(x, y - hop); g.scale(s, s);
+        // back leg (stretches out on a hop)
+        if (st > 0.3) { line(-8, -8, -22, -2, 4, bodyD); line(-22, -2, -30, 0, 2.5, bodyD); }
+        else { ell(-8, -7, 10, 7, -0.2, bodyD); ell(-8, -8, 9, 6, -0.2, body); poly([[-14, -1], [2, -1], [4, 0], [-16, 0]], bodyD); }
+        // body + head
+        g.save(); g.rotate(-0.25 - st * 0.2); ell(2, -13, 14, 9.5, 0, bodyD); ell(2, -13.5, 13, 8.5, 0, body); ell(4, -9, 10, 4, 0, C.belly); ell(-1, -19, 7, 2.5, 0, C.frogL); g.restore();
+        ell(13, -20, 9, 7, 0.1, bodyD); ell(13, -20.5, 8.2, 6.3, 0.1, body);
+        // front leg
+        line(11, -12, 13 + st * 4, 0, 2.6, bodyD); line(13 + st * 4, 0, 16 + st * 4, 0, 1.6, bodyD);
+        // the dark "robber mask" through the eye
+        poly([[6, -23], [20, -21], [21, -19], [7, -18]], C.mask);
+        // eye
+        disc(13, -25, 3.8, bodyD);
+        if (o.closed) { line(10.5, -25, 15.5, -25, 0.9, C.ink); }
+        else { disc(13, -25, 3.2, C.iris); rect(10.5, -25.6, 5, 1.4, C.ink); disc(12, -26.3, 0.7, C.white); }
+        if (o.mood === "o") ell(20, -15.5, 1.4, 1.2, 0, C.mouth); else line(16, -16, 21.5, -17.5, 0.8, C.mouth);
+        if (!o.closed && ice < 0.5) disc(16, -18, 1.4, C.blush);
+        if (o.scarf) { rect(5, -17, 14, 3, C.red); rect(8, -15, 3, 6, C.red); }
+        g.restore();
+      }
+      function frog(x, y, s, t, o) { character(function () { frogC(x, y, s, t, o); }); }
+      function iceBlock(x, y, s, k) {
+        if (k <= 0) return;
+        g.save(); g.globalAlpha = 0.5 * k;
+        rect(x - 30 * s, y - 36 * s, 58 * s, 37 * s, C.ice);
+        g.globalAlpha = 0.85 * k; rect(x - 30 * s, y - 36 * s, 58 * s, 2, C.iceL); rect(x - 30 * s, y - 36 * s, 2, 37 * s, C.iceL);
+        line(x - 22 * s, y - 30 * s, x - 12 * s, y - 20 * s, 1, C.iceL); line(x + 14 * s, y - 32 * s, x + 22 * s, y - 24 * s, 1, C.iceL);
+        g.restore();
+      }
+      // season: 0 autumn, 1 winter, 2 spring (fractional = blend)
+      function forest(tt, cam, season, night) {
+        var skyTop = season < 0.5 ? C.skyA : season < 1.5 ? C.skyW : C.skyS, skyLow = season < 0.5 ? C.skyAL : season < 1.5 ? C.skyWL : C.skySL;
+        if (night > 0) { skyTop = mix(skyTop, C.skyN, night); skyLow = mix(skyLow, C.skyN, night * 0.8); }
+        sky([[0, skyTop], [0.5, skyLow], [1, skyLow]]);
+        setCam(cam, 0.5);
+        for (var tr = 0; tr < 6; tr++) {
+          var tx = tr * 36 - 10, th = 38 + (tr % 3) * 8;
+          rect(tx, 130 - th, 7, th, C.barkD); rect(tx + 1, 130 - th, 5, th, C.bark);
+          if (season < 0.5) { disc(tx + 4, 130 - th, 16, C.leafD); disc(tx, 128 - th, 12, C.leaf); disc(tx + 9, 124 - th, 10, C.leafY); }
+          else if (season >= 1.5) { disc(tx + 4, 130 - th, 15, C.grassD); disc(tx + 1, 127 - th, 11, C.grass); }
+          else { line(tx + 3, 100 - th * 0.5, tx - 10, 86 - th * 0.5, 2, C.barkD); line(tx + 4, 110 - th * 0.5, tx + 16, 96 - th * 0.5, 2, C.barkD); rect(tx - 2, 130 - th - 2, 11, 3, C.snow); }
+        }
+        setCam(cam, 1);
+        var gc = season < 0.5 ? C.ground : season < 1.5 ? C.snow : C.grass, gd = season < 0.5 ? C.groundD : season < 1.5 ? C.snowD : C.grassD;
+        rect(-60, GROUND, 300, 240, gd); poly([[-60, GROUND + 1], [60, GROUND - 1], [240, GROUND + 1], [240, 400], [-60, 400]], gc);
+        if (season < 0.5) for (var l = 0; l < 18; l++) ell(hash1(l) * 200 - 10, GROUND + 3 + hash1(l + 5) * 80, 2.5, 1.2, hash1(l), l % 2 ? C.leaf : C.leafY);
+        if (season >= 1.5) for (var f = 0; f < 10; f++) { var fx = hash1(f) * 190 - 5, fy = GROUND + 4 + hash1(f + 9) * 70; disc(fx, fy, 1.5, C.flower); }
+        if (season >= 0.5 && season < 1.5) for (var sn = 0; sn < 50; sn++) { var sx = (hash1(sn) * 200 + Math.sin(tt + sn) * 6) % 200 - 10, sy = ((hash1(sn + 7) * 340 + tt * (18 + sn % 5 * 4)) % 340) - 10; rect(sx, sy, 1.2, 1.2, C.snow); }
+      }
+      // ============================================================ the heart monitor (screen space, below the caption)
+      function ecgVal(tt, HB) {
+        var v = 0;
+        for (var i = 0; i < HB.length; i++) { var d = tt - HB[i]; if (d > -0.05 && d < 0.25) v += (d < 0 ? 0 : d < 0.04 ? d / 0.04 * 12 : d < 0.08 ? 12 - (d - 0.04) / 0.04 * 18 : d < 0.12 ? -6 + (d - 0.08) / 0.04 * 6 : 0) + (d > 0.15 && d < 0.25 ? Math.sin((d - 0.15) / 0.1 * Math.PI) * 2.5 : 0); }
+        return v;
+      }
+      function monitor(tt) {
+        g.save(); screen();
+        var x0 = 34, y0 = 188, w = 104, h = 32;
+        rect(x0 - 2, y0 - 2, w + 4, h + 4, C.ink); rect(x0, y0, w, h, C.panel);
+        var flat = tt > T.BREAK && tt < T.BEAT + 0.3;
+        var col = flat || tt < T.MEET ? C.red : C.ecg;
+        g.strokeStyle = col; g.lineWidth = 1; g.beginPath();
+        for (var i = 0; i <= w; i++) { var ts = tt - 2 + i / w * 2, v = tt < T.MEET ? 0 : ecgVal(ts, T.HB); var y = y0 + h * 0.6 - v; if (i === 0) g.moveTo(x0 + i, y); else g.lineTo(x0 + i, y); }
+        g.stroke();
+        disc(x0 + w, y0 + h * 0.6 - (tt < T.MEET ? 0 : ecgVal(tt, T.HB)), 1.4, col);
+        worldText("HEART", x0 + 16, y0 + 2, 1, col);
+        g.restore();
+      }
+
+      // ============================================================ the forest through the year (one scene)
+      function scene_forest(t) {
+        var tt = tapeT(t, T);
+        var season = tt < T.MEET ? 1 : tt < T.WINTER ? 0 : tt < T.SPRING + 0.4 ? 1 : 2;
+        if (tt >= T.CTA + 0.8) season = 1;
+        var night = tt > T.DAYS && tt < T.SPRING ? 0.5 + 0.5 * Math.sin(countOf(T.DAYTICKS, tt) * 2.1) : 0;
+        var cam;
+        if (tt < T.MEET) cam = camAt([[0, 90, 145, 1.15], [T.MEET, 90, 147, 1.1]], tt);
+        else if (tt < T.ICE) cam = { x: 90, y: 160, z: 1.0 };
+        else if (tt < T.DAYS) cam = camAt([[T.ICE, 90, 160, 1.0], [T.HIT, 90, 152, 1.12], [T.DAYS, 90, 154, 1.08]], tt);
+        else if (tt < T.BEAT) cam = camAt([[T.DAYS, 90, 160, 1.0], [T.BEAT, 90, 152, 1.2]], tt);
+        else cam = camAt([[T.BEAT, 90, 152, 1.2], [T.HOP, 90, 160, 1.0]], tt);
+        shake(cam, tt, T.HIT, 7, 0.5); shake(cam, tt, T.BEAT + 0.3, 4, 0.3);
+        forest(tt, cam, season, night);
+        // ice amount on the frog
+        var ice = tt < T.MEET ? 1 : tt < T.ICE ? 0 : tt < T.HIT ? clamp01((tt - T.ICE) / (T.HIT - T.ICE)) : tt < T.SPRING ? 1 : tt < T.BEAT ? 1 - clamp01((tt - T.SPRING) / 2) : 0;
+        var fx = 84, hop = 0, st = 0;
+        if (tt > T.MEET && tt < T.MEET + 1.0) { var q = (tt - T.MEET) / 1.0; fx = lerp(20, 84, q); hop = Math.abs(Math.sin(q * Math.PI * 2)) * 14; st = hop > 4 ? 1 : 0; }
+        if (tt > T.HOP && tt < T.SCI) { var q2 = (tt - T.HOP - 0.3); if (q2 > 0) { var n = Math.floor(q2 / 0.5), ph = (q2 % 0.5) / 0.5; if (n < 3) { fx = 84 + (n + ph) * 12; hop = Math.sin(ph * Math.PI) * 22; st = ph > 0.1 && ph < 0.9 ? 1 : 0; } } }
+        var sleepy = (tt < T.MEET) || (tt > T.HIT && tt < T.BEAT + 0.4);
+        var shiver = tt > T.WINTER && tt < T.ICE ? Math.sin(tt * 60) * 0.6 : 0;
+        frog(fx + shiver, GROUND, 1.8, tt, { ice: ice, hop: hop, stretch: st, closed: sleepy, mood: tt > T.BEAT + 0.4 && tt < T.HOP ? "o" : "", scarf: tt > T.CTA + 0.6 });
+        // glucose: sugar cubes flying into the frog
+        if (tt > T.SUGAR && tt < T.ICE + 0.2) for (var k = 0; k < 10; k++) { var p = ((tt - T.SUGAR) * 0.8 + k / 10) % 1, an = k * 0.63; var sx = fx + Math.cos(an) * 44 * (1 - p), sy = 108 + Math.sin(an) * 30 * (1 - p); rect(sx - 1.5, sy - 1.5, 3, 3, C.sugar); rect(sx - 1.5, sy - 1.5, 3, 1, C.labD); }
+        // ice crystals spreading, then the block
+        if (tt > T.ICE && tt < T.HIT) for (var c = 0; c < 14; c++) { if (c / 14 > ice) break; var a = c * 0.9, r = 14 + (c % 4) * 6; var cx = fx + 4 + Math.cos(a) * r, cy = 112 + Math.sin(a) * r * 0.7; line(cx - 2, cy, cx + 2, cy, 0.8, C.iceL); line(cx, cy - 2, cx, cy + 2, 0.8, C.iceL); }
+        iceBlock(fx + 2, GROUND, 1.8 * 0.95, tt < T.MEET ? 1 : tt < T.HIT ? clamp01((tt - T.ICE - 0.8) / 1.0) : tt < T.SPRING ? 1 : 1 - clamp01((tt - T.SPRING) / 1.6));
+        // spring drips
+        if (tt > T.SPRING && tt < T.BEAT) for (var d = 0; d < 6; d++) { var dp = ((tt - T.SPRING) * 1.5 + d / 6) % 1; disc(fx - 40 + d * 16, 96 + dp * 40, 1.2, C.iceD); }
+        // speech bubbles (screen space, in the clear sky above the frog)
+        if (tt > T.MEET + 1.0 && tt < T.WINTER - 0.2) say(98, 72, "RIBBIT!");
+        if (tt > T.WINTER + 0.6 && tt < T.SUGAR - 0.2) say(98, 72, "BRRR...");
+        if (tt > T.SUGAR + 0.8 && tt < T.ICE - 0.2) say(98, 70, "SUGAR RUSH!");
+        if (tt > T.ICE + 0.4 && tt < T.HIT - 0.6) say(98, 70, "SEE YOU...");
+        if (tt > T.BEAT + 1.0 && tt < T.HOP - 0.2) say(98, 70, "...I'M BACK?");
+        if (tt > T.HOP + 1.8 && tt < T.SCI - 0.2) say(98, 70, "GOOD MORNING!");
+        if (tt > T.CTA + 0.8) say(98, 72, "NOT AGAIN...");
+        monitor(tt);
+        vignette(0.25, "rgba(0,10,40,");
+      }
+      // ============================================================ the lab: organ freezing research
+      function scene_lab(t) {
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.lab], [1, C.labD]]);
+        setCam(cam, 1);
+        for (var w = 0; w < 6; w++) rect(w * 34 - 4, 40, 1, 100, C.labD);
+        rect(-10, GROUND, 200, 6, C.table); rect(-10, GROUND + 6, 200, 200, C.labD);
+        frog(56, GROUND, 1.5, t, { mood: "", closed: false });
+        // the cooler with a frozen heart
+        var px = 122, py = GROUND;
+        rect(px - 18, py - 30, 36, 30, C.cool); rect(px - 20, py - 34, 40, 6, C.ink); rect(px - 19, py - 33, 38, 4, C.white);
+        var pulse = 1 + 0.08 * Math.sin(t * 6);
+        g.save(); g.translate(px, py - 16); g.scale(pulse, pulse);
+        disc(-3.5, -3, 4.5, C.heartC); disc(3.5, -3, 4.5, C.heartC); poly([[-8, -1.5], [8, -1.5], [0, 8]], C.heartC);
+        g.restore();
+        for (var k = 0; k < 3; k++) { var a = t * 2 + k * 2.1; line(px + Math.cos(a) * 22, py - 16 + Math.sin(a) * 12 - 3, px + Math.cos(a) * 22, py - 16 + Math.sin(a) * 12 + 3, 1, C.iceD); line(px + Math.cos(a) * 22 - 3, py - 16 + Math.sin(a) * 12, px + Math.cos(a) * 22 + 3, py - 16 + Math.sin(a) * 12, 1, C.iceD); }
+        if (t > T.SCI + 0.5) { line(78, 112, 98, 112, 1.5, C.gold); poly([[98, 109], [102, 112], [98, 115]], C.gold); }
+        if (t > T.SCI + 0.6 && t < T.CTA - 0.2) say(60, 72, "TAKE NOTES.");
+        g.save(); screen(); worldText("ORGAN STORAGE", 90, 196, 1, C.ink); worldText("(RESEARCH)", 90, 206, 1, C.ink); g.restore();
+      }
+
+      function sceneAt(t) {
+        var tt = tapeT(t, T);
+        if (tt >= T.SCI && tt < T.CTA) return "lab";
+        return (tt < T.MEET || (tt >= T.WINTER && tt < T.ICE) || (tt >= T.DAYS && tt < T.SPRING) || tt >= T.HOP) ? "a" : "b";
+      }
+      function drawUI(t) {
+        var tt = tapeT(t, T), n;
+        if (tt < T.MEET) counterLines("HEART: 0 BPM", C.red, 3, "BODY: 65% ICE", C.cyan);
+        else if (tt < T.WINTER) counterLines("TEMP 12°C", C.gold, 3, "HEART: ON", C.green);
+        else if (tt < T.SUGAR) counterLines("TEMP " + Math.round(lerp(12, 0, clamp01((tt - T.WINTER) / 2))) + "°C", C.cyan, 3, "HEART: ON", C.green);
+        else if (tt < T.ICE) counterLines("TEMP -1°C", C.cyan, 3, "SUGAR: MAX", C.white);
+        else if (tt < T.HIT) counterLines("ICE " + Math.round(65 * clamp01((tt - T.ICE) / (T.HIT - T.ICE))) + "%", C.cyan, 3, "HEART: SLOWING", C.gold);
+        else if (tt < T.DAYS) counterLines("HEART: 0 BPM", C.red, 3, "BREATH: NONE", C.white);
+        else if (tt < T.SPRING) { n = tt < T.RECORD ? Math.round(1 + 99 * clamp01((tt - T.DAYS) / (T.RECORD - T.DAYS))) : Math.round(100 + 118 * clamp01((tt - T.RECORD) / (T.SPRING - T.RECORD - 0.4))); counterLines("DAY " + n, C.cyan, 3, tt < T.RECORD ? "FROZEN" : "-18°C ALASKA", C.white); }
+        else if (tt < T.BEAT + 0.3) counterLines("ICE " + Math.round(65 * (1 - clamp01((tt - T.SPRING) / 2))) + "%", C.cyan, 3, "TEMP +4°C", C.gold);
+        else if (tt < T.SCI) counterLines("ALIVE!", C.green, 3, "BEATS: " + countOf(T.HB.filter(function (b) { return b > T.BEAT; }), tt), C.white);
+        else if (tt < T.CTA) counterLines("FROZEN 7 MONTHS", C.cyan, 3, "STILL ALIVE", C.green);
+        else counterLines("FROG 1", C.green, 3, "WINTER 0", C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { a: scene_forest, b: scene_forest, lab: scene_lab },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.iceL,
+        cuts: [[T.MEET, "a", "b"], [T.WINTER, "b", "a"], [T.ICE, "a", "b"], [T.DAYS, "b", "a"], [T.SPRING, "a", "b"], [T.HOP, "b", "a"], [T.SCI, "a", "lab"], [T.CTA, "lab", "a"]],
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>The Jellyfish That Ages Backwards</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #06123a; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #06123a; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "The Jellyfish That Ages Backwards" (Turritopsis dohrnii) — text cards + sound only (STYLE_GUIDE.md section 6),
+      safe zone (section 8): counter at canvas y 66, captions mid-frame (canvas y 320), action above (world y 58-148)
+      and below (185-225). Facts: when injured, starved or old, the medusa reverts to a polyp (transdifferentiation;
+      Bavestrello et al. 1992; Piraino et al. 1996, Biol. Bull.); bell ~4.5 mm; spread worldwide (Miglietta & Lessios
+      2009, "a silent invasion"); in the wild most are eaten or die of disease.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="28.2" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="28.2" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="28.2" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        sea0: "#2a8ae8", sea1: "#1a4ab8", sea2: "#0a2470", sea3: "#06123a", ray: "#7ac8ff", foam: "#c8f0ff",
+        jel: "#ff9ad8", jelD: "#e060b0", jelL: "#ffd4f0", gut: "#ff3a4a", gutD: "#b81a3a",
+        old: "#c8a8c0", oldD: "#9a7a92", oldL: "#e8d4e0", glass: "#ffffff",
+        sand: "#e8c878", sandD: "#c8a058", rock: "#6a6a88", rockD: "#4a4a62", weed: "#3ac86a", weedD: "#1a8a4a",
+        fish: "#ff8a1a", fishD: "#c85a0a", fishL: "#ffc87a", tooth: "#ffffff",
+        skin: "#ffc8a0", skinD: "#e09a72", nail: "#ffe4d4",
+        land: "#3ae86a", landD: "#1aa84a", globe: "#2a7ae8",
+        ink: "#0a0614", mouth: "#7a1a3a", eyeW: "#ffffff", blush: "#ff6a9a",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function dome(x, y, rx, ry, col) { g.fillStyle = col; g.beginPath(); g.ellipse(x, y, rx, ry, 0, Math.PI, 2 * Math.PI); g.closePath(); g.fill(); }
+
+      // ============================================================ the jellyfish (bell centre x, rim y), age 0 young .. 1 old
+      function jellyC(x, y, s, t, o) {
+        o = o || {};
+        var age = o.age || 0, sq = o.squash || 0;
+        var body = age > 0.5 ? C.old : C.jel, bodyD = age > 0.5 ? C.oldD : C.jelD, bodyL = age > 0.5 ? C.oldL : C.jelL;
+        g.save(); g.translate(x, y); g.scale(s * (1 + sq * 0.2), s * (1 - sq * 0.25));
+        var pulse = Math.sin(t * 5) * (age > 0.5 ? 0.4 : 1.2);
+        // tentacles
+        var n = 10, len = (age > 0.5 ? 16 : 22) * (o.tent === undefined ? 1 : o.tent);
+        for (var k = 0; k < n; k++) {
+          var tx = -13 + k * 26 / (n - 1);
+          g.strokeStyle = bodyL; g.lineWidth = 0.9; g.beginPath(); g.moveTo(tx, 0);
+          for (var j = 1; j <= 6; j++) g.lineTo(tx + Math.sin(t * 3 + k + j * 0.9) * (age > 0.5 ? 0.8 : 1.8) + (age > 0.5 ? j * 0.2 : 0), j * len / 6 * (age > 0.5 ? 1.1 : 1));
+          g.stroke();
+        }
+        // bell
+        dome(0, 1, 17 + pulse * 0.5, 17 - pulse, bodyD);
+        dome(0, 0, 16 + pulse * 0.5, 16 - pulse, body);
+        ell(-5, -10, 5, 2.4, -0.4, bodyL);
+        rect(-16, -1, 32, 2, bodyD);
+        for (var sc = 0; sc < 7; sc++) disc(-14 + sc * 4.7, 1.5, 1.6, bodyD);
+        // the red stomach (Turritopsis has a bright red gut)
+        rect(-1.5, -9, 3, 9, age > 0.5 ? C.gutD : C.gut); rect(-4.5, -6, 9, 3, age > 0.5 ? C.gutD : C.gut);
+        // face
+        var ex = -6, ey = -5 + (age > 0.5 ? 1 : 0);
+        if (o.blink) { line(ex - 2, ey, ex + 2, ey, 0.8, C.ink); line(-ex - 2, ey, -ex + 2, ey, 0.8, C.ink); }
+        else {
+          disc(ex, ey, 2.4, C.eyeW); disc(-ex, ey, 2.4, C.eyeW);
+          disc(ex + 0.4, ey + 0.4, 1.3, C.ink); disc(-ex + 0.4, ey + 0.4, 1.3, C.ink);
+          disc(ex - 0.4, ey - 0.6, 0.5, C.white); disc(-ex - 0.4, ey - 0.6, 0.5, C.white);
+          if (age > 0.5) { rect(ex - 2.6, ey - 2.6, 5.2, 1.6, body); rect(-ex - 2.6, ey - 2.6, 5.2, 1.6, body); }      // droopy lids
+        }
+        if (age > 0.5) {                                                                  // glasses, wrinkles, a frown
+          g.strokeStyle = C.ink; g.lineWidth = 0.6; g.beginPath(); g.arc(ex, ey, 3.2, 0, 6.28); g.stroke(); g.beginPath(); g.arc(-ex, ey, 3.2, 0, 6.28); g.stroke(); line(ex + 3.2, ey, -ex - 3.2, ey, 0.6, C.ink);
+          line(-9, -11, -5, -12, 0.6, bodyD); line(5, -12, 9, -11, 0.6, bodyD); line(-3, -13.5, 3, -13.5, 0.6, bodyD);
+          arcS(0, -0.6, 2.2, Math.PI + 0.5, -0.5, 0.8, C.mouth);
+        } else if (o.mood === "o") ell(0, -1.5, 1.6, 2, 0, C.mouth);
+        else if (o.mood === "wow") { ell(0, -1.6, 2.2, 1.6, 0, C.mouth); }
+        else { arcS(0, -2.6, 2.4, 0.3, Math.PI - 0.3, 0.9, C.mouth); disc(-10, -2, 1.6, C.blush); disc(10, -2, 1.6, C.blush); }
+        g.restore();
+        if (age > 0.5 && o.cane) {                                                        // an old-timer's cane tentacle
+          line(x + 18 * s, y + 2 * s, x + 20 * s, y + 22 * s, 1.3 * s, C.oldD); arcS(x + 15.5 * s, y + 2 * s, 2.5 * s, Math.PI, 0, 1.3 * s, C.oldD);
+        }
+      }
+      function jelly(x, y, s, t, o) { character(function () { jellyC(x, y, s, t, o); }); }
+      // the blob a dying jelly becomes on the sea floor
+      function blob(x, y, s, t) { character(function () { g.save(); g.translate(x, y); g.scale(s, s); ell(0, 0, 9, 4.5 + Math.sin(t * 4) * 0.4, 0, C.jelD); ell(-2, -1.5, 4, 1.5, 0, C.jelL); disc(-3, -0.5, 0.9, C.ink); disc(3, -0.5, 0.9, C.ink); g.restore(); }); }
+      // the polyp: a stalk with a ring of tentacles and a face (grow 0..1)
+      function polyp(x, y, s, t, grow, o) {
+        o = o || {};
+        character(function () {
+          g.save(); g.translate(x, y); g.scale(s, s);
+          var h = 20 * grow, sw = Math.sin(t * 2) * 1.5 * grow;
+          line(0, 0, sw, -h, 2.4, C.jelD); line(0, 0, sw, -h, 1.4, C.jel);
+          if (grow > 0.3) {
+            for (var k = 0; k < 8; k++) { var a = -Math.PI + k * Math.PI / 7; line(sw, -h - 2, sw + Math.cos(a) * 7 * grow, -h - 2 + Math.sin(a) * 6 * grow + Math.sin(t * 4 + k) * 0.8, 0.8, C.jelL); }
+            ell(sw, -h - 1, 5 * grow, 4 * grow, 0, C.jel);
+            disc(sw - 1.8, -h - 1.5, 0.9, C.ink); disc(sw + 1.8, -h - 1.5, 0.9, C.ink);
+            arcS(sw, -h - 0.5, 1.4, 0.3, Math.PI - 0.3, 0.6, C.mouth);
+          }
+          for (var b = 0; b < (o.buds || 0); b++) disc(sw + (b % 2 ? 4 : -4), -h * (0.4 + b * 0.15), 2, C.jelL);
+          g.restore();
+        });
+      }
+      function fishC(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s * (o.flip ? -1 : 1), s);
+        var w = Math.sin(t * 9) * 3, open = o.open || 0;
+        poly([[-16, 0], [-28, -10 + w], [-26, 0], [-28, 10 + w]], C.fishD);
+        ell(0, 0, 18, 12, 0, C.fish); ell(-2, -6, 10, 3, 0, C.fishL); poly([[-4, -10], [4, -18], [8, -10]], C.fishD);
+        if (open > 0) { poly([[18, 0], [10, -8 * open], [10, 8 * open]], C.ink); for (var k = 0; k < 3; k++) { poly([[11 + k * 2.4, -7 * open], [12.2 + k * 2.4, -3 * open], [13.4 + k * 2.4, -6.4 * open]], C.tooth); } }
+        else arcS(12, 3, 3, 0.2, Math.PI - 0.6, 1, C.mouth);
+        disc(8, -3, 3.2, C.eyeW); disc(9, -3, 1.7, C.ink); disc(8.4, -4, 0.6, C.white);
+        line(5, -7.5, 11, -6.5, 0.9, C.ink);
+        g.restore();
+      }
+      function fish(x, y, s, t, o) { character(function () { fishC(x, y, s, t, o); }); }
+      function seaBg(t, floorY) {
+        sky([[0, C.sea0], [0.5, C.sea1], [1, C.sea2]]);
+        g.globalAlpha = 0.22; for (var k = 0; k < 5; k++) { var sx = 20 + k * 38 + Math.sin(t * 0.7 + k) * 5; poly([[sx, -10], [sx + 12, -10], [sx - 16, 330], [sx - 34, 330]], C.ray); } g.globalAlpha = 1;
+        for (var b = 0; b < 14; b++) { var bx = hash1(b) * 180, by = ((hash1(b + 9) * 330 - t * (10 + b % 4 * 4)) % 330 + 330) % 330; disc(bx + Math.sin(t * 2 + b) * 2, by, 0.9 + (b % 3) * 0.4, C.foam); }
+        if (floorY) {
+          poly([[-10, floorY], [40, floorY - 3], [90, floorY + 1], [140, floorY - 2], [190, floorY], [190, 330], [-10, 330]], C.sandD);
+          poly([[-10, floorY + 2], [40, floorY - 1], [90, floorY + 3], [140, floorY], [190, floorY + 2], [190, 330], [-10, 330]], C.sand);
+          ell(22, floorY, 12, 6, 0, C.rockD); ell(22, floorY - 1, 11, 5, 0, C.rock);
+          for (var wd = 0; wd < 3; wd++) { var wx = 150 + wd * 8; line(wx, floorY, wx + Math.sin(t * 2 + wd) * 3, floorY - 16 - wd * 4, 2, C.weedD); line(wx, floorY, wx + Math.sin(t * 2 + wd) * 3, floorY - 15 - wd * 4, 1, C.weed); }
+        }
+      }
+
+      // ============================================================ 0. frame 1: the old jelly (and the loop's landing)
+      function scene_old(t) {
+        var tt = tapeT(t, T);
+        var cam = camAt([[0, 90, 160, 1.1], [T.SHRINK, 90, 156, 1.0]], tt);
+        seaBg(tt, 0); setCam(cam, 1);
+        sk_floor(tt);
+        jelly(84, 108 + Math.sin(tt * 1.5) * 2, 1.7, tt, { age: 1, cane: true, blink: Math.floor(tt * 1.3) % 4 === 3 });
+        if (tt > 0.5 && tt < T.SHRINK - 0.2) bubble(90, 70, "OOF. MY BACK.", C.ink);
+        vignette(0.35, "rgba(0,10,40,");
+      }
+      function sk_floor(t) {
+        poly([[-10, 208], [40, 205], [90, 209], [140, 206], [190, 208], [190, 330], [-10, 330]], C.sandD);
+        poly([[-10, 210], [40, 207], [90, 211], [140, 208], [190, 210], [190, 330], [-10, 330]], C.sand);
+        ell(30, 208, 14, 7, 0, C.rockD); ell(30, 207, 13, 6, 0, C.rock);
+        for (var wd = 0; wd < 3; wd++) { var wx = 116 + wd * 7; line(wx, 208, wx + Math.sin(t * 2 + wd) * 3, 192 - wd * 4, 2, C.weedD); line(wx, 208, wx + Math.sin(t * 2 + wd) * 3, 193 - wd * 4, 1, C.weed); }
+      }
+      // ============================================================ 1-3. reverse: shrink, sink, blob -> polyp -> babies
+      function scene_life(t) {
+        var cam = camAt([[T.SHRINK, 90, 222, 1.15], [T.POLYP, 90, 225, 1.2], [T.TINY, 90, 225, 1.2]], t);
+        seaBg(t, 0); setCam(cam, 1); sk_floor(t);
+        if (t < T.POLYP) {
+          var p = clamp01((t - T.SHRINK) / 1.9), sz = lerp(1.7, 0.6, ease(p));
+          var y = lerp(182, 204, clamp01((p - 0.3) / 0.5));
+          if (p < 0.85) jelly(50 + 34 * (1 - p), y, sz, t, { age: p < 0.35 ? 1 : 0, tent: 1 - p, mood: "o", squash: p * 0.6 });
+          else blob(50, 206, 1.3, t);
+          // reverse-time sparkle ring
+          for (var k = 0; k < 8; k++) { var an = -t * 4 + k * 0.785; disc(50 + 34 * (1 - p) + Math.cos(an) * 30 * sz, y - 8 * sz + Math.sin(an) * 30 * sz, 1, k % 2 ? C.gold : C.cyan); }
+        } else {
+          var gp = easeOut(clamp01((t - T.POLYP - 0.2) / 1.0));
+          var buds = t > T.GROW ? 3 - countOf([T.GROW + 0.2, T.GROW + 0.55, T.GROW + 0.9], t) : 0;
+          polyp(50, 207, 2.0, t, gp, { buds: t > T.POLYP + 1.4 ? (t > T.GROW ? buds : 3) : 0 });
+          if (t > T.POLYP + 0.9 && t < T.GROW) bubble(104, 168, "I'M BACK!", C.ink);
+          // baby jellies bud off and swim up, one grows up
+          [T.GROW + 0.2, T.GROW + 0.55, T.GROW + 0.9].forEach(function (b0, i) {
+            if (t < b0) return;
+            var q = t - b0, gx = [36, 104, 130][i] + Math.sin(t * 2 + i) * 3, gy = Math.max(152, 172 - q * 14);
+            var sz = i === 1 ? lerp(0.35, 1.3, ease(clamp01(q / 1.5))) : 0.4;
+            if (i === 1) gy = lerp(186, 168, ease(clamp01(q / 1.5)));
+            jelly(gx, gy, sz, t, { mood: "happy" });
+          });
+        }
+        vignette(0.35, "rgba(0,10,40,");
+      }
+      // ============================================================ 4. how tiny: next to a fingertip
+      function scene_tiny(t) {
+        var cam = camAt([[T.TINY, 90, 150, 1.6], [T.TINY + 1.2, 90, 150, 1.0]], t);
+        seaBg(t, 0); setCam(cam, 1);
+        character(function () {                                                           // a giant human fingertip
+          g.save(); g.translate(150, 118);
+          rrect(-24, -30, 48, 58, 22, C.skinD); rrect(-22, -30, 44, 58, 20, C.skin);
+          rrect(-14, -24, 28, 24, 10, C.nail); ell(-4, -18, 6, 3, 0, C.white);
+          for (var k = 0; k < 3; k++) line(-16, 20 + k * 4, 16, 20 + k * 4, 0.6, C.skinD);
+          g.restore();
+        });
+        jelly(62, 112 + Math.sin(t * 2) * 1.5, 0.32, t, { mood: "happy" });
+        // ruler
+        var k = clamp01((t - T.TINY - 0.4) / 0.8);
+        line(56.5, 128, 56.5 + 11 * k, 128, 1, C.gold); line(56.5, 125, 56.5, 131, 1, C.gold); if (k >= 1) line(67.5, 125, 67.5, 131, 1, C.gold);
+        if (k >= 1) worldText("4.5 MM", 62, 134, 1, C.gold);
+        if (t > T.TINY + 1.4) bubble(54, 92, "HI!", C.ink);
+        vignette(0.3, "rgba(0,10,40,");
+      }
+      // ============================================================ 5. what triggers it
+      function scene_stress(t) {
+        var cam = { x: 90, y: 156, z: 1.0 };
+        var hits = countOf(T.STRESSES, t);
+        if (hits) shake(cam, t, lastOf(T.STRESSES, t), 4, 0.3);
+        seaBg(t, 0); setCam(cam, 1); sk_floor(t);
+        jelly(90, 106, 1.5, t, { age: hits >= 3 ? 1 : 0, mood: hits ? "o" : "happy", blink: hits === 2 && t - T.STRESSES[1] < 0.3 });
+        var icons = [["HURT", 40, 74], ["HUNGRY", 90, 66], ["OLD", 140, 74]];
+        for (var i = 0; i < hits; i++) {
+          var ic = icons[i], s = pop(t, T.STRESSES[i]);
+          g.save(); g.translate(ic[1], ic[2]); g.scale(s, s);
+          rrect(-17, -7, 34, 14, 3, i === 2 ? C.gold : C.red); worldText(ic[0], 0, -3.5, 1, C.white);
+          g.restore();
+        }
+        if (hits === 1) for (var z = 0; z < 3; z++) line(58 + z * 6, 96 - z * 5, 62 + z * 6, 106 - z * 5, 1.2, C.gold);
+        vignette(0.35, "rgba(0,10,40,");
+      }
+      // ============================================================ 6. restart, restart, restart (accelerating)
+      function stageAt(p) { return p < 0.3 ? "adult" : p < 0.45 ? "blob" : p < 0.7 ? "polyp" : "baby"; }
+      function scene_again(t) {
+        var cam = { x: 90, y: 156, z: 1.0 };
+        var R = T.RESTARTS, last = lastOf(R, t);
+        shake(cam, t, last, 3, 0.2);
+        seaBg(t, 0); setCam(cam, 1);
+        poly([[-10, 132], [190, 132], [190, 142], [-10, 142]], C.sandD); rect(-10, 133, 200, 5, C.sand);
+        var i = countOf(R, t), next = i < R.length ? R[i] : T.BREAK, prev = i ? R[i - 1] : T.AGAIN;
+        var p = clamp01((t - prev) / Math.max(0.05, next - prev)), st = i === 0 ? "adult" : stageAt(p);
+        if (st === "adult") jelly(90, lerp(96, 112, p / 0.3), 1.6 * (1 - p), t, { age: 1, mood: "o" });
+        else if (st === "blob") blob(90, 129, 1.6, t);
+        else if (st === "polyp") polyp(90, 133, 2.0, t, (p - 0.45) / 0.25, {});
+        else jelly(90, lerp(122, 96, (p - 0.7) / 0.3), lerp(0.5, 1.6, (p - 0.7) / 0.3), t, { mood: "wow" });
+        if (t - last < 0.25 && last > 0) for (var k = 0; k < 10; k++) { var an = k * 0.628 - t * 8; disc(90 + Math.cos(an) * 44, 100 + Math.sin(an) * 30, 1.3, k % 2 ? C.gold : C.cyan); }
+        // the restart icon below the caption (spins faster with each restart)
+        var spin = -t * (2 + i * 1.2);
+        arcS(90, 205, 12, spin, spin + 5.2, 3, C.gold);
+        var ax = 90 + Math.cos(spin + 5.2) * 12, ay = 205 + Math.sin(spin + 5.2) * 12, dir = spin + 5.2 + Math.PI / 2;
+        poly([[ax + Math.cos(dir) * 5, ay + Math.sin(dir) * 5], [ax + Math.cos(dir + 2.3) * 5, ay + Math.sin(dir + 2.3) * 5], [ax + Math.cos(dir - 2.3) * 5, ay + Math.sin(dir - 2.3) * 5]], C.gold);
+        vignette(0.35, "rgba(0,10,40,");
+      }
+      // ============================================================ 7. immortal
+      function scene_immortal(t) {
+        var cam = camAt([[T.HIT, 90, 160, 1.1], [T.WORLD, 90, 160, 1.0]], t);
+        shake(cam, t, T.HIT, 8, 0.5);
+        seaBg(t, 0); setCam(cam, 1);
+        lighter(); glow(90, 102, 46, C.gold, 0.5); normalBlend();
+        for (var k = 0; k < 12; k++) { var an = k * 0.524 + t * 0.6, r = 38 + Math.sin(t * 3 + k) * 3; line(90 + Math.cos(an) * (r - 6), 102 + Math.sin(an) * (r - 6), 90 + Math.cos(an) * r, 102 + Math.sin(an) * r, 1.5, C.gold); }
+        jelly(90, 112 + Math.sin(t * 2) * 2, 1.4, t, { mood: "happy" });
+        // halo
+        g.strokeStyle = C.gold; g.lineWidth = 1.6; g.beginPath(); g.ellipse(90, 82 + Math.sin(t * 2) * 2, 13, 3.5, 0, 0, 6.28); g.stroke();
+        if (t > T.HIT + 0.6 && t < T.WORLD - 0.2) bubble(90, 196, "FOREVER YOUNG!", C.ink);
+        vignette(0.3, "rgba(0,10,40,");
+      }
+      // ============================================================ 8. worldwide
+      function scene_world(t) {
+        var cam = camAt([[T.WORLD, 90, 160, 0.9], [T.FISH, 90, 160, 1.0]], t);
+        sky([[0, C.sea3], [1, C.sea2]]);
+        for (var st = 0; st < 30; st++) rect(hash1(st) * 180, hash1(st + 4) * 320, 1, 1, C.foam);
+        setCam(cam, 1);
+        var cx = 90, cy = 100, r = 40, rot = t * 0.25;
+        disc(cx, cy, r + 1.5, C.ink); disc(cx, cy, r, C.globe);
+        g.save(); g.beginPath(); g.arc(cx, cy, r, 0, 6.28); g.clip();
+        var lands = [[0, -14, 16, 12], [1.6, 8, 12, 16], [3.0, -6, 18, 10], [4.4, 16, 10, 8], [5.4, -22, 12, 6]];
+        lands.forEach(function (L) { var lx = cx + Math.sin(L[0] + rot) * r * 0.9; var vis = Math.cos(L[0] + rot); if (vis > -0.2) { ell(lx, cy + L[1], L[2] * Math.max(0.2, vis), L[3], 0, C.landD); ell(lx, cy + L[1] - 1, L[2] * Math.max(0.2, vis) - 1, L[3] - 1, 0, C.land); } });
+        g.restore();
+        ell(cx - 14, cy - 18, 10, 5, -0.5, "#5a9aff");
+        var n = countOf([0, 1, 2, 3, 4, 5, 6, 7, 8].map(function (k) { return T.WORLD + 0.3 + k * 0.17; }), t);
+        for (var k = 0; k < n; k++) { var a = hash1(k + 3) * 6.28, rr = r * (0.3 + 0.6 * hash1(k + 11)); var px = cx + Math.cos(a) * rr, py = cy + Math.sin(a) * rr; disc(px, py, 3.4, C.ink); disc(px, py, 2.4, C.pink); }
+        jelly(46, 200, 0.7, t, { mood: "happy" }); jelly(90, 206, 0.55, t + 1, { mood: "wow" }); jelly(130, 198, 0.65, t + 2, { mood: "happy" });
+      }
+      // ============================================================ 9. the twist: lunch
+      function scene_fish(t) {
+        var cam = { x: 90, y: 156, z: 1.0 };
+        shake(cam, t, T.CHOMP, 7, 0.4);
+        seaBg(t, 0); setCam(cam, 1); sk_floor(t);
+        var eaten = t >= T.CHOMP;
+        if (!eaten) {
+          jelly(110, 112 + Math.sin(t * 2) * 2, 1.2, t, { mood: t > T.CHOMP - 0.5 ? "o" : "happy" });
+          if (t > T.FISH + 0.3 && t < T.CHOMP - 0.5) bubble(96, 76, "I'M IMMORTAL!", C.ink);
+        }
+        var fx = t < T.CHOMP ? lerp(-40, 82, easeOut(clamp01((t - T.FISH) / (T.CHOMP - T.FISH)))) : lerp(82, 96, clamp01((t - T.CHOMP) / 2));
+        var open = t > T.CHOMP - 0.5 && t < T.CHOMP ? 1 : 0;
+        fish(fx, 108 + Math.sin(t * 3) * 2, 1.15, t, { open: open });
+        if (eaten && t < T.CHOMP + 0.5) for (var k = 0; k < 8; k++) { var an = k * 0.785, rr = (t - T.CHOMP) * 60; disc(fx + 28 + Math.cos(an) * rr, 104 + Math.sin(an) * rr, 1.4, C.white); }
+        if (t > T.CHOMP + 1.1) bubble(fx + 6, 72, "YUM.", C.ink);
+        if (t > T.CTA - 0.01) {
+          // one little polyp survived on the floor below...
+          polyp(56, 214, 1.0, t, 1, {});
+          if (t > T.CTA + 1.0) bubble(92, 200, "AGAIN!", C.ink);
+        }
+        vignette(0.35, "rgba(0,10,40,");
+      }
+
+      function sceneAt(t) {
+        var tt = tapeT(t, T);
+        return tt < T.SHRINK ? "old" : tt < T.TINY ? "life" : tt < T.STRESS ? "tiny" : tt < T.AGAIN ? "stress" : tt < T.HIT ? "again" : tt < T.WORLD ? "immortal" : tt < T.FISH ? "world" : "fish";
+      }
+      function drawUI(t) {
+        var tt = tapeT(t, T);
+        var life = tt < T.SHRINK + 0.1 ? 1 : tt < T.AGAIN ? 2 : 2 + countOf(T.RESTARTS, tt);
+        if (tt < T.SHRINK) counterLines("LIFE #1", C.cyan, 3, "AGE: OLD", C.white);
+        else if (tt < T.POLYP) counterLines("LIFE #2", C.cyan, 3, "AGE: " + ["OLD", "ADULT", "YOUNG", "BABY"][Math.min(3, Math.floor((tt - T.SHRINK) / 0.5))], C.gold);
+        else if (tt < T.GROW) counterLines("LIFE #2", C.cyan, 3, "AGE: POLYP", C.gold);
+        else if (tt < T.TINY) counterLines("LIFE #2", C.cyan, 3, "AGE: " + (tt < T.GROW + 1 ? "BABY" : "YOUNG"), C.white);
+        else if (tt < T.STRESS) counterLines("SIZE 4.5 MM", C.cyan, 3, "LIFE #2", C.white);
+        else if (tt < T.AGAIN) counterLines("LIFE #2", C.cyan, 3, "DANGER " + countOf(T.STRESSES, tt) + "/3", C.red);
+        else if (tt < T.HIT) counterLines("LIFE #" + life, C.cyan, 3, "RESTARTING...", C.gold);
+        else if (tt < T.FISH) counterLines("LIFE #???", C.gold, 3, "NO LIMIT", C.white);
+        else if (tt < T.CHOMP) counterLines("LIFE #???", C.gold, 3, "UH OH...", C.white);
+        else counterLines("GAME OVER", C.pink, 3, "LIVES: 0", C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { old: scene_old, life: scene_life, tiny: scene_tiny, stress: scene_stress, again: scene_again, immortal: scene_immortal, world: scene_world, fish: scene_fish },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.gold,
+        cuts: [[T.SHRINK, "old", "life"], [T.TINY, "life", "tiny"], [T.STRESS, "tiny", "stress"], [T.AGAIN, "stress", "again"], [T.WORLD, "immortal", "world"], [T.FISH, "world", "fish"]],
+      });
+    </script>
+  </body>
+</html>

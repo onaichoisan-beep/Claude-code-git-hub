@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Hiccups Are a Fish Thing</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #ffe8b0; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #ffe8b0; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "Hiccups Are a Fish Thing" — text cards + sound only (STYLE_GUIDE.md section 6), safe zone (section 8), layout checked
+      with _engine/qa_layout.js. Facts: a hiccup is an involuntary spasm of the diaphragm (and other inspiratory muscles)
+      that pulls air in, followed ~35 ms later by the glottis snapping shut — the "hic" (Kahrilas & Shi 1997, Gut).
+      Hypothesis (hedged): it may be an evolutionary leftover of the gill-ventilation reflex of amphibian tadpoles, which
+      gulp water and close the glottis so it exits over the gills (Straus et al. 2003, BioEssays 25: 182). Record:
+      Charles Osborne (Iowa, USA) hiccuped from 1922 to 1990, about 68 years, an estimated 430 million hiccups (Guinness
+      World Records); he married twice and fathered eight children (People, 1982).
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="27.2" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="27.2" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="27.2" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        bg0: "#ffe8b0", bg1: "#ffc878", floor: "#c88a4a", floorD: "#8a5a2a", xr0: "#1a2a4a", xr1: "#0a1428",
+        pond0: "#5ac8a8", pond1: "#1a6a6a", weed: "#3a9a4a", mud: "#5a4a2a",
+        skin: "#ffc8a0", skinD: "#d8946a", hair: "#3a2418", grey: "#d8d8e0", shirt: "#ff6a3a", over: "#3a6ab8", overD: "#2a4a8a", pants: "#3a3a5a",
+        lung: "#ff8aa8", lungD: "#d85a7a", diap: "#ff3a4a", trach: "#ffd0dc", bone: "#e8e8f4", air: "#9ae8ff",
+        tad: "#5a4a3a", tadD: "#3a2a1a", tadL: "#8a7a5a", gill: "#ff9a8a", water: "#c8f4ff",
+        cal: "#ffffff", calR: "#ff3a4a",
+        kid1: "#ffd23a", kid2: "#3ac86a", kid3: "#a85ad8", kid4: "#3a8aff",
+        ink: "#0a0614", mouth: "#7a1a3a", eyeW: "#ffffff", blush: "#ff8a9a",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function say(x, y, str) { g.save(); screen(); bubble(x, y, str, C.ink); g.restore(); }
+      function label(str, x, y, col) { g.save(); screen(); worldText(str, x, y + 1, 1, C.ink); worldText(str, x, y, 1, col || C.white); g.restore(); }
+      function jolt(t, list) { var d = t - lastOf(list || T.HICS, t); return d >= 0 && d < 0.3 ? Math.sin(d / 0.3 * Math.PI) : 0; }
+      function room(cam) { sky([[0, C.bg0], [1, C.bg1]]); setCam(cam, 1); rect(-60, 138, 300, 240, C.floorD); rect(-60, 138, 300, 3, C.floor); }
+
+      // ============================================================ a person (front); age 0..1 greys the hair
+      function personC(x, y, s, t, o) {
+        o = o || {};
+        var j = jolt(t) * 3;
+        g.save(); g.translate(x, y - j); g.scale(s, s);
+        rect(-6, -16, 5, 16 + j / s, C.pants); rect(1, -16, 5, 16 + j / s, C.pants); rect(-7, -1 + j / s, 6, 2, C.ink); rect(1, -1 + j / s, 6, 2, C.ink);
+        if (o.overalls) { rrect(-9, -34, 18, 20, 4, C.shirt); rect(-7, -28, 14, 14, C.over); rect(-7, -34, 3, 7, C.over); rect(4, -34, 3, 7, C.over); }
+        else rrect(-9, -34, 18, 20, 4, o.shirt || C.shirt);
+        line(-9, -31, -12, -18, 3, C.shirt); line(9, -31, 12, -18, 3, C.shirt); disc(-12, -17, 2, C.skin); disc(12, -17, 2, C.skin);
+        disc(0, -43, 9, C.skinD); disc(0, -43.5, 8.4, C.skin);
+        ell(0, -49.5, 8.6, 4.4, 0, (o.age || 0) > 0.5 ? C.grey : C.hair);
+        if ((o.age || 0) > 0.7) { line(-5, -46, -2, -45.5, 0.6, C.skinD); line(2, -45.5, 5, -46, 0.6, C.skinD); }
+        var hic = jolt(t) > 0.2;
+        disc(-3.5, -43, hic ? 1.8 : 1.3, C.ink); disc(3.5, -43, hic ? 1.8 : 1.3, C.ink);
+        if (hic) ell(0, -38, 1.6, 2, 0, C.mouth); else arcS(0, -39, 2.2, 0.3, Math.PI - 0.3, 0.8, C.mouth);
+        disc(-6, -40, 1.3, C.blush); disc(6, -40, 1.3, C.blush);
+        g.restore();
+      }
+      function person(x, y, s, t, o) { character(function () { personC(x, y, s, t, o); }); }
+      function tadpoleC(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s, s);
+        var w = Math.sin(t * 8);
+        g.fillStyle = C.tadD; g.beginPath(); g.moveTo(-10, -4); g.quadraticCurveTo(-26, -6 + w * 6, -40, w * 10); g.quadraticCurveTo(-26, 6 + w * 6, -10, 5); g.fill();
+        ell(0, 0, 14, 11, 0, C.tadD); ell(0, -0.6, 13, 10, 0, C.tad); ell(2, -5, 7, 2.5, 0, C.tadL);
+        // feathery external gills
+        for (var k = 0; k < 4; k++) { var gx = -4 + k * 2.5; line(gx, 8, gx - 2 + Math.sin(t * 6 + k) * 1.5, 15, 1.2, C.gill); }
+        disc(6, -3, 3, C.eyeW); disc(6.8, -3, 1.6, C.ink); disc(6.2, -3.8, 0.6, C.white);
+        var open = o.open || 0;
+        if (open > 0.1) ell(12.5, 2, 1.5 + open, 0.8 + open * 2, 0, C.mouth); else arcS(11, 2.5, 2, 0.2, Math.PI - 0.8, 0.8, C.mouth);
+        g.restore();
+      }
+      function tadpole(x, y, s, t, o) { character(function () { tadpoleC(x, y, s, t, o); }); }
+
+      // ============================================================ scenes
+      function scene_person(t) {
+        var tt = tapeT(t, T);
+        var cam = { x: 90, y: 160, z: 1.0 };
+        room(cam);
+        var j = jolt(tt);
+        if (j > 0.3 && tt < T.DIAP) { g.save(); g.globalAlpha = 0.5; tadpole(90, 100, 2.2, tt, { open: 1 }); g.restore(); }
+        person(90, 138, 1.25, tt, {});
+        if (j > 0.05) say(126, 64, "HIC!");
+        if (tt >= T.CTA) label("TAG THEM", 90, 196, C.ink);
+      }
+      function scene_xray(t) {
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.xr0], [1, C.xr1]]); setCam(cam, 1);
+        var j = jolt(t), shut = j > 0.2 || (t > T.SHUT && t < T.SHUT + 0.4);
+        // torso outline
+        g.globalAlpha = 0.35; rrect(40, 66, 100, 76, 18, C.skin); g.globalAlpha = 1;
+        g.strokeStyle = C.skinD; g.lineWidth = 1; g.strokeRect(40.5, 66.5, 99, 75);
+        // ribs
+        for (var r = 0; r < 4; r++) arcS(90, 86 + r * 9, 40, Math.PI * 0.15, Math.PI * 0.85, 1, C.bone);
+        // trachea + glottis (the gate)
+        rect(86, 58, 8, 22, C.trach);
+        if (shut) { line(84, 62, 96, 62, 2.4, C.red); } else { line(84, 62, 88, 58, 2, C.red); line(96, 62, 92, 58, 2, C.red); }
+        // lungs
+        var inflate = 1 + 0.08 * j;
+        ell(70, 96, 16 * inflate, 22 * inflate, 0.1, C.lungD); ell(70, 95, 15 * inflate, 21 * inflate, 0.1, C.lung);
+        ell(110, 96, 16 * inflate, 22 * inflate, -0.1, C.lungD); ell(110, 95, 15 * inflate, 21 * inflate, -0.1, C.lung);
+        // the diaphragm: a dome that jerks DOWN on every hiccup
+        var dy = 122 + 7 * j;
+        g.fillStyle = C.diap; g.beginPath(); g.moveTo(44, dy + 10); g.quadraticCurveTo(90, dy - 18, 136, dy + 10); g.lineTo(136, dy + 14); g.quadraticCurveTo(90, dy - 13, 44, dy + 14); g.closePath(); g.fill();
+        // the diaphragm's face (it's the culprit)
+        character(function () { disc(84, dy - 2, 1.2, C.ink); disc(96, dy - 2, 1.2, C.ink); if (j > 0.2) ell(90, dy + 1.5, 1.4, 1.4, 0, C.ink); else line(88, dy + 1, 92, dy + 1, 0.8, C.ink); });
+        // air rushing in
+        if (t > T.AIR && t < T.SHUT) for (var a = 0; a < 3; a++) { var p = ((t - T.AIR) * 1.6 + a / 3) % 1; line(90, 52 + p * 30, 90, 56 + p * 30, 2, C.air); }
+        if (j > 0.2) say(126, 70, "HIC!");
+        if (t > T.WHY) { worldText("?", 54, 78, 2, C.gold); worldText("?", 126, 112, 2, C.gold); }
+        label(t < T.AIR ? "DIAPHRAGM" : t < T.SHUT ? "AIR IN" : t < T.WHY ? "GATE: SHUT" : "BUT WHY?", 90, 196, t < T.SHUT ? C.diap : C.gold);
+      }
+      function scene_pond(t) {
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.pond0], [1, C.pond1]]); setCam(cam, 1);
+        for (var b = 0; b < 12; b++) { var bx = hash1(b) * 180, by = ((hash1(b + 9) * 330 - t * 14) % 330 + 330) % 330; disc(bx, by, 1, C.water); }
+        for (var w = 0; w < 4; w++) { var wx = 14 + w * 46; line(wx, 140, wx + Math.sin(t * 2 + w) * 4, 96, 2, C.weed); }
+        rect(-20, 140, 220, 200, C.mud);
+        var G = T.GULPS, last = lastOf(G, t), d = t - last;
+        var open = d < -0.3 ? 0 : 0;
+        for (var i = 0; i < G.length; i++) { var dd = G[i] - t; if (dd > 0 && dd < 0.35) open = 1 - dd / 0.35; }
+        tadpole(108, 100, 2.1, t, { open: open });
+        // water in (mouth) -> gate shuts -> out over the gills
+        if (open > 0.2) for (var k = 0; k < 3; k++) line(144 - k * 4, 104 - k * 2, 140 - k * 4, 104 - k * 2, 1.4, C.water);
+        if (d >= 0 && d < 0.5) { for (var k2 = 0; k2 < 4; k2++) { var p = d / 0.5; disc(100 + k2 * 5, 122 + p * 10, 1.4, C.water); } say(120, 66, "GLUG!"); }
+        label(t < T.GULP ? "TADPOLE" : t < T.KEPT ? "GULP + SHUT" : "SAME MOVE?", 90, 196, C.gold);
+        if (t >= T.KEPT) { g.save(); screen(); person(130, 226, 0.5, t, {}); tadpole(52, 214, 0.8, t, {}); worldText("=", 90, 210, 1, C.white); g.restore(); }
+      }
+      function scene_record(t) {
+        var kids = t >= T.KIDS;
+        var cam = { x: 90, y: 160, z: 1.0 };
+        room(cam);
+        var yr = Math.min(1990, Math.round(lerp(1922, 1990, clamp01((t - T.REC - 0.2) / 3.4))));
+        var age = clamp01((yr - 1922) / 68);
+        if (!kids) {
+          // the calendar
+          rrect(18, 64, 40, 38, 3, C.cal); rect(18, 64, 40, 9, C.calR); worldText("YEAR", 38, 66, 1, C.white); worldText("" + yr, 38, 80, 1, C.ink);
+          person(96, 138, 1.25, t, { overalls: true, age: age });
+          if (jolt(t) > 0.05) say(130, 64, "HIC!");
+        } else {
+          person(34, 138, 1.15, t, { overalls: true, age: 1 });
+          var K = [C.kid1, C.kid2, C.kid3, C.kid4];
+          for (var k = 0; k < 8; k++) { var appear = clamp01((t - T.KIDS - 0.2 - k * 0.14) / 0.2); if (appear <= 0) continue; character(function () { var kx = 64 + (k % 4) * 22, ky = 138 - (k < 4 ? 0 : 0) - (k >= 4 ? 34 : 0); g.save(); g.translate(kx, ky); g.scale(appear * 0.62, appear * 0.62); rrect(-8, -30, 16, 18, 4, K[k % 4]); rect(-5, -12, 4, 12, C.pants); rect(1, -12, 4, 12, C.pants); disc(0, -38, 8, C.skinD); disc(0, -38.5, 7.4, C.skin); ell(0, -44, 7.6, 3.6, 0, k % 2 ? C.hair : C.kid1); disc(-3, -38, 1.1, C.ink); disc(3, -38, 1.1, C.ink); arcS(0, -35, 1.8, 0.3, Math.PI - 0.3, 0.7, C.mouth); g.restore(); }); }
+        }
+      }
+
+      function sceneAt(t) {
+        var tt = tapeT(t, T);
+        return tt < T.DIAP || tt >= T.CTA ? "person" : tt < T.HIT ? "xray" : tt < T.REC ? "pond" : "record";
+      }
+      function fmt(n) { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+      function drawUI(t) {
+        var tt = tapeT(t, T);
+        if (tt < T.HIT) counterLines("HICCUPS: " + countOf(T.HICS, tt), C.red, 3, tt < T.DIAP ? "HIC!" : "DIAPHRAGM SPASM", tt < T.DIAP ? C.ink : C.white);
+        else if (tt < T.REC) counterLines("GULPS: " + countOf(T.GULPS, tt), C.green, 3, "TADPOLE GILLS", C.white);
+        else if (tt < T.KIDS) { var k = clamp01((tt - T.REC - 0.2) / (T.MILL + 1.4 - T.REC - 0.2)); var n = Math.round(Math.pow(10, 8.633 * k)); counterLines(fmt(Math.max(1, n)), C.red, tt < T.MILL ? 3 : 2, "HICCUPS: 68 YEARS", C.ink); }
+        else if (tt < T.CTA) counterLines("430,000,000", C.red, 2, "HICCUPS + 8 KIDS", C.ink);
+        else counterLines("HICCUPS: " + countOf(T.HICS.filter(function (h) { return h >= T.CTA; }), tt), C.red, 3, "YOUR TURN", C.ink);
+      }
+
+      KIT.start(C, T, {
+        scenes: { person: scene_person, xray: scene_xray, pond: scene_pond, record: scene_record },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.water,
+        cuts: [[T.DIAP, "person", "xray"], [T.HIT, "xray", "pond"], [T.REC, "pond", "record"], [T.CTA, "record", "person"]],
+      });
+    </script>
+  </body>
+</html>

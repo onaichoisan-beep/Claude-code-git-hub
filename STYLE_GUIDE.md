@@ -141,3 +141,10 @@ also crop ~9% off each side. So:
 - **Counter** sits at y 66 (canvas), under the status bar, not at the very top (`counterLines` does this).
 - **Nothing important on the right edge below mid-frame** (the icon column) or in the bottom quarter.
 - Check it: `window.PX_SAFE_GUIDE = true` draws the safe box and blocked areas; snapshot the key moments, then turn it off.
+- **Text never covers the subject (owner's rule, Nov 5 2026).** Captions, speech bubbles and labels must never sit on a
+  character or the key object. Put the action ABOVE the caption band (world y ~58-140) and side-info BELOW it; draw speech
+  bubbles in screen space (`say(x, y, str)` with `screen()`) in clear sky beside or above the speaker, never over a face.
+  Before rendering, run `node videos/_engine/qa_layout.js videos/<slug>`: it renders every 0.1 s and lists any frame where
+  a caption covers a character, a bubble covers a character / the counter / another bubble, a bubble leaves the safe box,
+  or a character enters the counter band. It must print "layout OK" before the render.
+

@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Hotter Than the Sun</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { background: #0a3a7a; overflow: hidden; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0a3a7a; }
+      #stage { position: absolute; inset: 0; }
+      #stage canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "Hotter Than the Sun" (the pistol / snapping shrimp, Alpheidae) — text cards + sound only (STYLE_GUIDE.md section 6),
+      safe zone (section 8), layout checked with _engine/qa_layout.js. Facts: the snapping claw can be up to about half the
+      body length; it closes so fast that the water jet (~25 m/s) forms a cavitation bubble; the bubble's collapse makes
+      the snap (~210 dB re 1 µPa at 4 cm, one of the loudest animal sounds in the sea), a brief flash of light
+      ("shrimpoluminescence") and an estimated temperature of at least ~4,700 °C (Versluis et al. 2000, Science 289: 2114;
+      Lohse et al. 2001, Nature 413: 477); the Sun's surface is ~5,500 °C; the shock stuns small prey; in WWII snapping
+      shrimp colonies cluttered sonar and submarines used them for cover (Everest et al. 1948; US Navy research).
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="28.4" data-width="1080" data-height="1920">
+      <section id="stage" class="clip" data-start="0" data-duration="28.4" data-track-index="0">
+        <canvas id="world" width="360" height="640" data-layout-allow-overflow></canvas>
+        <canvas id="ui" width="360" height="640"></canvas>
+      </section>
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="28.4" data-track-index="1"></audio>
+    </div>
+    <script src="pixel-engine.js"></script>
+    <script src="captions.js"></script>
+    <script src="short-kit.js"></script>
+    <script>
+      var T = window.BEATS || {};
+      var C = {
+        sea0: "#2a9ae8", sea1: "#1a5ab8", sea2: "#0a2a70", ray: "#7ac8ff", foam: "#c8f0ff", dark: "#06122e",
+        sand: "#e8c878", sandD: "#c8a058", coral: "#ff6a9a", coralD: "#c83a6a", weed: "#3ac86a", weedD: "#1a8a4a", rock: "#6a6a88", rockD: "#4a4a62",
+        shr: "#ff7a3a", shrD: "#c8461a", shrL: "#ffc08a", claw: "#ff5a2a", clawD: "#b8321a",
+        fish: "#3ab8ff", fishD: "#1a7ac8", fishL: "#a8e8ff", star: "#ffe87a",
+        bub: "#bff4ff", flash: "#ffffff", hot: "#ff8a1a", sun: "#ffd23a", sunD: "#ff9a1a",
+        sub: "#8a94a8", subD: "#5a6478", subL: "#c8d0e0", glass: "#9ae8ff", ship: "#5a5a6a", sonar: "#0a2a1a", sonarL: "#3ae86a",
+        ink: "#0a0614", mouth: "#7a1a3a", eyeW: "#ffffff", blush: "#ff8a9a",
+        gold: "#ffc83a", green: "#3ae86a", pink: "#ff5ab8", cyan: "#3ae8ff", red: "#ff3a4a", white: "#ffffff", paper: "#f1eef4",
+      };
+      DISSOLVE = 0.12;
+      function arcS(cx, cy, r, a0, a1, w, col) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); }
+      function say(x, y, str) { g.save(); screen(); bubble(x, y, str, C.ink); g.restore(); }
+      function label(str, x, y, col) { g.save(); screen(); worldText(str, x, y + 1, 1, C.ink); worldText(str, x, y, 1, col || C.white); g.restore(); }
+      function snapOpen(t) { var o = 1; T.SNAPS.forEach(function (s) { var d = t - s; if (d > -0.5 && d < 0) o = Math.min(o, 1 - 0.6 * (1 + d / 0.5)); if (d >= 0 && d < 0.6) o = Math.min(o, d / 0.6); }); return 1 - o; }
+
+      // ============================================================ the pistol shrimp (x,y = carapace), facing right
+      function shrimpC(x, y, s, t, o) {
+        o = o || {};
+        var open = o.open || 0;
+        g.save(); g.translate(x, y); g.scale(s, s);
+        // tail fan + abdomen
+        poly([[-40, -2], [-50, -10], [-52, 2], [-48, 8]], C.shrD);
+        for (var k = 0; k < 5; k++) { var sx = -36 + k * 7, r = 7 - k * 0.2; ell(sx, -1 + Math.sin(t * 3 + k) * 0.4, 5, r, 0, C.shrD); ell(sx, -1.6 + Math.sin(t * 3 + k) * 0.4, 4.4, r - 0.8, 0, k % 2 ? C.shr : C.shrL); }
+        // legs
+        for (var l = 0; l < 5; l++) line(-20 + l * 6, 5, -22 + l * 6 + Math.sin(t * 10 + l) * 1.5, 12, 1, C.shrD);
+        // carapace
+        ell(4, -1, 14, 9, 0, C.shrD); ell(4, -1.6, 13, 8.2, 0, C.shr); ell(0, -5, 8, 2.4, 0, C.shrL);
+        // antennae
+        line(14, -6, 40, -22 + Math.sin(t * 2) * 2, 0.6, C.shrD); line(14, -4, 44, -12 + Math.sin(t * 2.4) * 2, 0.6, C.shrD);
+        // small claw
+        line(12, 5, 20, 12, 1.6, C.shrD); ell(22, 13, 4, 2.4, 0.3, C.shr);
+        // the big snapping claw (propodus + the moving finger)
+        line(10, 3, 18, 2, 4, C.clawD);
+        ell(32, 1, 16, 9, -0.05, C.clawD); ell(32, 0.4, 15, 8.2, -0.05, C.claw); ell(28, -3, 8, 2.4, 0, C.shrL);
+        g.save(); g.translate(44, -5); g.rotate(-0.9 * open);
+        poly([[0, -2], [16, 1], [16, 4], [0, 3]], C.clawD); poly([[0, -1.4], [15, 1.4], [15, 3.2], [0, 2.2]], C.claw);
+        g.restore();
+        ell(45, 4, 3, 4, 0, C.clawD);
+        // face
+        if (o.squint) { line(9, -4, 13, -4, 0.9, C.ink); }
+        else { disc(11, -4, 2.8, C.eyeW); disc(11.7, -3.8, 1.5, C.ink); disc(11, -4.8, 0.6, C.white); }
+        if (o.mood === "o") ell(17, 1.5, 1.2, 1.5, 0, C.mouth); else arcS(16, 0.2, 2, 0.2, Math.PI - 0.6, 0.8, C.mouth);
+        disc(7, 0, 1.4, C.blush);
+        g.restore();
+      }
+      function shrimp(x, y, s, t, o) { character(function () { shrimpC(x, y, s, t, o); }); }
+      function fishC(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(-s, s);
+        var w = o.dizzy ? 0 : Math.sin(t * 9) * 3;
+        poly([[-14, 0], [-24, -8 + w], [-22, 0], [-24, 8 + w]], C.fishD);
+        ell(0, 0, 15, 10, 0, C.fish); ell(-1, -5, 9, 2.6, 0, C.fishL); poly([[-4, -9], [3, -15], [7, -9]], C.fishD);
+        if (o.dizzy) { g.strokeStyle = C.ink; g.lineWidth = 0.8; g.beginPath(); for (var a = 0; a < 12; a += 0.4) { var r = a * 0.25; g.lineTo(7 + Math.cos(a + t * 8) * r, -2 + Math.sin(a + t * 8) * r); } g.stroke(); }
+        else { disc(7, -2, 2.6, C.eyeW); disc(7.6, -2, 1.4, C.ink); }
+        if (o.dizzy) ell(12, 3, 1.2, 1.5, 0, C.mouth); else arcS(11, 2, 2.2, 0.2, Math.PI - 0.7, 0.8, C.mouth);
+        g.restore();
+      }
+      function fish(x, y, s, t, o) { character(function () { fishC(x, y, s, t, o); }); }
+      function reef(t, cam) {
+        sky([[0, C.sea0], [0.55, C.sea1], [1, C.sea2]]);
+        g.globalAlpha = 0.2; for (var k = 0; k < 5; k++) { var sx = 20 + k * 38 + Math.sin(t * 0.7 + k) * 5; poly([[sx, -10], [sx + 12, -10], [sx - 16, 330], [sx - 34, 330]], C.ray); } g.globalAlpha = 1;
+        setCam(cam, 1);
+        rect(-60, 132, 300, 240, C.sandD); poly([[-60, 134], [60, 130], [240, 134], [240, 400], [-60, 400]], C.sand);
+        ell(14, 132, 16, 9, 0, C.rockD); ell(14, 131, 15, 8, 0, C.rock);
+        for (var c = 0; c < 4; c++) { var cx = 150 + c * 8; line(cx, 132, cx - 4 + c * 2, 112 - c * 3, 3, C.coralD); line(cx, 132, cx - 4 + c * 2, 113 - c * 3, 2, C.coral); }
+        for (var b = 0; b < 12; b++) { var bx = hash1(b) * 180, by = ((hash1(b + 9) * 330 - t * (10 + b % 4 * 4)) % 330 + 330) % 330; disc(bx, by, 0.9 + (b % 3) * 0.4, C.foam); }
+      }
+      function snapFlash(x, y, t, t0, big) {
+        var d = t - t0; if (d < 0 || d > 0.35) return;
+        var k = 1 - d / 0.35;
+        lighter(); glow(x, y, (big ? 40 : 18) * k + 4, C.flash, 0.9 * k); normalBlend();
+        for (var r = 0; r < 8; r++) { var a = r * 0.785; line(x + Math.cos(a) * 4, y + Math.sin(a) * 4, x + Math.cos(a) * (8 + 18 * (1 - k)), y + Math.sin(a) * (8 + 18 * (1 - k)), 1.2, C.star); }
+        g.strokeStyle = C.white; g.globalAlpha = k; g.lineWidth = 1; g.beginPath(); g.arc(x, y, 10 + 50 * (1 - k), 0, 6.28); g.stroke(); g.globalAlpha = 1;
+      }
+
+      // ============================================================ the reef (frame 1, meet, claw, stun, CTA)
+      function scene_reef(t) {
+        var tt = tapeT(t, T);
+        var cam = tt < T.MEET ? { x: 90, y: 158, z: 1.1 } : tt < T.CLAW ? camAt([[T.MEET, 70, 150, 1.3], [T.CLAW, 76, 154, 1.2]], tt) : tt < T.SLOW ? { x: 80, y: 154, z: 1.2 } : { x: 90, y: 160, z: 1.0 };
+        var last = lastOf(T.SNAPS, tt); shake(cam, tt, last, 4, 0.25);
+        reef(tt, cam);
+        var sx = 64, sy = 112, ss = 0.95, open = snapOpen(tt);
+        shrimp(sx, sy, ss, tt, { open: open, mood: tt - last < 0.4 ? "o" : "" });
+        var tip = [sx + 60 * ss, sy - 2 * ss];
+        snapFlash(tip[0] + 6, tip[1], tt, last, false);
+        // the fish (stunned in frame 1, prey at STUN)
+        var showF = tt < T.MEET || (tt > T.STUN && tt < T.WAR);
+        if (showF) { var dz = tt < T.MEET ? tt > 0.35 : tt > T.STUN + 0.3; var fx = dz ? 140 : lerp(200, 140, easeOut(clamp01((tt - T.STUN) / 0.3))); fish(fx, 104 + (dz ? Math.sin(tt * 3) * 2 : 0), 1.0, tt, { dizzy: dz }); if (dz) for (var st = 0; st < 3; st++) { var a = tt * 4 + st * 2.1; disc(fx + Math.cos(a) * 12, 88 + Math.sin(a) * 3, 1.3, C.star); } }
+        // the claw ruler (CLAW)
+        if (tt > T.CLAW && tt < T.SLOW) {
+          var k = clamp01((tt - T.CLAW - 0.3) / 0.8);
+          var y0 = 134, x0 = sx - 50 * ss, x1 = sx + 61 * ss, xm = sx + 16 * ss;
+          line(x0, y0, x0 + (x1 - x0) * k, y0, 1.2, C.white);
+          if (k >= 1) { line(xm, y0 - 3, xm, y0 + 3, 1.2, C.gold); line(x1, y0 - 3, x1, y0 + 3, 1.2, C.gold); line(xm, y0 + 2, x1, y0 + 2, 2, C.gold); }
+        }
+        if (tt > T.MEET + 0.5 && tt < T.CLAW - 0.2) say(64, 72, "PEW PEW.");
+        if (tt > T.STUN + 1.2 && tt < T.WAR - 0.2) say(64, 72, "DINNER!");
+        if (tt > T.CTA + 0.9) say(64, 72, "BANG.");
+        if (tt < T.MEET && tt > 0.6) say(128, 74, "@#*!");
+      }
+      // ============================================================ slow motion: the bubble (SLOW .. SUN)
+      function scene_slow(t) {
+        var cam = camAt([[T.SLOW, 108, 140, 1.7], [T.BUBBLE, 112, 140, 1.8], [T.HIT, 116, 140, 1.9], [T.SUN, 112, 142, 1.7]], t);
+        shake(cam, t, T.HIT, 9, 0.6);
+        reef(t, cam);
+        var open = t < T.SLOW + 1.2 ? 1 - clamp01((t - T.SLOW - 0.2) / 1.0) : 0;
+        shrimp(52, 112, 0.95, t, { open: open, squint: t > T.BUBBLE });
+        var tipX = 52 + 61 * 0.95, tipY = 112 - 2;
+        // the water jet (slow-mo streaks)
+        if (t > T.SLOW + 1.0 && t < T.HIT) for (var j = 0; j < 6; j++) { var p = ((t - T.SLOW) * 1.5 + j / 6) % 1; line(tipX + p * 40, tipY - 3 + j, tipX + p * 40 + 6, tipY - 3 + j, 0.8, C.foam); }
+        if (t > T.BUBBLE && t < T.HIT) {
+          var r = 2 + 12 * easeOut(clamp01((t - T.BUBBLE) / (T.BREAK - T.BUBBLE)));
+          if (t > T.BREAK) r *= 1 - (t - T.BREAK) / (T.HIT - T.BREAK);
+          var bx = tipX + 14;
+          g.globalAlpha = 0.5; disc(bx, tipY, r, C.bub); g.globalAlpha = 1;
+          g.strokeStyle = C.white; g.lineWidth = 0.8; g.beginPath(); g.arc(bx, tipY, r, 0, 6.28); g.stroke();
+          ell(bx - r * 0.35, tipY - r * 0.4, r * 0.25, r * 0.12, -0.5, C.white);
+        }
+        snapFlash(tipX + 14, tipY, t, T.HIT, true);
+        if (t > T.HIT) { var hk = clamp01(1 - (t - T.HIT) / 1.5); lighter(); glow(tipX + 14, tipY, 10 + 6 * hk, C.hot, 0.7 * hk + 0.2); normalBlend(); disc(tipX + 14, tipY, 1.5, C.white); }
+        // the thermometer in the lower band (screen space)
+        g.save(); screen();
+        var temp = t < T.BUBBLE ? 20 : t < T.HIT ? 20 + 300 * clamp01((t - T.BUBBLE) / (T.BREAK - T.BUBBLE)) : 4700;
+        rect(26, 196, 128, 10, C.ink); rect(28, 198, 124 * temp / 5500, 6, temp > 4000 ? C.hot : C.gold);
+        line(28 + 124 * 5500 / 5500 - 1, 192, 28 + 124 - 1, 210, 1, C.sun);
+        worldText("SUN 5,500°C", 120, 213, 1, C.ink); worldText("SUN 5,500°C", 120, 212, 1, C.white);
+        g.restore();
+      }
+      // ============================================================ hot as the sun
+      function scene_sun(t) {
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.dark], [1, C.sea2]]); setCam(cam, 1);
+        var k = clamp01((t - T.SUN - 0.2) / 0.9);
+        // two bars + icons
+        var H = 52; rect(40, 138 - H * k * 4700 / 5500, 26, H * k * 4700 / 5500, C.hot); rect(114, 138 - H * k, 26, H * k, C.sun);
+        shrimp(56, 138 - H * k * 4700 / 5500 - 8, 0.32, t, {});
+        disc(127, 138 - H * k - 12, 10, C.sunD); disc(127, 138 - H * k - 12, 8.6, C.sun);
+        label("4,700°C", 53, 186, C.hot); label("5,500°C", 127, 186, C.sun);
+        label("SHRIMP", 53, 198, C.white); label("SUN SURFACE", 127, 198, C.white);
+      }
+      // ============================================================ flash + loud (dark water)
+      function scene_dark(t) {
+        var loud = t >= T.LOUD;
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, C.dark], [1, C.sea2]]); setCam(cam, 1);
+        var last = lastOf(T.SNAPS, t); shake(cam, t, last, 5, 0.3);
+        shrimp(52, 112, 0.95, t, { open: snapOpen(t), mood: t - last < 0.4 ? "o" : "" });
+        var tipX = 52 + 61 * 0.95 + 8, tipY = 110;
+        snapFlash(tipX, tipY, t, last, !loud);
+        if (!loud && t - last >= 0 && t - last < 0.6) { lighter(); glow(tipX, tipY, 30, C.cyan, 0.8 * (1 - (t - last) / 0.6)); normalBlend(); }
+        if (loud) { for (var w = 0; w < 4; w++) { var p = ((t - T.LOUD) * 1.2 + w / 4) % 1; g.strokeStyle = C.white; g.globalAlpha = 1 - p; g.lineWidth = 1; g.beginPath(); g.arc(tipX, tipY, 6 + p * 50, -1.2, 1.2); g.stroke(); } g.globalAlpha = 1; }
+        // lower band: what it is / the loudness meter (screen space)
+        g.save(); screen();
+        if (!loud) { worldText("SHRIMPO-", 90, 192, 1, C.cyan); worldText("LUMINESCENCE", 90, 202, 1, C.cyan); }
+        else { var n = Math.min(10, Math.floor((t - T.LOUD - 0.3) / 0.08) + 1); for (var i = 0; i < 10; i++) rect(36 + i * 11, 210 - i * 2 - 2, 9, 4 + i * 2, i < n ? (i > 7 ? C.red : i > 4 ? C.gold : C.green) : C.ink); worldText("~210 DB (WATER)", 90, 218, 1, C.white); }
+        g.restore();
+      }
+      // ============================================================ WWII: the submarine and the shrimp colony
+      function subC(x, y, s, t, o) {
+        o = o || {};
+        g.save(); g.translate(x, y); g.scale(s, s);
+        rrect(-30, -9, 60, 18, 9, C.subD); rrect(-29, -10, 58, 17, 8, C.sub); ell(-8, -6, 16, 2.5, 0, C.subL);
+        rect(-6, -18, 14, 9, C.subD); rect(-5, -19, 12, 8, C.sub); line(2, -19, 2, -26, 1, C.subD); line(2, -26, 6, -26, 1, C.subD);
+        var pr = Math.sin(t * 20); ell(-32, 0, 1.5, 6 * Math.abs(pr) + 1, 0, C.subD);
+        disc(12, -2, 4, C.subD); disc(22, -2, 4, C.subD); disc(12, -2, 3.2, C.glass); disc(22, -2, 3.2, C.glass);
+        disc(12.6 + (o.look || 0), -2, 1.5, C.ink); disc(22.6 + (o.look || 0), -2, 1.5, C.ink);
+        if (o.mood === "o") ell(17, 4.5, 1.4, 1.7, 0, C.mouth); else arcS(17, 3, 2.4, 0.3, Math.PI - 0.3, 0.9, C.mouth);
+        g.restore();
+      }
+      function scene_war(t) {
+        var hide = t >= T.HIDE;
+        var cam = { x: 90, y: 160, z: 1.0 };
+        sky([[0, "#3a7ad8"], [0.23, "#3a7ad8"], [0.231, C.sea1], [1, C.sea2]]); setCam(cam, 1);
+        rect(-20, 72, 220, 2, C.foam);
+        // the enemy ship on the surface (HIDE), with its sonar ping
+        if (hide) { poly([[90, 64], [140, 64], [134, 72], [96, 72]], C.ship); rect(108, 57, 14, 7, C.ship); worldText("?", 150, 58, 2, C.red); }
+        rect(-20, 132, 220, 200, C.sandD); rect(-20, 132, 220, 3, C.sand);
+        // the shrimp bed: many tiny shrimps snapping (flashes follow the colony snap times)
+        for (var i = 0; i < 9; i++) shrimp(12 + i * 19, 128, 0.22, t + i, { open: 0 });
+        var n = countOf(T.COLONY, t);
+        for (var j = Math.max(0, n - 6); j < n; j++) { var d = t - T.COLONY[j]; if (d < 0.12) { var px = 12 + (j * 7 % 9) * 19 + 13; lighter(); glow(px, 127, 6, C.flash, 0.9); normalBlend(); } }
+        var subX = hide ? lerp(60, 74, clamp01((t - T.HIDE) / 1.5)) : lerp(-40, 70, easeOut(clamp01((t - T.WAR) / 1.2)));
+        character(function () { subC(subX, 108, 1.0, t, { mood: hide ? "" : "o", look: hide ? 1 : 0 }); });
+        if (!hide && t > T.WAR + 1.2 && t < T.HIDE - 0.2) say(112, 86, "SO NOISY!");
+        if (hide && t > T.HIDE + 0.7 && t < T.CTA - 0.2) say(40, 86, "SHH...");
+        // the sonar screen (screen space, lower band): noise grows with the colony
+        g.save(); screen();
+        rect(30, 186, 120, 34, C.ink); rect(32, 188, 116, 30, C.sonar);
+        var lvl = clamp01((t - T.WAR) / (T.CTA - T.WAR));
+        for (var x = 0; x < 116; x += 2) { var h = 2 + hash1(x + Math.floor(t * 20) * 13) * 26 * lvl; rect(32 + x, 218 - h, 1.5, h, C.sonarL); }
+        worldText("SONAR", 52, 190, 1, C.sonarL);
+        g.restore();
+      }
+
+      function sceneAt(t) {
+        var tt = tapeT(t, T);
+        return tt < T.SLOW ? "reef" : tt < T.SUN ? "slow" : tt < T.LIGHT ? "sun" : tt < T.STUN ? "dark" : tt < T.WAR ? "reef" : tt < T.CTA ? "war" : "reef";
+      }
+      function fmt(n) { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+      function drawUI(t) {
+        var tt = tapeT(t, T);
+        if (tt < T.MEET) counterLines("4,700°C", C.hot, 3, "ONE SNAP", C.white);
+        else if (tt < T.CLAW) counterLines("SIZE: 4 CM", C.cyan, 3, "ALPHEIDAE", C.white);
+        else if (tt < T.SLOW) counterLines("CLAW: 50%", C.gold, 3, "OF ITS BODY", C.white);
+        else if (tt < T.BUBBLE) counterLines("JET 90 KM/H", C.cyan, 3, "SLOW MOTION", C.white);
+        else if (tt < T.HIT) counterLines("TEMP " + fmt(20 + 300 * clamp01((tt - T.BUBBLE) / (T.BREAK - T.BUBBLE))) + "°C", C.gold, 3, "BUBBLE GROWING", C.white);
+        else if (tt < T.LIGHT) counterLines("TEMP 4,700°C", C.hot, 3, tt < T.SUN ? "POP!" : "SUN: 5,500°C", C.sun);
+        else if (tt < T.LOUD) counterLines("FLASH!", C.cyan, 3, "A TINY LIGHT", C.white);
+        else if (tt < T.STUN) counterLines("~210 DB", C.red, 3, "UNDERWATER", C.white);
+        else if (tt < T.WAR) counterLines("FISH: STUNNED", C.gold, 3, "SHRIMP 1 FISH 0", C.white);
+        else if (tt < T.CTA) counterLines("NOISE " + Math.round(100 * clamp01((tt - T.WAR) / (T.CTA - T.WAR - 0.3))) + "%", C.gold, 3, tt < T.HIDE ? "WWII, 1940S" : "SUB: HIDDEN", C.white);
+        else counterLines("SHRIMP 1", C.green, 3, "SONAR 0", C.white);
+      }
+
+      KIT.start(C, T, {
+        scenes: { reef: scene_reef, slow: scene_slow, sun: scene_sun, dark: scene_dark, war: scene_war },
+        sceneAt: sceneAt, ui: drawUI, hitCol: C.white,
+        cuts: [[T.SLOW, "reef", "slow"], [T.SUN, "slow", "sun"], [T.LIGHT, "sun", "dark"], [T.STUN, "dark", "reef"], [T.WAR, "reef", "war"], [T.CTA, "war", "reef"]],
+      });
+    </script>
+  </body>
+</html>
