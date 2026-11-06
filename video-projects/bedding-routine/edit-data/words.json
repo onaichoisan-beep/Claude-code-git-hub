@@ -1,0 +1,642 @@
+[
+ {
+  "text": "Keeping",
+  "start": 0.18,
+  "end": 0.44
+ },
+ {
+  "text": "a",
+  "start": 0.44,
+  "end": 0.5
+ },
+ {
+  "text": "cat",
+  "start": 0.5,
+  "end": 0.68
+ },
+ {
+  "text": "off",
+  "start": 0.68,
+  "end": 0.86
+ },
+ {
+  "text": "of",
+  "start": 0.86,
+  "end": 0.98
+ },
+ {
+  "text": "a",
+  "start": 0.98,
+  "end": 1.06
+ },
+ {
+  "text": "bed",
+  "start": 1.06,
+  "end": 1.22
+ },
+ {
+  "text": "is",
+  "start": 1.22,
+  "end": 1.34
+ },
+ {
+  "text": "one",
+  "start": 1.34,
+  "end": 1.52
+ },
+ {
+  "text": "thing.",
+  "start": 1.52,
+  "end": 2.08
+ },
+ {
+  "text": "Dealing",
+  "start": 2.08,
+  "end": 2.49
+ },
+ {
+  "text": "with",
+  "start": 2.49,
+  "end": 2.73
+ },
+ {
+  "text": "allergens",
+  "start": 2.73,
+  "end": 3.31
+ },
+ {
+  "text": "already",
+  "start": 3.31,
+  "end": 3.68
+ },
+ {
+  "text": "in",
+  "start": 3.68,
+  "end": 3.84
+ },
+ {
+  "text": "the",
+  "start": 3.84,
+  "end": 3.92
+ },
+ {
+  "text": "bedding",
+  "start": 3.92,
+  "end": 4.24
+ },
+ {
+  "text": "is",
+  "start": 4.24,
+  "end": 4.32
+ },
+ {
+  "text": "another.",
+  "start": 4.32,
+  "end": 4.8
+ },
+ {
+  "text": "Cat",
+  "start": 4.8,
+  "end": 4.98
+ },
+ {
+  "text": "allergens",
+  "start": 4.98,
+  "end": 5.41
+ },
+ {
+  "text": "can",
+  "start": 5.41,
+  "end": 5.55
+ },
+ {
+  "text": "collect",
+  "start": 5.55,
+  "end": 5.9
+ },
+ {
+  "text": "on",
+  "start": 5.9,
+  "end": 6.0
+ },
+ {
+  "text": "pillows,",
+  "start": 6.0,
+  "end": 6.45
+ },
+ {
+  "text": "blankets,",
+  "start": 6.45,
+  "end": 6.98
+ },
+ {
+  "text": "and",
+  "start": 6.98,
+  "end": 7.16
+ },
+ {
+  "text": "other",
+  "start": 7.16,
+  "end": 7.5
+ },
+ {
+  "text": "fabrics.",
+  "start": 7.5,
+  "end": 8.0
+ },
+ {
+  "text": "So",
+  "start": 8.0,
+  "end": 8.18
+ },
+ {
+  "text": "even",
+  "start": 8.18,
+  "end": 8.45
+ },
+ {
+  "text": "when",
+  "start": 8.45,
+  "end": 8.75
+ },
+ {
+  "text": "the",
+  "start": 8.75,
+  "end": 8.98
+ },
+ {
+  "text": "cat",
+  "start": 8.98,
+  "end": 9.21
+ },
+ {
+  "text": "leaves",
+  "start": 9.21,
+  "end": 9.67
+ },
+ {
+  "text": "the",
+  "start": 9.67,
+  "end": 9.9
+ },
+ {
+  "text": "room,",
+  "start": 9.9,
+  "end": 10.4
+ },
+ {
+  "text": "those",
+  "start": 10.4,
+  "end": 10.73
+ },
+ {
+  "text": "allergens",
+  "start": 10.73,
+  "end": 11.31
+ },
+ {
+  "text": "can",
+  "start": 11.31,
+  "end": 11.44
+ },
+ {
+  "text": "still",
+  "start": 11.44,
+  "end": 11.75
+ },
+ {
+  "text": "be",
+  "start": 11.75,
+  "end": 11.87
+ },
+ {
+  "text": "there.",
+  "start": 11.87,
+  "end": 12.4
+ },
+ {
+  "text": "This",
+  "start": 12.4,
+  "end": 12.62
+ },
+ {
+  "text": "is",
+  "start": 12.62,
+  "end": 12.73
+ },
+ {
+  "text": "Pacagen's",
+  "start": 12.73,
+  "end": 13.22
+ },
+ {
+  "text": "Allergen",
+  "start": 13.22,
+  "end": 13.65
+ },
+ {
+  "text": "Neutralizing",
+  "start": 13.65,
+  "end": 14.31
+ },
+ {
+  "text": "Spray.",
+  "start": 14.31,
+  "end": 14.8
+ },
+ {
+  "text": "It",
+  "start": 14.8,
+  "end": 14.93
+ },
+ {
+  "text": "breaks",
+  "start": 14.93,
+  "end": 15.32
+ },
+ {
+  "text": "down",
+  "start": 15.32,
+  "end": 15.58
+ },
+ {
+  "text": "the",
+  "start": 15.58,
+  "end": 15.77
+ },
+ {
+  "text": "allergen",
+  "start": 15.77,
+  "end": 16.32
+ },
+ {
+  "text": "on",
+  "start": 16.32,
+  "end": 16.48
+ },
+ {
+  "text": "those",
+  "start": 16.48,
+  "end": 16.72
+ },
+ {
+  "text": "surfaces.",
+  "start": 16.72,
+  "end": 17.52
+ },
+ {
+  "text": "The",
+  "start": 17.52,
+  "end": 17.7
+ },
+ {
+  "text": "routine",
+  "start": 17.7,
+  "end": 17.97
+ },
+ {
+  "text": "is",
+  "start": 17.97,
+  "end": 18.06
+ },
+ {
+  "text": "to",
+  "start": 18.06,
+  "end": 18.17
+ },
+ {
+  "text": "spray",
+  "start": 18.17,
+  "end": 18.38
+ },
+ {
+  "text": "the",
+  "start": 18.38,
+  "end": 18.51
+ },
+ {
+  "text": "bedding,",
+  "start": 18.51,
+  "end": 18.96
+ },
+ {
+  "text": "the",
+  "start": 18.96,
+  "end": 19.12
+ },
+ {
+  "text": "pillows,",
+  "start": 19.12,
+  "end": 19.44
+ },
+ {
+  "text": "the",
+  "start": 19.44,
+  "end": 19.55
+ },
+ {
+  "text": "blankets,",
+  "start": 19.55,
+  "end": 19.92
+ },
+ {
+  "text": "and",
+  "start": 19.92,
+  "end": 20.08
+ },
+ {
+  "text": "the",
+  "start": 20.08,
+  "end": 20.25
+ },
+ {
+  "text": "fabric",
+  "start": 20.25,
+  "end": 20.56
+ },
+ {
+  "text": "spots",
+  "start": 20.56,
+  "end": 21.04
+ },
+ {
+  "text": "where",
+  "start": 21.04,
+  "end": 21.32
+ },
+ {
+  "text": "the",
+  "start": 21.32,
+  "end": 21.48
+ },
+ {
+  "text": "cats",
+  "start": 21.48,
+  "end": 21.7
+ },
+ {
+  "text": "spend",
+  "start": 21.7,
+  "end": 21.98
+ },
+ {
+  "text": "their",
+  "start": 21.98,
+  "end": 22.26
+ },
+ {
+  "text": "time,",
+  "start": 22.26,
+  "end": 22.64
+ },
+ {
+  "text": "following",
+  "start": 22.64,
+  "end": 23.09
+ },
+ {
+  "text": "the",
+  "start": 23.09,
+  "end": 23.25
+ },
+ {
+  "text": "label",
+  "start": 23.25,
+  "end": 23.53
+ },
+ {
+  "text": "instructions",
+  "start": 23.53,
+  "end": 24.25
+ },
+ {
+  "text": "every",
+  "start": 24.25,
+  "end": 24.53
+ },
+ {
+  "text": "two",
+  "start": 24.53,
+  "end": 24.7
+ },
+ {
+  "text": "to",
+  "start": 24.7,
+  "end": 24.81
+ },
+ {
+  "text": "three",
+  "start": 24.81,
+  "end": 25.1
+ },
+ {
+  "text": "days.",
+  "start": 25.1,
+  "end": 25.52
+ },
+ {
+  "text": "It's",
+  "start": 25.55,
+  "end": 25.74
+ },
+ {
+  "text": "designed",
+  "start": 25.74,
+  "end": 26.18
+ },
+ {
+  "text": "to",
+  "start": 26.18,
+  "end": 26.29
+ },
+ {
+  "text": "dry",
+  "start": 26.29,
+  "end": 26.45
+ },
+ {
+  "text": "without",
+  "start": 26.45,
+  "end": 26.84
+ },
+ {
+  "text": "residue,",
+  "start": 26.84,
+  "end": 27.34
+ },
+ {
+  "text": "which",
+  "start": 27.34,
+  "end": 27.7
+ },
+ {
+  "text": "matters",
+  "start": 27.7,
+  "end": 28.01
+ },
+ {
+  "text": "when",
+  "start": 28.01,
+  "end": 28.25
+ },
+ {
+  "text": "you're",
+  "start": 28.25,
+  "end": 28.55
+ },
+ {
+  "text": "spraying",
+  "start": 28.55,
+  "end": 28.99
+ },
+ {
+  "text": "it",
+  "start": 28.99,
+  "end": 29.1
+ },
+ {
+  "text": "on",
+  "start": 29.1,
+  "end": 29.21
+ },
+ {
+  "text": "bedding",
+  "start": 29.21,
+  "end": 29.68
+ },
+ {
+  "text": "and",
+  "start": 29.68,
+  "end": 29.84
+ },
+ {
+  "text": "couches.",
+  "start": 29.84,
+  "end": 30.64
+ },
+ {
+  "text": "For",
+  "start": 30.64,
+  "end": 30.82
+ },
+ {
+  "text": "me,",
+  "start": 30.82,
+  "end": 31.03
+ },
+ {
+  "text": "that",
+  "start": 31.03,
+  "end": 31.25
+ },
+ {
+  "text": "means",
+  "start": 31.25,
+  "end": 31.56
+ },
+ {
+  "text": "fabrics",
+  "start": 31.56,
+  "end": 31.92
+ },
+ {
+  "text": "where",
+  "start": 31.92,
+  "end": 32.24
+ },
+ {
+  "text": "the",
+  "start": 32.24,
+  "end": 32.4
+ },
+ {
+  "text": "cats",
+  "start": 32.4,
+  "end": 32.82
+ },
+ {
+  "text": "used",
+  "start": 32.82,
+  "end": 32.96
+ },
+ {
+  "text": "to",
+  "start": 32.96,
+  "end": 33.12
+ },
+ {
+  "text": "live",
+  "start": 33.12,
+  "end": 33.28
+ },
+ {
+  "text": "at",
+  "start": 33.28,
+  "end": 33.37
+ },
+ {
+  "text": "my",
+  "start": 33.37,
+  "end": 33.52
+ },
+ {
+  "text": "house",
+  "start": 33.52,
+  "end": 34.0
+ },
+ {
+  "text": "and",
+  "start": 34.0,
+  "end": 34.18
+ },
+ {
+  "text": "the",
+  "start": 34.18,
+  "end": 34.36
+ },
+ {
+  "text": "places",
+  "start": 34.36,
+  "end": 34.72
+ },
+ {
+  "text": "they",
+  "start": 34.72,
+  "end": 34.96
+ },
+ {
+  "text": "spend",
+  "start": 34.96,
+  "end": 35.26
+ },
+ {
+  "text": "time",
+  "start": 35.26,
+  "end": 35.5
+ },
+ {
+  "text": "at",
+  "start": 35.5,
+  "end": 35.62
+ },
+ {
+  "text": "at",
+  "start": 35.62,
+  "end": 35.74
+ },
+ {
+  "text": "my",
+  "start": 35.74,
+  "end": 35.86
+ },
+ {
+  "text": "friend's",
+  "start": 35.86,
+  "end": 36.34
+ },
+ {
+  "text": "house.",
+  "start": 36.34,
+  "end": 36.88
+ }
+]

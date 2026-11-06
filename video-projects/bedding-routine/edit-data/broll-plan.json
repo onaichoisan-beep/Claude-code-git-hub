@@ -1,0 +1,142 @@
+[
+ {
+  "id": "b01",
+  "file": "assets/broll/b01.mp4",
+  "src": "broll/IMG_0131.MOV",
+  "inpoint": 2.0,
+  "start": 4.3,
+  "dur": 3.667,
+  "frames": 110,
+  "got": 110,
+  "trc": "bt709",
+  "what": "hand pets cat on bedding - allergens collect on pillows/blankets"
+ },
+ {
+  "start": 7.967,
+  "dur": 2.367,
+  "what": "face"
+ },
+ {
+  "id": "b02",
+  "file": "assets/broll/b02.mp4",
+  "src": "broll/Cat_hair_everywhere_grabbing_the_hair.MOV",
+  "inpoint": 1.0,
+  "start": 10.333,
+  "dur": 2.033,
+  "frames": 61,
+  "got": 61,
+  "trc": "bt709",
+  "what": "cat hair in bed - allergens still there"
+ },
+ {
+  "start": 12.367,
+  "dur": 2.4,
+  "what": "face holding spray"
+ },
+ {
+  "id": "b03",
+  "file": "assets/broll/b03.mp4",
+  "src": "broll/spraying_sunlight.mov",
+  "inpoint": 3.2,
+  "start": 14.767,
+  "dur": 2.7,
+  "frames": 81,
+  "got": 81,
+  "trc": "bt709",
+  "what": "mist over bed - breaks down allergen"
+ },
+ {
+  "id": "b04",
+  "file": "assets/broll/b04.mp4",
+  "src": "dl/spraying-bedding.mov",
+  "inpoint": 7.0,
+  "start": 17.467,
+  "dur": 2.433,
+  "frames": 73,
+  "got": 73,
+  "trc": "bt709",
+  "what": "her spraying the bedding - routine"
+ },
+ {
+  "id": "b05",
+  "file": "assets/broll/b05.mp4",
+  "src": "broll/IMG_0135.MOV",
+  "inpoint": 0.3,
+  "start": 19.9,
+  "dur": 2.7,
+  "frames": 81,
+  "got": 81,
+  "trc": "bt709",
+  "what": "ragdoll on bed - fabric spots where cats spend time"
+ },
+ {
+  "id": "b06",
+  "file": "assets/broll/b06.mp4",
+  "src": "broll/box_back_side.mov",
+  "inpoint": 6.5,
+  "start": 22.6,
+  "dur": 1.633,
+  "frames": 49,
+  "got": 49,
+  "trc": "bt709",
+  "what": "box instructions panel - label instructions"
+ },
+ {
+  "id": "b07",
+  "file": "assets/broll/b07.mp4",
+  "src": "broll/spray_on_guest_bed.mov",
+  "inpoint": 1.0,
+  "start": 24.233,
+  "dur": 1.367,
+  "frames": 41,
+  "got": 41,
+  "trc": "bt709",
+  "what": "bottle over bed - every 2-3 days"
+ },
+ {
+  "start": 25.6,
+  "dur": 1.7,
+  "what": "face"
+ },
+ {
+  "id": "b08",
+  "file": "assets/broll/b08.mp4",
+  "src": "dl/no-residue.mov",
+  "inpoint": 3.3,
+  "start": 27.3,
+  "dur": 2.4,
+  "frames": 72,
+  "got": 72,
+  "trc": "bt709",
+  "what": "her on the bed with bottle - no residue on bedding"
+ },
+ {
+  "id": "b09",
+  "file": "assets/broll/b09.mp4",
+  "src": "broll/cat_in_house_-_filler_video.mov",
+  "inpoint": 0.3,
+  "start": 29.7,
+  "dur": 2.2,
+  "frames": 66,
+  "got": 66,
+  "trc": "bt709",
+  "what": "ragdoll on couch - couches / my house"
+ },
+ {
+  "start": 31.9,
+  "dur": 2.067,
+  "what": "face"
+ },
+ {
+  "id": "b10",
+  "file": "assets/broll/b10.mp4",
+  "src": "broll/bottle_in_front_of_cat.mov",
+  "inpoint": 10.0,
+  "start": 33.967,
+  "dur": 3.133,
+  "frames": 94,
+  "got": 94,
+  "trc": "bt709",
+  "what": "cat asleep on bed - ending on the cat"
+ }
+]
