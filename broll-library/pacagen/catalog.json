@@ -1,0 +1,1785 @@
+{
+ "brand": "Pacagen",
+ "product": "Cat allergen neutralizing spray + cat allergen reducing supplement + WhiskerBlock powder",
+ "drive_folder": "https://drive.google.com/drive/folders/1-7sQpKl0AAn6fOKnXBuczjWl4ajC3mjG",
+ "categories": [
+  {
+   "key": "product",
+   "label": "Product packshots & details"
+  },
+  {
+   "key": "in-use",
+   "label": "Product in use — spraying"
+  },
+  {
+   "key": "feeding",
+   "label": "Feeding & supplement"
+  },
+  {
+   "key": "problem",
+   "label": "Problem — cat hair / allergy"
+  },
+  {
+   "key": "air-purifier",
+   "label": "Air purifier — 'what I tried before'"
+  },
+  {
+   "key": "locked-out",
+   "label": "Problem — cat locked out of the room"
+  },
+  {
+   "key": "bonding",
+   "label": "Bonding / cuddles — the 'after'"
+  },
+  {
+   "key": "siamese",
+   "label": "Siamese lifestyle filler"
+  },
+  {
+   "key": "ragdoll",
+   "label": "Ragdoll lifestyle filler"
+  }
+ ],
+ "clips": [
+  {
+   "id": "PRD-01",
+   "category": "product",
+   "title": "Full lineup on counter — slow push-in",
+   "description": "All Pacagen products lined up on granite counter (spray bottle, stabilizing solution pouch, Cat Allergen Neutralizing Spray box, supplement tub). Slow handheld push-in from wide to the boxes.",
+   "cat": "none",
+   "shot": "wide → medium, slow push-in",
+   "use_for": "Brand reveal, 'this is the whole kit', CTA end card background",
+   "tags": [
+    "lineup",
+    "packshot",
+    "counter",
+    "spray",
+    "supplement",
+    "box"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "showing product on counter.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1Ax_dXNUn0VbaQayz8GqlYafbjudJHyBj"
+   ],
+   "organised_name": "PRD-01_full-lineup-on-counter.mov",
+   "duration_s": 6.3,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/PRD-01.jpg"
+  },
+  {
+   "id": "PRD-02",
+   "category": "product",
+   "title": "Full lineup on counter — slide left→right",
+   "description": "Same lineup, closer, lateral slide across the pouch, powder stick and supplement tub.",
+   "cat": "none",
+   "shot": "medium close, lateral slide",
+   "use_for": "Quick product flash, transition between sections",
+   "tags": [
+    "lineup",
+    "packshot",
+    "counter"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "showing product on counter 2.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1xKKlfB9yZeGe0xHTRXXpkL7Tao9RzGhA"
+   ],
+   "organised_name": "PRD-02_full-lineup-on-counter.mov",
+   "duration_s": 3.4,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/PRD-02.jpg"
+  },
+  {
+   "id": "PRD-03",
+   "category": "product",
+   "title": "Creator unboxes / presents each product",
+   "description": "Creator behind kitchen counter holds up each item: spray box front (0:03-0:05), box back 'Inside this pack' (0:06-0:08), opens supplement tub (0:09-0:13), spray box again (0:14-0:16), instructions card (0:16-0:18). Ends on products alone (0:19-0:22).",
+   "cat": "none",
+   "shot": "static medium, creator on camera",
+   "use_for": "'Here's what you get', unboxing beat, product-explainer section",
+   "tags": [
+    "creator",
+    "unboxing",
+    "talking-head-style",
+    "kitchen",
+    "box",
+    "supplement"
+   ],
+   "best_section": "0:03-0:18",
+   "notes": "Best single clip to explain the kit",
+   "source_file": "showing each product.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1XtXfw03V8uK0dHYIB1cMzrC_doZ1Wt-q"
+   ],
+   "organised_name": "PRD-03_creator-unboxes-presents-each-product.mov",
+   "duration_s": 21.9,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/PRD-03.jpg"
+  },
+  {
+   "id": "PRD-04",
+   "category": "product",
+   "title": "Supplement tub in hand — rotate to logo",
+   "description": "Hand holds Cat Allergen Reducing Supplement tub, rotates from side label to front 'Pacagen' logo. Spray + pouch blurred behind.",
+   "cat": "none",
+   "shot": "close-up, handheld rotate",
+   "use_for": "Supplement mention, 'just add a scoop to food'",
+   "tags": [
+    "supplement",
+    "tub",
+    "hand",
+    "closeup",
+    "logo"
+   ],
+   "best_section": null,
+   "notes": "Ends on logo, good hold frame",
+   "source_file": "supplement side view.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1qxIWCViAM1Qzzxr3fSisaCNyZb0HGsH4"
+   ],
+   "organised_name": "PRD-04_supplement-tub-in-hand.mov",
+   "duration_s": 9.2,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/PRD-04.jpg"
+  },
+  {
+   "id": "PRD-05",
+   "category": "product",
+   "title": "Supplement tub back label",
+   "description": "Hand holds supplement tub showing back label / barcode.",
+   "cat": "none",
+   "shot": "close-up handheld",
+   "use_for": "Ingredients / 'it's safe' claims",
+   "tags": [
+    "supplement",
+    "back-label",
+    "closeup"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "back side of package supplement.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1ottY6bbFZs8gw67v1oOTlpMz5L_Qclr-"
+   ],
+   "organised_name": "PRD-05_supplement-tub-back-label.mov",
+   "duration_s": 3.4,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/PRD-05.jpg"
+  },
+  {
+   "id": "PRD-06",
+   "category": "product",
+   "title": "Spray box back — 3-step instructions",
+   "description": "Hand holds box back: Step 1 Activate, Step 2 Neutralize, Step 3 Relax & Repeat. Push-in to Step 2/3 text.",
+   "cat": "none",
+   "shot": "close-up, push-in",
+   "use_for": "'How it works' — 3 steps; pair with on-screen text",
+   "tags": [
+    "box",
+    "instructions",
+    "steps",
+    "how-it-works"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "showing the back side of package 1.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1sIxBpPTLb1bA6l8cqnWw7yB_WtYszX-F"
+   ],
+   "organised_name": "PRD-06_spray-box-back.mov",
+   "duration_s": 3.8,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/PRD-06.jpg"
+  },
+  {
+   "id": "PRD-07",
+   "category": "product",
+   "title": "Dark-blue box back — 'Inside this pack'",
+   "description": "Hand holds blue box back: 1x WhiskerBlock powder, 1x Stabilizing solution, special video from founder (QR). Short (2s).",
+   "cat": "none",
+   "shot": "close-up handheld",
+   "use_for": "'What's inside the pack' flash",
+   "tags": [
+    "box",
+    "inside-this-pack",
+    "closeup"
+   ],
+   "best_section": null,
+   "notes": "Same file as IMG_0102",
+   "source_file": "backside of package 2.mov",
+   "also_named": [
+    "IMG_0102.mov"
+   ],
+   "drive_file_ids": [
+    "1rCjDMXI8RppiPKDBY9Po_x_d6Kam9mPf",
+    "1inhQp2nC0wy0XW2jwmPnhEa0aqt67kPk"
+   ],
+   "organised_name": "PRD-07_dark-blue-box-back.mov",
+   "duration_s": 2.0,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/PRD-07.jpg"
+  },
+  {
+   "id": "PRD-08",
+   "category": "product",
+   "title": "WhiskerBlock powder stick in hand",
+   "description": "Fingers hold the blue WhiskerBlock powder stick sachet, turn it to show the back. Spray bottle behind.",
+   "cat": "none",
+   "shot": "close-up handheld",
+   "use_for": "Step 1 'pour the powder in'",
+   "tags": [
+    "powder",
+    "whiskerblock",
+    "sachet",
+    "closeup"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "whisker block powder.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1UW3Q7fkE4tksiTvcd_qD3oi8Miw0nVwy"
+   ],
+   "organised_name": "PRD-08_whiskerblock-powder-stick-in-hand.mov",
+   "duration_s": 8.0,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/PRD-08.jpg"
+  },
+  {
+   "id": "USE-01",
+   "category": "in-use",
+   "title": "Spraying the cat tree",
+   "description": "Creator walks into frame and sprays the tall cream cat tree with the Pacagen bottle, then smiles at camera.",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "'Spray where your cat hangs out', application demo",
+   "tags": [
+    "spray",
+    "cat-tree",
+    "creator",
+    "application"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0112.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1ekMs6vvlOkzydLVbrq5FttLuUDnzlwN8"
+   ],
+   "organised_name": "USE-01_spraying-the-cat-tree.mov",
+   "duration_s": 10.7,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/USE-01.jpg"
+  },
+  {
+   "id": "USE-02",
+   "category": "in-use",
+   "title": "Spraying the couch (sectional)",
+   "description": "Creator (brown tee, jeans) sprays a beige sectional couch, walks along it.",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "'Spray the couch', application demo",
+   "tags": [
+    "spray",
+    "couch",
+    "creator",
+    "application"
+   ],
+   "best_section": null,
+   "notes": "HDR (HLG) HEVC 60fps — convert to SDR/Rec709 in your NLE",
+   "source_file": "IMG_1109.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1K7R6tsUs4f9itAmERQw8YcV3GVRA8tlj"
+   ],
+   "organised_name": "USE-02_spraying-the-couch-sectional.mov",
+   "duration_s": 6.2,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2026-11-01",
+   "thumb": "thumbs/USE-02.jpg"
+  },
+  {
+   "id": "USE-03",
+   "category": "in-use",
+   "title": "Spraying the couch — leaning across",
+   "description": "Same couch, creator leans across the chaise to spray the back cushions.",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "Alt take of USE-02",
+   "tags": [
+    "spray",
+    "couch",
+    "creator",
+    "application"
+   ],
+   "best_section": null,
+   "notes": "HDR (HLG) HEVC 60fps",
+   "source_file": "IMG_1110.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1ymGU4_ooh1uWjimNCaTc2lNuaQGlWN59"
+   ],
+   "organised_name": "USE-03_spraying-the-couch.mov",
+   "duration_s": 4.4,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2026-11-01",
+   "thumb": "thumbs/USE-03.jpg"
+  },
+  {
+   "id": "USE-04",
+   "category": "in-use",
+   "title": "Spraying cat climbing mats / play area",
+   "description": "Creator sprays stacked gym-mat climbing structure (yellow pyramid), turns to camera.",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "'Spray anywhere they nap or play'",
+   "tags": [
+    "spray",
+    "play-area",
+    "creator",
+    "application"
+   ],
+   "best_section": null,
+   "notes": "HDR (HLG) HEVC 60fps",
+   "source_file": "IMG_1108.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1HIbyCoFxNnu_OT5N4l1eDJNeXVdKeQ96"
+   ],
+   "organised_name": "USE-04_spraying-cat-climbing-mats-play-area.mov",
+   "duration_s": 5.0,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2026-11-01",
+   "thumb": "thumbs/USE-04.jpg"
+  },
+  {
+   "id": "USE-05",
+   "category": "in-use",
+   "title": "Spray couch → sit and read WITH the cat (88s)",
+   "description": "Hand sprays couch (0:00-0:12), empty couch (0:12-0:28), creator brings in Siamese and sits (0:28-0:40), reads a book with cat cuddled beside her (0:45-1:28).",
+   "cat": "siamese",
+   "shot": "static wide, long take",
+   "use_for": "Before→after in one shot; 'now I can actually sit with my cat'; happy ending",
+   "tags": [
+    "spray",
+    "couch",
+    "creator",
+    "cuddle",
+    "reading",
+    "after",
+    "solution",
+    "ending"
+   ],
+   "best_section": "0:00-0:12 spray / 0:45-1:28 cuddle",
+   "notes": "Long — trim to beats; key 'solution' clip",
+   "source_file": "IMG_0165.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1HlFYFDySicbxKXab22znk4sj3mBd1h7m",
+    "1YytGeKPyaCpMCij2PpY7Bl8wAgYB5Ph4"
+   ],
+   "organised_name": "USE-05_spray-couch-sit-and-read-with-the-cat-88.mov",
+   "duration_s": 87.8,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/USE-05.jpg"
+  },
+  {
+   "id": "USE-06",
+   "category": "in-use",
+   "title": "Siamese sniffing the spray bottle on windowsill",
+   "description": "Pacagen spray bottle on sunny windowsill; Siamese walks over and sniffs it, looks up.",
+   "cat": "siamese",
+   "shot": "static close",
+   "use_for": "Cute product+cat moment, 'cat-approved', safe for pets",
+   "tags": [
+    "spray-bottle",
+    "siamese",
+    "window",
+    "sniff",
+    "cute",
+    "cat-approved"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0114.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1r9WGM8oupyPsoxXw7sAQuZFWVq7igZ_D"
+   ],
+   "organised_name": "USE-06_siamese-sniffing-the-spray-bottle-on-win.mov",
+   "duration_s": 6.2,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/USE-06.jpg"
+  },
+  {
+   "id": "FEED-01",
+   "category": "feeding",
+   "title": "Siamese eats from bowl next to supplement tub",
+   "description": "On kitchen counter: supplement tub left, Siamese eating from white bowl, looks at camera mid-way.",
+   "cat": "siamese",
+   "shot": "static medium",
+   "use_for": "'I just add a scoop to her food', supplement proof",
+   "tags": [
+    "supplement",
+    "eating",
+    "siamese",
+    "counter",
+    "bowl"
+   ],
+   "best_section": null,
+   "notes": "Same file as IMG_0126",
+   "source_file": "Cat eating the supplements .mov",
+   "also_named": [
+    "IMG_0126.mov"
+   ],
+   "drive_file_ids": [
+    "1RB_n34-WP8lMKSF2d6wO-gtXv-qnf5bu",
+    "1Aa1qAhX0sR8Bo-Z9lBvYaPomSxP5Rx-3"
+   ],
+   "organised_name": "FEED-01_siamese-eats-from-bowl-next-to-supplemen.mov",
+   "duration_s": 5.2,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/FEED-01.jpg"
+  },
+  {
+   "id": "FEED-02",
+   "category": "feeding",
+   "title": "Siamese eats next to tub — push-in",
+   "description": "Same set-up, slow push-in from wide to close on cat's face eating.",
+   "cat": "siamese",
+   "shot": "push-in",
+   "use_for": "Alt of FEED-01, more cinematic",
+   "tags": [
+    "supplement",
+    "eating",
+    "siamese",
+    "push-in"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "Cat next to supplement while eating.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "10Vt_gMaZ4_nS63Qz1EBCKjZNGDK7G9ZG"
+   ],
+   "organised_name": "FEED-02_siamese-eats-next-to-tub.mov",
+   "duration_s": 7.2,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/FEED-02.jpg"
+  },
+  {
+   "id": "FEED-03",
+   "category": "feeding",
+   "title": "Creator sets out bowls — then rubs nose",
+   "description": "Creator places three white bowls on kitchen counter (0:02-0:12), then rubs face/nose (0:13-0:14, allergy moment) and walks off.",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "Food prep / routine; 0:13 nose-rub doubles as allergy-symptom beat",
+   "tags": [
+    "creator",
+    "bowls",
+    "kitchen",
+    "routine",
+    "allergy-symptom",
+    "sneeze"
+   ],
+   "best_section": "0:02-0:14",
+   "notes": null,
+   "source_file": "IMG_0107.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "13hWYeWp2vgZBpt3NhE7DBtMTxA2CP7TF"
+   ],
+   "organised_name": "FEED-03_creator-sets-out-bowls.mov",
+   "duration_s": 17.7,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/FEED-03.jpg"
+  },
+  {
+   "id": "FEED-04",
+   "category": "feeding",
+   "title": "Ragdoll eating at feeding tray",
+   "description": "Fluffy ragdoll eating from white bowl on black feeding tray, water fountain beside.",
+   "cat": "ragdoll",
+   "shot": "static close",
+   "use_for": "Daily routine, supplement-in-food B-roll",
+   "tags": [
+    "ragdoll",
+    "eating",
+    "feeding-tray",
+    "bowl"
+   ],
+   "best_section": null,
+   "notes": "Same file as IMG_0171",
+   "source_file": "Cat eating .mov",
+   "also_named": [
+    "IMG_0171.mov"
+   ],
+   "drive_file_ids": [
+    "1dLfghpkahbpbDYGISkyzqpDSpZc_rRNA",
+    "1DaR7rT_XbIkhe5CLAyguDMN1wzFU43RB"
+   ],
+   "organised_name": "FEED-04_ragdoll-eating-at-feeding-tray.mov",
+   "duration_s": 4.7,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/FEED-04.jpg"
+  },
+  {
+   "id": "FEED-05",
+   "category": "feeding",
+   "title": "Ragdoll eating — wide, low-res",
+   "description": "Ragdoll eating at tray from a wide angle, door behind.",
+   "cat": "ragdoll",
+   "shot": "static wide",
+   "use_for": "Backup only",
+   "tags": [
+    "ragdoll",
+    "eating",
+    "feeding-tray"
+   ],
+   "best_section": null,
+   "notes": "720p only — low quality; same file as IMG_8761",
+   "source_file": "cat eating.MOV",
+   "also_named": [
+    "IMG_8761.MOV"
+   ],
+   "drive_file_ids": [
+    "1ppRUsh0vDJdJ_bz3qPsZI3tN5nHofpcH",
+    "1IZb34FomaAX92GAakUfNt5RWFn8Qgy4z"
+   ],
+   "organised_name": "FEED-05_ragdoll-eating.mov",
+   "duration_s": 5.8,
+   "resolution": "720x1280",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-18",
+   "thumb": "thumbs/FEED-05.jpg"
+  },
+  {
+   "id": "FEED-06",
+   "category": "feeding",
+   "title": "Ragdoll walks up to camera past food tray",
+   "description": "Ragdoll walks down the hallway towards camera past the food tray, ends in tight face close-up.",
+   "cat": "ragdoll",
+   "shot": "static, subject walks in",
+   "use_for": "Hook / attention grab, 'meet my cat'",
+   "tags": [
+    "ragdoll",
+    "walk-to-camera",
+    "face",
+    "closeup",
+    "hook"
+   ],
+   "best_section": null,
+   "notes": "Great hook opener",
+   "source_file": "IMG_0170.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1vaQhZeL51_5Cb8SGScwGCWQu8XnEFRMW",
+    "1ts09mTyD4mfmA6MhEFW6QHl4WRBQJ-WF"
+   ],
+   "organised_name": "FEED-06_ragdoll-walks-up-to-camera-past-food-tra.mov",
+   "duration_s": 3.5,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/FEED-06.jpg"
+  },
+  {
+   "id": "FEED-07",
+   "category": "feeding",
+   "title": "Feeding station tray — slow pan",
+   "description": "Pan across black tray: wet food bowls, kibble, water fountain.",
+   "cat": "none",
+   "shot": "pan",
+   "use_for": "Routine / setting the scene",
+   "tags": [
+    "feeding-tray",
+    "bowls",
+    "fountain",
+    "establishing"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0169.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "120P-1sa4lefZrtc5sZ9QMTh6sl53nOyJ",
+    "1G3lBchp7WCntkDfmg9yL1WzW0MYLc5sp"
+   ],
+   "organised_name": "FEED-07_feeding-station-tray.mov",
+   "duration_s": 3.0,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/FEED-07.jpg"
+  },
+  {
+   "id": "FEED-08",
+   "category": "feeding",
+   "title": "Kibble bowls + water fountain push-in",
+   "description": "Close push-in over kibble bowls to stainless water fountain.",
+   "cat": "none",
+   "shot": "push-in",
+   "use_for": "Routine / transitional",
+   "tags": [
+    "kibble",
+    "fountain",
+    "closeup"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0151.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1NQQWOC1g7pVun12AAij0uoxl5kZugyxo",
+    "1PZs5RPvNdCoq-kATVW3KI78tgo4X-V86"
+   ],
+   "organised_name": "FEED-08_kibble-bowls-water-fountain-push-in.mov",
+   "duration_s": 2.9,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/FEED-08.jpg"
+  },
+  {
+   "id": "PROB-01",
+   "category": "problem",
+   "title": "Picking cat hair out of cat bed",
+   "description": "Hand pinches clumps of cat hair from a fluffy round cat bed by a sunny window and shows it to camera.",
+   "cat": "none",
+   "shot": "static close",
+   "use_for": "'Cat hair EVERYWHERE', pain point / hook",
+   "tags": [
+    "cat-hair",
+    "cat-bed",
+    "hand",
+    "problem",
+    "hook"
+   ],
+   "best_section": null,
+   "notes": "Same file as IMG_0144",
+   "source_file": "Cat hair everywhere grabbing the hair.MOV",
+   "also_named": [
+    "IMG_0144.MOV"
+   ],
+   "drive_file_ids": [
+    "1aOU0T5E96yG_RB510DaDgYnUUdgTCJeB",
+    "1lyOVskdKCjYMUI4B1I1GJXLPcfk2XR2T"
+   ],
+   "organised_name": "PROB-01_picking-cat-hair-out-of-cat-bed.mov",
+   "duration_s": 7.3,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/PROB-01.jpg"
+  },
+  {
+   "id": "PROB-02",
+   "category": "problem",
+   "title": "Lint-rolling cat hair off shirt",
+   "description": "Creator in green tee lint-rolls cat hair off her shirt and pants, then shows the hairy roller close to camera.",
+   "cat": "none",
+   "shot": "handheld selfie-style",
+   "use_for": "'I was lint rolling 5 times a day', pain point",
+   "tags": [
+    "lint-roller",
+    "cat-hair",
+    "creator",
+    "clothes",
+    "problem"
+   ],
+   "best_section": null,
+   "notes": "Same file as IMG_0146",
+   "source_file": "Lint rolling Cat hair.MOV",
+   "also_named": [
+    "IMG_0146.MOV"
+   ],
+   "drive_file_ids": [
+    "1hhVCXo730GWwXltpC-p1g3Z_hzn84ZG0",
+    "1AmKQImr9GWfL_l_XD8eGYjn1c0d87q8i"
+   ],
+   "organised_name": "PROB-02_lint-rolling-cat-hair-off-shirt.mov",
+   "duration_s": 13.6,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/PROB-02.jpg"
+  },
+  {
+   "id": "PROB-03",
+   "category": "problem",
+   "title": "Brushing hair off shirt, waving it away",
+   "description": "Creator in striped window-light brushes cat hair off shirt, flicks hand, shrugs — frustrated vibe.",
+   "cat": "none",
+   "shot": "handheld selfie-style",
+   "use_for": "Pain point, frustration reaction",
+   "tags": [
+    "cat-hair",
+    "creator",
+    "clothes",
+    "frustrated",
+    "problem"
+   ],
+   "best_section": "0:01-0:07",
+   "notes": null,
+   "source_file": "IMG_0145.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1dxV3ebnS3wwzbubwTMzg4qB68RYZ4uuj",
+    "1_PtPQ5_D8IikpWipWz0jdhNuYLJdZgeH"
+   ],
+   "organised_name": "PROB-03_brushing-hair-off-shirt-waving-it-away.mov",
+   "duration_s": 8.2,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/PROB-03.jpg"
+  },
+  {
+   "id": "AIR-01",
+   "category": "air-purifier",
+   "title": "Air purifier → pan up to Siamese on cat tree",
+   "description": "Starts on air purifier, pans up wall past hammock and clock to Siamese lounging on top of cat tree.",
+   "cat": "siamese",
+   "shot": "pan / tilt up",
+   "use_for": "'I tried air purifiers…', 'other solutions didn't work'",
+   "tags": [
+    "air-purifier",
+    "siamese",
+    "cat-tree",
+    "clock",
+    "pan"
+   ],
+   "best_section": null,
+   "notes": "Same file as IMG_0153",
+   "source_file": "Air filter.MOV",
+   "also_named": [
+    "IMG_0153.MOV"
+   ],
+   "drive_file_ids": [
+    "1lZio7YHYEi1lXJLM9RNjKnkXscFGCnTk",
+    "1kPV5zFl2xTmmSDQCF9dgbEt5HSpBy4G7"
+   ],
+   "organised_name": "AIR-01_air-purifier-pan-up-to-siamese-on-cat-tr.mov",
+   "duration_s": 8.6,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/AIR-01.jpg"
+  },
+  {
+   "id": "AIR-02",
+   "category": "air-purifier",
+   "title": "Air purifier display push-in",
+   "description": "Push-in to the air purifier's green ring display, then pull back out.",
+   "cat": "none",
+   "shot": "push-in / pull-out",
+   "use_for": "'Running my purifier 24/7' — what I tried before",
+   "tags": [
+    "air-purifier",
+    "display",
+    "closeup"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0152.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "157gvqZkvNmrYty5L0f1VJewyKnHJ5wuI",
+    "1kIznuPt2PfUr6dGBdjI8vtPiONN1aVC9"
+   ],
+   "organised_name": "AIR-02_air-purifier-display-push-in.mov",
+   "duration_s": 4.6,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/AIR-02.jpg"
+  },
+  {
+   "id": "AIR-03",
+   "category": "air-purifier",
+   "title": "Siamese on tree → pan down to air purifier",
+   "description": "Reverse of AIR-01: starts on Siamese by clock, pans down the wall to the air purifier.",
+   "cat": "siamese",
+   "shot": "pan / tilt down",
+   "use_for": "Alt of AIR-01",
+   "tags": [
+    "air-purifier",
+    "siamese",
+    "cat-tree",
+    "pan"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0154.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1OeAFRsvB9irRQz7a6UgHRdmudZj2XrZ9",
+    "1gkewQSaWfS6wza5oedyAMkcU2TJ1pMTm"
+   ],
+   "organised_name": "AIR-03_siamese-on-tree-pan-down-to-air-purifier.mov",
+   "duration_s": 6.2,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/AIR-03.jpg"
+  },
+  {
+   "id": "DOOR-01",
+   "category": "locked-out",
+   "title": "Open door → Siamese sitting waiting outside",
+   "description": "Hand opens bedroom door to reveal Siamese sitting on the carpet waiting.",
+   "cat": "siamese",
+   "shot": "handheld POV",
+   "use_for": "'I had to lock her out of my bedroom', emotional pain point",
+   "tags": [
+    "door",
+    "siamese",
+    "waiting",
+    "sad",
+    "locked-out",
+    "pov"
+   ],
+   "best_section": null,
+   "notes": "Same file as IMG_0164",
+   "source_file": "Cat waiting at door.MOV",
+   "also_named": [
+    "IMG_0164.MOV"
+   ],
+   "drive_file_ids": [
+    "13Yl8XmEkMvhtFdEKzdAW9mgjRdaIApwF",
+    "1fT966AFI6Y72nxcdzDBCx6_xMOuOdzlu"
+   ],
+   "organised_name": "DOOR-01_open-door-siamese-sitting-waiting-outsid.mov",
+   "duration_s": 4.4,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/DOOR-01.jpg"
+  },
+  {
+   "id": "DOOR-02",
+   "category": "locked-out",
+   "title": "Siamese walking outside door gap",
+   "description": "Through a door gap, Siamese wanders in the hallway outside.",
+   "cat": "siamese",
+   "shot": "static through door gap",
+   "use_for": "Locked-out beat",
+   "tags": [
+    "door",
+    "siamese",
+    "locked-out"
+   ],
+   "best_section": null,
+   "notes": "Same file as IMG_0162",
+   "source_file": "Cat locked out waiting.MOV",
+   "also_named": [
+    "IMG_0162.MOV"
+   ],
+   "drive_file_ids": [
+    "1QOj7MCyo2dDE7YIDRvidke3pbYTZrmfv",
+    "1MIpstxTHh9zTeLTk0EUHFESs2HDAq2I2"
+   ],
+   "organised_name": "DOOR-02_siamese-walking-outside-door-gap.mov",
+   "duration_s": 4.2,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/DOOR-02.jpg"
+  },
+  {
+   "id": "DOOR-03",
+   "category": "locked-out",
+   "title": "Door closing on Siamese",
+   "description": "Siamese walks out, hand closes the door on her, door reopens with her outside.",
+   "cat": "siamese",
+   "shot": "static through door",
+   "use_for": "'Shutting the door on her every night'",
+   "tags": [
+    "door",
+    "siamese",
+    "closing",
+    "locked-out"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0161.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1pS-Ez3PGcbKnm5nDpGLfB5I3MUnPvGJn",
+    "1Xo71CRPZfUn4flqIbba8SeptyXCT1cx9"
+   ],
+   "organised_name": "DOOR-03_door-closing-on-siamese.mov",
+   "duration_s": 5.1,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/DOOR-03.jpg"
+  },
+  {
+   "id": "BOND-01",
+   "category": "bonding",
+   "title": "Petting ragdoll on bed",
+   "description": "Hand reaches in and pets ragdoll who rolls over on bed.",
+   "cat": "ragdoll",
+   "shot": "static close",
+   "use_for": "After / 'now I can cuddle without sneezing'",
+   "tags": [
+    "ragdoll",
+    "petting",
+    "hand",
+    "bonding",
+    "after",
+    "solution"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0131.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1DRWi0xDDxvVQq3wo9bkGwUSBphiqobIN"
+   ],
+   "organised_name": "BOND-01_petting-ragdoll-on-bed.mov",
+   "duration_s": 10.7,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/BOND-01.jpg"
+  },
+  {
+   "id": "BOND-02",
+   "category": "bonding",
+   "title": "Scratching ragdoll's head",
+   "description": "Hand strokes and scratches sitting ragdoll's head and chin; cat leans in.",
+   "cat": "ragdoll",
+   "shot": "static medium",
+   "use_for": "After / bonding",
+   "tags": [
+    "ragdoll",
+    "petting",
+    "hand",
+    "bonding",
+    "after"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0134.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "10CFHsHz8y_VLkGpuweC6yJuAfMr9hW2-",
+    "1wCjxD9JEMlK_skgweOC5WkC9DVFZ05yt"
+   ],
+   "organised_name": "BOND-02_scratching-ragdoll-s-head.mov",
+   "duration_s": 11.9,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/BOND-02.jpg"
+  },
+  {
+   "id": "BOND-03",
+   "category": "bonding",
+   "title": "Belly rubs — ragdoll on back",
+   "description": "Ragdoll lying on back, hand rubs belly and chest.",
+   "cat": "ragdoll",
+   "shot": "static close",
+   "use_for": "After / affection",
+   "tags": [
+    "ragdoll",
+    "petting",
+    "belly",
+    "bonding",
+    "after"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0136.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1EMcApCAE6TXxkH55Hjl39sTc8Y9EQnUu",
+    "1HX2O3OpGJlD13_6Fi2yu5VUb1vRX3Kal"
+   ],
+   "organised_name": "BOND-03_belly-rubs.mov",
+   "duration_s": 13.6,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/BOND-03.jpg"
+  },
+  {
+   "id": "BOND-04",
+   "category": "bonding",
+   "title": "Petting ragdoll — cat closes eyes",
+   "description": "Hand pets ragdoll's head, cat closes eyes happily.",
+   "cat": "ragdoll",
+   "shot": "static close",
+   "use_for": "After / content cat",
+   "tags": [
+    "ragdoll",
+    "petting",
+    "bonding",
+    "after",
+    "content"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0139.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1qvUCWEJGzcgOq876TCcxU2wdAANZyeof",
+    "1eRuaFZj3-ge1wveX05VfPTV6ArcJN_PD"
+   ],
+   "organised_name": "BOND-04_petting-ragdoll.mov",
+   "duration_s": 14.9,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/BOND-04.jpg"
+  },
+  {
+   "id": "SIA-01",
+   "category": "siamese",
+   "title": "Siamese playing with feather wand",
+   "description": "Siamese on her back batting a colourful feather wand toy on the carpet.",
+   "cat": "siamese",
+   "shot": "static close",
+   "use_for": "Playful filler, 'healthy happy cat'",
+   "tags": [
+    "siamese",
+    "play",
+    "feather-toy",
+    "cute"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0122.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1Bx03ftqUaro_qcGydnvrLLKxKyGKTfpi"
+   ],
+   "organised_name": "SIA-01_siamese-playing-with-feather-wand.mov",
+   "duration_s": 5.7,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/SIA-01.jpg"
+  },
+  {
+   "id": "SIA-02",
+   "category": "siamese",
+   "title": "Siamese rolling with feather toy",
+   "description": "Siamese lying on side chewing/rolling with feather toys.",
+   "cat": "siamese",
+   "shot": "static wide",
+   "use_for": "Playful filler",
+   "tags": [
+    "siamese",
+    "play",
+    "feather-toy"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0123.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1N3AvC-RmLBIUOczT3j3IHryzAwIgW3tm"
+   ],
+   "organised_name": "SIA-02_siamese-rolling-with-feather-toy.mov",
+   "duration_s": 3.8,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/SIA-02.jpg"
+  },
+  {
+   "id": "SIA-03",
+   "category": "siamese",
+   "title": "Siamese play session (14s)",
+   "description": "Longer play session: wand dangles, Siamese grabs and kicks the feather toy.",
+   "cat": "siamese",
+   "shot": "static medium",
+   "use_for": "Playful filler, longer",
+   "tags": [
+    "siamese",
+    "play",
+    "feather-toy"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0124.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1kT1_tlfM2OcoCSfVmkXi7f8CLOR87BlC"
+   ],
+   "organised_name": "SIA-03_siamese-play-session-14s.mov",
+   "duration_s": 14.2,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/SIA-03.jpg"
+  },
+  {
+   "id": "SIA-04",
+   "category": "siamese",
+   "title": "Siamese on windowsill about to jump down",
+   "description": "Siamese crouched on sunny windowsill above a grey donut bed.",
+   "cat": "siamese",
+   "shot": "static",
+   "use_for": "Quick filler",
+   "tags": [
+    "siamese",
+    "window",
+    "sunlight"
+   ],
+   "best_section": null,
+   "notes": "Short (2s)",
+   "source_file": "IMG_0113.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1ylOJTmse_kOOyjy0UsewAoB0abgL8hCy",
+    "11v0H-wBZDNftieN0RsZWKHEG5lRFHdoG"
+   ],
+   "organised_name": "SIA-04_siamese-on-windowsill-about-to-jump-down.mov",
+   "duration_s": 2.1,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/SIA-04.jpg"
+  },
+  {
+   "id": "SIA-05",
+   "category": "siamese",
+   "title": "Siamese leaves window bed, walks the room",
+   "description": "Siamese in window bed hops down and walks across the room; handheld follow.",
+   "cat": "siamese",
+   "shot": "handheld follow",
+   "use_for": "Day-in-the-life filler",
+   "tags": [
+    "siamese",
+    "window",
+    "walk",
+    "follow"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "cat by window moving around.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1L169DSW-btRcyRse4viGMucHNceRCJYG"
+   ],
+   "organised_name": "SIA-05_siamese-leaves-window-bed-walks-the-room.mov",
+   "duration_s": 6.2,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/SIA-05.jpg"
+  },
+  {
+   "id": "SIA-06",
+   "category": "siamese",
+   "title": "Siamese walking wall shelves → cat tree",
+   "description": "Siamese walks along wall-mounted cat shelves then onto top of tall cat tree.",
+   "cat": "siamese",
+   "shot": "handheld follow",
+   "use_for": "Filler, 'she's everywhere in the house'",
+   "tags": [
+    "siamese",
+    "wall-shelves",
+    "cat-tree",
+    "climb"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0147.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1OWKf3pLwne7T91ceSc2vJgVL3I_x8cz2",
+    "1otHIpOVs982DLBKQYTwrYEUaa8ikN3aj"
+   ],
+   "organised_name": "SIA-06_siamese-walking-wall-shelves-cat-tree.mov",
+   "duration_s": 13.0,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/SIA-06.jpg"
+  },
+  {
+   "id": "SIA-07",
+   "category": "siamese",
+   "title": "Siamese stepping onto wall hammock",
+   "description": "Siamese steps down onto a wall-mounted hammock shelf, low angle.",
+   "cat": "siamese",
+   "shot": "static low angle",
+   "use_for": "Filler",
+   "tags": [
+    "siamese",
+    "wall-shelves",
+    "climb"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0148.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1nPd7CaQ9kZjjaUUIa9m_jdzAPM0g67Oe",
+    "1q5cYHN0hl4J7LApyjXeN2CfFkr94hwcr"
+   ],
+   "organised_name": "SIA-07_siamese-stepping-onto-wall-hammock.mov",
+   "duration_s": 3.2,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/SIA-07.jpg"
+  },
+  {
+   "id": "SIA-08",
+   "category": "siamese",
+   "title": "Siamese on wall hammock, looks at camera",
+   "description": "Siamese standing on wall hammock, looks at camera, turns.",
+   "cat": "siamese",
+   "shot": "static close low angle",
+   "use_for": "Filler / reaction cut",
+   "tags": [
+    "siamese",
+    "wall-shelves",
+    "look-at-camera"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0149.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1_3WFY-stO1RE5xKRu71VJMHLvnFbVH9Q",
+    "1pgyORvZuQZMBViiwrJiIdBMG9LebWpv7"
+   ],
+   "organised_name": "SIA-08_siamese-on-wall-hammock-looks-at-camera.mov",
+   "duration_s": 5.0,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/SIA-08.jpg"
+  },
+  {
+   "id": "SIA-09",
+   "category": "siamese",
+   "title": "Siamese on cat tree by clock → jumps to shelf",
+   "description": "Siamese on carpeted cat tree next to clock, leaps onto wall perch.",
+   "cat": "siamese",
+   "shot": "handheld",
+   "use_for": "Filler with action",
+   "tags": [
+    "siamese",
+    "cat-tree",
+    "clock",
+    "jump"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0150.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "18Fz5YDo5TCGoCyCSDYd-LidaAs67Ilgz",
+    "1VVe0iZbk8-zqyPoamX4Rw62N_WqlK9uG"
+   ],
+   "organised_name": "SIA-09_siamese-on-cat-tree-by-clock-jumps-to-sh.mov",
+   "duration_s": 8.8,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/SIA-09.jpg"
+  },
+  {
+   "id": "RAG-01",
+   "category": "ragdoll",
+   "title": "Ragdoll on bed — stares into camera",
+   "description": "Grey ragdoll lying on white bed, camera moves in, cat stares straight into lens.",
+   "cat": "ragdoll",
+   "shot": "push-in, eye-level",
+   "use_for": "Hook / reaction / 'meet my other cat'",
+   "tags": [
+    "ragdoll",
+    "bed",
+    "stare",
+    "look-at-camera",
+    "hook"
+   ],
+   "best_section": null,
+   "notes": "Strong hero shot",
+   "source_file": "IMG_0132.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "18JnMRDHY_q4NL7Tgi5acpirJgsno3Bbb"
+   ],
+   "organised_name": "RAG-01_ragdoll-on-bed.mov",
+   "duration_s": 9.9,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/RAG-01.jpg"
+  },
+  {
+   "id": "RAG-02",
+   "category": "ragdoll",
+   "title": "Ragdoll close-up — judgy stare",
+   "description": "Push-in to ragdoll's face, blue eyes, judgy expression.",
+   "cat": "ragdoll",
+   "shot": "push-in close-up",
+   "use_for": "Funny reaction cut, hook",
+   "tags": [
+    "ragdoll",
+    "face",
+    "closeup",
+    "stare",
+    "funny",
+    "reaction",
+    "hook"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0138.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1if9T0c63NjDVE9eZO2uvF0C6O1fenU2o",
+    "1K_BGRll2vZTWY4d6bGrM5P-DKAvRNSpH"
+   ],
+   "organised_name": "RAG-02_ragdoll-close-up.mov",
+   "duration_s": 5.1,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/RAG-02.jpg"
+  },
+  {
+   "id": "RAG-03",
+   "category": "ragdoll",
+   "title": "Ragdoll on bed — profile then front",
+   "description": "Ragdoll loaf on bed, camera circles from profile to front.",
+   "cat": "ragdoll",
+   "shot": "handheld orbit",
+   "use_for": "Cute filler",
+   "tags": [
+    "ragdoll",
+    "bed",
+    "orbit"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0133.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1KCrhIZ3wgYLuugIXePpSsk41hOLbOIj-",
+    "1_EfZjSz0uGvCWlI9box1BgI96pZ1bjTx"
+   ],
+   "organised_name": "RAG-03_ragdoll-on-bed.mov",
+   "duration_s": 7.9,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/RAG-03.jpg"
+  },
+  {
+   "id": "RAG-04",
+   "category": "ragdoll",
+   "title": "Ragdoll loaf on bed, wooden dresser behind",
+   "description": "Calm ragdoll lying on bed, subtle movement.",
+   "cat": "ragdoll",
+   "shot": "static",
+   "use_for": "Calm filler",
+   "tags": [
+    "ragdoll",
+    "bed",
+    "calm"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0135.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1XO2elnd2DL3QnlNlrc8_F5HF7dITSEq-",
+    "18qKxc85NWGrf0DpGievRjtBpgiRa_rBt"
+   ],
+   "organised_name": "RAG-04_ragdoll-loaf-on-bed-wooden-dresser-behin.mov",
+   "duration_s": 5.0,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/RAG-04.jpg"
+  },
+  {
+   "id": "RAG-05",
+   "category": "ragdoll",
+   "title": "Ragdoll on bed — handheld around",
+   "description": "Camera moves around ragdoll on bed from several angles.",
+   "cat": "ragdoll",
+   "shot": "handheld orbit",
+   "use_for": "Filler",
+   "tags": [
+    "ragdoll",
+    "bed",
+    "orbit"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0141.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1QQbnUIvGABEthp1V2eIxElWKbuPhiQur",
+    "1TYwq_iwtC0sRtoqPwr6I5h9rH2lP4kPK"
+   ],
+   "organised_name": "RAG-05_ragdoll-on-bed.mov",
+   "duration_s": 10.6,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/RAG-05.jpg"
+  },
+  {
+   "id": "RAG-06",
+   "category": "ragdoll",
+   "title": "Ragdoll lying → sits up, looks away",
+   "description": "Ragdoll lying on bed then sits up and turns head.",
+   "cat": "ragdoll",
+   "shot": "static low",
+   "use_for": "Filler",
+   "tags": [
+    "ragdoll",
+    "bed"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0140.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1UCV_rXzz_eWLEcy5JnYgOpJLL9e9DVav",
+    "1g97LDIWIBRQH1VGcgaALeFy9w2WxbqJa"
+   ],
+   "organised_name": "RAG-06_ragdoll-lying-sits-up-looks-away.mov",
+   "duration_s": 6.9,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/RAG-06.jpg"
+  },
+  {
+   "id": "RAG-07",
+   "category": "ragdoll",
+   "title": "Ragdoll grooming on bed",
+   "description": "Ragdoll lying on bed grooming / looking around, door behind.",
+   "cat": "ragdoll",
+   "shot": "slow pull-back",
+   "use_for": "Calm filler",
+   "tags": [
+    "ragdoll",
+    "bed",
+    "grooming"
+   ],
+   "best_section": null,
+   "notes": "Same file as IMG_0137",
+   "source_file": "Grooming on bed.mov",
+   "also_named": [
+    "IMG_0137.mov"
+   ],
+   "drive_file_ids": [
+    "1eMaZgn6iORf_hDWBPD2jZbNp7Q9nppxQ",
+    "1HXPS3SZAnIAYkIcjrOGHmSuq3TBnwgNx"
+   ],
+   "organised_name": "RAG-07_ragdoll-grooming-on-bed.mov",
+   "duration_s": 7.0,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/RAG-07.jpg"
+  },
+  {
+   "id": "RAG-08",
+   "category": "ragdoll",
+   "title": "Ragdoll stretched out — push-in to face",
+   "description": "Ragdoll lying stretched on bed; push-in to relaxed face.",
+   "cat": "ragdoll",
+   "shot": "push-in",
+   "use_for": "Relaxed / 'finally calm' beat",
+   "tags": [
+    "ragdoll",
+    "bed",
+    "relaxed",
+    "push-in"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0130.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1IcmOnkAvSwJJT2PlGSBs3RYGzUc3_6Zz"
+   ],
+   "organised_name": "RAG-08_ragdoll-stretched-out.mov",
+   "duration_s": 4.3,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/RAG-08.jpg"
+  },
+  {
+   "id": "RAG-09",
+   "category": "ragdoll",
+   "title": "Ragdoll in fabric cube on cat shelf",
+   "description": "Ragdoll lounging inside a black fabric cube bed on top of white furniture, low angle.",
+   "cat": "ragdoll",
+   "shot": "static low angle",
+   "use_for": "Filler",
+   "tags": [
+    "ragdoll",
+    "cube-bed",
+    "lounging"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "IMG_0127.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1uFdYq4pDIP_ILZXyHb8wtso-WEitdDK3"
+   ],
+   "organised_name": "RAG-09_ragdoll-in-fabric-cube-on-cat-shelf.mov",
+   "duration_s": 8.8,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/RAG-09.jpg"
+  },
+  {
+   "id": "RAG-10",
+   "category": "ragdoll",
+   "title": "Ragdoll on couch in sunlight stripes",
+   "description": "Ragdoll on couch with striped window light across fur.",
+   "cat": "ragdoll",
+   "shot": "static",
+   "use_for": "Aesthetic filler",
+   "tags": [
+    "ragdoll",
+    "couch",
+    "sunlight",
+    "aesthetic"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "cat in house - filler video.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1zu4qwNq7ayHnLuk4T4Ppk5H7DjJ-_LZR"
+   ],
+   "organised_name": "RAG-10_ragdoll-on-couch-in-sunlight-stripes.mov",
+   "duration_s": 2.8,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/RAG-10.jpg"
+  },
+  {
+   "id": "RAG-11",
+   "category": "ragdoll",
+   "title": "Ragdoll by window → walks to camera",
+   "description": "Ragdoll on window cubby shelf hops down and walks toward camera past cat trees.",
+   "cat": "ragdoll",
+   "shot": "handheld follow",
+   "use_for": "Filler",
+   "tags": [
+    "ragdoll",
+    "window",
+    "walk"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "rag doll by window .mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1BPaBQ8Vp7kmirtKtLpp5JHv-Etzvp_K9"
+   ],
+   "organised_name": "RAG-11_ragdoll-by-window-walks-to-camera.mov",
+   "duration_s": 9.0,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/RAG-11.jpg"
+  },
+  {
+   "id": "RAG-12",
+   "category": "ragdoll",
+   "title": "Ragdoll hides under trampoline",
+   "description": "Ragdoll looks at camera then crawls under a mini trampoline to hide.",
+   "cat": "ragdoll",
+   "shot": "static low",
+   "use_for": "Funny beat / 'my cat when I get the lint roller out'",
+   "tags": [
+    "ragdoll",
+    "hide",
+    "funny"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ragdoll hide.mov",
+   "also_named": [],
+   "drive_file_ids": [
+    "1-RXS7r9FJ4PN8qVilpfgXnsFBlc_vFyY"
+   ],
+   "organised_name": "RAG-12_ragdoll-hides-under-trampoline.mov",
+   "duration_s": 4.0,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "h264",
+   "hdr": false,
+   "shot_date": "2026-10-26",
+   "thumb": "thumbs/RAG-12.jpg"
+  }
+ ]
+}
