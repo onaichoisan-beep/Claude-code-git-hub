@@ -1,43 +1,62 @@
 {
  "brand": "Pacagen",
  "product": "Cat allergen neutralizing spray + cat allergen reducing supplement + WhiskerBlock powder",
- "drive_folder": "https://drive.google.com/drive/folders/1-7sQpKl0AAn6fOKnXBuczjWl4ajC3mjG",
  "categories": [
   {
    "key": "product",
    "label": "Product packshots & details"
   },
   {
+   "key": "prep",
+   "label": "Prep: activating the spray (powder + solution)"
+  },
+  {
    "key": "in-use",
-   "label": "Product in use — spraying"
+   "label": "Product in use: spraying"
+  },
+  {
+   "key": "supplement",
+   "label": "Supplement: scooping & serving"
   },
   {
    "key": "feeding",
-   "label": "Feeding & supplement"
+   "label": "Feeding & cats eating"
   },
   {
    "key": "problem",
-   "label": "Problem — cat hair / allergy"
+   "label": "Problem: cat hair / allergy"
+  },
+  {
+   "key": "allergy-meds",
+   "label": "Problem: allergy pills, sprays & side effects"
+  },
+  {
+   "key": "cleaning",
+   "label": "Cleaning chores & air purifiers: 'what I tried before'"
   },
   {
    "key": "air-purifier",
-   "label": "Air purifier — 'what I tried before'"
+   "label": "Air purifier (Home A)"
   },
   {
    "key": "locked-out",
-   "label": "Problem — cat locked out of the room"
+   "label": "Problem: cat locked out of the room"
   },
   {
    "key": "bonding",
-   "label": "Bonding / cuddles — the 'after'"
+   "label": "Bonding / cuddles: the 'after'"
+  },
+  {
+   "key": "household",
+   "label": "Tiger, Squirrel & Salem lifestyle (Home B)"
   },
   {
    "key": "siamese",
-   "label": "Siamese lifestyle filler"
+   "label": "Siamese lifestyle (Home A)"
   },
   {
    "key": "ragdoll",
-   "label": "Ragdoll lifestyle filler"
+   "label": "Ragdoll lifestyle (Home A)"
   }
  ],
  "clips": [
@@ -71,7 +90,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/PRD-01.jpg"
+   "thumb": "thumbs/PRD-01.jpg",
+   "shoot": "A"
   },
   {
    "id": "PRD-02",
@@ -100,7 +120,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/PRD-02.jpg"
+   "thumb": "thumbs/PRD-02.jpg",
+   "shoot": "A"
   },
   {
    "id": "PRD-03",
@@ -132,7 +153,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/PRD-03.jpg"
+   "thumb": "thumbs/PRD-03.jpg",
+   "shoot": "A"
   },
   {
    "id": "PRD-04",
@@ -163,7 +185,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/PRD-04.jpg"
+   "thumb": "thumbs/PRD-04.jpg",
+   "shoot": "A"
   },
   {
    "id": "PRD-05",
@@ -192,7 +215,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/PRD-05.jpg"
+   "thumb": "thumbs/PRD-05.jpg",
+   "shoot": "A"
   },
   {
    "id": "PRD-06",
@@ -222,7 +246,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/PRD-06.jpg"
+   "thumb": "thumbs/PRD-06.jpg",
+   "shoot": "A"
   },
   {
    "id": "PRD-07",
@@ -254,7 +279,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/PRD-07.jpg"
+   "thumb": "thumbs/PRD-07.jpg",
+   "shoot": "A"
   },
   {
    "id": "PRD-08",
@@ -284,7 +310,861 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/PRD-08.jpg"
+   "thumb": "thumbs/PRD-08.jpg",
+   "shoot": "A"
+  },
+  {
+   "id": "PRD-09",
+   "category": "product",
+   "title": "Spray bottle tossed/placed on bathroom counter (green tile)",
+   "description": "Spray bottle tossed/placed on bathroom counter (green tile)",
+   "cat": "none",
+   "shot": "hand places bottle, static",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "bathroom",
+    "bottle",
+    "counter",
+    "placed",
+    "product",
+    "spray",
+    "tossed"
+   ],
+   "best_section": null,
+   "notes": "logo hold end",
+   "source_file": "ALL SPRAY B-ROLL/bottle",
+   "also_named": [],
+   "drive_file_ids": [
+    "1cEUimjhb_PQ5EJliMYmeZnaFWXgzPt_w"
+   ],
+   "organised_name": "PRD-09_spray-bottle-tossed-placed-on-bathroom-c.mov",
+   "duration_s": 16.2,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-10",
+   "thumb": "thumbs/PRD-09.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-10",
+   "category": "product",
+   "title": "Spray bottle turned in hands, sunny window",
+   "description": "Spray bottle turned in hands, sunny window",
+   "cat": "none",
+   "shot": "close handheld",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "bottle",
+    "hands",
+    "product",
+    "spray",
+    "sunny",
+    "turned",
+    "window"
+   ],
+   "best_section": null,
+   "notes": "label + logo",
+   "source_file": "ALL SPRAY B-ROLL/bottle",
+   "also_named": [],
+   "drive_file_ids": [
+    "1H_xlGKe6ab98vGKo1_jxDWC8q0URrGJW"
+   ],
+   "organised_name": "PRD-10_spray-bottle-turned-in-hands.mov",
+   "duration_s": 30.4,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-10",
+   "thumb": "thumbs/PRD-10.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-11",
+   "category": "product",
+   "title": "Hand holds spray bottle, pulls away to reveal tabby (Tiger) sleeping on fluffy bed",
+   "description": "Hand holds spray bottle, pulls away to reveal tabby (Tiger) sleeping on fluffy bed",
+   "cat": "tiger",
+   "shot": "rack focus reveal",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "away",
+    "bottle",
+    "hand",
+    "holds",
+    "product",
+    "pulls",
+    "spray",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": "product+cat reveal",
+   "source_file": "ALL SPRAY B-ROLL/bottle in front of cat",
+   "also_named": [],
+   "drive_file_ids": [
+    "1AqFY2lHJ7kNxp5qqMIlETyqvG3FuvuVQ"
+   ],
+   "organised_name": "PRD-11_hand-holds-spray-bottle.mov",
+   "duration_s": 13.9,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-09",
+   "thumb": "thumbs/PRD-11.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-12",
+   "category": "product",
+   "title": "Spray box rotated: front, side, back 3-step instructions",
+   "description": "Spray box rotated: front, side, back 3-step instructions",
+   "cat": "none",
+   "shot": "close handheld",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "back",
+    "box",
+    "front",
+    "product",
+    "rotated",
+    "side",
+    "spray"
+   ],
+   "best_section": null,
+   "notes": "how it works",
+   "source_file": "ALL SPRAY B-ROLL/box back & side",
+   "also_named": [],
+   "drive_file_ids": [
+    "1h5Uvz30rjjswdscQGKf5M03Tuxg_7Lih"
+   ],
+   "organised_name": "PRD-12_spray-box-rotated-front.mov",
+   "duration_s": 12.3,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/PRD-12.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-13",
+   "category": "product",
+   "title": "Two spray boxes (single pack + blue twin pack) on marble",
+   "description": "Two spray boxes (single pack + blue twin pack) on marble",
+   "cat": "none",
+   "shot": "handheld",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "blue",
+    "boxes",
+    "pack",
+    "product",
+    "single",
+    "spray",
+    "two"
+   ],
+   "best_section": null,
+   "notes": "lineup",
+   "source_file": "ALL SPRAY B-ROLL/boxes",
+   "also_named": [],
+   "drive_file_ids": [
+    "1524HzEwbnH2fJH9PVpiGB5rS_gIGwZ2N"
+   ],
+   "organised_name": "PRD-13_two-spray-boxes.mov",
+   "duration_s": 8.7,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/PRD-13.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-14",
+   "category": "product",
+   "title": "Blue twin-pack box lifted, rotated to logo top",
+   "description": "Blue twin-pack box lifted, rotated to logo top",
+   "cat": "none",
+   "shot": "handheld",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "blue",
+    "box",
+    "lifted",
+    "pack",
+    "product",
+    "rotated",
+    "twin"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/boxes",
+   "also_named": [],
+   "drive_file_ids": [
+    "1ZKkUlN4C5GVHjA89uM_V2psDlz9JYV17"
+   ],
+   "organised_name": "PRD-14_blue-twin-pack-box-lifted.mov",
+   "duration_s": 8.5,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/PRD-14.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-15",
+   "category": "product",
+   "title": "Creator B1 (blue top, red lips) holds spray box by face, points at it",
+   "description": "Creator B1 (blue top, red lips) holds spray box by face, points at it",
+   "cat": "none",
+   "shot": "selfie medium",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "blue",
+    "creator",
+    "holds",
+    "hook",
+    "lips",
+    "product",
+    "red",
+    "top"
+   ],
+   "best_section": null,
+   "notes": "creator recommends, hook",
+   "source_file": "ALL SPRAY B-ROLL/creator with box",
+   "also_named": [],
+   "drive_file_ids": [
+    "1Q8Kqu2IwxoxiLlVzTgE9ngoeqVoDICKD"
+   ],
+   "organised_name": "PRD-15_creator-2.mov",
+   "duration_s": 12.0,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-17",
+   "thumb": "thumbs/PRD-15.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-16",
+   "category": "product",
+   "title": "Pacagen logo on box top close-up",
+   "description": "Pacagen logo on box top close-up",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "box",
+    "close",
+    "logo",
+    "pacagen",
+    "product",
+    "top"
+   ],
+   "best_section": null,
+   "notes": "logo/CTA",
+   "source_file": "ALL SPRAY B-ROLL/logo on box",
+   "also_named": [],
+   "drive_file_ids": [
+    "12i3VKpYN_VEM5v7K_4fVMP-8G7ugh03X"
+   ],
+   "organised_name": "PRD-16_pacagen-logo-on-box-top-close-up.mov",
+   "duration_s": 10.4,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/PRD-16.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-17",
+   "category": "product",
+   "title": "Hand picks up spray bottle in bathroom, label to camera",
+   "description": "Hand picks up spray bottle in bathroom, label to camera",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "bathroom",
+    "bottle",
+    "hand",
+    "label",
+    "picks",
+    "product",
+    "spray"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/spray bottle",
+   "also_named": [],
+   "drive_file_ids": [
+    "1VsvrNE6ei8Vhx6PUsE_bI6NARrXnuydn"
+   ],
+   "organised_name": "PRD-17_hand-picks-up-spray-bottle-in-bathroom.mov",
+   "duration_s": 14.1,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-10",
+   "thumb": "thumbs/PRD-17.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-18",
+   "category": "product",
+   "title": "Hand lifts spray bottle into frame, bedroom background",
+   "description": "Hand lifts spray bottle into frame, bedroom background",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "bedroom",
+    "bottle",
+    "frame",
+    "hand",
+    "lifts",
+    "product",
+    "spray"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/spray bottle 1",
+   "also_named": [],
+   "drive_file_ids": [
+    "1_m7RPpJRcurE-1D_gGBSNEuezzZS9OnL"
+   ],
+   "organised_name": "PRD-18_hand-lifts-spray-bottle-into-frame.mov",
+   "duration_s": 14.1,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-14",
+   "thumb": "thumbs/PRD-18.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-19",
+   "category": "product",
+   "title": "Spray bottle over striped bedding, push in to label",
+   "description": "Spray bottle over striped bedding, push in to label",
+   "cat": "none",
+   "shot": "close push-in",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "bedding",
+    "bottle",
+    "over",
+    "product",
+    "push",
+    "spray",
+    "striped"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/spray on guest bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1z6c4OE1ua2M4a6WJ50jowYC3ukX20JCZ"
+   ],
+   "organised_name": "PRD-19_spray-bottle-over-striped-bedding.mov",
+   "duration_s": 10.6,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-15",
+   "thumb": "thumbs/PRD-19.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-20",
+   "category": "product",
+   "title": "Unboxing spray kit: box opened, pouch + bottle pulled out",
+   "description": "Unboxing spray kit: box opened, pouch + bottle pulled out (45s)",
+   "cat": "none",
+   "shot": "close handheld",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "box",
+    "kit",
+    "opened",
+    "pouch",
+    "product",
+    "spray",
+    "unboxing"
+   ],
+   "best_section": null,
+   "notes": "unboxing",
+   "source_file": "ALL SPRAY B-ROLL/unboxing",
+   "also_named": [],
+   "drive_file_ids": [
+    "1RGuemaFEh4OqhmhiCW5X0l0kG4SVHmGj"
+   ],
+   "organised_name": "PRD-20_unboxing-spray-kit-box-opened.mov",
+   "duration_s": 45.4,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-14",
+   "thumb": "thumbs/PRD-20.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-21",
+   "category": "product",
+   "title": "Supplement tub back label rotated in hand, white bg",
+   "description": "Supplement tub back label rotated in hand, white bg",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "back",
+    "hand",
+    "label",
+    "product",
+    "rotated",
+    "supplement",
+    "tub"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/back of supplement",
+   "also_named": [],
+   "drive_file_ids": [
+    "1FZad9eWlBKEZqMVutl5ZcWKy1uM4ELNM"
+   ],
+   "organised_name": "PRD-21_supplement-tub-back-label-rotated-in-han.mov",
+   "duration_s": 12.4,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/PRD-21.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-22",
+   "category": "product",
+   "title": "Supplement tub rotated in hand, white bg, logo lid",
+   "description": "Supplement tub rotated in hand, white bg, logo lid",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "hand",
+    "logo",
+    "product",
+    "rotated",
+    "supplement",
+    "tub",
+    "white"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/supplement",
+   "also_named": [],
+   "drive_file_ids": [
+    "14limUKs4pTcNhKMzDoy6fU2R8piybttm"
+   ],
+   "organised_name": "PRD-22_supplement-tub-rotated-in-hand.mov",
+   "duration_s": 8.7,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/PRD-22.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-23",
+   "category": "product",
+   "title": "Supplement tub rotated in hand, couch/tile bg",
+   "description": "Supplement tub rotated in hand, couch/tile bg (27s)",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "couch",
+    "hand",
+    "product",
+    "rotated",
+    "supplement",
+    "tile",
+    "tub"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/supplement",
+   "also_named": [],
+   "drive_file_ids": [
+    "10IDpiY8MxRYzz55zE2VFrX0ENnvhr2Dg"
+   ],
+   "organised_name": "PRD-23_supplement-tub-rotated-in-hand.mov",
+   "duration_s": 27.1,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-10",
+   "thumb": "thumbs/PRD-23.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-24",
+   "category": "product",
+   "title": "Supplement tub placed on bathroom counter",
+   "description": "Supplement tub placed on bathroom counter",
+   "cat": "none",
+   "shot": "static",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "bathroom",
+    "counter",
+    "placed",
+    "product",
+    "supplement",
+    "tub"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/supplement",
+   "also_named": [],
+   "drive_file_ids": [
+    "1RR_t-_32_JgSSYuAZ2cWcuPf_RYoc3LK"
+   ],
+   "organised_name": "PRD-24_supplement-tub-placed-on-bathroom-counte.mov",
+   "duration_s": 15.4,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-10",
+   "thumb": "thumbs/PRD-24.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-25",
+   "category": "product",
+   "title": "Supplement tub in hand over dining table, rotate to lid logo",
+   "description": "Supplement tub in hand over dining table, rotate to lid logo",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "dining",
+    "hand",
+    "over",
+    "product",
+    "supplement",
+    "table",
+    "tub"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/supplement dining table",
+   "also_named": [],
+   "drive_file_ids": [
+    "1irLXQfAlNvOKA0KxB9DRUqVbQJLD3_ms"
+   ],
+   "organised_name": "PRD-25_supplement-tub-in-hand-over-dining-table.mov",
+   "duration_s": 9.1,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/PRD-25.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-26",
+   "category": "product",
+   "title": "Supplement tub in hand in front of sunny bed",
+   "description": "Supplement tub in hand in front of sunny bed",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "bed",
+    "front",
+    "hand",
+    "product",
+    "sunny",
+    "supplement",
+    "tub"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/supplement in front of bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1cTSwlA0fPk6GLhiYOaSDuHNBjwm5yRdE",
+    "1XaxZI2lbxWsrQ8LyS0TDU_Nbtw_VTitO"
+   ],
+   "organised_name": "PRD-26_supplement-tub-in-hand-in-front-of-sunny.mov",
+   "duration_s": 10.3,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-14",
+   "thumb": "thumbs/PRD-26.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-27",
+   "category": "product",
+   "title": "Supplement tub held in front of sleeping tabby on bed",
+   "description": "Supplement tub held in front of sleeping tabby on bed",
+   "cat": "tiger",
+   "shot": "close",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "front",
+    "held",
+    "product",
+    "sleeping",
+    "supplement",
+    "tabby",
+    "tiger",
+    "tub"
+   ],
+   "best_section": null,
+   "notes": "cat+product",
+   "source_file": "ALL SUPPLEMENT B-ROLL/supplement in front of cat",
+   "also_named": [],
+   "drive_file_ids": [
+    "1mAaW4gGdXlSHc-s_sE4xpZ4JO4mtkF_G"
+   ],
+   "organised_name": "PRD-27_supplement-tub-held-in-front-of-sleeping.mov",
+   "duration_s": 10.6,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-09",
+   "thumb": "thumbs/PRD-27.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PRD-28",
+   "category": "product",
+   "title": "Supplement tub, lid ajar, slow push-in",
+   "description": "Supplement tub, lid ajar, slow push-in",
+   "cat": "none",
+   "shot": "push-in",
+   "use_for": "Product reveal, packshot, CTA end card",
+   "tags": [
+    "ajar",
+    "hero",
+    "lid",
+    "product",
+    "push",
+    "slow",
+    "supplement",
+    "tub"
+   ],
+   "best_section": null,
+   "notes": "hero",
+   "source_file": "ALL SUPPLEMENT B-ROLL/supplement lid open",
+   "also_named": [],
+   "drive_file_ids": [
+    "11UqDwiJ0Oj0z6RzqpmvpwHhn-eajepsw"
+   ],
+   "organised_name": "PRD-28_supplement-tub.mov",
+   "duration_s": 8.5,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/PRD-28.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PREP-01",
+   "category": "prep",
+   "title": "Pouring stabilizing solution from pouch into spray bottle",
+   "description": "Pouring stabilizing solution from pouch into spray bottle",
+   "cat": "none",
+   "shot": "close static",
+   "use_for": "How it works, Step 1 'Activate': mix the powder + solution",
+   "tags": [
+    "bottle",
+    "long",
+    "pouch",
+    "pouring",
+    "prep",
+    "solution",
+    "spray",
+    "stabilizing"
+   ],
+   "best_section": null,
+   "notes": "Step 1 activate; long 58s",
+   "source_file": "ALL SPRAY B-ROLL/pouring from bag",
+   "also_named": [],
+   "drive_file_ids": [
+    "15-QBqKf2bYOH_Bwi0G4xbsa56W4XwVJT"
+   ],
+   "organised_name": "PREP-01_pouring-stabilizing-solution-from-pouch-.mov",
+   "duration_s": 58.5,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-14",
+   "thumb": "thumbs/PREP-01.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PREP-02",
+   "category": "prep",
+   "title": "Tearing WhiskerBlock powder stick and pouring into bottle",
+   "description": "Tearing WhiskerBlock powder stick and pouring into bottle",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "How it works, Step 1 'Activate': mix the powder + solution",
+   "tags": [
+    "bottle",
+    "pouring",
+    "powder",
+    "prep",
+    "stick",
+    "tearing",
+    "whiskerblock"
+   ],
+   "best_section": null,
+   "notes": "Step 1 activate",
+   "source_file": "ALL SPRAY B-ROLL/pouring powder",
+   "also_named": [],
+   "drive_file_ids": [
+    "1sZhedvqZdmr6eyap4Oe5eMtt73nSiTMG"
+   ],
+   "organised_name": "PREP-02_tearing-whiskerblock-powder-stick-and-po.mov",
+   "duration_s": 33.9,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-14",
+   "thumb": "thumbs/PREP-02.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PREP-03",
+   "category": "prep",
+   "title": "Screwing spray trigger onto bottle",
+   "description": "Screwing spray trigger onto bottle",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "How it works, Step 1 'Activate': mix the powder + solution",
+   "tags": [
+    "bottle",
+    "onto",
+    "prep",
+    "screwing",
+    "spray",
+    "trigger"
+   ],
+   "best_section": null,
+   "notes": "Step 1",
+   "source_file": "ALL SPRAY B-ROLL/screwing spray",
+   "also_named": [],
+   "drive_file_ids": [
+    "17F5cUVpVZgrD1WixkWhVEieZE70GrZ5x"
+   ],
+   "organised_name": "PREP-03_screwing-spray-trigger-onto-bottle.mov",
+   "duration_s": 12.2,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-14",
+   "thumb": "thumbs/PREP-03.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PREP-04",
+   "category": "prep",
+   "title": "Hand shakes spray bottle in front of plant",
+   "description": "Hand shakes spray bottle in front of plant",
+   "cat": "none",
+   "shot": "static",
+   "use_for": "'shake gently'; How it works, Step 1 'Activate': mix the powder + solution",
+   "tags": [
+    "bottle",
+    "front",
+    "hand",
+    "plant",
+    "prep",
+    "shakes",
+    "spray"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/shaking bottle",
+   "also_named": [],
+   "drive_file_ids": [
+    "1R3BaB--Neuq6WSERZkuHNru0l4n9ZAc9"
+   ],
+   "organised_name": "PREP-04_hand-shakes-spray-bottle-in-front-of-pla.mov",
+   "duration_s": 24.3,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-14",
+   "thumb": "thumbs/PREP-04.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "PREP-05",
+   "category": "prep",
+   "title": "Unscrewing trigger, pouring/handling pouch next to bottle",
+   "description": "Unscrewing trigger, pouring/handling pouch next to bottle",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "How it works, Step 1 'Activate': mix the powder + solution",
+   "tags": [
+    "handling",
+    "next",
+    "pouch",
+    "pouring",
+    "prep",
+    "trigger",
+    "unscrewing"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/unscrewing bottle",
+   "also_named": [],
+   "drive_file_ids": [
+    "1Hd4WBnpj5i28B-Tg0C4gJYlSLKv2gb_e"
+   ],
+   "organised_name": "PREP-05_unscrewing-trigger.mov",
+   "duration_s": 15.9,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-14",
+   "thumb": "thumbs/PREP-05.jpg",
+   "shoot": "B"
   },
   {
    "id": "USE-01",
@@ -314,7 +1194,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/USE-01.jpg"
+   "thumb": "thumbs/USE-01.jpg",
+   "shoot": "A"
   },
   {
    "id": "USE-02",
@@ -344,7 +1225,8 @@
    "codec": "hevc",
    "hdr": true,
    "shot_date": "2026-11-01",
-   "thumb": "thumbs/USE-02.jpg"
+   "thumb": "thumbs/USE-02.jpg",
+   "shoot": "A"
   },
   {
    "id": "USE-03",
@@ -374,7 +1256,8 @@
    "codec": "hevc",
    "hdr": true,
    "shot_date": "2026-11-01",
-   "thumb": "thumbs/USE-03.jpg"
+   "thumb": "thumbs/USE-03.jpg",
+   "shoot": "A"
   },
   {
    "id": "USE-04",
@@ -404,7 +1287,8 @@
    "codec": "hevc",
    "hdr": true,
    "shot_date": "2026-11-01",
-   "thumb": "thumbs/USE-04.jpg"
+   "thumb": "thumbs/USE-04.jpg",
+   "shoot": "A"
   },
   {
    "id": "USE-05",
@@ -439,7 +1323,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/USE-05.jpg"
+   "thumb": "thumbs/USE-05.jpg",
+   "shoot": "A"
   },
   {
    "id": "USE-06",
@@ -471,7 +1356,1147 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/USE-06.jpg"
+   "thumb": "thumbs/USE-06.jpg",
+   "shoot": "A"
+  },
+  {
+   "id": "USE-07",
+   "category": "in-use",
+   "title": "Creator B1 sprays bed, wide, sunlight",
+   "description": "Creator B1 sprays bed, wide, sunlight",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "Spray demo: 'spray anywhere your cat hangs out'",
+   "tags": [
+    "bed",
+    "creator",
+    "in-use",
+    "sprays",
+    "sunlight",
+    "wide"
+   ],
+   "best_section": null,
+   "notes": "bed",
+   "source_file": "ALL SPRAY B-ROLL/spraying bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1F6XFz-Dwd1F6BZ2aPNTnu8M9XqbCCkt-"
+   ],
+   "organised_name": "USE-07_creator-2-sprays-bed.mov",
+   "duration_s": 10.8,
+   "resolution": "2160x3840",
+   "fps": 58,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/USE-07.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "USE-08",
+   "category": "in-use",
+   "title": "Creator B1 sprays carpet runner on checkered entryway floor, mist in sunlight",
+   "description": "Creator B1 sprays carpet runner on checkered entryway floor, mist in sunlight",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "Spray demo: 'spray anywhere your cat hangs out'",
+   "tags": [
+    "carpet",
+    "checkered",
+    "creator",
+    "entryway",
+    "in-use",
+    "mist",
+    "runner",
+    "sprays"
+   ],
+   "best_section": null,
+   "notes": "visible mist",
+   "source_file": "ALL SPRAY B-ROLL/spraying carpet entryway",
+   "also_named": [],
+   "drive_file_ids": [
+    "1fcaFWhlXDZLg7MMDPnKobW-_xMSnBR9U"
+   ],
+   "organised_name": "USE-08_creator-2-sprays-carpet-runner-on-checke.mov",
+   "duration_s": 13.6,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/USE-08.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "USE-09",
+   "category": "in-use",
+   "title": "Hand sprays cat tree by window (arm only)",
+   "description": "Hand sprays cat tree by window (arm only)",
+   "cat": "none",
+   "shot": "static",
+   "use_for": "Spray demo: 'spray anywhere your cat hangs out'",
+   "tags": [
+    "arm",
+    "cat",
+    "hand",
+    "in-use",
+    "sprays",
+    "tree",
+    "window"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/spraying cat tree",
+   "also_named": [],
+   "drive_file_ids": [
+    "140yIzBFeCQW3Kpe0Pl2eFKCh8ya3Lb15"
+   ],
+   "organised_name": "USE-09_hand-sprays-cat-tree-by-window.mov",
+   "duration_s": 7.7,
+   "resolution": "2160x3840",
+   "fps": 57,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/USE-09.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "USE-10",
+   "category": "in-use",
+   "title": "Hand sprays cat tree bed close",
+   "description": "Hand sprays cat tree bed close",
+   "cat": "none",
+   "shot": "static",
+   "use_for": "Spray demo: 'spray anywhere your cat hangs out'",
+   "tags": [
+    "bed",
+    "cat",
+    "close",
+    "hand",
+    "in-use",
+    "sprays",
+    "tree"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/spraying cat tree 2",
+   "also_named": [],
+   "drive_file_ids": [
+    "1uUF4Uam3J8C_LA-LJ_h6G_diFWPo5w0G"
+   ],
+   "organised_name": "USE-10_hand-sprays-cat-tree-bed-close.mov",
+   "duration_s": 13.2,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/USE-10.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "USE-11",
+   "category": "in-use",
+   "title": "Spray mist close-up in front of door, backlit",
+   "description": "Spray mist close-up in front of door, backlit",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "Spray demo: 'spray anywhere your cat hangs out'",
+   "tags": [
+    "backlit",
+    "close",
+    "door",
+    "front",
+    "hero",
+    "in-use",
+    "mist",
+    "spray"
+   ],
+   "best_section": null,
+   "notes": "mist hero",
+   "source_file": "ALL SPRAY B-ROLL/spraying closeup",
+   "also_named": [],
+   "drive_file_ids": [
+    "16pPihBD1ouxOn_ujsJaFjxOGDd42W08L"
+   ],
+   "organised_name": "USE-11_spray-mist-close-up-in-front-of-door.mov",
+   "duration_s": 5.5,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/USE-11.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "USE-12",
+   "category": "in-use",
+   "title": "Creator B2 (white top) sprays coffee table area",
+   "description": "Creator B2 (white top) sprays coffee table area",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "Spray demo: 'spray anywhere your cat hangs out'",
+   "tags": [
+    "coffee",
+    "creator",
+    "in-use",
+    "sprays",
+    "table",
+    "top",
+    "white"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/spraying coffee table",
+   "also_named": [],
+   "drive_file_ids": [
+    "1FWhfV_OyW39HdxHzCxi2i1ykU0FEqqII"
+   ],
+   "organised_name": "USE-12_creator-3.mov",
+   "duration_s": 12.5,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/USE-12.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "USE-13",
+   "category": "in-use",
+   "title": "Creator B2 sprays grey couch",
+   "description": "Creator B2 sprays grey couch",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "Spray demo: 'spray anywhere your cat hangs out'",
+   "tags": [
+    "couch",
+    "creator",
+    "grey",
+    "in-use",
+    "sprays"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/spraying couch",
+   "also_named": [],
+   "drive_file_ids": [
+    "184_ffXd6fSEiGvIyDFE5w3fMSWyasJNk"
+   ],
+   "organised_name": "USE-13_creator-3-sprays-grey-couch.mov",
+   "duration_s": 16.9,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/USE-13.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "USE-14",
+   "category": "in-use",
+   "title": "Creator B2 sprays white desk chair",
+   "description": "Creator B2 sprays white desk chair",
+   "cat": "none",
+   "shot": "static",
+   "use_for": "Spray demo: 'spray anywhere your cat hangs out'",
+   "tags": [
+    "chair",
+    "creator",
+    "desk",
+    "in-use",
+    "sprays",
+    "white"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/spraying desk chair",
+   "also_named": [],
+   "drive_file_ids": [
+    "1f3N1bcTS3ZiVPADgjVulHaB5bMOXytZw"
+   ],
+   "organised_name": "USE-14_creator-3-sprays-white-desk-chair.mov",
+   "duration_s": 6.2,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/USE-14.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "USE-15",
+   "category": "in-use",
+   "title": "Creator B2 sprays blue dining chairs",
+   "description": "Creator B2 sprays blue dining chairs",
+   "cat": "none",
+   "shot": "handheld",
+   "use_for": "Spray demo: 'spray anywhere your cat hangs out'",
+   "tags": [
+    "blue",
+    "chairs",
+    "creator",
+    "dining",
+    "in-use",
+    "sprays"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/spraying dining chairs",
+   "also_named": [],
+   "drive_file_ids": [
+    "19AscCOYU1OJccxSI3KWM2Ldi_UXWNLcy"
+   ],
+   "organised_name": "USE-15_creator-3-sprays-blue-dining-chairs.mov",
+   "duration_s": 8.6,
+   "resolution": "2160x3840",
+   "fps": 58,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/USE-15.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "USE-16",
+   "category": "in-use",
+   "title": "Arm sprays pillows, sunlit bed",
+   "description": "Arm sprays pillows, sunlit bed",
+   "cat": "none",
+   "shot": "static",
+   "use_for": "Spray demo: 'spray anywhere your cat hangs out'",
+   "tags": [
+    "arm",
+    "bed",
+    "in-use",
+    "pillows",
+    "sprays",
+    "sunlit"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/spraying pillows",
+   "also_named": [],
+   "drive_file_ids": [
+    "1TdrFWMVvFeeKL3goqSnu2OLE4qoG5gBT"
+   ],
+   "organised_name": "USE-16_arm-sprays-pillows.mov",
+   "duration_s": 9.4,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/USE-16.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "USE-17",
+   "category": "in-use",
+   "title": "Creator B1 sprays pillows/bed, wide",
+   "description": "Creator B1 sprays pillows/bed, wide",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "Spray demo: 'spray anywhere your cat hangs out'",
+   "tags": [
+    "bed",
+    "creator",
+    "in-use",
+    "pillows",
+    "sprays",
+    "wide"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/spraying pillows",
+   "also_named": [],
+   "drive_file_ids": [
+    "1r9_Hj3e7nH5mpC40EXbJlxd6QalJE53U"
+   ],
+   "organised_name": "USE-17_creator-2-sprays-pillows-bed.mov",
+   "duration_s": 15.1,
+   "resolution": "2160x3840",
+   "fps": 58,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/USE-17.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "USE-18",
+   "category": "in-use",
+   "title": "Creator B2 sprays tall scratcher post",
+   "description": "Creator B2 sprays tall scratcher post",
+   "cat": "none",
+   "shot": "static",
+   "use_for": "Spray demo: 'spray anywhere your cat hangs out'",
+   "tags": [
+    "creator",
+    "in-use",
+    "post",
+    "scratcher",
+    "sprays",
+    "tall"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/spraying scratcher",
+   "also_named": [],
+   "drive_file_ids": [
+    "1jhl33v_zP56Mg40mVmWd2io7XFhQWE36"
+   ],
+   "organised_name": "USE-18_creator-3-sprays-tall-scratcher-post.mov",
+   "duration_s": 8.5,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/USE-18.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "USE-19",
+   "category": "in-use",
+   "title": "Creator B1 sprays bed sheets, pulls sheets back",
+   "description": "Creator B1 sprays bed sheets, pulls sheets back (22s)",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "Spray demo: 'spray anywhere your cat hangs out'",
+   "tags": [
+    "bed",
+    "creator",
+    "in-use",
+    "pulls",
+    "sheets",
+    "sprays"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/spraying sheets",
+   "also_named": [],
+   "drive_file_ids": [
+    "14oNviAjPRzLPyzhARAI7ilB0-ekjflEi"
+   ],
+   "organised_name": "USE-19_creator-2-sprays-bed-sheets.mov",
+   "duration_s": 22.8,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/USE-19.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "USE-20",
+   "category": "in-use",
+   "title": "Creator B2 sprays carpeted stairs walking down",
+   "description": "Creator B2 sprays carpeted stairs walking down (40s)",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "Spray demo: 'spray anywhere your cat hangs out'",
+   "tags": [
+    "carpeted",
+    "creator",
+    "down",
+    "in-use",
+    "sprays",
+    "stairs",
+    "walking"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/spraying stairs",
+   "also_named": [],
+   "drive_file_ids": [
+    "1_twtTin4_dukEQqVWA-VubSsrs1piDXt"
+   ],
+   "organised_name": "USE-20_creator-3-sprays-carpeted-stairs-walking.mov",
+   "duration_s": 40.3,
+   "resolution": "1948x3462",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/USE-20.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "USE-21",
+   "category": "in-use",
+   "title": "Creator B2 sprays bar stools at kitchen island",
+   "description": "Creator B2 sprays bar stools at kitchen island",
+   "cat": "none",
+   "shot": "handheld",
+   "use_for": "Spray demo: 'spray anywhere your cat hangs out'",
+   "tags": [
+    "bar",
+    "creator",
+    "in-use",
+    "island",
+    "kitchen",
+    "sprays",
+    "stools"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SPRAY B-ROLL/spraying stools",
+   "also_named": [],
+   "drive_file_ids": [
+    "1WVYpALDxqNDwRh9br5Mz9d7QsMJyQh4s"
+   ],
+   "organised_name": "USE-21_creator-3-sprays-bar-stools-at-kitchen-i.mov",
+   "duration_s": 17.4,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/USE-21.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "USE-22",
+   "category": "in-use",
+   "title": "Spray mist backlit in sunlight over bed — hero mist shot",
+   "description": "Spray mist backlit in sunlight over bed — hero mist shot",
+   "cat": "none",
+   "shot": "static close",
+   "use_for": "Spray demo: 'spray anywhere your cat hangs out'",
+   "tags": [
+    "backlit",
+    "bed",
+    "hero",
+    "in-use",
+    "mist",
+    "over",
+    "spray",
+    "sunlight"
+   ],
+   "best_section": null,
+   "notes": "mist hero, aesthetic",
+   "source_file": "ALL SPRAY B-ROLL/spraying sunlight",
+   "also_named": [],
+   "drive_file_ids": [
+    "1TXxbHaf7xn4lArWwrFc_Mn2l_v_xM7DJ"
+   ],
+   "organised_name": "USE-22_spray-mist-backlit-in-sunlight-over-bed.mov",
+   "duration_s": 15.5,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-14",
+   "thumb": "thumbs/USE-22.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-01",
+   "category": "supplement",
+   "title": "Sprinkling supplement onto food plate in hand",
+   "description": "Sprinkling supplement onto food plate in hand",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "food",
+    "hand",
+    "onto",
+    "plate",
+    "sprinkling",
+    "supplement"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/food + supplement",
+   "also_named": [],
+   "drive_file_ids": [
+    "1EyweLnGP4D3UvWFVWdAhTi23wQVJcZF8"
+   ],
+   "organised_name": "SUP-01_sprinkling-supplement-onto-food-plate-in.mov",
+   "duration_s": 15.1,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/SUP-01.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-02",
+   "category": "supplement",
+   "title": "Sprinkling supplement on plate, alt",
+   "description": "Sprinkling supplement on plate, alt",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "alt",
+    "plate",
+    "sprinkling",
+    "supplement"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/food + supplement",
+   "also_named": [],
+   "drive_file_ids": [
+    "1wNit648xZdC8PA2I5HFsFMfR8XrHqDYY"
+   ],
+   "organised_name": "SUP-02_sprinkling-supplement-on-plate.mov",
+   "duration_s": 12.8,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/SUP-02.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-03",
+   "category": "supplement",
+   "title": "Hero: tabby eats from plate, supplement tub behind on counter",
+   "description": "Hero: tabby eats from plate, supplement tub behind on counter",
+   "cat": "tiger",
+   "shot": "static",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "eats",
+    "hero",
+    "plate",
+    "supplement",
+    "tabby",
+    "tiger",
+    "tub"
+   ],
+   "best_section": null,
+   "notes": "hero",
+   "source_file": "ALL SUPPLEMENT B-ROLL/hero shot",
+   "also_named": [],
+   "drive_file_ids": [
+    "1QpCIQ5UdIGFo0qEq-MUfhI24HR2ZFR_i"
+   ],
+   "organised_name": "SUP-03_hero-tabby-eats-from-plate.mov",
+   "duration_s": 5.9,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/SUP-03.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-04",
+   "category": "supplement",
+   "title": "Hero: plates + supplement tub, cat head dips in",
+   "description": "Hero: plates + supplement tub, cat head dips in",
+   "cat": "tiger",
+   "shot": "static",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "cat",
+    "head",
+    "hero",
+    "plates",
+    "supplement",
+    "tiger",
+    "tub"
+   ],
+   "best_section": null,
+   "notes": "hero",
+   "source_file": "ALL SUPPLEMENT B-ROLL/hero shot",
+   "also_named": [],
+   "drive_file_ids": [
+    "1VTylkzkWBEVBWw_sBBK5nfaTeJNYnSBc"
+   ],
+   "organised_name": "SUP-04_hero-plates-supplement-tub.mov",
+   "duration_s": 3.9,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/SUP-04.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-05",
+   "category": "supplement",
+   "title": "Hand holds supplement jar in front of cats eating",
+   "description": "Hand holds supplement jar in front of cats eating",
+   "cat": "multiple",
+   "shot": "close",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "cats",
+    "front",
+    "hand",
+    "holds",
+    "jar",
+    "supplement"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/jar in front of cats eating",
+   "also_named": [],
+   "drive_file_ids": [
+    "1B58nisDK_PHmIgWG-a_anfjvzeaTGI6Y"
+   ],
+   "organised_name": "SUP-05_hand-holds-supplement-jar-in-front-of-ca.mov",
+   "duration_s": 7.8,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/SUP-05.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-06",
+   "category": "supplement",
+   "title": "Hand holds open jar showing powder, cats eating behind",
+   "description": "Hand holds open jar showing powder, cats eating behind",
+   "cat": "multiple",
+   "shot": "close",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "hand",
+    "holds",
+    "jar",
+    "open",
+    "powder",
+    "showing",
+    "supplement"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/open jar in front of cats eating",
+   "also_named": [],
+   "drive_file_ids": [
+    "1g6ItH4o6OVlLnbGpHfekrKRZ9eK7Ps1G"
+   ],
+   "organised_name": "SUP-06_hand-holds-open-jar-showing-powder.mov",
+   "duration_s": 12.8,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/SUP-06.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-07",
+   "category": "supplement",
+   "title": "Opening supplement jar on counter, scoop out powder",
+   "description": "Opening supplement jar on counter, scoop out powder",
+   "cat": "none",
+   "shot": "static top",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "counter",
+    "jar",
+    "opening",
+    "out",
+    "scoop",
+    "supplement"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/opening jar + scoop",
+   "also_named": [],
+   "drive_file_ids": [
+    "1tcfDBHpnQcdeUOrelrHujg42cr0CK5oM"
+   ],
+   "organised_name": "SUP-07_opening-supplement-jar-on-counter.mov",
+   "duration_s": 19.2,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/SUP-07.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-08",
+   "category": "supplement",
+   "title": "Opening supplement jar in hand, reveal powder",
+   "description": "Opening supplement jar in hand, reveal powder",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "hand",
+    "jar",
+    "opening",
+    "powder",
+    "reveal",
+    "supplement"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/opening supplement",
+   "also_named": [],
+   "drive_file_ids": [
+    "1zYatKaUaEdZmQM-nuRZ130HzSCpwOjw-"
+   ],
+   "organised_name": "SUP-08_opening-supplement-jar-in-hand.mov",
+   "duration_s": 26.9,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/SUP-08.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-09",
+   "category": "supplement",
+   "title": "Placing empty steel plates then supplement tub on counter",
+   "description": "Placing empty steel plates then supplement tub on counter",
+   "cat": "none",
+   "shot": "static top",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "empty",
+    "placing",
+    "plates",
+    "steel",
+    "supplement",
+    "tub"
+   ],
+   "best_section": null,
+   "notes": "setup",
+   "source_file": "ALL SUPPLEMENT B-ROLL/placing plates + supplement on counter",
+   "also_named": [],
+   "drive_file_ids": [
+    "1jjXiIYCwTSHKvwYXfiQKnV0W0bz81-LE"
+   ],
+   "organised_name": "SUP-09_placing-empty-steel-plates-then-suppleme.mov",
+   "duration_s": 15.3,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/SUP-09.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-10",
+   "category": "supplement",
+   "title": "Pouring food + scooping supplement on plates, cat sneaks in",
+   "description": "Pouring food + scooping supplement on plates, cat sneaks in (110s)",
+   "cat": "tiger",
+   "shot": "static top",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "cat",
+    "food",
+    "long",
+    "plates",
+    "pouring",
+    "scooping",
+    "supplement",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": "long",
+   "source_file": "ALL SUPPLEMENT B-ROLL/pouring food + supplement",
+   "also_named": [],
+   "drive_file_ids": [
+    "1k5VSnc0wXOsaNwgtp2Des8Ce7QM8Mxuz"
+   ],
+   "organised_name": "SUP-10_pouring-food-scooping-supplement-on-plat.mov",
+   "duration_s": 109.6,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/SUP-10.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-11",
+   "category": "supplement",
+   "title": "Scooping supplement and sprinkling on food plate",
+   "description": "Scooping supplement and sprinkling on food plate (33s)",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "food",
+    "plate",
+    "scooping",
+    "sprinkling",
+    "supplement"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/putting supplement in food",
+   "also_named": [],
+   "drive_file_ids": [
+    "1hS480lHvFyv7aAa5avCFesMzVH6JQl1B"
+   ],
+   "organised_name": "SUP-11_scooping-supplement-and-sprinkling-on-fo.mov",
+   "duration_s": 32.8,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/SUP-11.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-12",
+   "category": "supplement",
+   "title": "Opening jar, lifting scoop out",
+   "description": "Opening jar, lifting scoop out",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "jar",
+    "lifting",
+    "opening",
+    "out",
+    "scoop",
+    "supplement"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/scoop+ supplement",
+   "also_named": [],
+   "drive_file_ids": [
+    "1xclSiVN057bZcSDmVX_LKxrNyQinGXPt"
+   ],
+   "organised_name": "SUP-12_opening-jar.mov",
+   "duration_s": 13.3,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/SUP-12.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-13",
+   "category": "supplement",
+   "title": "Scoop held over open jar, lid beside",
+   "description": "Scoop held over open jar, lid beside",
+   "cat": "none",
+   "shot": "close top",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "held",
+    "jar",
+    "lid",
+    "open",
+    "over",
+    "scoop",
+    "supplement"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/scooper",
+   "also_named": [],
+   "drive_file_ids": [
+    "1ek2_x8BSVAxwfzDQlaYX2t0F3HJ4VjRA"
+   ],
+   "organised_name": "SUP-13_scoop-held-over-open-jar.mov",
+   "duration_s": 18.1,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/SUP-13.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-14",
+   "category": "supplement",
+   "title": "Scooping powder onto food plates on wooden floor",
+   "description": "Scooping powder onto food plates on wooden floor (80s)",
+   "cat": "none",
+   "shot": "static top",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "food",
+    "long",
+    "onto",
+    "plates",
+    "powder",
+    "scooping",
+    "supplement",
+    "wooden"
+   ],
+   "best_section": null,
+   "notes": "long",
+   "source_file": "ALL SUPPLEMENT B-ROLL/scooping powder on food",
+   "also_named": [],
+   "drive_file_ids": [
+    "16RRBF-TuvUwbsskboUaJP7FZ1NdVjvZO"
+   ],
+   "organised_name": "SUP-14_scooping-powder-onto-food-plates-on-wood.mov",
+   "duration_s": 79.8,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/SUP-14.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-15",
+   "category": "supplement",
+   "title": "Scooping supplement in jar held in hand, scoop full shown",
+   "description": "Scooping supplement in jar held in hand, scoop full shown (55s)",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "hand",
+    "held",
+    "jar",
+    "scoop",
+    "scooping",
+    "supplement"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/scooping supplement",
+   "also_named": [],
+   "drive_file_ids": [
+    "1hWo7lctBjKMZV_dZctES5baepCcF-cPn"
+   ],
+   "organised_name": "SUP-15_scooping-supplement-in-jar-held-in-hand.mov",
+   "duration_s": 55.1,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/SUP-15.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-16",
+   "category": "supplement",
+   "title": "Tub placed on counter, then steel plate set beside",
+   "description": "Tub placed on counter, then steel plate set beside",
+   "cat": "none",
+   "shot": "static",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "counter",
+    "placed",
+    "plate",
+    "set",
+    "steel",
+    "supplement",
+    "tub"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/supplement +empty plate",
+   "also_named": [],
+   "drive_file_ids": [
+    "1Hz5PPDn1q2bVtnrM9NXVVXYsPpCCE0VT"
+   ],
+   "organised_name": "SUP-16_tub-placed-on-counter.mov",
+   "duration_s": 11.9,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/SUP-16.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-17",
+   "category": "supplement",
+   "title": "Tub set beside empty steel plate",
+   "description": "Tub set beside empty steel plate",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "beside",
+    "empty",
+    "plate",
+    "set",
+    "steel",
+    "supplement",
+    "tub"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/supplement in front of plates",
+   "also_named": [],
+   "drive_file_ids": [
+    "1tPVqZtsgpBd9SgxRLHbl-HF_K4Ekoigt"
+   ],
+   "organised_name": "SUP-17_tub-set-beside-empty-steel-plate.mov",
+   "duration_s": 6.0,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-12",
+   "thumb": "thumbs/SUP-17.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "SUP-18",
+   "category": "supplement",
+   "title": "Opening lid and pulling scoop out",
+   "description": "Opening lid and pulling scoop out",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "'Just add a scoop to their food': supplement demo",
+   "tags": [
+    "lid",
+    "opening",
+    "out",
+    "pulling",
+    "scoop",
+    "supplement"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/supplement+scoop",
+   "also_named": [],
+   "drive_file_ids": [
+    "1jWyuVVt8YnlqO5r0-MwdtaOTa-DRHn4B"
+   ],
+   "organised_name": "SUP-18_opening-lid-and-pulling-scoop-out.mov",
+   "duration_s": 13.7,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/SUP-18.jpg",
+   "shoot": "B"
   },
   {
    "id": "FEED-01",
@@ -505,7 +2530,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/FEED-01.jpg"
+   "thumb": "thumbs/FEED-01.jpg",
+   "shoot": "A"
   },
   {
    "id": "FEED-02",
@@ -535,7 +2561,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/FEED-02.jpg"
+   "thumb": "thumbs/FEED-02.jpg",
+   "shoot": "A"
   },
   {
    "id": "FEED-03",
@@ -567,7 +2594,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/FEED-03.jpg"
+   "thumb": "thumbs/FEED-03.jpg",
+   "shoot": "A"
   },
   {
    "id": "FEED-04",
@@ -600,7 +2628,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/FEED-04.jpg"
+   "thumb": "thumbs/FEED-04.jpg",
+   "shoot": "A"
   },
   {
    "id": "FEED-05",
@@ -632,7 +2661,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-18",
-   "thumb": "thumbs/FEED-05.jpg"
+   "thumb": "thumbs/FEED-05.jpg",
+   "shoot": "A"
   },
   {
    "id": "FEED-06",
@@ -664,7 +2694,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/FEED-06.jpg"
+   "thumb": "thumbs/FEED-06.jpg",
+   "shoot": "A"
   },
   {
    "id": "FEED-07",
@@ -695,7 +2726,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/FEED-07.jpg"
+   "thumb": "thumbs/FEED-07.jpg",
+   "shoot": "A"
   },
   {
    "id": "FEED-08",
@@ -725,7 +2757,644 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/FEED-08.jpg"
+   "thumb": "thumbs/FEED-08.jpg",
+   "shoot": "A"
+  },
+  {
+   "id": "FEED-09",
+   "category": "feeding",
+   "title": "Two tabbies eating raw food from metal plates on wooden table, plant behind",
+   "description": "Two tabbies eating raw food from metal plates on wooden table, plant behind",
+   "cat": "multiple",
+   "shot": "static",
+   "use_for": "Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "eating",
+    "feeding",
+    "food",
+    "metal",
+    "raw",
+    "tabbies",
+    "two"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/cats eating",
+   "also_named": [],
+   "drive_file_ids": [
+    "1kOdxDdA08IKqzswTkYu6-9WtNfML7fPZ"
+   ],
+   "organised_name": "FEED-09_two-tabbies-eating-raw-food-from-metal-p.mov",
+   "duration_s": 17.8,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-09.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-10",
+   "category": "feeding",
+   "title": "Tabbies eating, push-in close",
+   "description": "Tabbies eating, push-in close",
+   "cat": "multiple",
+   "shot": "handheld",
+   "use_for": "Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "close",
+    "eating",
+    "feeding",
+    "push",
+    "tabbies"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/cats eating 2",
+   "also_named": [],
+   "drive_file_ids": [
+    "1Z4ZUguFXx5HmgD6UQ5VgKMVu2_ezSSEw"
+   ],
+   "organised_name": "FEED-10_tabbies-eating.mov",
+   "duration_s": 15.2,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-10.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-11",
+   "category": "feeding",
+   "title": "Tabbies eating, alt angle",
+   "description": "Tabbies eating, alt angle",
+   "cat": "multiple",
+   "shot": "handheld",
+   "use_for": "Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "alt",
+    "angle",
+    "eating",
+    "feeding",
+    "tabbies"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/cats eating 3",
+   "also_named": [],
+   "drive_file_ids": [
+    "1ezPqm952-vZZp_c55EoZ1oPPxCl84Lex"
+   ],
+   "organised_name": "FEED-11_tabbies-eating.mov",
+   "duration_s": 12.5,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-11.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-12",
+   "category": "feeding",
+   "title": "Tiger + Squirrel eating side by side on table",
+   "description": "Tiger + Squirrel eating side by side on table",
+   "cat": "tiger + squirrel",
+   "shot": "static",
+   "use_for": "Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "eating",
+    "feeding",
+    "side",
+    "squirrel",
+    "table",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/cats eating tiger+squirrel",
+   "also_named": [],
+   "drive_file_ids": [
+    "1ULro8G5F_a9c_e5uqnxrfCeJwOh9gk68"
+   ],
+   "organised_name": "FEED-12_tiger-squirrel-eating-side-by-side-on-ta.mov",
+   "duration_s": 6.0,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-12.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-13",
+   "category": "feeding",
+   "title": "Two cats (black + tabby) eating from metal bowls on rug",
+   "description": "Two cats (black + tabby) eating from metal bowls on rug",
+   "cat": "multiple",
+   "shot": "static",
+   "use_for": "Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "black",
+    "cats",
+    "eating",
+    "feeding",
+    "metal",
+    "tabby",
+    "two"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/eating",
+   "also_named": [],
+   "drive_file_ids": [
+    "1hTh1lTHXGGd-F_ICRW0pbd53_xh-wQiz"
+   ],
+   "organised_name": "FEED-13_two-cats.mov",
+   "duration_s": 7.8,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-13.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-14",
+   "category": "feeding",
+   "title": "Two cats eating on rug, handheld closer",
+   "description": "Two cats eating on rug, handheld closer",
+   "cat": "multiple",
+   "shot": "handheld",
+   "use_for": "Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "cats",
+    "closer",
+    "eating",
+    "feeding",
+    "handheld",
+    "rug",
+    "two"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/eating",
+   "also_named": [],
+   "drive_file_ids": [
+    "1gqE4m6BUBhLmAROefD2cNAeioOuk_Ven"
+   ],
+   "organised_name": "FEED-14_two-cats-eating-on-rug.mov",
+   "duration_s": 16.7,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-14.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-15",
+   "category": "feeding",
+   "title": "Cats eating on rug with supplement tub placed beside bowl",
+   "description": "Cats eating on rug with supplement tub placed beside bowl",
+   "cat": "multiple",
+   "shot": "static",
+   "use_for": "Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "cats",
+    "eating",
+    "feeding",
+    "placed",
+    "rug",
+    "supplement",
+    "tub"
+   ],
+   "best_section": null,
+   "notes": "supplement in shot",
+   "source_file": "ALL SUPPLEMENT B-ROLL/eating + supplement",
+   "also_named": [],
+   "drive_file_ids": [
+    "1Cej-N3jlJQwqpbdAv-pduo6zqJuKnwS1"
+   ],
+   "organised_name": "FEED-15_cats-eating-on-rug-with-supplement-tub-p.mov",
+   "duration_s": 17.2,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-15.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-16",
+   "category": "feeding",
+   "title": "Eating close-ups, tabby on rug",
+   "description": "Eating close-ups, tabby on rug (47s)",
+   "cat": "multiple",
+   "shot": "handheld close",
+   "use_for": "Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "close",
+    "eating",
+    "feeding",
+    "rug",
+    "tabby",
+    "ups"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/eating closeups",
+   "also_named": [],
+   "drive_file_ids": [
+    "14_Ie_CBKlMsbVK85WkO_XJNl7JufOQgN"
+   ],
+   "organised_name": "FEED-16_eating-close-ups.mov",
+   "duration_s": 46.9,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-16.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-17",
+   "category": "feeding",
+   "title": "Two cats eating full plates on rug",
+   "description": "Two cats eating full plates on rug",
+   "cat": "multiple",
+   "shot": "static",
+   "use_for": "Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "cats",
+    "eating",
+    "feeding",
+    "full",
+    "plates",
+    "rug",
+    "two"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/eating full plates",
+   "also_named": [],
+   "drive_file_ids": [
+    "1cxFPBSErKPYPgqAlrfceWL3PpoIAy6GT"
+   ],
+   "organised_name": "FEED-17_two-cats-eating-full-plates-on-rug.mov",
+   "duration_s": 6.7,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-17.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-18",
+   "category": "feeding",
+   "title": "Empty licked-clean plates on rug",
+   "description": "Empty licked-clean plates on rug",
+   "cat": "none",
+   "shot": "handheld",
+   "use_for": "'they finished every bite' - palatable; Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "clean",
+    "empty",
+    "feeding",
+    "licked",
+    "plates",
+    "rug"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/empty plates",
+   "also_named": [],
+   "drive_file_ids": [
+    "1UdTql46Fs4dvw_JbVdZZBNo-rN2gOr1V"
+   ],
+   "organised_name": "FEED-18_empty-licked-clean-plates-on-rug.mov",
+   "duration_s": 5.6,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-18.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-19",
+   "category": "feeding",
+   "title": "Tabby eating raw food on wooden floor, close",
+   "description": "Tabby eating raw food on wooden floor, close (88s)",
+   "cat": "tiger",
+   "shot": "close static",
+   "use_for": "Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "eating",
+    "feeding",
+    "floor",
+    "food",
+    "long",
+    "raw",
+    "tabby",
+    "tiger",
+    "wooden"
+   ],
+   "best_section": null,
+   "notes": "long",
+   "source_file": "ALL SUPPLEMENT B-ROLL/IMG_0451.MOV",
+   "also_named": [],
+   "drive_file_ids": [
+    "1cnyGELwT_XYqzyOb9-gRHhvALLUD7QaA"
+   ],
+   "organised_name": "FEED-19_tabby-eating-raw-food-on-wooden-floor.mov",
+   "duration_s": 88.0,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-19.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-20",
+   "category": "feeding",
+   "title": "Hand sets food plate on rug; Salem (black cat) walks in to eat",
+   "description": "Hand sets food plate on rug; Salem (black cat) walks in to eat",
+   "cat": "salem",
+   "shot": "static",
+   "use_for": "Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "feeding",
+    "food",
+    "hand",
+    "plate",
+    "rug",
+    "salem",
+    "sets"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/salem near food",
+   "also_named": [],
+   "drive_file_ids": [
+    "1NsguKuG6F6GOON1rC9CRTD7ekViMTRmT"
+   ],
+   "organised_name": "FEED-20_hand-sets-food-plate-on-rug-salem.mov",
+   "duration_s": 18.2,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-20.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-21",
+   "category": "feeding",
+   "title": "Hand sets food plate down on empty rug",
+   "description": "Hand sets food plate down on empty rug",
+   "cat": "none",
+   "shot": "static",
+   "use_for": "Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "down",
+    "empty",
+    "feeding",
+    "food",
+    "hand",
+    "plate",
+    "sets"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/setting food down",
+   "also_named": [],
+   "drive_file_ids": [
+    "15tW-skLJP-RqfzEQBT0INn8zJE9Qb99s"
+   ],
+   "organised_name": "FEED-21_hand-sets-food-plate-down-on-empty-rug.mov",
+   "duration_s": 13.3,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-12",
+   "thumb": "thumbs/FEED-21.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-22",
+   "category": "feeding",
+   "title": "Set food down, then Squirrel/Tiger come eat",
+   "description": "Set food down, then Squirrel/Tiger come eat (31s)",
+   "cat": "multiple",
+   "shot": "static",
+   "use_for": "Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "come",
+    "down",
+    "feeding",
+    "food",
+    "set",
+    "squirrel",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": "before/after cat arrives",
+   "source_file": "ALL SUPPLEMENT B-ROLL/setting food down + cats eating",
+   "also_named": [],
+   "drive_file_ids": [
+    "18sNQS7S3XylLMnvVznkvf4VbNKHrvJk7"
+   ],
+   "organised_name": "FEED-22_set-food-down.mov",
+   "duration_s": 30.9,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-22.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-23",
+   "category": "feeding",
+   "title": "Squirrel + Tiger finishing their plates",
+   "description": "Squirrel + Tiger finishing their plates",
+   "cat": "squirrel + tiger",
+   "shot": "handheld",
+   "use_for": "Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "feeding",
+    "finishing",
+    "plates",
+    "squirrel",
+    "their",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": "clean plates",
+   "source_file": "ALL SUPPLEMENT B-ROLL/squirrel + tiger finishing food",
+   "also_named": [],
+   "drive_file_ids": [
+    "1yBH2O7KrLsX7mhXjHwRxtAK6u9F_4Xll"
+   ],
+   "organised_name": "FEED-23_squirrel-tiger-finishing-their-plates.mov",
+   "duration_s": 16.0,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-23.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-24",
+   "category": "feeding",
+   "title": "Squirrel eating Tiger's leftovers, close",
+   "description": "Squirrel eating Tiger's leftovers, close",
+   "cat": "squirrel",
+   "shot": "handheld",
+   "use_for": "Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "close",
+    "eating",
+    "feeding",
+    "funny",
+    "leftovers",
+    "squirrel",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": "funny",
+   "source_file": "ALL SUPPLEMENT B-ROLL/squirrel eating leftovers",
+   "also_named": [],
+   "drive_file_ids": [
+    "1P3YF0nNdGOt1LmM83Bk_FdTZjQJliReA"
+   ],
+   "organised_name": "FEED-24_squirrel-eating-tiger-s-leftovers.mov",
+   "duration_s": 13.7,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-24.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-25",
+   "category": "feeding",
+   "title": "Squirrel eating leftovers, wide",
+   "description": "Squirrel eating leftovers, wide",
+   "cat": "squirrel",
+   "shot": "static",
+   "use_for": "Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "eating",
+    "feeding",
+    "leftovers",
+    "squirrel",
+    "wide"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/squirrel eating leftovers",
+   "also_named": [],
+   "drive_file_ids": [
+    "1Mk1jYdb6s8_cDfjcvjn7uRva94v8E0-R"
+   ],
+   "organised_name": "FEED-25_squirrel-eating-leftovers.mov",
+   "duration_s": 17.9,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-25.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-26",
+   "category": "feeding",
+   "title": "Squirrel licking plate clean",
+   "description": "Squirrel licking plate clean",
+   "cat": "squirrel",
+   "shot": "handheld",
+   "use_for": "'they love it'; Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "clean",
+    "feeding",
+    "licking",
+    "plate",
+    "squirrel"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/squirrel licking plate",
+   "also_named": [],
+   "drive_file_ids": [
+    "17jl4CHQcAGih2fqDjAg1SepfCNxvtBrT"
+   ],
+   "organised_name": "FEED-26_squirrel-licking-plate-clean.mov",
+   "duration_s": 12.6,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-26.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "FEED-27",
+   "category": "feeding",
+   "title": "Tiger (light tabby) eating close-up from glass plate",
+   "description": "Tiger (light tabby) eating close-up from glass plate (32s)",
+   "cat": "tiger",
+   "shot": "close static",
+   "use_for": "Daily routine, 'they love it' / palatability proof",
+   "tags": [
+    "close",
+    "eating",
+    "feeding",
+    "glass",
+    "light",
+    "tabby",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "ALL SUPPLEMENT B-ROLL/tigerino eating",
+   "also_named": [],
+   "drive_file_ids": [
+    "1FaqcOm2Ty06M8q0mzTQXJXRaym0erBpP"
+   ],
+   "organised_name": "FEED-27_tiger.mov",
+   "duration_s": 32.2,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/FEED-27.jpg",
+   "shoot": "B"
   },
   {
    "id": "PROB-01",
@@ -759,7 +3428,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/PROB-01.jpg"
+   "thumb": "thumbs/PROB-01.jpg",
+   "shoot": "A"
   },
   {
    "id": "PROB-02",
@@ -793,7 +3463,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/PROB-02.jpg"
+   "thumb": "thumbs/PROB-02.jpg",
+   "shoot": "A"
   },
   {
    "id": "PROB-03",
@@ -825,7 +3496,545 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/PROB-03.jpg"
+   "thumb": "thumbs/PROB-03.jpg",
+   "shoot": "A"
+  },
+  {
+   "id": "MED-01",
+   "category": "allergy-meds",
+   "title": "Creator B2 at desk, foggy/confused, head in hand — '3pm brain fog'",
+   "description": "Creator B2 at desk, foggy/confused, head in hand — '3pm brain fog' (21s)",
+   "cat": "none",
+   "shot": "static medium",
+   "use_for": "Problem: allergy symptoms and the pills/sprays that didn't fix it",
+   "tags": [
+    "allergy-meds",
+    "confused",
+    "creator",
+    "desk",
+    "foggy",
+    "hand",
+    "head"
+   ],
+   "best_section": null,
+   "notes": "antihistamine side effect: drowsy",
+   "source_file": "3pm fog_confused",
+   "also_named": [],
+   "drive_file_ids": [
+    "1R7KZlhBwcypVvWepZqDamFfsHs8BCqS3"
+   ],
+   "organised_name": "MED-01_creator-3-at-desk.mov",
+   "duration_s": 20.6,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/MED-01.jpg",
+   "shoot": "C"
+  },
+  {
+   "id": "MED-02",
+   "category": "allergy-meds",
+   "title": "Hand holds Allergy Relief (cetirizine) pill box",
+   "description": "Hand holds Allergy Relief (cetirizine) pill box",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "'I was taking allergy pills every day'; Problem: allergy symptoms and the pills/sprays that didn't fix it",
+   "tags": [
+    "allergy",
+    "allergy-meds",
+    "cetirizine",
+    "hand",
+    "holds",
+    "pill",
+    "relief"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "allergy pills",
+   "also_named": [],
+   "drive_file_ids": [
+    "1P_-aiaadgpcm0HEbR98llVVX-SWFt75j"
+   ],
+   "organised_name": "MED-02_hand-holds-allergy-relief.mov",
+   "duration_s": 10.4,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/MED-02.jpg",
+   "shoot": "C"
+  },
+  {
+   "id": "MED-03",
+   "category": "allergy-meds",
+   "title": "Hand holds allergy pill bottle",
+   "description": "Hand holds allergy pill bottle",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "Problem: allergy symptoms and the pills/sprays that didn't fix it",
+   "tags": [
+    "allergy",
+    "allergy-meds",
+    "bottle",
+    "hand",
+    "holds",
+    "pill"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "allergy pills",
+   "also_named": [],
+   "drive_file_ids": [
+    "1uX2cgq7MIYhhQANoQ4rA_kBjWteZBQf8"
+   ],
+   "organised_name": "MED-03_hand-holds-allergy-pill-bottle.mov",
+   "duration_s": 4.6,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-15",
+   "thumb": "thumbs/MED-03.jpg",
+   "shoot": "C"
+  },
+  {
+   "id": "MED-04",
+   "category": "allergy-meds",
+   "title": "Hand picks up nasal allergy sprays",
+   "description": "Hand picks up nasal allergy sprays",
+   "cat": "none",
+   "shot": "close",
+   "use_for": "'nasal sprays didn't help'; Problem: allergy symptoms and the pills/sprays that didn't fix it",
+   "tags": [
+    "allergy",
+    "allergy-meds",
+    "hand",
+    "nasal",
+    "picks",
+    "sprays"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "allergy sprays",
+   "also_named": [],
+   "drive_file_ids": [
+    "1xJDT0ygPveQrW2-il_qCGU5LUXx8aYJR"
+   ],
+   "organised_name": "MED-04_hand-picks-up-nasal-allergy-sprays.mov",
+   "duration_s": 9.3,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/MED-04.jpg",
+   "shoot": "C"
+  },
+  {
+   "id": "MED-05",
+   "category": "allergy-meds",
+   "title": "Creator B2 on stairs opening allergy pill box, annoyed",
+   "description": "Creator B2 on stairs opening allergy pill box, annoyed (22s)",
+   "cat": "none",
+   "shot": "static medium",
+   "use_for": "Problem: allergy symptoms and the pills/sprays that didn't fix it",
+   "tags": [
+    "allergy",
+    "allergy-meds",
+    "box",
+    "creator",
+    "opening",
+    "pill",
+    "stairs"
+   ],
+   "best_section": null,
+   "notes": "frustration",
+   "source_file": "annoyed taking pills",
+   "also_named": [],
+   "drive_file_ids": [
+    "1RMsReZ-rf0DyMSgr5zwa8rYwn0t5F-fT"
+   ],
+   "organised_name": "MED-05_creator-3-on-stairs-opening-allergy-pill.mov",
+   "duration_s": 21.9,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-15",
+   "thumb": "thumbs/MED-05.jpg",
+   "shoot": "C"
+  },
+  {
+   "id": "MED-06",
+   "category": "allergy-meds",
+   "title": "Creator B2 sitting on stairs drinking water, dry mouth",
+   "description": "Creator B2 sitting on stairs drinking water, dry mouth (27s)",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "Problem: allergy symptoms and the pills/sprays that didn't fix it",
+   "tags": [
+    "allergy-meds",
+    "creator",
+    "drinking",
+    "dry",
+    "sitting",
+    "stairs",
+    "water"
+   ],
+   "best_section": null,
+   "notes": "side effect: dry mouth",
+   "source_file": "dry mouth_drinking water",
+   "also_named": [],
+   "drive_file_ids": [
+    "1l3BBYpvmYx3iULjyTWO6COsqDOUDCk3j"
+   ],
+   "organised_name": "MED-06_creator-3-sitting-on-stairs-drinking-wat.mov",
+   "duration_s": 26.7,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/MED-06.jpg",
+   "shoot": "C"
+  },
+  {
+   "id": "CLEAN-01",
+   "category": "cleaning",
+   "title": "Creator B2 turns on 2 air purifiers on counter",
+   "description": "Creator B2 turns on 2 air purifiers on counter",
+   "cat": "none",
+   "shot": "static",
+   "use_for": "'I had 2 purifiers running'; Problem / what I tried before: endless cleaning, air purifiers",
+   "tags": [
+    "air",
+    "cleaning",
+    "counter",
+    "creator",
+    "purifiers",
+    "turns"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "CLEANING_AIR PURIFIERS B-ROLL/2 air purifiers",
+   "also_named": [],
+   "drive_file_ids": [
+    "1fN6w-ejD6JOIBoBgqRK68epEeRBwAx3W"
+   ],
+   "organised_name": "CLEAN-01_creator-3-turns-on-2-air-purifiers-on-co.mov",
+   "duration_s": 20.8,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/CLEAN-01.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "CLEAN-02",
+   "category": "cleaning",
+   "title": "Creator B2 sets up air purifier by vacuum stand",
+   "description": "Creator B2 sets up air purifier by vacuum stand",
+   "cat": "none",
+   "shot": "static",
+   "use_for": "Problem / what I tried before: endless cleaning, air purifiers",
+   "tags": [
+    "air",
+    "cleaning",
+    "creator",
+    "purifier",
+    "sets",
+    "stand",
+    "vacuum"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "CLEANING_AIR PURIFIERS B-ROLL/air purifier 2",
+   "also_named": [],
+   "drive_file_ids": [
+    "1FfgrF0jzwiqrnaeV1PM__Kcl6uNvpA7-"
+   ],
+   "organised_name": "CLEAN-02_creator-3-sets-up-air-purifier-by-vacuum.mov",
+   "duration_s": 18.0,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/CLEAN-02.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "CLEAN-03",
+   "category": "cleaning",
+   "title": "Creator B2 loading top-load washer with sheets",
+   "description": "Creator B2 loading top-load washer with sheets",
+   "cat": "none",
+   "shot": "static",
+   "use_for": "'washing sheets constantly'; Problem / what I tried before: endless cleaning, air purifiers",
+   "tags": [
+    "cleaning",
+    "creator",
+    "load",
+    "loading",
+    "sheets",
+    "top",
+    "washer"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "CLEANING_AIR PURIFIERS B-ROLL/laundry",
+   "also_named": [],
+   "drive_file_ids": [
+    "1e0_OkCmigvoBtlu4mYA0goBFgqTqJ8tN"
+   ],
+   "organised_name": "CLEAN-03_creator-3-loading-top-load-washer-with-s.mov",
+   "duration_s": 13.3,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/CLEAN-03.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "CLEAN-04",
+   "category": "cleaning",
+   "title": "Creator B2 moving laundry into dryer",
+   "description": "Creator B2 moving laundry into dryer",
+   "cat": "none",
+   "shot": "static",
+   "use_for": "Problem / what I tried before: endless cleaning, air purifiers",
+   "tags": [
+    "cleaning",
+    "creator",
+    "dryer",
+    "laundry",
+    "moving"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "CLEANING_AIR PURIFIERS B-ROLL/laundry 2",
+   "also_named": [],
+   "drive_file_ids": [
+    "1pv5wHnlOYJuMMiY-j14jhxbxX8ll4mJt"
+   ],
+   "organised_name": "CLEAN-04_creator-3-moving-laundry-into-dryer.mov",
+   "duration_s": 22.7,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/CLEAN-04.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "CLEAN-05",
+   "category": "cleaning",
+   "title": "Creator B2 (pajamas) unloading dryer, folding",
+   "description": "Creator B2 (pajamas) unloading dryer, folding (57s)",
+   "cat": "none",
+   "shot": "static",
+   "use_for": "Problem / what I tried before: endless cleaning, air purifiers",
+   "tags": [
+    "cleaning",
+    "creator",
+    "dryer",
+    "folding",
+    "pajamas",
+    "unloading"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "CLEANING_AIR PURIFIERS B-ROLL/laundry 3",
+   "also_named": [],
+   "drive_file_ids": [
+    "1slRVQJV2_8vEGXRXAJ6GQHFmCjfX31tf"
+   ],
+   "organised_name": "CLEAN-05_creator-3.mov",
+   "duration_s": 57.3,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-02-22",
+   "thumb": "thumbs/CLEAN-05.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "CLEAN-06",
+   "category": "cleaning",
+   "title": "Creator B2 turns on air purifier on dresser, walks to camera",
+   "description": "Creator B2 turns on air purifier on dresser, walks to camera",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "Problem / what I tried before: endless cleaning, air purifiers",
+   "tags": [
+    "air",
+    "cleaning",
+    "creator",
+    "dresser",
+    "purifier",
+    "turns",
+    "walks"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "CLEANING_AIR PURIFIERS B-ROLL/room air purifier",
+   "also_named": [],
+   "drive_file_ids": [
+    "1SsHNOXUUwlEi8lnoTbUwI5KyteSO56-g"
+   ],
+   "organised_name": "CLEAN-06_creator-3-turns-on-air-purifier-on-dress.mov",
+   "duration_s": 29.5,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/CLEAN-06.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "CLEAN-07",
+   "category": "cleaning",
+   "title": "Creator B2 sweeping floor, wipes forehead tired",
+   "description": "Creator B2 sweeping floor, wipes forehead tired (63s)",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "'endless cleaning', frustration; Problem / what I tried before: endless cleaning, air purifiers",
+   "tags": [
+    "cleaning",
+    "creator",
+    "floor",
+    "forehead",
+    "sweeping",
+    "tired",
+    "wipes"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "CLEANING_AIR PURIFIERS B-ROLL/sweeping",
+   "also_named": [],
+   "drive_file_ids": [
+    "1fvN-SW8BZLae6KUYp-l0r3q0XtXeZQ49"
+   ],
+   "organised_name": "CLEAN-07_creator-3-sweeping-floor.mov",
+   "duration_s": 62.8,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/CLEAN-07.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "CLEAN-08",
+   "category": "cleaning",
+   "title": "Creator B2 sweeping bedroom floor by mirror",
+   "description": "Creator B2 sweeping bedroom floor by mirror (85s)",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "Problem / what I tried before: endless cleaning, air purifiers",
+   "tags": [
+    "bedroom",
+    "cleaning",
+    "creator",
+    "floor",
+    "mirror",
+    "sweeping"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "CLEANING_AIR PURIFIERS B-ROLL/sweeping floor",
+   "also_named": [],
+   "drive_file_ids": [
+    "1yo_a-gXbJyckCPtnK9WbGQy8zR2J1HyD"
+   ],
+   "organised_name": "CLEAN-08_creator-3-sweeping-bedroom-floor-by-mirr.mov",
+   "duration_s": 84.7,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/CLEAN-08.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "CLEAN-09",
+   "category": "cleaning",
+   "title": "Creator B2 vacuuming office floor with cordless vac",
+   "description": "Creator B2 vacuuming office floor with cordless vac (38s)",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "Problem / what I tried before: endless cleaning, air purifiers",
+   "tags": [
+    "cleaning",
+    "cordless",
+    "creator",
+    "floor",
+    "office",
+    "vac",
+    "vacuuming"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "CLEANING_AIR PURIFIERS B-ROLL/vaccuming 3",
+   "also_named": [],
+   "drive_file_ids": [
+    "1oss4JAv5lZvnrkCsm6gFbx7yhtK85q1H"
+   ],
+   "organised_name": "CLEAN-09_creator-3-vacuuming-office-floor-with-co.mov",
+   "duration_s": 38.3,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-16",
+   "thumb": "thumbs/CLEAN-09.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "CLEAN-10",
+   "category": "cleaning",
+   "title": "Creator B2 (purple pajamas) vacuuming kitchen floor",
+   "description": "Creator B2 (purple pajamas) vacuuming kitchen floor",
+   "cat": "none",
+   "shot": "static wide",
+   "use_for": "Problem / what I tried before: endless cleaning, air purifiers",
+   "tags": [
+    "cleaning",
+    "creator",
+    "floor",
+    "kitchen",
+    "pajamas",
+    "purple",
+    "vacuuming"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "CLEANING_AIR PURIFIERS B-ROLL/vacuuming",
+   "also_named": [],
+   "drive_file_ids": [
+    "1WvSGKk6LxTzU3so-_tdRA4KkLbWGwkWo"
+   ],
+   "organised_name": "CLEAN-10_creator-3.mov",
+   "duration_s": 22.5,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-02-22",
+   "thumb": "thumbs/CLEAN-10.jpg",
+   "shoot": "B"
   },
   {
    "id": "AIR-01",
@@ -859,7 +4068,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/AIR-01.jpg"
+   "thumb": "thumbs/AIR-01.jpg",
+   "shoot": "A"
   },
   {
    "id": "AIR-02",
@@ -889,7 +4099,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/AIR-02.jpg"
+   "thumb": "thumbs/AIR-02.jpg",
+   "shoot": "A"
   },
   {
    "id": "AIR-03",
@@ -920,7 +4131,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/AIR-03.jpg"
+   "thumb": "thumbs/AIR-03.jpg",
+   "shoot": "A"
   },
   {
    "id": "DOOR-01",
@@ -955,7 +4167,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/DOOR-01.jpg"
+   "thumb": "thumbs/DOOR-01.jpg",
+   "shoot": "A"
   },
   {
    "id": "DOOR-02",
@@ -987,7 +4200,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/DOOR-02.jpg"
+   "thumb": "thumbs/DOOR-02.jpg",
+   "shoot": "A"
   },
   {
    "id": "DOOR-03",
@@ -1018,7 +4232,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/DOOR-03.jpg"
+   "thumb": "thumbs/DOOR-03.jpg",
+   "shoot": "A"
   },
   {
    "id": "BOND-01",
@@ -1050,7 +4265,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/BOND-01.jpg"
+   "thumb": "thumbs/BOND-01.jpg",
+   "shoot": "A"
   },
   {
    "id": "BOND-02",
@@ -1082,7 +4298,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/BOND-02.jpg"
+   "thumb": "thumbs/BOND-02.jpg",
+   "shoot": "A"
   },
   {
    "id": "BOND-03",
@@ -1114,7 +4331,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/BOND-03.jpg"
+   "thumb": "thumbs/BOND-03.jpg",
+   "shoot": "A"
   },
   {
    "id": "BOND-04",
@@ -1146,7 +4364,2050 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/BOND-04.jpg"
+   "thumb": "thumbs/BOND-04.jpg",
+   "shoot": "A"
+  },
+  {
+   "id": "BOND-05",
+   "category": "bonding",
+   "title": "Creator B1 (navy velvet) sits on bed petting 2 tabbies",
+   "description": "Creator B1 (navy velvet) sits on bed petting 2 tabbies",
+   "cat": "multiple",
+   "shot": "static",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bed",
+    "bonding",
+    "creator",
+    "navy",
+    "petting",
+    "sits",
+    "velvet"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/2 cats on bed pets",
+   "also_named": [],
+   "drive_file_ids": [
+    "19f5I2X7Hp5Uz8dlR27ymN5wtFfwNmqDl"
+   ],
+   "organised_name": "BOND-05_creator-2.mov",
+   "duration_s": 25.3,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/BOND-05.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-06",
+   "category": "bonding",
+   "title": "Creator B3 lying in bed with tabby on chest, sunlit",
+   "description": "Creator B3 lying in bed with tabby on chest, sunlit (45s)",
+   "cat": "squirrel",
+   "shot": "selfie",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bed",
+    "bonding",
+    "chest",
+    "creator",
+    "lying",
+    "squirrel",
+    "sunlit",
+    "tabby"
+   ],
+   "best_section": null,
+   "notes": "cuddle",
+   "source_file": "GENERAL CAT B-ROLL/bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1lePJGw6mIQyp548OeLaIv0koxgVGfBS_"
+   ],
+   "organised_name": "BOND-06_creator-4-lying-in-bed-with-tabby-on-che.mov",
+   "duration_s": 45.3,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2026-10-10",
+   "thumb": "thumbs/BOND-06.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-07",
+   "category": "bonding",
+   "title": "Creator B3 lying in bed cuddling Squirrel, selfie",
+   "description": "Creator B3 lying in bed cuddling Squirrel, selfie",
+   "cat": "squirrel",
+   "shot": "selfie",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bed",
+    "bonding",
+    "creator",
+    "cuddling",
+    "lying",
+    "selfie",
+    "squirrel"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/creator & squirrel cuddles",
+   "also_named": [],
+   "drive_file_ids": [
+    "1M8E-PGHQqqHEisEO3g2rdGNADe1CAW3J"
+   ],
+   "organised_name": "BOND-07_creator-4-lying-in-bed-cuddling-squirrel.mov",
+   "duration_s": 8.6,
+   "resolution": "1806x3212",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-10",
+   "thumb": "thumbs/BOND-07.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-08",
+   "category": "bonding",
+   "title": "Creator in pink hoodie sleeping/cuddling Tiger in bed",
+   "description": "Creator in pink hoodie sleeping/cuddling Tiger in bed (56s)",
+   "cat": "tiger",
+   "shot": "static wide",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bonding",
+    "creator",
+    "cuddling",
+    "hoodie",
+    "pink",
+    "sleeping",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/cuddling tiger bed hoodie",
+   "also_named": [],
+   "drive_file_ids": [
+    "1ntaJX-HFAuc5buVegFVv8XYeteAOv6By"
+   ],
+   "organised_name": "BOND-08_creator-in-pink-hoodie-sleeping-cuddling.mov",
+   "duration_s": 55.6,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2026-10-17",
+   "thumb": "thumbs/BOND-08.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-09",
+   "category": "bonding",
+   "title": "Creator cuddling Squirrel napping in bed, sunlit",
+   "description": "Creator cuddling Squirrel napping in bed, sunlit (44s)",
+   "cat": "squirrel",
+   "shot": "static wide",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bed",
+    "bonding",
+    "creator",
+    "cuddling",
+    "napping",
+    "squirrel",
+    "sunlit"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/cuddling with squirrel",
+   "also_named": [],
+   "drive_file_ids": [
+    "1WexG76ts-pBhelhJ65aleen9Ck0OjJ4n"
+   ],
+   "organised_name": "BOND-09_creator-cuddling-squirrel-napping-in-bed.mov",
+   "duration_s": 43.9,
+   "resolution": "1634x2906",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2026-10-10",
+   "thumb": "thumbs/BOND-09.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-10",
+   "category": "bonding",
+   "title": "Creator on orange pumpkin-print bed holding Squirrel — LANDSCAPE 16:9",
+   "description": "Creator on orange pumpkin-print bed holding Squirrel — LANDSCAPE 16:9",
+   "cat": "squirrel",
+   "shot": "static wide",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bed",
+    "bonding",
+    "creator",
+    "holding",
+    "orange",
+    "print",
+    "pumpkin",
+    "squirrel"
+   ],
+   "best_section": null,
+   "notes": "horizontal clip; LANDSCAPE 16:9: crop or reframe for vertical",
+   "source_file": "GENERAL CAT B-ROLL/guest room squirrel",
+   "also_named": [],
+   "drive_file_ids": [
+    "1Q4snAMPnofCMoofkbpkuHYtIAFXFpCL1"
+   ],
+   "organised_name": "BOND-10_creator-on-orange-pumpkin-print-bed-hold.mov",
+   "duration_s": 4.2,
+   "resolution": "3840x2160",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-09-30",
+   "thumb": "thumbs/BOND-10.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-11",
+   "category": "bonding",
+   "title": "Creator reading on orange bed, cats around, waves",
+   "description": "Creator reading on orange bed, cats around, waves",
+   "cat": "multiple",
+   "shot": "static wide",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "around",
+    "bed",
+    "bonding",
+    "cats",
+    "creator",
+    "orange",
+    "reading"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/guest room squirrel 1",
+   "also_named": [],
+   "drive_file_ids": [
+    "1KF4vSKzj4Lo3GhIBtLoXpXrBJG5-GuX2"
+   ],
+   "organised_name": "BOND-11_creator-reading-on-orange-bed.mov",
+   "duration_s": 12.3,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-09-30",
+   "thumb": "thumbs/BOND-11.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-12",
+   "category": "bonding",
+   "title": "Squirrel kneading, hand pets back",
+   "description": "Squirrel kneading, hand pets back",
+   "cat": "squirrel",
+   "shot": "close top",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "back",
+    "bonding",
+    "hand",
+    "kneading",
+    "pets",
+    "squirrel"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/kneading",
+   "also_named": [],
+   "drive_file_ids": [
+    "1xWr40WHeofBGEgLk5Zx_3nkCtcSQ1QZy"
+   ],
+   "organised_name": "BOND-12_squirrel-kneading.mov",
+   "duration_s": 16.1,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-09-05",
+   "thumb": "thumbs/BOND-12.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-13",
+   "category": "bonding",
+   "title": "POV petting kneading tabby, legs in frame",
+   "description": "POV petting kneading tabby, legs in frame",
+   "cat": "squirrel",
+   "shot": "pov",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bonding",
+    "frame",
+    "kneading",
+    "legs",
+    "petting",
+    "pov",
+    "squirrel",
+    "tabby"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/petting + kneading",
+   "also_named": [],
+   "drive_file_ids": [
+    "1CJ96QSbouq1n5NmMjcyptXeJhjjdBCkq"
+   ],
+   "organised_name": "BOND-13_pov-petting-kneading-tabby.mov",
+   "duration_s": 14.6,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-09-05",
+   "thumb": "thumbs/BOND-13.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-14",
+   "category": "bonding",
+   "title": "POV pets Squirrel on bed, cat walks over to lap",
+   "description": "POV pets Squirrel on bed, cat walks over to lap",
+   "cat": "squirrel",
+   "shot": "pov",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bed",
+    "bonding",
+    "cat",
+    "pets",
+    "pov",
+    "squirrel",
+    "walks"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/pov pets w squirrel",
+   "also_named": [],
+   "drive_file_ids": [
+    "19iAAcSK9ftbBagS8-Z5fadUlwkIf3NB7"
+   ],
+   "organised_name": "BOND-14_pov-pets-squirrel-on-bed.mov",
+   "duration_s": 20.4,
+   "resolution": "2040x3626",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-09",
+   "thumb": "thumbs/BOND-14.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-15",
+   "category": "bonding",
+   "title": "POV petting Tiger sitting on lap/blanket",
+   "description": "POV petting Tiger sitting on lap/blanket",
+   "cat": "tiger",
+   "shot": "pov",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "blanket",
+    "bonding",
+    "lap",
+    "petting",
+    "pov",
+    "sitting",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/pov tiger pets",
+   "also_named": [],
+   "drive_file_ids": [
+    "1lxb0a4cj4uR1kvtKNm5Jh7U9V8UyVSkJ"
+   ],
+   "organised_name": "BOND-15_pov-petting-tiger-sitting-on-lap-blanket.mov",
+   "duration_s": 20.6,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-09-14",
+   "thumb": "thumbs/BOND-15.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-16",
+   "category": "bonding",
+   "title": "Creator reading in bed while Tiger + Salem lounge on bed",
+   "description": "Creator reading in bed while Tiger + Salem lounge on bed (97s)",
+   "cat": "tiger + salem",
+   "shot": "static wide",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bed",
+    "bonding",
+    "creator",
+    "long",
+    "reading",
+    "salem",
+    "tiger",
+    "while"
+   ],
+   "best_section": null,
+   "notes": "long, 'now we share the bed'",
+   "source_file": "GENERAL CAT B-ROLL/reading on bed w cats",
+   "also_named": [],
+   "drive_file_ids": [
+    "1s68jJhRr0ssjTp0XxaDPSEyBVecddUHn"
+   ],
+   "organised_name": "BOND-16_creator-reading-in-bed-while-tiger-salem.mov",
+   "duration_s": 97.4,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/BOND-16.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-17",
+   "category": "bonding",
+   "title": "Salem close-up being scratched on lap",
+   "description": "Salem close-up being scratched on lap",
+   "cat": "salem",
+   "shot": "selfie close",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "being",
+    "bonding",
+    "close",
+    "lap",
+    "salem",
+    "scratched"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/salem closeup bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1EGES_4PXoEZ1ja0bbowQSytZMiyjak51"
+   ],
+   "organised_name": "BOND-17_salem-close-up-being-scratched-on-lap.mov",
+   "duration_s": 15.9,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-09-08",
+   "thumb": "thumbs/BOND-17.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-18",
+   "category": "bonding",
+   "title": "Creator B3 (pink hoodie) carries Salem walking on street, smiling",
+   "description": "Creator B3 (pink hoodie) carries Salem walking on street, smiling",
+   "cat": "salem",
+   "shot": "selfie walking",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bonding",
+    "carries",
+    "creator",
+    "hoodie",
+    "pink",
+    "salem",
+    "walking"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/salem in hoodie street",
+   "also_named": [],
+   "drive_file_ids": [
+    "1OtlrAn5gOgGXL2pOaB_a5k9udZoL5y_8"
+   ],
+   "organised_name": "BOND-18_creator-4.mov",
+   "duration_s": 16.1,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2024-12-20",
+   "thumb": "thumbs/BOND-18.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-19",
+   "category": "bonding",
+   "title": "Creator B3 holds Salem in pet carrier-hoodie, poses to camera",
+   "description": "Creator B3 holds Salem in pet carrier-hoodie, poses to camera (54s)",
+   "cat": "salem",
+   "shot": "static selfie",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bonding",
+    "carrier",
+    "creator",
+    "holds",
+    "hoodie",
+    "pet",
+    "salem"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/salem in jacket",
+   "also_named": [],
+   "drive_file_ids": [
+    "1zH-n8qIjByskpeMQ6Wxm9Bt2VoV6dO8z"
+   ],
+   "organised_name": "BOND-19_creator-4-holds-salem-in-pet-carrier-hoo.mov",
+   "duration_s": 54.1,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2026-10-10",
+   "thumb": "thumbs/BOND-19.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-20",
+   "category": "bonding",
+   "title": "Creator B3 sits on floral bed petting Salem, Salem rolls",
+   "description": "Creator B3 sits on floral bed petting Salem, Salem rolls (50s)",
+   "cat": "salem",
+   "shot": "static",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bed",
+    "bonding",
+    "creator",
+    "floral",
+    "petting",
+    "salem",
+    "sits"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/salem on bed pets",
+   "also_named": [],
+   "drive_file_ids": [
+    "1xXtqyJjGoeyNHerrgYJvKBS9BcaI3cmD"
+   ],
+   "organised_name": "BOND-20_creator-4-sits-on-floral-bed-petting-sal.mov",
+   "duration_s": 50.4,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/BOND-20.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-21",
+   "category": "bonding",
+   "title": "Creator B3 lies on bed petting Salem while Tiger lounges",
+   "description": "Creator B3 lies on bed petting Salem while Tiger lounges (36s)",
+   "cat": "salem + tiger",
+   "shot": "static wide",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bed",
+    "bonding",
+    "creator",
+    "lies",
+    "petting",
+    "salem",
+    "tiger",
+    "while"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/salem pets tiger on bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1HuBzZzwVVAWK8OlDlq5iBXV1Wj5Y8NDg"
+   ],
+   "organised_name": "BOND-21_creator-4-lies-on-bed-petting-salem-whil.mov",
+   "duration_s": 35.7,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-12",
+   "thumb": "thumbs/BOND-21.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-22",
+   "category": "bonding",
+   "title": "Tiger sleeping on carpet in sun, hand pets",
+   "description": "Tiger sleeping on carpet in sun, hand pets (43s)",
+   "cat": "tiger",
+   "shot": "static low",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bonding",
+    "carpet",
+    "hand",
+    "pets",
+    "sleeping",
+    "sun",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/sleeping on carpet",
+   "also_named": [],
+   "drive_file_ids": [
+    "1Oo6fiM-pMmqwoSe8MLvlgsXj5BD8Co78"
+   ],
+   "organised_name": "BOND-22_tiger-sleeping-on-carpet-in-sun.mov",
+   "duration_s": 42.5,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2026-10-10",
+   "thumb": "thumbs/BOND-22.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-23",
+   "category": "bonding",
+   "title": "Creator B3 (tan hoodie) lying on bed petting Squirrel",
+   "description": "Creator B3 (tan hoodie) lying on bed petting Squirrel (55s)",
+   "cat": "squirrel",
+   "shot": "static",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bed",
+    "bonding",
+    "creator",
+    "hoodie",
+    "lying",
+    "petting",
+    "squirrel",
+    "tan"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/squirrel pets",
+   "also_named": [],
+   "drive_file_ids": [
+    "1ShdTDbJk26JS4iF2a4XHZlEaLu46h7HL"
+   ],
+   "organised_name": "BOND-23_creator-4.mov",
+   "duration_s": 55.0,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2026-10-17",
+   "thumb": "thumbs/BOND-23.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-24",
+   "category": "bonding",
+   "title": "Creator B3 (pink hoodie) lying in bed cuddling Tiger",
+   "description": "Creator B3 (pink hoodie) lying in bed cuddling Tiger (36s)",
+   "cat": "tiger",
+   "shot": "static wide",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bed",
+    "bonding",
+    "creator",
+    "cuddling",
+    "hoodie",
+    "lying",
+    "pink",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/tiger in hoodie bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1WFa48Yegl-70UZP0m-mx2-XmashYkEsO"
+   ],
+   "organised_name": "BOND-24_creator-4.mov",
+   "duration_s": 35.8,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2026-10-17",
+   "thumb": "thumbs/BOND-24.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-25",
+   "category": "bonding",
+   "title": "Creator B3 selfie lying in bed with Tiger beside, smiling",
+   "description": "Creator B3 selfie lying in bed with Tiger beside, smiling",
+   "cat": "tiger",
+   "shot": "selfie",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bed",
+    "beside",
+    "bonding",
+    "creator",
+    "lying",
+    "selfie",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/tiger in hoodie bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1nWF5fl_E08OZfzAPb_LNtkoqJ6xLg9JQ"
+   ],
+   "organised_name": "BOND-25_creator-4-selfie-lying-in-bed-with-tiger.mov",
+   "duration_s": 6.1,
+   "resolution": "1876x3336",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2024-12-20",
+   "thumb": "thumbs/BOND-25.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "BOND-26",
+   "category": "bonding",
+   "title": "Creator B3 leans over bed petting Tiger",
+   "description": "Creator B3 leans over bed petting Tiger",
+   "cat": "tiger",
+   "shot": "static",
+   "use_for": "After / result: closeness with your cats, no sneezing",
+   "tags": [
+    "bed",
+    "bonding",
+    "creator",
+    "leans",
+    "over",
+    "petting",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/tiger pets on bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1JJeCWSpC-zNHFlW0TGnRyB-U3aiEA4cJ"
+   ],
+   "organised_name": "BOND-26_creator-4-leans-over-bed-petting-tiger.mov",
+   "duration_s": 13.8,
+   "resolution": "2160x3840",
+   "fps": 58,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-12",
+   "thumb": "thumbs/BOND-26.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-01",
+   "category": "household",
+   "title": "Hand feeds lickable treat to Tiger + Salem on bed",
+   "description": "Hand feeds lickable treat to Tiger + Salem on bed",
+   "cat": "tiger + salem",
+   "shot": "close",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "cute",
+    "feeds",
+    "hand",
+    "household",
+    "lickable",
+    "salem",
+    "tiger",
+    "treat"
+   ],
+   "best_section": null,
+   "notes": "cute",
+   "source_file": "GENERAL CAT B-ROLL/2 cats eating treat",
+   "also_named": [],
+   "drive_file_ids": [
+    "18KKFhz9EydQIEvpOENA7-pyv3xZH2eyS"
+   ],
+   "organised_name": "HOME-01_hand-feeds-lickable-treat-to-tiger-salem.mov",
+   "duration_s": 9.7,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2025-10-04",
+   "thumb": "thumbs/HOME-01.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-02",
+   "category": "household",
+   "title": "Squirrel + Tiger climbing cat tree",
+   "description": "Squirrel + Tiger climbing cat tree (40s)",
+   "cat": "squirrel + tiger",
+   "shot": "static",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "cat",
+    "climbing",
+    "household",
+    "squirrel",
+    "tiger",
+    "tree"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/2 cats on cat tree",
+   "also_named": [],
+   "drive_file_ids": [
+    "1JUwut6yRXGdKQt5LuSMhp9l2LnCfTHPv"
+   ],
+   "organised_name": "HOME-02_squirrel-tiger-climbing-cat-tree.mov",
+   "duration_s": 40.4,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2026-10-10",
+   "thumb": "thumbs/HOME-02.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-03",
+   "category": "household",
+   "title": "Tabby grooming paw on bed",
+   "description": "Tabby grooming paw on bed",
+   "cat": "tiger",
+   "shot": "close",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "bed",
+    "grooming",
+    "household",
+    "paw",
+    "tabby",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/grooming on bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1qMkB-cDMJdL51JbdEg5_pvc3c393Xk2c"
+   ],
+   "organised_name": "HOME-03_tabby-grooming-paw-on-bed.mov",
+   "duration_s": 16.1,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/HOME-03.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-04",
+   "category": "household",
+   "title": "Squirrel kneading blanket (making biscuits), top-down",
+   "description": "Squirrel kneading blanket (making biscuits), top-down",
+   "cat": "squirrel",
+   "shot": "close top",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "biscuits",
+    "blanket",
+    "household",
+    "kneading",
+    "making",
+    "squirrel",
+    "top"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/kneading",
+   "also_named": [],
+   "drive_file_ids": [
+    "1WLi-qd2hTFzIH3yXJHY7WMZqAz5NTZa-"
+   ],
+   "organised_name": "HOME-04_squirrel-kneading-blanket.mov",
+   "duration_s": 7.2,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-09-05",
+   "thumb": "thumbs/HOME-04.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-05",
+   "category": "household",
+   "title": "Tabby in grey sweater on bed by plant",
+   "description": "Tabby in grey sweater on bed by plant",
+   "cat": "squirrel",
+   "shot": "static",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "bed",
+    "cute",
+    "grey",
+    "household",
+    "plant",
+    "squirrel",
+    "sweater",
+    "tabby"
+   ],
+   "best_section": null,
+   "notes": "cute outfit",
+   "source_file": "GENERAL CAT B-ROLL/kneading w sweater",
+   "also_named": [],
+   "drive_file_ids": [
+    "1aoIXKaBEOhKNgz09rf70ofHo5sUZnx5N"
+   ],
+   "organised_name": "HOME-05_tabby-in-grey-sweater-on-bed-by-plant.mov",
+   "duration_s": 11.2,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-09-06",
+   "thumb": "thumbs/HOME-05.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-06",
+   "category": "household",
+   "title": "Salem (black cat) rolling on floor, looks up, close",
+   "description": "Salem (black cat) rolling on floor, looks up, close",
+   "cat": "salem",
+   "shot": "handheld",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "black",
+    "cat",
+    "floor",
+    "household",
+    "looks",
+    "rolling",
+    "salem"
+   ],
+   "best_section": null,
+   "notes": "starts with red frame - trim first 1s",
+   "source_file": "GENERAL CAT B-ROLL/salem",
+   "also_named": [],
+   "drive_file_ids": [
+    "13oOqosCKt8ps1xHkzLt4vUH_bLdeoOyr"
+   ],
+   "organised_name": "HOME-06_salem.mov",
+   "duration_s": 7.3,
+   "resolution": "2160x3840",
+   "fps": 52,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-05-20",
+   "thumb": "thumbs/HOME-06.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-07",
+   "category": "household",
+   "title": "Salem + Squirrel outside on patio chair/ground",
+   "description": "Salem + Squirrel outside on patio chair/ground",
+   "cat": "salem + squirrel",
+   "shot": "static",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "chair",
+    "ground",
+    "household",
+    "outside",
+    "patio",
+    "salem",
+    "squirrel"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/salem & squirrel outside",
+   "also_named": [],
+   "drive_file_ids": [
+    "1aSd1J8LNRQfdv6yuTFDwB4l3D0DVtQxP"
+   ],
+   "organised_name": "HOME-07_salem-squirrel-outside-on-patio-chair-gr.mov",
+   "duration_s": 8.7,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-09",
+   "thumb": "thumbs/HOME-07.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-08",
+   "category": "household",
+   "title": "Salem + Squirrel (in white shirt) in backyard dirt",
+   "description": "Salem + Squirrel (in white shirt) in backyard dirt",
+   "cat": "salem + squirrel",
+   "shot": "static",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "backyard",
+    "dirt",
+    "household",
+    "salem",
+    "shirt",
+    "squirrel",
+    "white"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/salem + squirrel",
+   "also_named": [],
+   "drive_file_ids": [
+    "1fo9vN0BX0D9t1xh46NTweg6E26B9HA2C"
+   ],
+   "organised_name": "HOME-08_salem-squirrel.mov",
+   "duration_s": 7.1,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-02-19",
+   "thumb": "thumbs/HOME-08.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-09",
+   "category": "household",
+   "title": "Salem lying on floral bedsheets",
+   "description": "Salem lying on floral bedsheets",
+   "cat": "salem",
+   "shot": "static close",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "bedsheets",
+    "floral",
+    "household",
+    "lying",
+    "salem"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/salem on bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1etgYe-VYp7HxyntUrMj2Eb7J_3SalT3K"
+   ],
+   "organised_name": "HOME-09_salem-lying-on-floral-bedsheets.mov",
+   "duration_s": 10.9,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/HOME-09.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-10",
+   "category": "household",
+   "title": "Salem lying on floral sheets, alt",
+   "description": "Salem lying on floral sheets, alt",
+   "cat": "salem",
+   "shot": "static close",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "alt",
+    "floral",
+    "household",
+    "lying",
+    "salem",
+    "sheets"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/salem on bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1My8lFYbTUMyiHsePnOy06E2wvLC3kfVy"
+   ],
+   "organised_name": "HOME-10_salem-lying-on-floral-sheets.mov",
+   "duration_s": 6.0,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/HOME-10.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-11",
+   "category": "household",
+   "title": "Salem lounging on couch back, push-in to sleepy face",
+   "description": "Salem lounging on couch back, push-in to sleepy face",
+   "cat": "salem",
+   "shot": "push-in",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "back",
+    "couch",
+    "household",
+    "lounging",
+    "push",
+    "salem",
+    "sleepy"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/salem on couch",
+   "also_named": [],
+   "drive_file_ids": [
+    "187vWd3AN0dzuCpd2MFgO81sr4LpyucpC"
+   ],
+   "organised_name": "HOME-11_salem-lounging-on-couch-back.mov",
+   "duration_s": 5.9,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-02-25",
+   "thumb": "thumbs/HOME-11.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-12",
+   "category": "household",
+   "title": "Salem sleeping belly-up on rug, top-down",
+   "description": "Salem sleeping belly-up on rug, top-down",
+   "cat": "salem",
+   "shot": "static top",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "belly",
+    "cute",
+    "down",
+    "funny",
+    "household",
+    "rug",
+    "salem",
+    "sleeping",
+    "top"
+   ],
+   "best_section": null,
+   "notes": "funny/cute",
+   "source_file": "GENERAL CAT B-ROLL/salem sleeping",
+   "also_named": [],
+   "drive_file_ids": [
+    "1oaFmlmSRTs9EqyVlkCK71FJTs2gPcbdF"
+   ],
+   "organised_name": "HOME-12_salem-sleeping-belly-up-on-rug.mov",
+   "duration_s": 9.4,
+   "resolution": "2160x3840",
+   "fps": 30,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-09-06",
+   "thumb": "thumbs/HOME-12.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-13",
+   "category": "household",
+   "title": "Salem sleeping in chair, extreme close-up, tongue out",
+   "description": "Salem sleeping in chair, extreme close-up, tongue out",
+   "cat": "salem",
+   "shot": "handheld close",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "chair",
+    "close",
+    "extreme",
+    "funny",
+    "household",
+    "salem",
+    "sleeping",
+    "tongue"
+   ],
+   "best_section": null,
+   "notes": "funny",
+   "source_file": "GENERAL CAT B-ROLL/salem sleeping chair",
+   "also_named": [],
+   "drive_file_ids": [
+    "1B_oVhtLuApaVyaCmkqmsocCa1np7kMHm"
+   ],
+   "organised_name": "HOME-13_salem-sleeping-in-chair.mov",
+   "duration_s": 13.1,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2025-11-16",
+   "thumb": "thumbs/HOME-13.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-14",
+   "category": "household",
+   "title": "Squirrel rubbing on window post, close, sky behind",
+   "description": "Squirrel rubbing on window post, close, sky behind",
+   "cat": "squirrel",
+   "shot": "handheld close",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "close",
+    "household",
+    "post",
+    "rubbing",
+    "sky",
+    "squirrel",
+    "window"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/squirrel",
+   "also_named": [],
+   "drive_file_ids": [
+    "1Tr9gdge4yagwZvncPtU7P8QrYRZoF7bS"
+   ],
+   "organised_name": "HOME-14_squirrel-rubbing-on-window-post.mov",
+   "duration_s": 8.1,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-03-13",
+   "thumb": "thumbs/HOME-14.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-15",
+   "category": "household",
+   "title": "Squirrel + Salem lying on carpet near door",
+   "description": "Squirrel + Salem lying on carpet near door",
+   "cat": "squirrel + salem",
+   "shot": "static",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "carpet",
+    "door",
+    "household",
+    "lying",
+    "near",
+    "salem",
+    "squirrel"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/squirrel & salem on carpet",
+   "also_named": [],
+   "drive_file_ids": [
+    "1lCjw85VDGJcceD4DQ0I6IQsvACtoJbYG"
+   ],
+   "organised_name": "HOME-15_squirrel-salem-lying-on-carpet-near-door.mov",
+   "duration_s": 9.1,
+   "resolution": "1080x1920",
+   "fps": 30,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-12-02",
+   "thumb": "thumbs/HOME-15.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-16",
+   "category": "household",
+   "title": "Squirrel making biscuits on blanket",
+   "description": "Squirrel making biscuits on blanket",
+   "cat": "squirrel",
+   "shot": "close",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "biscuits",
+    "blanket",
+    "household",
+    "making",
+    "squirrel"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/squirrel biscuits",
+   "also_named": [
+    "✅GENERAL CAT B-ROLL/squirrel making biscuits"
+   ],
+   "drive_file_ids": [
+    "1NR_UeI7_YExNpfZSqIN744hSX0xwnADX",
+    "17bL5GPikSY9XxHhaW8IA4QYLFaNS-oIs"
+   ],
+   "organised_name": "HOME-16_squirrel-making-biscuits-on-blanket.mov",
+   "duration_s": 8.0,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-09",
+   "thumb": "thumbs/HOME-16.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-17",
+   "category": "household",
+   "title": "Squirrel in blue bow tie sitting on bed",
+   "description": "Squirrel in blue bow tie sitting on bed",
+   "cat": "squirrel",
+   "shot": "static",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "bed",
+    "blue",
+    "bow",
+    "cute",
+    "hero",
+    "household",
+    "sitting",
+    "squirrel",
+    "tie"
+   ],
+   "best_section": null,
+   "notes": "cute, hero",
+   "source_file": "GENERAL CAT B-ROLL/squirrel bow tie",
+   "also_named": [],
+   "drive_file_ids": [
+    "1tq_lCQw8I2na2wmXPrFwUhPKReppgskr"
+   ],
+   "organised_name": "HOME-17_squirrel-in-blue-bow-tie-sitting-on-bed.mov",
+   "duration_s": 18.7,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-03-08",
+   "thumb": "thumbs/HOME-17.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-18",
+   "category": "household",
+   "title": "Squirrel grooming outside on patio",
+   "description": "Squirrel grooming outside on patio",
+   "cat": "squirrel",
+   "shot": "static",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "grooming",
+    "household",
+    "outside",
+    "patio",
+    "squirrel"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/squirrel grooming outside",
+   "also_named": [],
+   "drive_file_ids": [
+    "1nQzFTpjEAkB6DsXKViJGdiOnhuTKmQuf"
+   ],
+   "organised_name": "HOME-18_squirrel-grooming-outside-on-patio.mov",
+   "duration_s": 5.2,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/HOME-18.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-19",
+   "category": "household",
+   "title": "Squirrel in grey sweater on bed",
+   "description": "Squirrel in grey sweater on bed",
+   "cat": "squirrel",
+   "shot": "static",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "bed",
+    "cute",
+    "grey",
+    "household",
+    "squirrel",
+    "sweater"
+   ],
+   "best_section": null,
+   "notes": "cute outfit",
+   "source_file": "GENERAL CAT B-ROLL/squirrel in sweater",
+   "also_named": [],
+   "drive_file_ids": [
+    "11ytQavakUtU2msJpkol79A5pWakppTYm"
+   ],
+   "organised_name": "HOME-19_squirrel-in-grey-sweater-on-bed.mov",
+   "duration_s": 9.1,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-09-06",
+   "thumb": "thumbs/HOME-19.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-20",
+   "category": "household",
+   "title": "Squirrel napping on bed, push-in, sunlit",
+   "description": "Squirrel napping on bed, push-in, sunlit",
+   "cat": "squirrel",
+   "shot": "push-in",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "bed",
+    "household",
+    "napping",
+    "push",
+    "squirrel",
+    "sunlit"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/squirrel napping on bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1820y-ZqIE7F0u2RTktJgTCxmRrMZKs2V"
+   ],
+   "organised_name": "HOME-20_squirrel-napping-on-bed.mov",
+   "duration_s": 6.2,
+   "resolution": "2160x3840",
+   "fps": 59,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-12",
+   "thumb": "thumbs/HOME-20.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-21",
+   "category": "household",
+   "title": "Squirrel napping on bed, wide",
+   "description": "Squirrel napping on bed, wide",
+   "cat": "squirrel",
+   "shot": "static",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "bed",
+    "household",
+    "napping",
+    "squirrel",
+    "wide"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/squirrel napping on bed",
+   "also_named": [
+    "✅GENERAL CAT B-ROLL/squirrel sleeping blanket"
+   ],
+   "drive_file_ids": [
+    "1uGP8iTbzHt_ei7CB-e4nBMdYuJOVx6qn",
+    "1TSHrlzZitP-C5GchIRWO0Ha7c9T89Ufo"
+   ],
+   "organised_name": "HOME-21_squirrel-napping-on-bed.mov",
+   "duration_s": 8.6,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-09",
+   "thumb": "thumbs/HOME-21.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-22",
+   "category": "household",
+   "title": "Squirrel lounging on white sheets in sunlight, looks up",
+   "description": "Squirrel lounging on white sheets in sunlight, looks up",
+   "cat": "squirrel",
+   "shot": "handheld",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "household",
+    "looks",
+    "lounging",
+    "sheets",
+    "squirrel",
+    "sunlight",
+    "white"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/squirrel on sheets",
+   "also_named": [],
+   "drive_file_ids": [
+    "1RuLE7ndgurvJOIyuBf9p5_aogsDbbYtx"
+   ],
+   "organised_name": "HOME-22_squirrel-lounging-on-white-sheets-in-sun.mov",
+   "duration_s": 9.1,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-03-16",
+   "thumb": "thumbs/HOME-22.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-23",
+   "category": "household",
+   "title": "Squirrel lying on white bed, wide",
+   "description": "Squirrel lying on white bed, wide",
+   "cat": "squirrel",
+   "shot": "static",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "bed",
+    "household",
+    "lying",
+    "squirrel",
+    "white",
+    "wide"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/squirrel on sheets",
+   "also_named": [],
+   "drive_file_ids": [
+    "1Bi3TdFBVVt-H9Hd8Tga4X8XqPFn-doXu"
+   ],
+   "organised_name": "HOME-23_squirrel-lying-on-white-bed.mov",
+   "duration_s": 5.0,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-03-16",
+   "thumb": "thumbs/HOME-23.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-24",
+   "category": "household",
+   "title": "Tiger + Salem lying on floral bed",
+   "description": "Tiger + Salem lying on floral bed",
+   "cat": "tiger + salem",
+   "shot": "static wide",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "bed",
+    "floral",
+    "household",
+    "lying",
+    "salem",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/tiger & salem on bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1U7mZ4QIY6O8aX1ObtX2UwjCAU_DXwV2k"
+   ],
+   "organised_name": "HOME-24_tiger-salem-lying-on-floral-bed.mov",
+   "duration_s": 11.3,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/HOME-24.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-25",
+   "category": "household",
+   "title": "Tiger + Salem on floral bed, alt",
+   "description": "Tiger + Salem on floral bed, alt",
+   "cat": "tiger + salem",
+   "shot": "static wide",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "alt",
+    "bed",
+    "floral",
+    "household",
+    "salem",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/tiger & salem on bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1DpTuBhWLgCuf1Kkpc5dr5FnnTAnG_7IK"
+   ],
+   "organised_name": "HOME-25_tiger-salem-on-floral-bed.mov",
+   "duration_s": 11.2,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/HOME-25.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-26",
+   "category": "household",
+   "title": "Tiger + Squirrel sitting on dining table by window",
+   "description": "Tiger + Squirrel sitting on dining table by window",
+   "cat": "tiger + squirrel",
+   "shot": "handheld push-in",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "dining",
+    "household",
+    "sitting",
+    "squirrel",
+    "table",
+    "tiger",
+    "window"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/tiger & squirrel on table",
+   "also_named": [],
+   "drive_file_ids": [
+    "1iC-OpL7lI46nbjNcoFpKGj8Lv-pEeEvu"
+   ],
+   "organised_name": "HOME-26_tiger-squirrel-sitting-on-dining-table-b.mov",
+   "duration_s": 8.3,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2026-10-10",
+   "thumb": "thumbs/HOME-26.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-27",
+   "category": "household",
+   "title": "Tiger lounging on cat tree perch, push-in",
+   "description": "Tiger lounging on cat tree perch, push-in",
+   "cat": "tiger",
+   "shot": "push-in",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "cat",
+    "household",
+    "lounging",
+    "perch",
+    "push",
+    "tiger",
+    "tree"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/tiger cat tree",
+   "also_named": [],
+   "drive_file_ids": [
+    "1oND0kbqyaucJsT9-W_BPQ2B0k8RqcaXa"
+   ],
+   "organised_name": "HOME-27_tiger-lounging-on-cat-tree-perch.mov",
+   "duration_s": 16.4,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-03-11",
+   "thumb": "thumbs/HOME-27.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-28",
+   "category": "household",
+   "title": "Tiger grooming on floral bed, pan to Salem sleeping",
+   "description": "Tiger grooming on floral bed, pan to Salem sleeping",
+   "cat": "tiger + salem",
+   "shot": "handheld",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "bed",
+    "floral",
+    "grooming",
+    "household",
+    "pan",
+    "salem",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/tiger grooming on bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1p5rFQvxoApYnOdeZqkG5fG9Gpu9_AUGM"
+   ],
+   "organised_name": "HOME-28_tiger-grooming-on-floral-bed.mov",
+   "duration_s": 18.1,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/HOME-28.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-29",
+   "category": "household",
+   "title": "Tiger walks through living room to camera, sits",
+   "description": "Tiger walks through living room to camera, sits",
+   "cat": "tiger",
+   "shot": "handheld",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "camera",
+    "household",
+    "living",
+    "room",
+    "through",
+    "tiger",
+    "walks"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/tiger in living room",
+   "also_named": [],
+   "drive_file_ids": [
+    "1NVCzoYQLNegHproeg5Ymg2Y1rsiv_Om1"
+   ],
+   "organised_name": "HOME-29_tiger-walks-through-living-room-to-camer.mov",
+   "duration_s": 13.5,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-05-06",
+   "thumb": "thumbs/HOME-29.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-30",
+   "category": "household",
+   "title": "Tiger in a 'king' robe costume on bed",
+   "description": "Tiger in a 'king' robe costume on bed",
+   "cat": "tiger",
+   "shot": "static",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "bed",
+    "costume",
+    "funny",
+    "hook",
+    "household",
+    "king",
+    "robe",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": "funny, hook",
+   "source_file": "GENERAL CAT B-ROLL/tiger king",
+   "also_named": [],
+   "drive_file_ids": [
+    "1_qrnAH3NckW3kNetp1U4GZfw5cXooWit"
+   ],
+   "organised_name": "HOME-30_tiger-in-a-king-robe-costume-on-bed.mov",
+   "duration_s": 7.7,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-03-08",
+   "thumb": "thumbs/HOME-30.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-31",
+   "category": "household",
+   "title": "Tiger stretched on floral bed, push-in",
+   "description": "Tiger stretched on floral bed, push-in",
+   "cat": "tiger",
+   "shot": "push-in",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "bed",
+    "floral",
+    "household",
+    "push",
+    "stretched",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/tiger on bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1xb4rHTQYCbQvTeCzpsL6u9Wyj7cHIciR"
+   ],
+   "organised_name": "HOME-31_tiger-stretched-on-floral-bed.mov",
+   "duration_s": 6.1,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/HOME-31.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-32",
+   "category": "household",
+   "title": "Tiger on floral bed, pull back to Salem on pillows",
+   "description": "Tiger on floral bed, pull back to Salem on pillows",
+   "cat": "tiger + salem",
+   "shot": "handheld",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "back",
+    "bed",
+    "floral",
+    "household",
+    "pull",
+    "salem",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/tiger on bed",
+   "also_named": [],
+   "drive_file_ids": [
+    "1GYVacm7r1-tZ_J7BAQ3ek5mT5AWLFv0M"
+   ],
+   "organised_name": "HOME-32_tiger-on-floral-bed.mov",
+   "duration_s": 10.9,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/HOME-32.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-33",
+   "category": "household",
+   "title": "Tiger curled on couch, plays upside down with blanket",
+   "description": "Tiger curled on couch, plays upside down with blanket",
+   "cat": "tiger",
+   "shot": "handheld close",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "couch",
+    "curled",
+    "cute",
+    "down",
+    "household",
+    "plays",
+    "tiger",
+    "upside"
+   ],
+   "best_section": null,
+   "notes": "cute",
+   "source_file": "GENERAL CAT B-ROLL/tiger on couch",
+   "also_named": [],
+   "drive_file_ids": [
+    "12_BLPGIX6hDYU-CDAe3dtWDwvY06VpHN"
+   ],
+   "organised_name": "HOME-33_tiger-curled-on-couch.mov",
+   "duration_s": 24.2,
+   "resolution": "1080x1920",
+   "fps": 30,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2026-10-13",
+   "thumb": "thumbs/HOME-33.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-34",
+   "category": "household",
+   "title": "Tiger lying on white sheets",
+   "description": "Tiger lying on white sheets",
+   "cat": "tiger",
+   "shot": "static",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "household",
+    "lying",
+    "sheets",
+    "tiger",
+    "white"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/tiger on sheets",
+   "also_named": [],
+   "drive_file_ids": [
+    "1kJp0t-_SAkXqsD6wMP80RebY4yA8HCTZ"
+   ],
+   "organised_name": "HOME-34_tiger-lying-on-white-sheets.mov",
+   "duration_s": 11.7,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2026-10-10",
+   "thumb": "thumbs/HOME-34.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-35",
+   "category": "household",
+   "title": "Tiger lying on patio outside",
+   "description": "Tiger lying on patio outside",
+   "cat": "tiger",
+   "shot": "static",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "household",
+    "lying",
+    "outside",
+    "patio",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/tiger outside",
+   "also_named": [],
+   "drive_file_ids": [
+    "1mH58aOmYaTQlXvfKrMttD2gbyaRiLvQ3"
+   ],
+   "organised_name": "HOME-35_tiger-lying-on-patio-outside.mov",
+   "duration_s": 8.7,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-09",
+   "thumb": "thumbs/HOME-35.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-36",
+   "category": "household",
+   "title": "Tiger lying on patio, alt",
+   "description": "Tiger lying on patio, alt",
+   "cat": "tiger",
+   "shot": "static",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "alt",
+    "household",
+    "lying",
+    "patio",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": null,
+   "source_file": "GENERAL CAT B-ROLL/tiger outside",
+   "also_named": [],
+   "drive_file_ids": [
+    "1GD6cMCp0sN1yxRs1JvFa3OMfRx5u1y28"
+   ],
+   "organised_name": "HOME-36_tiger-lying-on-patio.mov",
+   "duration_s": 8.6,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2026-10-09",
+   "thumb": "thumbs/HOME-36.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-37",
+   "category": "household",
+   "title": "Tiger sleeping belly-up, close, nose in focus",
+   "description": "Tiger sleeping belly-up, close, nose in focus",
+   "cat": "tiger",
+   "shot": "handheld close",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "belly",
+    "close",
+    "cute",
+    "focus",
+    "funny",
+    "household",
+    "nose",
+    "sleeping",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": "funny/cute",
+   "source_file": "GENERAL CAT B-ROLL/tiger sleeping",
+   "also_named": [],
+   "drive_file_ids": [
+    "1C3a_unM8z_OirAnWtju7ZnLztbucIEdA",
+    "1O6pndUQdN3SkaLp85jmOi_a05X27q72L"
+   ],
+   "organised_name": "HOME-37_tiger-sleeping-belly-up.mov",
+   "duration_s": 13.2,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": false,
+   "shot_date": "2025-12-12",
+   "thumb": "thumbs/HOME-37.jpg",
+   "shoot": "B"
+  },
+  {
+   "id": "HOME-38",
+   "category": "household",
+   "title": "Tiger in shirt collar + striped tie on cat tree",
+   "description": "Tiger in shirt collar + striped tie on cat tree",
+   "cat": "tiger",
+   "shot": "static",
+   "use_for": "Lifestyle filler, cute cat moments, pacing",
+   "tags": [
+    "cat",
+    "collar",
+    "funny",
+    "hook",
+    "household",
+    "shirt",
+    "striped",
+    "tie",
+    "tiger"
+   ],
+   "best_section": null,
+   "notes": "funny, hook",
+   "source_file": "GENERAL CAT B-ROLL/tiger tie",
+   "also_named": [],
+   "drive_file_ids": [
+    "1TTFJ7iq5hjHubEk_jT6d8Ex18_RD-A2s"
+   ],
+   "organised_name": "HOME-38_tiger-in-shirt-collar-striped-tie-on-cat.mov",
+   "duration_s": 19.2,
+   "resolution": "2160x3840",
+   "fps": 60,
+   "codec": "hevc",
+   "hdr": true,
+   "shot_date": "2025-03-07",
+   "thumb": "thumbs/HOME-38.jpg",
+   "shoot": "B"
   },
   {
    "id": "SIA-01",
@@ -1176,7 +6437,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/SIA-01.jpg"
+   "thumb": "thumbs/SIA-01.jpg",
+   "shoot": "A"
   },
   {
    "id": "SIA-02",
@@ -1205,7 +6467,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/SIA-02.jpg"
+   "thumb": "thumbs/SIA-02.jpg",
+   "shoot": "A"
   },
   {
    "id": "SIA-03",
@@ -1234,7 +6497,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/SIA-03.jpg"
+   "thumb": "thumbs/SIA-03.jpg",
+   "shoot": "A"
   },
   {
    "id": "SIA-04",
@@ -1264,7 +6528,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/SIA-04.jpg"
+   "thumb": "thumbs/SIA-04.jpg",
+   "shoot": "A"
   },
   {
    "id": "SIA-05",
@@ -1294,7 +6559,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/SIA-05.jpg"
+   "thumb": "thumbs/SIA-05.jpg",
+   "shoot": "A"
   },
   {
    "id": "SIA-06",
@@ -1325,7 +6591,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/SIA-06.jpg"
+   "thumb": "thumbs/SIA-06.jpg",
+   "shoot": "A"
   },
   {
    "id": "SIA-07",
@@ -1355,7 +6622,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/SIA-07.jpg"
+   "thumb": "thumbs/SIA-07.jpg",
+   "shoot": "A"
   },
   {
    "id": "SIA-08",
@@ -1385,7 +6653,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/SIA-08.jpg"
+   "thumb": "thumbs/SIA-08.jpg",
+   "shoot": "A"
   },
   {
    "id": "SIA-09",
@@ -1416,7 +6685,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/SIA-09.jpg"
+   "thumb": "thumbs/SIA-09.jpg",
+   "shoot": "A"
   },
   {
    "id": "RAG-01",
@@ -1447,7 +6717,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/RAG-01.jpg"
+   "thumb": "thumbs/RAG-01.jpg",
+   "shoot": "A"
   },
   {
    "id": "RAG-02",
@@ -1481,7 +6752,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/RAG-02.jpg"
+   "thumb": "thumbs/RAG-02.jpg",
+   "shoot": "A"
   },
   {
    "id": "RAG-03",
@@ -1511,7 +6783,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/RAG-03.jpg"
+   "thumb": "thumbs/RAG-03.jpg",
+   "shoot": "A"
   },
   {
    "id": "RAG-04",
@@ -1541,7 +6814,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/RAG-04.jpg"
+   "thumb": "thumbs/RAG-04.jpg",
+   "shoot": "A"
   },
   {
    "id": "RAG-05",
@@ -1571,7 +6845,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/RAG-05.jpg"
+   "thumb": "thumbs/RAG-05.jpg",
+   "shoot": "A"
   },
   {
    "id": "RAG-06",
@@ -1600,7 +6875,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/RAG-06.jpg"
+   "thumb": "thumbs/RAG-06.jpg",
+   "shoot": "A"
   },
   {
    "id": "RAG-07",
@@ -1632,7 +6908,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/RAG-07.jpg"
+   "thumb": "thumbs/RAG-07.jpg",
+   "shoot": "A"
   },
   {
    "id": "RAG-08",
@@ -1662,7 +6939,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/RAG-08.jpg"
+   "thumb": "thumbs/RAG-08.jpg",
+   "shoot": "A"
   },
   {
    "id": "RAG-09",
@@ -1691,7 +6969,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/RAG-09.jpg"
+   "thumb": "thumbs/RAG-09.jpg",
+   "shoot": "A"
   },
   {
    "id": "RAG-10",
@@ -1721,7 +7000,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/RAG-10.jpg"
+   "thumb": "thumbs/RAG-10.jpg",
+   "shoot": "A"
   },
   {
    "id": "RAG-11",
@@ -1750,7 +7030,8 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/RAG-11.jpg"
+   "thumb": "thumbs/RAG-11.jpg",
+   "shoot": "A"
   },
   {
    "id": "RAG-12",
@@ -1779,7 +7060,97 @@
    "codec": "h264",
    "hdr": false,
    "shot_date": "2026-10-26",
-   "thumb": "thumbs/RAG-12.jpg"
+   "thumb": "thumbs/RAG-12.jpg",
+   "shoot": "A"
   }
+ ],
+ "shoots": {
+  "A": "Home A: Siamese + Ragdoll, kitchen with granite counters (folder 'Pacagen B ROLL extras')",
+  "B": "Home B: Tiger (brown tabby), Squirrel (silver tabby) and Salem (black cat); several creators (folder 2: SPRAY / SUPPLEMENT / CLEANING / GENERAL CAT)",
+  "C": "Allergy-symptom shoot: creator in white tank, pills, sprays, brain fog (folder 3; the talking-head file is intentionally excluded)"
+ },
+ "drive_folders": [
+  "https://drive.google.com/drive/folders/1-7sQpKl0AAn6fOKnXBuczjWl4ajC3mjG",
+  "https://drive.google.com/drive/folders/1Rzp2KmpcLtVEMqLZSZA92K9N5ShiA36Q",
+  "https://drive.google.com/drive/folders/1dcrdbOeYrqY_jpALUPfBRYTECSPseL0h"
+ ],
+ "excluded": [
+  {
+   "file": "TALKING HEAD _ SCRIPT",
+   "folder": 3,
+   "reason": "uploaded by mistake, not B-roll; user asked to skip"
+  }
+ ],
+ "creators": {
+  "A": "Home A creator: dark hair, green tee (one woman; 3 clips on 1 Nov in brown tee + jeans)",
+  "B1": "Home B: long dark hair, blue crop top / navy velvet (sunny white bedroom, checkered entry)",
+  "B2": "Home B + allergy shoot: long dark hair, white tank + brown capris or purple pajamas (stairs, laundry, cleaning)",
+  "B3": "Home B: pink hoodie / tan hoodie, often with Salem or Tiger in bed (selfie style)"
+ },
+ "story_map": [
+  [
+   "Hook / scroll-stopper",
+   "A: RAG-01, FEED-06, PROB-01, RAG-02 · B: HOME-30 (Tiger 'king'), HOME-38 (Tiger in tie), HOME-17 (Squirrel bow tie), PRD-15 (creator holds box up), MED-01 (brain fog)"
+  ],
+  [
+   "Problem: hair everywhere",
+   "A: PROB-01, PROB-02, PROB-03"
+  ],
+  [
+   "Problem: allergy symptoms / meds",
+   "C: MED-01 brain fog, MED-05 annoyed taking pills, MED-06 dry mouth, MED-02/03 pills, MED-04 nasal sprays · A: FEED-03 @0:13 nose-rub"
+  ],
+  [
+   "What I tried before",
+   "B: CLEAN-01/02/06 air purifiers, CLEAN-03/04/05 laundry, CLEAN-07 to 10 sweeping/vacuuming · A: AIR-01 to 03, PROB-02"
+  ],
+  [
+   "Problem: cat shut out",
+   "A: DOOR-01, DOOR-03, DOOR-02"
+  ],
+  [
+   "Product reveal / unboxing",
+   "B: PRD-20 unboxing, PRD-13/14 boxes, PRD-16 logo, PRD-11 bottle → cat reveal · A: PRD-01, PRD-03"
+  ],
+  [
+   "How it works: Step 1 Activate",
+   "B: PREP-02 powder → PREP-01 solution → PREP-03 trigger → PREP-04 shake · A: PRD-08"
+  ],
+  [
+   "How it works: Step 2 Neutralize (spray)",
+   "B: USE-22 / USE-11 hero mist, USE-07, USE-19 bed, USE-13 couch, USE-08 entry rug, USE-20 stairs, USE-18 scratcher · A: USE-01, USE-02"
+  ],
+  [
+   "How it works: 3-step card",
+   "B: PRD-12 · A: PRD-06"
+  ],
+  [
+   "Supplement demo",
+   "B: SUP-08 open jar → SUP-15 scoop → SUP-11 sprinkle on food → SUP-03/04 hero with cat · A: PRD-04, FEED-01"
+  ],
+  [
+   "'They love it' (palatability)",
+   "B: FEED-26 licking plate, FEED-24 eating leftovers, FEED-18 empty plates, FEED-23 finishing"
+  ],
+  [
+   "Pet-safe / cat-approved",
+   "A: USE-06 · B: PRD-11, PRD-27 (product next to a sleeping cat)"
+  ],
+  [
+   "After / result",
+   "B: BOND-16 reading in bed with cats, BOND-24 cuddling Tiger, BOND-23 petting Squirrel, BOND-18 walking with Salem, BOND-06 cat on chest · A: USE-05 @0:45, BOND-01 to 04"
+  ],
+  [
+   "CTA / end card",
+   "B: PRD-16 logo, PRD-28 tub push-in, PRD-13 both boxes · A: PRD-01, PRD-04"
+  ],
+  [
+   "Funny beat",
+   "B: HOME-13 Salem tongue out, HOME-12 belly-up, HOME-37 Tiger snoot, FEED-24 stealing leftovers · A: RAG-12, RAG-02"
+  ],
+  [
+   "Filler / pacing",
+   "B: HOME-* (38 clips) · A: SIA-*, RAG-*"
+  ]
  ]
 }

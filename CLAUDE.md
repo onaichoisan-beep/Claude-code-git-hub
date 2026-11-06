@@ -3,4 +3,4 @@
 The user is a freelance UGC video editor.
 
 ## B-roll library
-`broll-library/` catalogues the user's client B-roll. Before suggesting or cutting B-roll for a client, read `broll-library/<brand>/CATALOG.md` and refer to clips by their IDs (e.g. `USE-05`). To pull files: `pip install gdown && python3 broll-library/fetch.py <brand> [--id X] [--tag Y] [--category Z]`. To add a new brand, follow `broll-library/README.md`. Never commit video files: `media/` is gitignored.
+`broll-library/` catalogues the user's client B-roll. Before suggesting or cutting B-roll for a client, read `broll-library/<brand>/CATALOG.md` and refer to clips by their IDs (e.g. `USE-05`). Each clip has a shoot letter (different homes/cats/creators); don't mix shoots in one ad unless asked. Edit `catalog.json`, then run `python3 broll-library/build_catalog.py <brand>` to regenerate the markdown. To pull files: `pip install gdown && python3 broll-library/fetch.py <brand> [--id X] [--tag Y] [--category Z]`. To add a new brand, follow `broll-library/README.md`. Never commit video files: `media/` is gitignored.

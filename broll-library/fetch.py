@@ -5,6 +5,7 @@
   python3 broll-library/fetch.py pacagen --category in-use
   python3 broll-library/fetch.py pacagen --tag hook --tag funny
   python3 broll-library/fetch.py pacagen --id USE-05 --id PRD-01
+  python3 broll-library/fetch.py pacagen --shoot B --cat salem
   python3 broll-library/fetch.py pacagen --list           # print only, no download
 
 Files land in broll-library/<brand>/media/<NN_category>/<ID>_<name>.<ext>
@@ -20,7 +21,8 @@ def main():
     ap.add_argument("--id", action="append", default=[])
     ap.add_argument("--tag", action="append", default=[])
     ap.add_argument("--category", action="append", default=[])
-    ap.add_argument("--cat", help="siamese / ragdoll / none")
+    ap.add_argument("--cat", help="cat name, e.g. siamese / ragdoll / tiger / squirrel / salem")
+    ap.add_argument("--shoot", help="A / B / C (see CATALOG.md)")
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--out", help="output dir (default: <brand>/media)")
     a = ap.parse_args()
@@ -32,7 +34,8 @@ def main():
              if (not a.id or c["id"] in a.id)
              and (not a.tag or set(a.tag) & set(c["tags"]))
              and (not a.category or c["category"] in a.category)
-             and (not a.cat or c["cat"] == a.cat)]
+             and (not a.cat or a.cat in c["cat"])
+             and (not a.shoot or c.get("shoot", "A") == a.shoot)]
     if not clips:
         sys.exit("No clips match.")
     for c in clips:
