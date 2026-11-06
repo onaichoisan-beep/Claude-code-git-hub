@@ -1,0 +1,866 @@
+[
+{
+"id": "w0",
+"text": "One",
+"start": 0.0,
+"end": 0.4
+},
+{
+"id": "w1",
+"text": "mosquito",
+"start": 0.4,
+"end": 0.82
+},
+{
+"id": "w2",
+"text": "bite",
+"start": 0.82,
+"end": 1.16
+},
+{
+"id": "w3",
+"text": "is",
+"start": 1.16,
+"end": 1.32
+},
+{
+"id": "w4",
+"text": "all",
+"start": 1.32,
+"end": 1.5
+},
+{
+"id": "w5",
+"text": "it",
+"start": 1.5,
+"end": 1.66
+},
+{
+"id": "w6",
+"text": "takes.",
+"start": 1.66,
+"end": 2.02
+},
+{
+"id": "w7",
+"text": "As",
+"start": 3.06,
+"end": 3.16
+},
+{
+"id": "w8",
+"text": "she",
+"start": 3.16,
+"end": 3.34
+},
+{
+"id": "w9",
+"text": "drinks",
+"start": 3.34,
+"end": 3.58
+},
+{
+"id": "w10",
+"text": "your",
+"start": 3.58,
+"end": 3.78
+},
+{
+"id": "w11",
+"text": "blood,",
+"start": 3.78,
+"end": 4.08
+},
+{
+"id": "w12",
+"text": "her",
+"start": 4.38,
+"end": 4.5
+},
+{
+"id": "w13",
+"text": "saliva",
+"start": 4.5,
+"end": 4.86
+},
+{
+"id": "w14",
+"text": "slips",
+"start": 4.86,
+"end": 5.2
+},
+{
+"id": "w15",
+"text": "dozens",
+"start": 5.2,
+"end": 5.54
+},
+{
+"id": "w16",
+"text": "of",
+"start": 5.54,
+"end": 5.84
+},
+{
+"id": "w17",
+"text": "tiny",
+"start": 5.84,
+"end": 6.18
+},
+{
+"id": "w18",
+"text": "parasites",
+"start": 6.18,
+"end": 6.64
+},
+{
+"id": "w19",
+"text": "into",
+"start": 6.64,
+"end": 6.9
+},
+{
+"id": "w20",
+"text": "your",
+"start": 6.9,
+"end": 7.12
+},
+{
+"id": "w21",
+"text": "skin.",
+"start": 7.12,
+"end": 7.46
+},
+{
+"id": "w22",
+"text": "In",
+"start": 8.5,
+"end": 8.6
+},
+{
+"id": "w23",
+"text": "under",
+"start": 8.6,
+"end": 8.8
+},
+{
+"id": "w24",
+"text": "an",
+"start": 8.8,
+"end": 8.96
+},
+{
+"id": "w25",
+"text": "hour,",
+"start": 8.96,
+"end": 9.22
+},
+{
+"id": "w26",
+"text": "they",
+"start": 9.42,
+"end": 9.54
+},
+{
+"id": "w27",
+"text": "ride",
+"start": 9.54,
+"end": 9.74
+},
+{
+"id": "w28",
+"text": "your",
+"start": 9.74,
+"end": 9.94
+},
+{
+"id": "w29",
+"text": "bloodstream",
+"start": 9.94,
+"end": 10.34
+},
+{
+"id": "w30",
+"text": "straight",
+"start": 10.34,
+"end": 10.68
+},
+{
+"id": "w31",
+"text": "to",
+"start": 10.68,
+"end": 10.9
+},
+{
+"id": "w32",
+"text": "your",
+"start": 10.9,
+"end": 11.02
+},
+{
+"id": "w33",
+"text": "liver,",
+"start": 11.02,
+"end": 11.26
+},
+{
+"id": "w34",
+"text": "sneak",
+"start": 11.52,
+"end": 11.7
+},
+{
+"id": "w35",
+"text": "inside",
+"start": 11.7,
+"end": 12.02
+},
+{
+"id": "w36",
+"text": "your",
+"start": 12.02,
+"end": 12.28
+},
+{
+"id": "w37",
+"text": "liver",
+"start": 12.28,
+"end": 12.48
+},
+{
+"id": "w38",
+"text": "cells,",
+"start": 12.48,
+"end": 12.78
+},
+{
+"id": "w39",
+"text": "and",
+"start": 13.08,
+"end": 13.18
+},
+{
+"id": "w40",
+"text": "hide.",
+"start": 13.18,
+"end": 13.46
+},
+{
+"id": "w41",
+"text": "For",
+"start": 14.48,
+"end": 14.62
+},
+{
+"id": "w42",
+"text": "about",
+"start": 14.62,
+"end": 14.86
+},
+{
+"id": "w43",
+"text": "a",
+"start": 14.86,
+"end": 15.02
+},
+{
+"id": "w44",
+"text": "week,",
+"start": 15.02,
+"end": 15.22
+},
+{
+"id": "w45",
+"text": "you",
+"start": 15.44,
+"end": 15.56
+},
+{
+"id": "w46",
+"text": "feel",
+"start": 15.56,
+"end": 15.76
+},
+{
+"id": "w47",
+"text": "totally",
+"start": 15.76,
+"end": 16.12
+},
+{
+"id": "w48",
+"text": "fine,",
+"start": 16.12,
+"end": 16.52
+},
+{
+"id": "w49",
+"text": "while",
+"start": 16.76,
+"end": 16.9
+},
+{
+"id": "w50",
+"text": "each",
+"start": 16.9,
+"end": 17.1
+},
+{
+"id": "w51",
+"text": "parasite",
+"start": 17.1,
+"end": 17.58
+},
+{
+"id": "w52",
+"text": "quietly",
+"start": 17.58,
+"end": 18.06
+},
+{
+"id": "w53",
+"text": "copies",
+"start": 18.06,
+"end": 18.42
+},
+{
+"id": "w54",
+"text": "itself",
+"start": 18.42,
+"end": 18.82
+},
+{
+"id": "w55",
+"text": "into",
+"start": 18.82,
+"end": 19.1
+},
+{
+"id": "w56",
+"text": "tens",
+"start": 19.1,
+"end": 19.32
+},
+{
+"id": "w57",
+"text": "of",
+"start": 19.32,
+"end": 19.54
+},
+{
+"id": "w58",
+"text": "thousands",
+"start": 19.54,
+"end": 19.82
+},
+{
+"id": "w59",
+"text": "more.",
+"start": 19.82,
+"end": 20.22
+},
+{
+"id": "w60",
+"text": "Then",
+"start": 21.26,
+"end": 21.4
+},
+{
+"id": "w61",
+"text": "the",
+"start": 21.4,
+"end": 21.56
+},
+{
+"id": "w62",
+"text": "liver",
+"start": 21.56,
+"end": 21.74
+},
+{
+"id": "w63",
+"text": "cells",
+"start": 21.74,
+"end": 22.08
+},
+{
+"id": "w64",
+"text": "burst,",
+"start": 22.08,
+"end": 22.36
+},
+{
+"id": "w65",
+"text": "flooding",
+"start": 22.66,
+"end": 22.84
+},
+{
+"id": "w66",
+"text": "your",
+"start": 22.84,
+"end": 23.08
+},
+{
+"id": "w67",
+"text": "blood",
+"start": 23.08,
+"end": 23.3
+},
+{
+"id": "w68",
+"text": "with",
+"start": 23.3,
+"end": 23.48
+},
+{
+"id": "w69",
+"text": "new",
+"start": 23.48,
+"end": 23.68
+},
+{
+"id": "w70",
+"text": "parasites,",
+"start": 23.68,
+"end": 24.16
+},
+{
+"id": "w71",
+"text": "and",
+"start": 24.54,
+"end": 24.66
+},
+{
+"id": "w72",
+"text": "each",
+"start": 24.66,
+"end": 24.84
+},
+{
+"id": "w73",
+"text": "one",
+"start": 24.84,
+"end": 25.06
+},
+{
+"id": "w74",
+"text": "invades",
+"start": 25.06,
+"end": 25.42
+},
+{
+"id": "w75",
+"text": "a",
+"start": 25.42,
+"end": 25.58
+},
+{
+"id": "w76",
+"text": "red",
+"start": 25.58,
+"end": 25.74
+},
+{
+"id": "w77",
+"text": "blood",
+"start": 25.74,
+"end": 25.96
+},
+{
+"id": "w78",
+"text": "cell.",
+"start": 25.96,
+"end": 26.3
+},
+{
+"id": "w79",
+"text": "Inside,",
+"start": 27.2,
+"end": 27.68
+},
+{
+"id": "w80",
+"text": "it",
+"start": 28.02,
+"end": 28.1
+},
+{
+"id": "w81",
+"text": "eats",
+"start": 28.1,
+"end": 28.3
+},
+{
+"id": "w82",
+"text": "the",
+"start": 28.3,
+"end": 28.5
+},
+{
+"id": "w83",
+"text": "hemoglobin",
+"start": 28.5,
+"end": 28.94
+},
+{
+"id": "w84",
+"text": "and",
+"start": 28.94,
+"end": 29.22
+},
+{
+"id": "w85",
+"text": "multiplies",
+"start": 29.22,
+"end": 29.78
+},
+{
+"id": "w86",
+"text": "again,",
+"start": 29.78,
+"end": 30.08
+},
+{
+"id": "w87",
+"text": "until",
+"start": 30.34,
+"end": 30.6
+},
+{
+"id": "w88",
+"text": "the",
+"start": 30.6,
+"end": 30.78
+},
+{
+"id": "w89",
+"text": "cell",
+"start": 30.78,
+"end": 30.98
+},
+{
+"id": "w90",
+"text": "explodes",
+"start": 30.98,
+"end": 31.38
+},
+{
+"id": "w91",
+"text": "and",
+"start": 31.38,
+"end": 31.6
+},
+{
+"id": "w92",
+"text": "releases",
+"start": 31.6,
+"end": 31.92
+},
+{
+"id": "w93",
+"text": "even",
+"start": 31.92,
+"end": 32.28
+},
+{
+"id": "w94",
+"text": "more,",
+"start": 32.28,
+"end": 32.54
+},
+{
+"id": "w95",
+"text": "which",
+"start": 32.88,
+"end": 33.0
+},
+{
+"id": "w96",
+"text": "attack",
+"start": 33.0,
+"end": 33.28
+},
+{
+"id": "w97",
+"text": "new",
+"start": 33.28,
+"end": 33.5
+},
+{
+"id": "w98",
+"text": "red",
+"start": 33.5,
+"end": 33.74
+},
+{
+"id": "w99",
+"text": "blood",
+"start": 33.74,
+"end": 33.96
+},
+{
+"id": "w100",
+"text": "cells.",
+"start": 33.96,
+"end": 34.32
+},
+{
+"id": "w101",
+"text": "Every",
+"start": 35.38,
+"end": 35.54
+},
+{
+"id": "w102",
+"text": "time",
+"start": 35.54,
+"end": 35.78
+},
+{
+"id": "w103",
+"text": "millions",
+"start": 35.78,
+"end": 36.0
+},
+{
+"id": "w104",
+"text": "of",
+"start": 36.0,
+"end": 36.3
+},
+{
+"id": "w105",
+"text": "cells",
+"start": 36.3,
+"end": 36.5
+},
+{
+"id": "w106",
+"text": "burst",
+"start": 36.5,
+"end": 36.76
+},
+{
+"id": "w107",
+"text": "at",
+"start": 36.76,
+"end": 36.98
+},
+{
+"id": "w108",
+"text": "once,",
+"start": 36.98,
+"end": 37.24
+},
+{
+"id": "w109",
+"text": "parasite",
+"start": 37.54,
+"end": 37.84
+},
+{
+"id": "w110",
+"text": "waste",
+"start": 37.84,
+"end": 38.12
+},
+{
+"id": "w111",
+"text": "floods",
+"start": 38.12,
+"end": 38.38
+},
+{
+"id": "w112",
+"text": "your",
+"start": 38.38,
+"end": 38.56
+},
+{
+"id": "w113",
+"text": "blood,",
+"start": 38.56,
+"end": 38.8
+},
+{
+"id": "w114",
+"text": "and",
+"start": 39.12,
+"end": 39.22
+},
+{
+"id": "w115",
+"text": "your",
+"start": 39.22,
+"end": 39.36
+},
+{
+"id": "w116",
+"text": "body",
+"start": 39.36,
+"end": 39.6
+},
+{
+"id": "w117",
+"text": "fights",
+"start": 39.6,
+"end": 39.88
+},
+{
+"id": "w118",
+"text": "back",
+"start": 39.88,
+"end": 40.12
+},
+{
+"id": "w119",
+"text": "with",
+"start": 40.12,
+"end": 40.32
+},
+{
+"id": "w120",
+"text": "waves",
+"start": 40.32,
+"end": 40.54
+},
+{
+"id": "w121",
+"text": "of",
+"start": 40.54,
+"end": 40.74
+},
+{
+"id": "w122",
+"text": "fever,",
+"start": 40.74,
+"end": 41.0
+},
+{
+"id": "w123",
+"text": "chills,",
+"start": 41.24,
+"end": 41.54
+},
+{
+"id": "w124",
+"text": "and",
+"start": 41.74,
+"end": 41.84
+},
+{
+"id": "w125",
+"text": "sweating.",
+"start": 41.84,
+"end": 42.16
+},
+{
+"id": "w126",
+"text": "And",
+"start": 43.18,
+"end": 43.3
+},
+{
+"id": "w127",
+"text": "when",
+"start": 43.3,
+"end": 43.44
+},
+{
+"id": "w128",
+"text": "the",
+"start": 43.44,
+"end": 43.58
+},
+{
+"id": "w129",
+"text": "next",
+"start": 43.58,
+"end": 43.78
+},
+{
+"id": "w130",
+"text": "mosquito",
+"start": 43.78,
+"end": 44.16
+},
+{
+"id": "w131",
+"text": "bites",
+"start": 44.16,
+"end": 44.44
+},
+{
+"id": "w132",
+"text": "you,",
+"start": 44.44,
+"end": 44.7
+},
+{
+"id": "w133",
+"text": "it",
+"start": 44.84,
+"end": 44.98
+},
+{
+"id": "w134",
+"text": "sucks",
+"start": 44.98,
+"end": 45.18
+},
+{
+"id": "w135",
+"text": "up",
+"start": 45.18,
+"end": 45.4
+},
+{
+"id": "w136",
+"text": "the",
+"start": 45.4,
+"end": 45.54
+},
+{
+"id": "w137",
+"text": "parasites,",
+"start": 45.54,
+"end": 46.0
+},
+{
+"id": "w138",
+"text": "and",
+"start": 46.32,
+"end": 46.46
+},
+{
+"id": "w139",
+"text": "the",
+"start": 46.46,
+"end": 46.56
+},
+{
+"id": "w140",
+"text": "whole",
+"start": 46.56,
+"end": 46.76
+},
+{
+"id": "w141",
+"text": "cycle",
+"start": 46.76,
+"end": 47.08
+},
+{
+"id": "w142",
+"text": "starts",
+"start": 47.08,
+"end": 47.4
+},
+{
+"id": "w143",
+"text": "again.",
+"start": 47.4,
+"end": 47.8
+}
+]

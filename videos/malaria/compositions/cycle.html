@@ -1,0 +1,109 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #c98f74; }
+    #root canvas { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+  </style>
+  <div data-hf-id="hf-row3" id="root" data-composition-id="cycle" data-width="1080" data-height="1920">
+    <canvas data-hf-id="hf-jj6u" id="cycle-cv"></canvas>
+  </div>
+  <script>
+    (function () {
+      const B = Bio3D, T = THREE, D = 8.4;
+      const r = B.renderer(document.getElementById("cycle-cv"));
+      const scene = new T.Scene();
+      scene.environment = B.env(r);
+      scene.background = new T.Color(0xc48a70);
+      scene.fog = new T.Fog(0xc48a70, 7, 22);
+      B.lights(scene);
+      const rnd = B.rng(91);
+      const skinMat = B.skinMaterial();
+      const skin = new T.Mesh(new T.PlaneGeometry(60, 60), skinMat);
+      skin.rotation.x = -Math.PI / 2;
+      scene.add(skin);
+      // goosebumps ("chills")
+      const NB = 900;
+      const bumpGeo = new T.SphereGeometry(1, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+      const bumps = new T.InstancedMesh(bumpGeo, new T.MeshPhysicalMaterial({ color: 0xdba88c, roughness: 0.5, sheen: 0.6, sheenColor: new T.Color(0xffd2c0) }), NB);
+      const bp = [];
+      for (let i = 0; i < NB; i++) bp.push({ x: (rnd() - 0.5) * 12, z: (rnd() - 0.5) * 12, s: 0.05 + rnd() * 0.035, d: rnd() * 0.15 });
+      scene.add(bumps);
+      // sweat drops ("sweating")
+      const ND = 150;
+      const drops = new T.InstancedMesh(new T.SphereGeometry(1, 32, 20), new T.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.02, transmission: 1, thickness: 0.25, ior: 1.33, clearcoat: 1, envMapIntensity: 1.3 }), ND);
+      const dp = [];
+      for (let i = 0; i < ND; i++) {
+        const x = (rnd() - 0.5) * 10, z = (rnd() - 0.5) * 10;
+        if (Math.hypot(x - 0.5, z - 0.8) < 0.5) { i--; continue; }
+        dp.push({ x, z, s: 0.05 + Math.pow(rnd(), 2.2) * 0.22, t0: 0.7 + rnd() * 1.0 });
+      }
+      scene.add(drops);
+      // the next mosquito, posed exactly like the opening shot
+      const mos = B.mosquito();
+      mos.rotation.y = -0.7;
+      scene.add(mos);
+      const NG = 12;
+      const ride = new T.InstancedMesh(new T.SphereGeometry(1, 14, 10), B.parasiteMaterial(), NG);
+      scene.add(ride);
+      const cam = B.camera(34);
+      const dummy = new T.Object3D();
+      const P = (x, y, z) => new T.Vector3(x, y, z);
+
+      function render(t) {
+        const chill = B.seg(t, 0.1, 0.45);
+        bp.forEach((b, i) => {
+          dummy.position.set(b.x, -0.02, b.z);
+          dummy.rotation.set(0, 0, 0);
+          const k = B.outBack(B.seg(t, 0.1 + b.d, 0.38 + b.d));
+          dummy.scale.set(b.s, b.s * 0.55 * k + 0.0001, b.s);
+          dummy.updateMatrix();
+          bumps.setMatrixAt(i, dummy.matrix);
+        });
+        bumps.instanceMatrix.needsUpdate = true;
+        dp.forEach((d, i) => {
+          const k = B.outBack(B.seg(t, d.t0, d.t0 + 0.35));
+          dummy.position.set(d.x, d.s * 0.18 * k, d.z);
+          dummy.scale.set(d.s * k + 0.0001, d.s * 0.5 * k + 0.0001, d.s * k + 0.0001);
+          dummy.updateMatrix();
+          drops.setMatrixAt(i, dummy.matrix);
+        });
+        drops.instanceMatrix.needsUpdate = true;
+        // mosquito drops in to land, bites on "bites", drinks
+        const land = B.outCubic(B.seg(t, 1.95, 2.85));
+        mos.visible = t >= 1.9;
+        mos.position.set(0.6 * (1 - land), 4.2 * (1 - land), -0.6 * (1 - land));
+        const bite = B.outExpo(B.seg(t, 2.85, 3.1));
+        B.poseMosquito(mos, bite, B.seg(t, 3.7, 5.6));
+        mos.userData.body.position.y = 1.35 - 0.08 * bite;
+        mos.updateMatrixWorld(true);
+        // parasites ride up the proboscis into the mosquito ("sucks up the parasites")
+        const mouth = mos.userData.mouth;
+        for (let i = 0; i < NG; i++) {
+          const k = B.seg(t, 4.25 + i * 0.08, 5.1 + i * 0.08);
+          const p = mouth.localToWorld(P(0.035, -1.3 * (1 - k), 0.0));
+          dummy.position.copy(p);
+          dummy.scale.setScalar(k > 0 && k < 1 ? 0.035 : 0.0001);
+          dummy.updateMatrix();
+          ride.setMatrixAt(i, dummy.matrix);
+        }
+        ride.instanceMatrix.needsUpdate = true;
+        // camera: close on the skin with a shiver, pull back for the landing, push to the head, return to the opening frame
+        const shiver = t > 0.1 && t < 0.8 ? (1 - B.seg(t, 0.1, 0.8)) : 0;
+        const toLand = B.inOut(B.seg(t, 1.75, 2.2));
+        const toHead = B.inOut(B.seg(t, 3.0, 5.4));
+        const home = B.inOut(B.seg(t, 5.6, 8.3));
+        const pos = P(1.4, 2.6, 2.8).lerp(P(4.0, 3.8, 5.2), toLand).lerp(P(2.6, 2.1, 3.3), toHead).lerp(P(5.0, 5.6, 6.6), home);
+        const look = P(0.4, 0, 0.3).lerp(P(0, 0.8, 0), toLand).lerp(P(0.45, 0.45, 0.7), toHead).lerp(P(-0.3, 0.4, -0.2), home);
+        pos.x += Math.sin(t * 55) * 0.05 * shiver;
+        pos.y += Math.cos(t * 61) * 0.05 * shiver;
+        cam.position.copy(pos);
+        cam.lookAt(look);
+        r.render(scene, cam);
+      }
+      const st = { t: 0 };
+      const tl = gsap.timeline({ paused: true });
+      tl.to(st, { t: D, duration: D, ease: "none", onUpdate: () => render(st.t) }, 0);
+      render(0);
+      window.__timelines["cycle"] = tl;
+    })();
+  </script>
+</template>

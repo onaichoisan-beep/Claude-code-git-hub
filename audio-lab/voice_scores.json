@@ -1,0 +1,236 @@
+[
+ {
+  "engine": "kokoro",
+  "voice": "af_nicole",
+  "pitch_hz": 154,
+  "spread_st": 16.3,
+  "dur_s": 34.7,
+  "score": 2.95,
+  "file": "samples/kokoro__af_nicole.wav"
+ },
+ {
+  "engine": "edge",
+  "voice": "en-US-EmmaNeural",
+  "pitch_hz": 176,
+  "spread_st": 12.0,
+  "dur_s": 22.6,
+  "score": 5.55,
+  "file": "samples/edge__en-US-EmmaNeural.wav"
+ },
+ {
+  "engine": "edge",
+  "voice": "en-US-GuyNeural",
+  "pitch_hz": 156,
+  "spread_st": 10.5,
+  "dur_s": 21.7,
+  "score": 6.21,
+  "file": "samples/edge__en-US-GuyNeural.wav"
+ },
+ {
+  "engine": "piper",
+  "voice": "en_US-lessac-high",
+  "pitch_hz": 191,
+  "spread_st": 11.4,
+  "dur_s": 22.8,
+  "score": 7.26,
+  "file": "samples/piper__en_US-lessac-high.wav"
+ },
+ {
+  "engine": "kokoro",
+  "voice": "am_eric",
+  "pitch_hz": 154,
+  "spread_st": 8.4,
+  "dur_s": 18.7,
+  "score": 8.56,
+  "file": "samples/kokoro__am_eric.wav"
+ },
+ {
+  "engine": "kokoro",
+  "voice": "af_heart",
+  "pitch_hz": 195,
+  "spread_st": 7.3,
+  "dur_s": 23.5,
+  "score": 9.41,
+  "file": "samples/kokoro__af_heart.wav"
+ },
+ {
+  "engine": "kokoro",
+  "voice": "bm_george",
+  "pitch_hz": 135,
+  "spread_st": 7.4,
+  "dur_s": 23.6,
+  "score": 9.63,
+  "file": "samples/kokoro__bm_george.wav"
+ },
+ {
+  "engine": "piper",
+  "voice": "en_US-amy-medium",
+  "pitch_hz": 188,
+  "spread_st": 4.1,
+  "dur_s": 25.5,
+  "score": 9.72,
+  "file": "samples/piper__en_US-amy-medium.wav"
+ },
+ {
+  "engine": "edge",
+  "voice": "en-US-AvaNeural",
+  "pitch_hz": 206,
+  "spread_st": 8.3,
+  "dur_s": 23.7,
+  "score": 9.82,
+  "file": "samples/edge__en-US-AvaNeural.wav"
+ },
+ {
+  "engine": "piper",
+  "voice": "en_US-ryan-high",
+  "pitch_hz": 129,
+  "spread_st": 9.2,
+  "dur_s": 21.5,
+  "score": 10.22,
+  "file": "samples/piper__en_US-ryan-high.wav"
+ },
+ {
+  "engine": "kokoro",
+  "voice": "af_bella",
+  "pitch_hz": 199,
+  "spread_st": 5.7,
+  "dur_s": 24.1,
+  "score": 10.4,
+  "file": "samples/kokoro__af_bella.wav"
+ },
+ {
+  "engine": "edge",
+  "voice": "en-US-AndrewNeural",
+  "pitch_hz": 112,
+  "spread_st": 11.4,
+  "dur_s": 23.1,
+  "score": 11.08,
+  "file": "samples/edge__en-US-AndrewNeural.wav"
+ },
+ {
+  "engine": "kokoro",
+  "voice": "am_adam",
+  "pitch_hz": 109,
+  "spread_st": 12.3,
+  "dur_s": 22.2,
+  "score": 11.35,
+  "file": "samples/kokoro__am_adam.wav"
+ },
+ {
+  "engine": "kokoro",
+  "voice": "am_fenrir",
+  "pitch_hz": 126,
+  "spread_st": 8.9,
+  "dur_s": 18.8,
+  "score": 11.69,
+  "file": "samples/kokoro__am_fenrir.wav"
+ },
+ {
+  "engine": "kokoro",
+  "voice": "am_michael",
+  "pitch_hz": 109,
+  "spread_st": 9.3,
+  "dur_s": 25.7,
+  "score": 11.76,
+  "file": "samples/kokoro__am_michael.wav"
+ },
+ {
+  "engine": "kokoro",
+  "voice": "am_liam",
+  "pitch_hz": 121,
+  "spread_st": 8.8,
+  "dur_s": 19.4,
+  "score": 12.32,
+  "file": "samples/kokoro__am_liam.wav"
+ },
+ {
+  "engine": "piper",
+  "voice": "en_US-hfc_male-medium",
+  "pitch_hz": 105,
+  "spread_st": 9.8,
+  "dur_s": 24.8,
+  "score": 12.35,
+  "file": "samples/piper__en_US-hfc_male-medium.wav"
+ },
+ {
+  "engine": "edge",
+  "voice": "en-US-BrianNeural",
+  "pitch_hz": 121,
+  "spread_st": 5.9,
+  "dur_s": 22.7,
+  "score": 12.68,
+  "file": "samples/edge__en-US-BrianNeural.wav"
+ },
+ {
+  "engine": "edge",
+  "voice": "en-US-ChristopherNeural",
+  "pitch_hz": 110,
+  "spread_st": 8.8,
+  "dur_s": 22.9,
+  "score": 12.73,
+  "file": "samples/edge__en-US-ChristopherNeural.wav"
+ },
+ {
+  "engine": "edge",
+  "voice": "en-US-EricNeural",
+  "pitch_hz": 104,
+  "spread_st": 8.3,
+  "dur_s": 23.2,
+  "score": 13.9,
+  "file": "samples/edge__en-US-EricNeural.wav"
+ },
+ {
+  "engine": "kokoro",
+  "voice": "am_echo",
+  "pitch_hz": 104,
+  "spread_st": 8.2,
+  "dur_s": 20.4,
+  "score": 14.79,
+  "file": "samples/kokoro__am_echo.wav"
+ },
+ {
+  "engine": "kokoro",
+  "voice": "am_puck",
+  "pitch_hz": 104,
+  "spread_st": 6.0,
+  "dur_s": 18.0,
+  "score": 16.7,
+  "file": "samples/kokoro__am_puck.wav"
+ },
+ {
+  "engine": "piper",
+  "voice": "en_GB-alan-medium",
+  "pitch_hz": 94,
+  "spread_st": 3.7,
+  "dur_s": 26.7,
+  "score": 16.75,
+  "file": "samples/piper__en_GB-alan-medium.wav"
+ },
+ {
+  "engine": "kokoro",
+  "voice": "bm_lewis",
+  "pitch_hz": 82,
+  "spread_st": 8.1,
+  "dur_s": 24.8,
+  "score": 17.56,
+  "file": "samples/kokoro__bm_lewis.wav"
+ },
+ {
+  "engine": "piper",
+  "voice": "en_US-joe-medium",
+  "pitch_hz": 88,
+  "spread_st": 6.8,
+  "dur_s": 22.8,
+  "score": 17.57,
+  "file": "samples/piper__en_US-joe-medium.wav"
+ },
+ {
+  "engine": "kokoro",
+  "voice": "am_onyx",
+  "pitch_hz": 82,
+  "spread_st": 5.0,
+  "dur_s": 20.2,
+  "score": 20.54,
+  "file": "samples/kokoro__am_onyx.wav"
+ }
+]

@@ -1,0 +1,49 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #c98f74; }
+    #root canvas { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+  </style>
+  <div data-hf-id="hf-17dd" id="root" data-composition-id="bite" data-width="1080" data-height="1920">
+    <canvas data-hf-id="hf-33ua" id="bite-cv"></canvas>
+  </div>
+  <script>
+    (function () {
+      const B = Bio3D, T = THREE, D = 3.0;
+      const r = B.renderer(document.getElementById("bite-cv"));
+      const scene = new T.Scene();
+      scene.environment = B.env(r);
+      scene.background = new T.Color(0xc48a70);
+      scene.fog = new T.Fog(0xc48a70, 7, 22);
+      B.lights(scene);
+      const skin = new T.Mesh(new T.PlaneGeometry(60, 60), B.skinMaterial());
+      skin.rotation.x = -Math.PI / 2;
+      scene.add(skin);
+      const mos = B.mosquito();
+      mos.rotation.y = -0.7;
+      scene.add(mos);
+      const cam = B.camera(34);
+
+      function render(t) {
+        // proboscis swings down and pierces on "bite" (0.82 s)
+        const bite = B.outExpo(B.seg(t, 0.35, 0.9));
+        B.poseMosquito(mos, bite, 0);
+        // body dips as it pushes in
+        mos.userData.body.position.y = 1.35 - 0.08 * bite;
+        // slow push, then a fast dive toward the bite point to hand off to the cutaway
+        const push = B.inOut(B.seg(t, 0, 2.6));
+        const dive = B.inCubic(B.seg(t, 2.55, 3.0));
+        const tip = new T.Vector3(0.75, 0.05, 1.15);
+        const p0 = new T.Vector3(5.0, 5.6, 6.6), p1 = new T.Vector3(4.2, 4.6, 5.5);
+        const pos = p0.clone().lerp(p1, push).lerp(tip.clone().add(new T.Vector3(0.25, 0.35, 0.35)), dive * 0.92);
+        cam.position.copy(pos);
+        cam.lookAt(new T.Vector3(-0.3, 0.4, -0.2).lerp(tip, dive));
+        r.render(scene, cam);
+      }
+      const st = { t: 0 };
+      const tl = gsap.timeline({ paused: true });
+      tl.to(st, { t: D, duration: D, ease: "none", onUpdate: () => render(st.t) }, 0);
+      render(0);
+      window.__timelines["bite"] = tl;
+    })();
+  </script>
+</template>

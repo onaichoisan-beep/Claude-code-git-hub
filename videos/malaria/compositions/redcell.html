@@ -1,0 +1,187 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #2cbbd9; font-family: "Montserrat", sans-serif; }
+    #root canvas { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+    .redcell-lbl { position: absolute; left: 0; width: 1080px; text-align: center; color: #fff; font-weight: 800; text-shadow: 0 4px 12px rgba(0, 0, 0, 0.45); }
+    .redcell-lbl span { display: inline-block; }
+    #redcell-name { top: 360px; font-size: 64px; letter-spacing: 0.02em; }
+    #redcell-x16 { top: 300px; font-size: 200px; line-height: 1; letter-spacing: -0.03em; }
+  </style>
+  <div data-hf-id="hf-xiei" id="root" data-composition-id="redcell" data-width="1080" data-height="1920">
+    <canvas data-hf-id="hf-jlej" id="redcell-cv"></canvas>
+    <div data-hf-id="hf-fv50" id="redcell-name" class="redcell-lbl clip" data-start="2.2" data-duration="1.55"><span data-hf-id="hf-jvea" id="redcell-name-in">RED BLOOD CELL</span></div>
+    <div data-hf-id="hf-wvkg" id="redcell-x16" class="redcell-lbl clip" data-start="5.9" data-duration="1.6"><span data-hf-id="hf-pvlj" id="redcell-x16-in">×16</span></div>
+  </div>
+  <script>
+    (function () {
+      const B = Bio3D, T = THREE, D = 11.9, BURST = 7.58;
+      const r = B.renderer(document.getElementById("redcell-cv"));
+      const scene = new T.Scene();
+      scene.environment = B.env(r);
+      B.cyanBackground(scene);
+      B.lights(scene, { key: 2.6, rim: 2.2 });
+      const rnd = B.rng(57);
+      const rbcGeo = B.rbcGeometry(72);
+      const meroGeo = B.merozoiteGeometry();
+      const parMat = B.parasiteMaterial();
+
+      // neighbours (opaque) around the hero cell
+      const nbPos = [[-2.6, 3.2, -2.5], [2.9, 2.2, -3.5], [-3.0, -2.6, -3.0], [2.4, -3.6, -2.0], [0.3, 5.6, -6], [-0.8, -6.0, -6.5], [4.2, 5.5, -8], [-4.4, 0.4, -7]];
+      const neighbours = nbPos.map((p, i) => {
+        const m = new T.Mesh(rbcGeo, B.rbcMaterial());
+        m.position.set(p[0], p[1], p[2]);
+        m.scale.setScalar(1.25);
+        m.userData = { rx: rnd() * 6, rz: rnd() * 6, w: 0.15 + rnd() * 0.2 };
+        scene.add(m);
+        return m;
+      });
+      // hero cell, translucent so we can watch inside it
+      const hero = new T.Group();
+      hero.scale.setScalar(1.3);
+      hero.rotation.set(1.22, 0, 0.15);
+      scene.add(hero);
+      const heroMat = B.rbcMaterial({ opacity: 0.38 });
+      const heroMesh = new T.Mesh(rbcGeo, heroMat);
+      heroMesh.renderOrder = 10;
+      hero.add(heroMesh);
+      const shards = B.shatter(rbcGeo, B.rbcMaterial({ color: 0x8a1018 }), 44, 9);
+      shards.visible = false;
+      hero.add(shards);
+      // haemoglobin inside
+      const NH = 170;
+      const hb = new T.InstancedMesh(new T.SphereGeometry(1, 10, 8), new T.MeshPhysicalMaterial({ color: 0xd0202c, roughness: 0.3, clearcoat: 0.6 }), NH);
+      const hp = [];
+      for (let i = 0; i < NH; i++) {
+        const rr = 0.18 + Math.sqrt(rnd()) * 0.72, a = rnd() * Math.PI * 2;
+        const h = Math.sqrt(1 - rr * rr) * (0.207 + 2.003 * rr * rr - 1.123 * rr ** 4) * 0.5;
+        hp.push({ p: new T.Vector3(Math.cos(a) * rr, (rnd() - 0.5) * h * 1.2, Math.sin(a) * rr), d: rr });
+      }
+      hero.add(hb);
+      // the parasite: merozoite → ring → blob → 16 merozoites
+      const invader = new T.Mesh(meroGeo, parMat);
+      scene.add(invader);
+      const ringGeo = new T.TorusGeometry(0.26, 0.055, 16, 48);
+      ringGeo.rotateX(Math.PI / 2);
+      const ring = new T.Mesh(ringGeo, parMat);
+      const blob = new T.Mesh(new T.SphereGeometry(0.3, 32, 24), parMat);
+      blob.scale.y = 0.45;
+      hero.add(ring, blob);
+      const kids = [];
+      for (let i = 0; i < 16; i++) {
+        const k = new T.Mesh(meroGeo, parMat);
+        const a = (i / 16) * Math.PI * 2;
+        k.userData = { a, home: new T.Vector3(Math.cos(a) * 0.42, 0, Math.sin(a) * 0.42), target: i < 4 ? neighbours[i] : null, fly: new T.Vector3(Math.cos(a), (rnd() - 0.5) * 0.6, Math.sin(a)).normalize() };
+        scene.add(k);
+        kids.push(k);
+      }
+      // other merozoites drifting in with the invader
+      const NS = 12;
+      const swarm = new T.InstancedMesh(meroGeo, parMat, NS);
+      const sw = [];
+      for (let i = 0; i < NS; i++) sw.push({ y: (rnd() - 0.5) * 9, z: -1 - rnd() * 4, sp: 2 + rnd() * 2, o: rnd() * 6 });
+      scene.add(swarm);
+      const cam = B.camera(34);
+      const dummy = new T.Object3D();
+      const v = new T.Vector3();
+      const entry = new T.Vector3(0.95, 0.05, 0.2); // rim point, hero-local
+      const inside = new T.Vector3(0.12, 0, 0.06);
+
+      function render(t) {
+        neighbours.forEach((m) => { const u = m.userData; m.rotation.set(u.rx + t * u.w, 0, u.rz + t * u.w * 0.6); });
+        hero.rotation.y = t * 0.05;
+        hero.updateMatrixWorld(true);
+        // invader: drifts in, docks on the rim on "invades", burrows inside
+        const app = B.inOut(B.seg(t, 0.0, 1.66));
+        const sink = B.inOut(B.seg(t, 1.75, 2.8));
+        const worldEntry = hero.localToWorld(entry.clone());
+        const worldInside = hero.localToWorld(inside.clone());
+        const start = new T.Vector3(-4.5, 3.5, 1.5);
+        if (sink <= 0) invader.position.copy(start).lerp(worldEntry, app);
+        else invader.position.copy(worldEntry).lerp(worldInside, sink);
+        invader.lookAt(worldInside);
+        invader.rotateX(Math.PI / 2);
+        const morph = B.seg(t, 2.95, 3.6);
+        invader.scale.setScalar(0.18 * (1 - morph) + 0.0001);
+        // ring stage feeds on haemoglobin, grows into a blob, splits into 16
+        const feed = B.seg(t, 4.6, 5.85);
+        ring.position.copy(inside);
+        blob.position.copy(inside);
+        ring.scale.setScalar(Math.max(0.0001, B.outBack(morph) * (1 + 0.5 * feed) * (1 - B.seg(t, 5.2, 5.6))));
+        const split = B.seg(t, 5.85, 6.5);
+        blob.scale.set(1, 0.45, 1).multiplyScalar(Math.max(0.0001, B.smooth(B.seg(t, 5.0, 5.8)) * (1 - split)));
+        hp.forEach((h, i) => {
+          const eaten = B.seg(feed, h.d * 0.8, h.d * 0.8 + 0.25);
+          dummy.position.copy(h.p).lerp(inside, eaten * 0.6);
+          dummy.rotation.set(0, 0, 0);
+          dummy.scale.setScalar(0.045 * (1 - eaten) + 0.0001);
+          dummy.updateMatrix();
+          hb.setMatrixAt(i, dummy.matrix);
+        });
+        hb.instanceMatrix.needsUpdate = true;
+        // the cell darkens and swells, then bursts on "explodes"
+        const dark = B.seg(t, 6.4, BURST);
+        heroMat.color.setRGB(B.lerp(0.70, 0.30, dark), B.lerp(0.07, 0.02, dark), B.lerp(0.12, 0.05, dark));
+        heroMat.opacity = B.lerp(0.38, 0.72, dark);
+        const swell = B.inCubic(dark);
+        heroMesh.scale.setScalar(1 + 0.12 * swell + swell * Math.sin(t * 45) * 0.02);
+        const blown = t >= BURST;
+        heroMesh.visible = !blown;
+        hb.visible = !blown;
+        shards.visible = blown;
+        if (blown) shards.userData.pose(B.seg(t, BURST, BURST + 1.1), 2.6);
+        // daughters: rosette, then fly; four land on neighbours on "attack new red blood cells"
+        const fly = B.outCubic(B.seg(t, BURST, BURST + 1.3));
+        kids.forEach((k) => {
+          const u = k.userData;
+          const home = hero.localToWorld(u.home.clone().add(inside));
+          if (t < BURST) {
+            k.position.copy(home);
+            k.scale.setScalar(0.19 * B.outBack(split) + 0.0001);
+            k.lookAt(hero.localToWorld(inside.clone()));
+            k.rotateX(-Math.PI / 2);
+          } else if (u.target) {
+            const hit = B.inOut(B.seg(t, 9.3, 10.4));
+            const mid = home.clone().addScaledVector(u.fly, 2.0 * fly);
+            const tgt = u.target.position.clone().add(v.copy(home).sub(u.target.position).normalize().multiplyScalar(1.15));
+            k.position.copy(mid).lerp(tgt, hit);
+            k.lookAt(u.target.position);
+            k.rotateX(Math.PI / 2);
+            k.scale.setScalar(0.19);
+          } else {
+            k.position.copy(home).addScaledVector(u.fly, 7 * fly);
+            k.rotation.set(u.a + fly * 4, fly * 3, 0);
+            k.scale.setScalar(0.19);
+          }
+        });
+        sw.forEach((s, i) => {
+          const x = -6 + ((s.o + t * s.sp) % 12);
+          dummy.position.set(x, s.y + Math.sin(t + s.o) * 0.3, s.z);
+          dummy.rotation.set(s.o, t, Math.PI / 2);
+          dummy.scale.setScalar(t < 3 ? 0.16 : 0.0001);
+          dummy.updateMatrix();
+          swarm.setMatrixAt(i, dummy.matrix);
+        });
+        swarm.instanceMatrix.needsUpdate = true;
+        // camera: whip in, push to the cell, shake on the burst, pull back to the neighbours, whip out
+        const arrive = B.outExpo(B.seg(t, 0, 0.55));
+        const push = B.inOut(B.seg(t, 2.3, 3.9));
+        const pull = B.inOut(B.seg(t, 7.9, 9.4));
+        const shake = t >= BURST ? Math.max(0, 1 - (t - BURST) / 0.45) : 0;
+        const whip = B.inCubic(B.seg(t, 11.55, 11.9));
+        const dist = B.lerp(11, 7.4, push) + B.lerp(0, 7.5, pull);
+        cam.position.set(B.lerp(-6, 0.4, arrive) + Math.sin(t * 70) * 0.1 * shake, 0.3 + Math.cos(t * 63) * 0.1 * shake + whip * 6, dist);
+        cam.lookAt(0, whip * 8, 0);
+        r.render(scene, cam);
+      }
+      const st = { t: 0 };
+      const tl = gsap.timeline({ paused: true });
+      tl.to(st, { t: D, duration: D, ease: "none", onUpdate: () => render(st.t) }, 0);
+      tl.fromTo("#redcell-name-in", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.18, ease: "power4.out" }, 2.2);
+      tl.to("#redcell-name-in", { opacity: 0, duration: 0.14, ease: "power2.in" }, 3.6);
+      tl.fromTo("#redcell-x16-in", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.3, ease: "expo.out" }, 5.9);
+      tl.to("#redcell-x16-in", { opacity: 0, duration: 0.14, ease: "power2.in" }, 7.35);
+      render(0);
+      window.__timelines["redcell"] = tl;
+    })();
+  </script>
+</template>

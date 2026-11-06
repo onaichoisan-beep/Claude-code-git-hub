@@ -1,0 +1,81 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #2cbbd9; }
+    #root canvas { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+  </style>
+  <div data-hf-id="hf-epw6" id="root" data-composition-id="wave" data-width="1080" data-height="1920">
+    <canvas data-hf-id="hf-nhb1" id="wave-cv"></canvas>
+  </div>
+  <script>
+    (function () {
+      const B = Bio3D, T = THREE, D = 3.3;
+      const r = B.renderer(document.getElementById("wave-cv"));
+      const scene = new T.Scene();
+      scene.environment = B.env(r);
+      B.cyanBackground(scene);
+      scene.fog = new T.Fog(0x2cbbd9, 14, 34);
+      B.lights(scene, { key: 2.6 });
+      const rnd = B.rng(73);
+      // a field of red cells; a burst wave travels out from the centre ("burst at once")
+      const N = 650;
+      const cells = new T.InstancedMesh(B.rbcGeometry(36), B.rbcMaterial(), N);
+      const cp = [];
+      for (let i = 0; i < N; i++) {
+        const x = (rnd() - 0.5) * 22, z = (rnd() - 0.5) * 26 - 3, y = (rnd() - 0.5) * 1.6;
+        const d = Math.hypot(x, z + 1);
+        cp.push({ p: new T.Vector3(x, y, z), rx: rnd() * 6, rz: rnd() * 6, w: rnd(), tb: 0.75 + d * 0.075 + rnd() * 0.12 });
+      }
+      scene.add(cells);
+      // what each burst releases: brown parasite waste and green merozoites
+      const PW = 6, PM = 4;
+      const waste = new T.InstancedMesh(new T.IcosahedronGeometry(1, 1), new T.MeshPhysicalMaterial({ color: 0x4a2a14, roughness: 0.6 }), N * PW);
+      const mero = new T.InstancedMesh(B.merozoiteGeometry(), B.parasiteMaterial(), N * PM);
+      const bits = [];
+      for (let i = 0; i < N; i++) for (let k = 0; k < PW + PM; k++) bits.push({ c: i, dir: new T.Vector3(rnd() - 0.5, rnd() * 0.8, rnd() - 0.5).normalize(), sp: 0.4 + rnd() * 0.9, s: 0.5 + rnd() * 0.6 });
+      scene.add(waste, mero);
+      const cam = B.camera(40);
+      const dummy = new T.Object3D();
+
+      function render(t) {
+        cp.forEach((c, i) => {
+          const a = t - c.tb;
+          const pre = B.seg(a, -0.18, 0);
+          const pop = B.seg(a, 0, 0.12);
+          const s = 0.55 * (1 + 0.25 * B.inCubic(pre)) * (1 - pop) + 0.0001;
+          dummy.position.copy(c.p);
+          dummy.rotation.set(c.rx + t * c.w * 0.5, 0, c.rz);
+          dummy.scale.setScalar(s);
+          dummy.updateMatrix();
+          cells.setMatrixAt(i, dummy.matrix);
+        });
+        cells.instanceMatrix.needsUpdate = true;
+        let wi = 0, mi = 0;
+        bits.forEach((b, j) => {
+          const c = cp[b.c];
+          const a = Math.max(0, t - c.tb);
+          const out = B.outCubic(B.clamp(a / 1.2));
+          const isWaste = j % (PW + PM) < PW;
+          dummy.position.copy(c.p).addScaledVector(b.dir, out * b.sp * (isWaste ? 1.3 : 1.8));
+          dummy.rotation.set(b.sp * 5 + a, a * 2, 0);
+          const on = t >= c.tb ? 1 : 0;
+          dummy.scale.setScalar(on * (isWaste ? 0.07 * b.s * (0.6 + 0.6 * out) : 0.075) + 0.0001);
+          dummy.updateMatrix();
+          if (isWaste) waste.setMatrixAt(wi++, dummy.matrix);
+          else mero.setMatrixAt(mi++, dummy.matrix);
+        });
+        waste.instanceMatrix.needsUpdate = mero.instanceMatrix.needsUpdate = true;
+        // camera: whip arrival from above, then rise and pull back as the wave spreads
+        const arrive = B.outExpo(B.seg(t, 0, 0.5));
+        const rise = B.inOut(B.seg(t, 0.4, 3.3));
+        cam.position.set(0.6, B.lerp(14, 6.5, arrive) + rise * 4.5, B.lerp(2, 7.5, arrive) + rise * 4.5);
+        cam.lookAt(0, 0, -2.5);
+        r.render(scene, cam);
+      }
+      const st = { t: 0 };
+      const tl = gsap.timeline({ paused: true });
+      tl.to(st, { t: D, duration: D, ease: "none", onUpdate: () => render(st.t) }, 0);
+      render(0);
+      window.__timelines["wave"] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,75 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #2cbbd9; font-family: "Montserrat", sans-serif; }
+    #root canvas { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+    #fever-temp { position: absolute; left: 600px; top: 360px; color: #fff; font-weight: 800; font-size: 150px; line-height: 1; letter-spacing: -0.03em; text-shadow: 0 5px 14px rgba(0, 0, 0, 0.45); }
+    #fever-temp span { display: inline-block; }
+  </style>
+  <div data-hf-id="hf-640z" id="root" data-composition-id="fever" data-width="1080" data-height="1920">
+    <canvas data-hf-id="hf-bv3a" id="fever-cv"></canvas>
+    <div data-hf-id="hf-jtie" id="fever-temp" class="clip" data-start="1.3" data-duration="1.2"><span data-hf-id="hf-nma0" id="fever-temp-in">40°C</span></div>
+  </div>
+  <script>
+    (function () {
+      const B = Bio3D, T = THREE, D = 2.5;
+      const r = B.renderer(document.getElementById("fever-cv"));
+      const scene = new T.Scene();
+      scene.environment = B.env(r);
+      B.cyanBackground(scene);
+      B.lights(scene, { key: 2.8, rim: 2.4 });
+      // glass thermometer on a white scale plate, 35-42 °C
+      const th = new T.Group();
+      th.rotation.z = -0.12;
+      scene.add(th);
+      const H = 7, Y0 = -3.2; // column from bulb top to 42 °C mark
+      const tempY = (c) => Y0 + ((c - 34) / 8) * H;
+      const plate = new T.Mesh(new T.BoxGeometry(1.5, 9.2, 0.12), new T.MeshPhysicalMaterial({
+        map: B.canvasTex(256, 1600, (g, w, h) => {
+          g.fillStyle = "#f6f7f8"; g.fillRect(0, 0, w, h);
+          g.fillStyle = "#26323a"; g.font = "bold 46px Montserrat, sans-serif"; g.textAlign = "right";
+          for (let c = 35; c <= 42; c += 0.5) {
+            const y = h * (1 - (tempY(c) + 4.6) / 9.2);
+            const major = c % 1 === 0;
+            g.fillRect(major ? 150 : 172, y - 2, major ? 70 : 48, 4);
+            if (major) g.fillText(String(c), 140, y + 16);
+          }
+          g.fillStyle = "#d21f2c"; g.fillRect(150, h * (1 - (tempY(37) + 4.6) / 9.2) - 3, 70, 6);
+        }), roughness: 0.35, clearcoat: 0.6,
+      }));
+      plate.position.set(-0.2, 0.2, -0.32);
+      th.add(plate);
+      const glassMat = new T.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.04, transmission: 0.92, thickness: 0.3, ior: 1.5, clearcoat: 1, transparent: true, opacity: 0.6 });
+      const tube = new T.Mesh(new T.CapsuleGeometry(0.22, 8.2, 8, 32), glassMat);
+      tube.position.y = 0.6;
+      const bulb = new T.Mesh(new T.SphereGeometry(0.48, 48, 32), glassMat);
+      bulb.position.y = -3.75;
+      const redMat = new T.MeshPhysicalMaterial({ color: 0xd21f2c, roughness: 0.2, clearcoat: 1 });
+      const core = new T.Mesh(new T.SphereGeometry(0.38, 40, 28), redMat);
+      core.position.y = -3.75;
+      const col = new T.Mesh(new T.CylinderGeometry(0.1, 0.1, 1, 24), redMat);
+      th.add(core, col, tube, bulb);
+      const cam = B.camera(34);
+
+      function render(t) {
+        // column climbs from body temperature to 40 °C, overshooting slightly into a fever spike
+        const rise = B.outExpo(B.seg(t, 0.15, 1.35));
+        const c = B.lerp(37, 40, rise) + Math.sin(B.seg(t, 1.35, 2.5) * Math.PI) * 0.12;
+        const top = tempY(c);
+        col.scale.y = top - (-3.5);
+        col.position.y = (-3.5 + top) / 2;
+        // camera: whip up from below, then slow push toward the 40 mark
+        const arrive = B.outExpo(B.seg(t, 0, 0.5));
+        const push = B.inOut(B.seg(t, 0.4, 2.5));
+        cam.position.set(1.0 - push * 0.5, B.lerp(-6, 1.2, arrive) + push * 0.8, 14.5 - push * 2.4);
+        cam.lookAt(0.15, B.lerp(-3, 0.6, arrive) + push * 0.8, 0);
+        r.render(scene, cam);
+      }
+      const st = { t: 0 };
+      const tl = gsap.timeline({ paused: true });
+      tl.to(st, { t: D, duration: D, ease: "none", onUpdate: () => render(st.t) }, 0);
+      tl.fromTo("#fever-temp-in", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.28, ease: "expo.out" }, 1.3);
+      render(0);
+      window.__timelines["fever"] = tl;
+    })();
+  </script>
+</template>

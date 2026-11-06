@@ -1,0 +1,127 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #2cbbd9; font-family: "Montserrat", sans-serif; }
+    #root canvas { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+    #multiply-day { position: absolute; left: 0; width: 1080px; top: 250px; height: 260px; text-align: center; color: #fff; text-shadow: 0 4px 12px rgba(0, 0, 0, 0.45); }
+    #multiply-day .cap { font-weight: 800; font-size: 60px; letter-spacing: 0.08em; }
+    #multiply-day .num { position: absolute; left: 0; width: 1080px; top: 64px; font-weight: 800; font-size: 170px; line-height: 1; opacity: 0; }
+  </style>
+  <div data-hf-id="hf-vmy7" id="root" data-composition-id="multiply" data-width="1080" data-height="1920">
+    <canvas data-hf-id="hf-wrk4" id="multiply-cv"></canvas>
+    <div data-hf-id="hf-009z" id="multiply-day" class="clip" data-start="0.15" data-duration="5.9">
+      <div data-hf-id="hf-xacq" class="cap" id="multiply-day-cap">DAY</div>
+      <div data-hf-id="hf-rgdl" class="num" id="multiply-d1">1</div><div data-hf-id="hf-umm1" class="num" id="multiply-d2">2</div><div data-hf-id="hf-00ch" class="num" id="multiply-d3">3</div>
+      <div data-hf-id="hf-ja7t" class="num" id="multiply-d4">4</div><div data-hf-id="hf-7l8p" class="num" id="multiply-d5">5</div><div data-hf-id="hf-arh5" class="num" id="multiply-d6">6</div>
+      <div data-hf-id="hf-k76p" class="num" id="multiply-d7">7</div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const B = Bio3D, T = THREE, D = 9.0, BURST = 7.68;
+      const r = B.renderer(document.getElementById("multiply-cv"));
+      const scene = new T.Scene();
+      scene.environment = B.env(r);
+      B.cyanBackground(scene);
+      B.lights(scene, { key: 2.6, rim: 2.0 });
+      const rnd = B.rng(41);
+
+      const cell = new T.Group();
+      scene.add(cell);
+      const cut = [new T.Plane(new T.Vector3(0, 0, -1), 0.9)];
+      const memMat = new T.MeshPhysicalMaterial({ color: 0xe6a68f, roughness: 0.4, sheen: 0.8, sheenColor: new T.Color(0xffe2d2), clearcoat: 0.4, clippingPlanes: cut, side: T.DoubleSide });
+      const innerMat = new T.MeshPhysicalMaterial({ color: 0xf2c6b2, roughness: 0.6, sheen: 0.4, clippingPlanes: cut, side: T.BackSide });
+      const membrane = new T.Mesh(new T.SphereGeometry(2, 64, 48), memMat);
+      const inner = new T.Mesh(new T.SphereGeometry(1.9, 64, 48), innerMat);
+      const rim = new T.Mesh(new T.RingGeometry(Math.sqrt(1.9 * 1.9 - 0.81), Math.sqrt(4 - 0.81), 96), new T.MeshPhysicalMaterial({ color: 0xc97c6a, roughness: 0.5 }));
+      rim.position.z = 0.9;
+      cell.add(membrane, inner, rim);
+      const nucleus = new T.Mesh(new T.SphereGeometry(0.62, 48, 32), new T.MeshPhysicalMaterial({ color: 0x7a4fa0, roughness: 0.35, clearcoat: 0.7, sheen: 0.5, sheenColor: new T.Color(0xc8a8ff) }));
+      nucleus.position.set(-0.95, 0.75, -0.6);
+      cell.add(nucleus);
+      const mitoMat = new T.MeshPhysicalMaterial({ color: 0xe8813a, roughness: 0.4, clearcoat: 0.5 });
+      const mitos = [];
+      for (let i = 0; i < 7; i++) {
+        const m = new T.Mesh(new T.CapsuleGeometry(0.1, 0.3, 6, 12), mitoMat);
+        const a = rnd() * Math.PI * 2;
+        m.position.set(Math.cos(a) * 1.25, (rnd() - 0.5) * 2.2, -0.4 - rnd() * 0.9);
+        m.rotation.set(rnd() * 3, rnd() * 3, rnd() * 3);
+        cell.add(m);
+        mitos.push(m);
+      }
+      // the parasite: a growing schizont packed with merozoites
+      const schizont = new T.Mesh(new T.SphereGeometry(1, 48, 32), new T.MeshPhysicalMaterial({ color: 0x8fe08a, roughness: 0.25, clearcoat: 1, transparent: true, opacity: 0.32, depthWrite: false }));
+      const SC = new T.Vector3(0.35, -0.3, -0.15);
+      schizont.position.copy(SC);
+      cell.add(schizont);
+      const NM = 700;
+      const mero = new T.InstancedMesh(B.merozoiteGeometry(), B.parasiteMaterial(), NM);
+      const mp = [];
+      for (let i = 0; i < NM; i++) {
+        const v = new T.Vector3(rnd() * 2 - 1, rnd() * 2 - 1, rnd() * 2 - 1);
+        if (v.length() > 1) v.normalize().multiplyScalar(Math.sqrt(rnd()));
+        mp.push({ v, rx: rnd() * 6, ry: rnd() * 6, fly: new T.Vector3(rnd() - 0.5, rnd() - 0.5, rnd() * 0.8).normalize(), sp: 0.6 + rnd() * 0.8 });
+      }
+      scene.add(mero);
+      const shards = B.shatter(new T.SphereGeometry(2, 40, 28), memMat, 70, 5);
+      shards.visible = false;
+      cell.add(shards);
+      const cam = B.camera(34);
+      const dummy = new T.Object3D();
+
+      function render(t) {
+        const grow = B.smooth(B.seg(t, 0.4, 6.2));
+        const R = 0.15 + 1.1 * grow;
+        const burst = B.seg(t, BURST, BURST + 1.0);
+        const blown = t >= BURST;
+        // swell and wobble before the burst
+        const swell = B.inCubic(B.seg(t, 6.9, BURST));
+        const wob = swell * Math.sin(t * 40) * 0.015;
+        cell.scale.set(1 + 0.1 * swell + wob, 1 + 0.1 * swell - wob, 1 + 0.1 * swell);
+        membrane.visible = inner.visible = rim.visible = !blown;
+        shards.visible = blown;
+        if (blown) shards.userData.pose(burst, 6);
+        const fade = 1 - B.seg(t, BURST, BURST + 0.4);
+        nucleus.scale.setScalar(Math.max(0.001, fade));
+        mitos.forEach((m) => m.scale.setScalar(Math.max(0.001, fade)));
+        schizont.scale.setScalar(blown ? 0.001 : R);
+        // merozoites appear as the schizont grows ("copies itself"), then spray out of the burst cell
+        const shown = Math.floor(NM * Math.pow(B.seg(t, 2.6, 5.6), 1.4));
+        const fly = B.outCubic(burst);
+        mp.forEach((p, i) => {
+          if (i >= Math.max(shown, 1)) { dummy.scale.setScalar(0.0001); }
+          else {
+            dummy.position.copy(p.v).multiplyScalar(R * 0.85).add(SC).multiplyScalar(cell.scale.x);
+            dummy.position.addScaledVector(p.fly, fly * 7 * p.sp);
+            dummy.rotation.set(p.rx + fly * 6, p.ry + t * 0.3, 0);
+            dummy.scale.setScalar(0.085 * B.outBack(B.clamp((shown - i) / 25)));
+          }
+          dummy.updateMatrix();
+          mero.setMatrixAt(i, dummy.matrix);
+        });
+        mero.instanceMatrix.needsUpdate = true;
+        // camera: fast pull back out of the cell, slow orbit, shake on the burst, whip out
+        const arrive = B.outExpo(B.seg(t, 0, 0.7));
+        const orbit = B.inOut(B.seg(t, 0.6, 7.0));
+        const shake = Math.max(0, 1 - (t - BURST) / 0.4) * (t >= BURST ? 1 : 0);
+        const whip = B.inCubic(B.seg(t, 8.6, 9.0));
+        const ang = B.lerp(0.32, -0.1, orbit);
+        const dist = B.lerp(3.2, 10.6, arrive) - 1.2 * orbit;
+        cam.position.set(Math.sin(ang) * dist + whip * 5 + Math.sin(t * 70) * 0.08 * shake, B.lerp(0.4, 1.3, arrive) + Math.cos(t * 60) * 0.08 * shake, Math.cos(ang) * dist);
+        cam.lookAt(whip * 6, 0, 0);
+        r.render(scene, cam);
+      }
+      const st = { t: 0 };
+      const tl = gsap.timeline({ paused: true });
+      tl.to(st, { t: D, duration: D, ease: "none", onUpdate: () => render(st.t) }, 0);
+      tl.fromTo("#multiply-day-cap", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.18, ease: "power4.out" }, 0.15);
+      for (let k = 1; k <= 7; k++) {
+        const at = 0.15 + (k - 1) * 0.36;
+        tl.set("#multiply-d" + k, { opacity: 1 }, at);
+        if (k < 7) tl.set("#multiply-d" + k, { opacity: 0 }, at + 0.36);
+      }
+      tl.to("#multiply-day", { opacity: 0, duration: 0.15, ease: "power2.in" }, 5.88);
+      render(0);
+      window.__timelines["multiply"] = tl;
+    })();
+  </script>
+</template>
