@@ -138,5 +138,21 @@
   "got": 94,
   "trc": "bt709",
   "what": "cat asleep on bed - ending on the cat"
+ },
+ {
+  "id": "b11",
+  "src": "squirrel sleeping blanket",
+  "inpoint": 0.5,
+  "start": 37.1,
+  "dur": 1.767,
+  "what": "sleeping cat - CTA 'if this sounds like your house'"
+ },
+ {
+  "id": "b12",
+  "src": "showing product on counter",
+  "inpoint": 0.4,
+  "start": 38.867,
+  "dur": 1.166,
+  "what": "product lineup - 'take a look at Pacagen' (first 1.17s only, person appears later)"
  }
 ]

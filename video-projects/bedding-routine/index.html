@@ -104,14 +104,16 @@
       id="root"
       data-composition-id="main"
       data-start="0"
-      data-duration="37.1"
+      data-duration="40.033"
       data-width="1080"
       data-height="1920"
     >
       <!-- Talking head: take 2 of the raw recording, 6 clean ranges (flubs/repeats cut), un-mirrored, 1080x1920 @30fps, -16 LUFS -->
       <video id="face" data-start="0" data-duration="37.1" data-track-index="0" src="assets/talking-head.mp4" muted playsinline></video>
       <audio id="voice" data-start="0" data-duration="37.1" data-track-index="3" src="assets/talking-head.mp4" data-volume="1"></audio>
-      <audio id="music" data-start="0" data-duration="37.1" data-track-index="4" src="assets/music-bed.m4a" data-volume="1"></audio>
+      <audio id="music" data-start="0" data-duration="40.033" data-track-index="4" src="assets/music-bed.m4a" data-volume="1"></audio>
+      <!-- CTA: her line from the separate CTA video ("If this sounds like your house, take a look at Pacagen."), -16 LUFS -->
+      <audio id="cta" data-start="37.1" data-duration="2.933" data-track-index="6" src="assets/cta-01.m4a" data-volume="1"></audio>
 
       <!-- B-roll: straight cuts matched to her lines; covers all 5 jump cuts (4.833, 17.6, 22.533, 25.533, 30.667); only the speaker herself appears; ends on the cat -->
       <video id="b01" class="broll" data-start="4.3" data-duration="3.667" data-track-index="1" src="assets/broll/b01.mp4" muted playsinline></video>
@@ -124,6 +126,8 @@
       <video id="b08" class="broll" data-start="27.3" data-duration="2.4" data-track-index="1" src="assets/broll/b08.mp4" muted playsinline></video>
       <video id="b09" class="broll" data-start="29.7" data-duration="2.2" data-track-index="1" src="assets/broll/b09.mp4" muted playsinline></video>
       <video id="b10" class="broll" data-start="33.967" data-duration="3.133" data-track-index="1" src="assets/broll/b10.mp4" muted playsinline></video>
+      <video id="b11" class="broll" data-start="37.1" data-duration="1.767" data-track-index="1" src="assets/broll/b11.mp4" muted playsinline></video>
+      <video id="b12" class="broll" data-start="38.867" data-duration="1.166" data-track-index="1" src="assets/broll/b12.mp4" muted playsinline></video>
 
       <!-- Hook title (0 to end of first line) -->
       <div id="hook" class="clip" data-start="0" data-duration="4.3" data-track-index="5">
@@ -188,7 +192,11 @@
       <div id="cap-50" class="clip cap" data-start="33.967" data-duration="0.7" data-track-index="2">and the places</div>
       <div id="cap-51" class="clip cap" data-start="34.667" data-duration="0.533" data-track-index="2">they spend</div>
       <div id="cap-52" class="clip cap" data-start="35.2" data-duration="0.5" data-track-index="2">time at, at</div>
-      <div id="cap-53" class="clip cap" data-start="35.7" data-duration="1.4" data-track-index="2">my friend&#x27;s house.</div>
+      <div id="cap-53" class="clip cap" data-start="35.7" data-duration="1.633" data-track-index="2">my friend&#x27;s house.</div>
+      <div id="cap-54" class="clip cap" data-start="37.333" data-duration="0.367" data-track-index="2">If this sounds</div>
+      <div id="cap-55" class="clip cap" data-start="37.7" data-duration="1.1" data-track-index="2">like your house,</div>
+      <div id="cap-56" class="clip cap" data-start="38.8" data-duration="0.5" data-track-index="2">take a look</div>
+      <div id="cap-57" class="clip cap" data-start="39.3" data-duration="0.733" data-track-index="2">at Pacagen.</div>
     </div>
     <script>
       window.__timelines = window.__timelines || {};
