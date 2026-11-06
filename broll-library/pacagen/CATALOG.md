@@ -1196,7 +1196,7 @@
 - **What's in it:** Creator B2 at desk, foggy/confused, head in hand — '3pm brain fog' (21s)
 - **Use for:** Problem: allergy symptoms and the pills/sprays that didn't fix it
 - **Note:** antihistamine side effect: drowsy
-- **Cat:** none · **Tags:** allergy-meds, confused, creator, desk, foggy, hand, head
+- **Cat:** none · **Tags:** allergy-meds, confused, creator, desk, foggy, hand, head, hook
 
 ### `MED-02` Hand holds Allergy Relief (cetirizine) pill box
 ![](thumbs/MED-02.jpg)
@@ -1764,7 +1764,7 @@
 - **Shoot B** · 18.7s · 2160x3840 · 60fps · static · ⚠ HDR
 - **Use for:** Lifestyle filler, cute cat moments, pacing
 - **Note:** cute, hero
-- **Cat:** squirrel · **Tags:** bed, blue, bow, cute, hero, household, sitting, squirrel, tie
+- **Cat:** squirrel · **Tags:** bed, blue, bow, cute, hero, hook, household, sitting, squirrel, tie
 
 ### `HOME-18` Squirrel grooming outside on patio
 ![](thumbs/HOME-18.jpg)
