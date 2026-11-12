@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Find the Plant — wellness reel</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "InterD"; src: url("assets/fonts/InterDisplay-SemiBold.otf"); font-weight: 600; }
+      @font-face { font-family: "InterD"; src: url("assets/fonts/InterDisplay-Medium.otf"); font-weight: 500; }
+      @font-face { font-family: "InterD"; src: url("assets/fonts/InterDisplay-Regular.otf"); font-weight: 400; }
+      @font-face { font-family: "InterD"; src: url("assets/fonts/InterDisplay-Bold.otf"); font-weight: 700; }
+      @font-face { font-family: "SerifI"; src: url("assets/fonts/InstrumentSerif-Italic.woff2"); font-style: italic; font-weight: 400; }
+
+      :root {
+        --white: #faf8f5;
+        --accent: #c8714a;
+        --clay: #6e2e16;
+        --pill: rgba(250, 247, 242, 0.94);
+        --stem: #8c9a6e;
+      }
+      body { margin: 0; background: #1a1612; font-family: "InterD", sans-serif; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #1a1612; }
+
+      /* full-frame layers */
+      .full { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+      .wrap { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 540px 960px; }
+      .wrap video, video.fill { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+
+      .shade { background: linear-gradient(180deg, rgba(0,0,0,0) 70%, rgba(20,16,12,0.55) 100%); }
+      #flash { background: #fffaf2; opacity: 0; pointer-events: none; }
+
+      /* captions */
+      .page { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+      .cap { position: absolute; left: 0; width: 1080px; top: 892px; display: flex; flex-direction: column; align-items: center; }
+      .line { display: flex; justify-content: center; gap: 0.24em; color: var(--white); letter-spacing: -0.03em; white-space: nowrap;
+              text-shadow: 0 2px 6px rgba(0,0,0,0.25), 0 2px 26px rgba(0,0,0,0.45); }
+      .line span { display: block; }
+      .t1 { font-size: 128px; font-weight: 600; line-height: 1.0; }
+      .t2 { font-size: 64px; font-weight: 600; line-height: 1.12; }
+      .t3 { font-size: 46px; font-weight: 500; line-height: 1.1; opacity: 0.9; }
+
+      /* accent pill */
+      .accent { margin-top: 10px; margin-left: 70px; height: 76px; padding: 0 34px; border-radius: 38px; background: rgba(200,113,74,0.92);
+                display: flex; align-items: center; gap: 0.26em; color: #fff; font-size: 40px; font-weight: 500; letter-spacing: -0.02em; }
+
+      /* name tag */
+      #nametag { position: absolute; left: 140px; top: 1106px; width: 470px; height: 128px; border-radius: 18px; background: rgba(18,14,10,0.58);
+                 display: flex; flex-direction: column; justify-content: center; padding-left: 34px; box-sizing: border-box; color: #fff; }
+      #nametag .n { font-size: 40px; font-weight: 600; letter-spacing: -0.02em; }
+      #nametag .r { font-size: 27px; font-weight: 500; opacity: 0.88; margin-top: 4px; }
+
+      /* pills */
+      .pill { position: absolute; display: flex; align-items: center; gap: 18px; padding: 0 30px 0 22px; box-sizing: border-box;
+              border-radius: 999px; color: var(--clay); }
+      .pill .shell { position: absolute; inset: 0; border-radius: inherit; background: var(--pill); }
+      .pill .ico { position: relative; width: 58px; height: 58px; flex: 0 0 58px; }
+      .pill .ico svg { width: 58px; height: 58px; display: block; }
+      .pill .txt { position: relative; display: flex; flex-direction: column; justify-content: center; }
+      .pill .main { display: flex; gap: 0.24em; font-size: 46px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.05; white-space: nowrap; }
+      .pill .main span, .pill .sub span { display: block; }
+      .pill .sub { display: flex; gap: 0.24em; font-size: 28px; font-weight: 500; line-height: 1.15; white-space: nowrap; opacity: 0.85; }
+      .pill .latin { font-family: "SerifI"; font-style: italic; font-weight: 400; font-size: 31px; line-height: 1.05; opacity: 0.85; white-space: nowrap; display: block; }
+      .pill.herb { height: 104px; border-radius: 34px; }
+      .pill.herb .main { font-size: 42px; }
+      svg .s { fill: none; stroke: #6e2e16; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+
+      /* product wall */
+      #gutter { background: linear-gradient(180deg, #e9e4de 0%, #b9aea5 60%, #a39a92 100%); }
+      .tile { position: absolute; width: 1080px; height: 1920px; border-radius: 40px; overflow: hidden; }
+      .tile video { filter: grayscale(0.85) brightness(0.62) contrast(0.95); }
+      #heroTile { left: 0; top: 0; }
+      #heroTile video { filter: none; }
+      .badge { position: absolute; height: 92px; padding: 0 30px; border-radius: 46px; background: var(--pill); color: var(--clay);
+               display: flex; align-items: center; gap: 12px; font-size: 48px; font-weight: 600; letter-spacing: -0.02em; }
+      .badge svg { width: 52px; height: 52px; }
+
+      /* linen world */
+      #linen { background: linear-gradient(180deg, #fbf8f3 0%, #f5ece1 20%, #edd9c6 42%, #e4c0a3 62%, #d9a07c 83%, #c9845c 100%); }
+      .blob { position: absolute; border-radius: 50%; }
+      #card { position: absolute; left: 160px; top: 270px; width: 760px; height: 1352px; border-radius: 44px; overflow: hidden; }
+      #card video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+
+      /* herb composite */
+      #glow { background: radial-gradient(circle at 92% 6%, rgba(201,182,228,0.85) 0%, rgba(201,182,228,0.0) 46%); }
+      #ramp { background: linear-gradient(180deg, rgba(201,139,98,0) 72%, rgba(201,139,98,0.42) 100%); }
+      #cutWrap { position: absolute; left: 0; top: 720px; width: 1080px; height: 1296px; }
+      #cutWrap video { position: absolute; inset: 0; width: 100%; height: 100%; }
+      #stem path { fill: none; stroke: var(--stem); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+      .leaf { fill: var(--stem); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="23.0">
+
+      <!-- ===================== PICTURE ===================== -->
+      <!-- Cam A -->
+      <div class="wrap" id="wA1"><video id="vA1" src="assets/footage/camA1.mp4" muted playsinline data-start="0" data-duration="1.42" data-track-index="1"></video></div>
+      <div class="wrap" id="wA2"><video id="vA2" src="assets/footage/camA2.mp4" muted playsinline data-start="1.42" data-duration="1.5" data-track-index="1"></video></div>
+
+      <!-- BR1: losing the plot -->
+      <div class="wrap" id="wBR1"><video id="vBR1" src="assets/broll/br1_pills.mp4" muted playsinline data-start="2.92" data-duration="2.07" data-track-index="1"></video></div>
+
+      <!-- Cam B speaker + interviewer -->
+      <div class="wrap" id="wB"><video id="vB" src="assets/footage/camBspk.mp4" muted playsinline data-start="4.99" data-duration="2.56" data-track-index="1"></video></div>
+      <div class="wrap" id="wBi"><video id="vBi" src="assets/footage/camBint.mp4" muted playsinline data-start="7.55" data-duration="0.72" data-track-index="1"></video></div>
+
+      <!-- BR2: product wall -->
+      <div id="gutter" class="full clip" data-start="8.27" data-duration="3.42" data-track-index="0"></div>
+      <div class="wrap" id="wWall">
+        <div class="tile" style="left:-1170px; top:-2010px"><video id="vT1" src="assets/broll/tile0.mp4" muted playsinline data-start="10.3" data-duration="1.39" data-track-index="2"></video></div>
+        <div class="tile" style="left:0px; top:-2010px"><video id="vT2" src="assets/broll/tile1.mp4" muted playsinline data-start="10.3" data-duration="1.39" data-track-index="2"></video></div>
+        <div class="tile" style="left:1170px; top:-2010px"><video id="vT3" src="assets/broll/tile2.mp4" muted playsinline data-start="10.3" data-duration="1.39" data-track-index="2"></video></div>
+        <div class="tile" style="left:-1170px; top:0px"><video id="vT4" src="assets/broll/tile3.mp4" muted playsinline data-start="10.3" data-duration="1.39" data-track-index="2"></video></div>
+        <div class="tile" style="left:1170px; top:0px"><video id="vT5" src="assets/broll/tile4.mp4" muted playsinline data-start="10.3" data-duration="1.39" data-track-index="2"></video></div>
+        <div class="tile" style="left:-1170px; top:2010px"><video id="vT6" src="assets/broll/tile5.mp4" muted playsinline data-start="10.3" data-duration="1.39" data-track-index="2"></video></div>
+        <div class="tile" style="left:0px; top:2010px"><video id="vT7" src="assets/broll/tile6.mp4" muted playsinline data-start="10.3" data-duration="1.39" data-track-index="2"></video></div>
+        <div class="tile" style="left:1170px; top:2010px"><video id="vT8" src="assets/broll/tile8.mp4" muted playsinline data-start="10.3" data-duration="1.39" data-track-index="2"></video></div>
+        <div class="tile" id="heroTile"><video id="vHero" src="assets/broll/br2_hero.mp4" muted playsinline data-start="8.27" data-duration="3.42" data-track-index="1"></video></div>
+        <!-- wall overlays (scale with the wall) -->
+        <div class="clip" data-start="8.27" data-duration="3.42" data-track-index="5" style="position:absolute; inset:0">
+          <div class="badge" id="cart" style="left:70px; top:1110px">
+            <svg viewBox="0 0 48 48"><path class="s" d="M5 9h6l5 22h21l4-15H13"/><circle class="s" cx="19" cy="38" r="3"/><circle class="s" cx="34" cy="38" r="3"/></svg>
+            <span id="cartN">1</span><span style="font-size:44px; font-weight:500; opacity:.8">in cart</span>
+          </div>
+          <div class="badge plus" style="left:-330px; top:-420px">+1</div>
+          <div class="badge plus" style="left:380px; top:-380px">+1</div>
+          <div class="badge plus" style="left:1190px; top:-420px">+1</div>
+          <div class="badge plus" style="left:-330px; top:900px">+1</div>
+          <div class="badge plus" style="left:1190px; top:500px">+1</div>
+          <div class="badge plus" style="left:450px; top:2250px">+1</div>
+        </div>
+      </div>
+
+      <!-- Cam C (ocean) -->
+      <div class="wrap" id="wC"><video id="vC" src="assets/footage/camC.mp4" muted playsinline data-start="11.69" data-duration="3.1" data-track-index="1"></video></div>
+
+      <!-- BR3: linen world + card -->
+      <div id="linen" class="full clip" data-start="14.79" data-duration="3.46" data-track-index="0">
+        <div class="blob" id="blobA" style="left:-210px; top:-150px; width:560px; height:560px; background:rgba(235,205,184,0.55)"></div>
+        <div class="blob" id="blobB" style="left:690px; top:1450px; width:520px; height:520px; background:rgba(214,150,112,0.40)"></div>
+      </div>
+      <div class="wrap" id="wBR3">
+        <div id="cardMove" class="full">
+          <div id="card">
+            <video id="vTea" src="assets/broll/br3_tea.mp4" muted playsinline data-start="14.79" data-duration="1.92" data-track-index="1"></video>
+            <video id="vLav" src="assets/broll/br3_lav.mp4" muted playsinline data-start="16.71" data-duration="1.54" data-track-index="1"></video>
+          </div>
+        </div>
+        <div class="clip" data-start="14.79" data-duration="3.46" data-track-index="5" style="position:absolute; inset:0">
+          <div class="pill" id="pNerv" style="left:470px; top:300px; height:132px">
+            <div class="shell"></div>
+            <div class="ico"><svg viewBox="0 0 48 48"><path class="s" d="M4 24c4-8 8-8 12 0s8 8 12 0 8-8 12 0"/><path class="s" d="M10 36c4-4 8-4 12 0s8 4 12 0"/></svg></div>
+            <div class="txt"><div class="main"><span>Nervines</span></div><div class="sub"><span>calm</span><span>the</span><span>nervous</span><span>system</span></div></div>
+          </div>
+          <div class="pill" id="pLav" style="left:80px; top:1060px; height:132px">
+            <div class="shell"></div>
+            <div class="ico"><svg viewBox="0 0 48 48"><path class="s" d="M24 46V14"/><ellipse class="s" cx="24" cy="9" rx="3.5" ry="5"/><ellipse class="s" cx="18" cy="18" rx="3" ry="4.5" transform="rotate(-25 18 18)"/><ellipse class="s" cx="30" cy="18" rx="3" ry="4.5" transform="rotate(25 30 18)"/><ellipse class="s" cx="18.5" cy="28" rx="3" ry="4.5" transform="rotate(-25 18.5 28)"/><ellipse class="s" cx="29.5" cy="28" rx="3" ry="4.5" transform="rotate(25 29.5 28)"/></svg></div>
+            <div class="txt"><div class="main"><span>Lavender</span></div><span class="latin">Lavandula angustifolia</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Composite: herbs around her -->
+      <div class="wrap" id="wPlate"><video id="vPlate" src="assets/broll/plate.mp4" muted playsinline data-start="18.25" data-duration="4.75" data-track-index="1"></video></div>
+      <div id="glow" class="full clip" data-start="18.25" data-duration="4.75" data-track-index="3"></div>
+      <div id="cutWrap"><video id="vCut" src="assets/footage/camClist_cutout_hold.webm" muted playsinline data-start="18.25" data-duration="4.75" data-track-index="2"></video></div>
+      <div id="ramp" class="full clip" data-start="18.25" data-duration="4.75" data-track-index="3"></div>
+      <div id="herbs" class="full clip" data-start="18.25" data-duration="4.75" data-track-index="5">
+        <svg id="stem" class="full" viewBox="0 0 1080 1920">
+          <path id="s1" d="M650 330 H580 Q560 330 560 350 V460 Q560 480 540 480 H430"/>
+          <path id="s2" d="M250 530 V610 Q250 630 270 630 H650"/>
+          <path id="s3" d="M830 680 V760 Q830 780 810 780 H430"/>
+          <path id="s4" d="M250 830 V910 Q250 930 270 930 H620"/>
+          <path class="leaf lf" id="lf1" d="M560 400 q24 -22 46 -6 q-22 22 -46 6z"/>
+          <path class="leaf lf" id="lf2" d="M420 630 q10 -30 36 -30 q-6 30 -36 30z"/>
+          <path class="leaf lf" id="lf3" d="M640 780 q-10 -30 -36 -30 q6 30 36 30z"/>
+          <path class="leaf lf" id="lf4" d="M440 930 q10 -30 36 -30 q-6 30 -36 30z"/>
+        </svg>
+        <div class="pill herb" id="h1" style="left:650px; top:280px"><div class="shell"></div>
+          <div class="ico"><svg viewBox="0 0 48 48"><circle class="s" cx="24" cy="24" r="5"/><path class="s" d="M24 4v10M24 34v10M4 24h10M34 24h10M10 10l7 7M31 31l7 7M38 10l-7 7M17 31l-7 7"/></svg></div>
+          <div class="txt"><div class="main"><span>Chamomile</span></div><span class="latin">Matricaria chamomilla</span></div></div>
+        <div class="pill herb" id="h2" style="left:70px; top:430px"><div class="shell"></div>
+          <div class="ico"><svg viewBox="0 0 48 48"><path class="s" d="M24 46V22M24 22L12 12M24 22L36 12M24 22V8"/><circle class="s" cx="12" cy="9" r="3.5"/><circle class="s" cx="36" cy="9" r="3.5"/><circle class="s" cx="24" cy="5" r="3.5"/></svg></div>
+          <div class="txt"><div class="main"><span>Valerian</span></div><span class="latin">Valeriana officinalis</span></div></div>
+        <div class="pill herb" id="h3" style="left:650px; top:580px"><div class="shell"></div>
+          <div class="ico"><svg viewBox="0 0 48 48"><path class="s" d="M24 42C10 32 6 22 10 14c4-7 12-6 14 2 2-8 10-9 14-2 4 8 0 18-14 28z"/><path class="s" d="M24 16v26"/></svg></div>
+          <div class="txt"><div class="main"><span>Kava</span></div><span class="latin">Piper methysticum</span></div></div>
+        <div class="pill herb" id="h4" style="left:70px; top:730px"><div class="shell"></div>
+          <div class="ico"><svg viewBox="0 0 48 48"><path class="s" d="M24 20c4 0 6 3 4 6s-8 2-8-3 6-9 12-6 6 13-2 16-16-1-15-10 7-13 13-13"/><path class="s" d="M24 36v10"/></svg></div>
+          <div class="txt"><div class="main"><span>Rose</span></div><span class="latin">Rosa damascena</span></div></div>
+        <div class="pill herb" id="h5" style="left:620px; top:880px"><div class="shell"></div>
+          <div class="ico"><svg viewBox="0 0 48 48"><circle class="s" cx="24" cy="24" r="17"/><circle class="s" cx="24" cy="24" r="5"/><path class="s" d="M24 7v6M24 35v6M7 24h6M35 24h6M12 12l4 4M32 32l4 4M36 12l-4 4M16 32l-4 4"/></svg></div>
+          <div class="txt"><div class="main"><span>Passionflower</span></div><span class="latin">Passiflora incarnata</span></div></div>
+        <svg id="bloom" style="position:absolute; left:968px; top:858px; width:64px; height:64px" viewBox="0 0 48 48">
+          <g fill="#c9b6e4" stroke="#8c6fb0" stroke-width="1.5"><ellipse cx="24" cy="11" rx="6" ry="10"/><ellipse cx="24" cy="37" rx="6" ry="10"/><ellipse cx="11" cy="24" rx="10" ry="6"/><ellipse cx="37" cy="24" rx="10" ry="6"/></g>
+          <circle cx="24" cy="24" r="5" fill="#f2d27a"/>
+        </svg>
+      </div>
+
+      <!-- ===================== OVERLAYS ===================== -->
+      <div class="full shade clip" data-start="0" data-duration="2.92" data-track-index="4"></div>
+      <div class="full shade clip" data-start="4.99" data-duration="3.28" data-track-index="4"></div>
+      <div class="full shade clip" data-start="11.69" data-duration="3.1" data-track-index="4"></div>
+
+      <!-- name tag -->
+      <div class="clip" data-start="0" data-duration="2.92" data-track-index="6" style="position:absolute; inset:0">
+        <div id="nametag"><div class="n">[Client Name]</div><div class="r">Herbalist &amp; wellness educator</div></div>
+      </div>
+
+      <!-- BR1 pill -->
+      <div class="clip" data-start="2.92" data-duration="2.07" data-track-index="6" style="position:absolute; inset:0">
+        <div class="pill" id="pPlot" style="left:250px; top:860px; height:112px">
+          <div class="shell"></div>
+          <div class="ico"><svg viewBox="0 0 48 48"><path class="s" d="M24 44V22"/><path class="s" d="M24 26c-10 0-15-6-15-14 9 0 15 5 15 14z"/><path class="s" d="M24 22c0-8 6-13 15-13 0 8-6 13-15 13z"/></svg></div>
+          <div class="txt"><div class="main" style="font-size:52px"><span>losing</span><span>the</span><span>plot</span></div></div>
+        </div>
+      </div>
+
+      <!-- caption pages -->
+      <div class="page clip" id="P1" data-start="0" data-duration="0.84" data-track-index="7"><div class="cap">
+        <div class="line t2"><span>Right</span><span>now,</span></div>
+        <div class="line t1"><span>wellness</span></div></div></div>
+      <div class="page clip" id="P2" data-start="0.84" data-duration="2.08" data-track-index="7"><div class="cap">
+        <div class="line t2"><span>is</span><span>in</span><span>a</span></div>
+        <div class="accent" id="acc"><span>precarious</span><span>place</span></div></div></div>
+      <div class="page clip" id="P3" data-start="5.05" data-duration="1.72" data-track-index="7"><div class="cap">
+        <div class="line t2"><span>The</span><span>point</span><span>is</span><span>to</span><span>be</span></div>
+        <div class="line t1"><span>healthy</span></div></div></div>
+      <div class="page clip" id="P4" data-start="6.77" data-duration="1.5" data-track-index="7"><div class="cap" style="top:880px">
+        <div class="line t1"><span>and</span><span>well,</span></div>
+        <div class="line t3"><span>right?</span></div></div></div>
+      <div class="page clip" id="P5" data-start="11.69" data-duration="1.84" data-track-index="7"><div class="cap">
+        <div class="line t2"><span>There</span><span>is</span><span>an</span><span>herb</span><span>for</span></div>
+        <div class="line t1"><span>everything.</span></div></div></div>
+      <div class="page clip" id="P6" data-start="13.53" data-duration="1.26" data-track-index="7"><div class="cap" style="top:880px">
+        <div class="line t3"><span>So</span><span>for</span></div>
+        <div class="line t1"><span>anxiety,</span></div></div></div>
+
+      <div id="flash" class="full"></div>
+
+      <!-- ===================== SOUND ===================== -->
+      <audio id="mix" src="assets/audio/mix.wav" data-start="0" data-duration="23.0" data-track-index="9" data-volume="1"></audio>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const F = 1 / 30;
+      const POP = "back.out(2.2)";
+
+      // ---------- helpers ----------
+      function words(sel, times, opts = {}) {
+        const els = document.querySelectorAll(sel);
+        els.forEach((el, i) => {
+          const dir = i % 2 ? -1 : 1;
+          tl.fromTo(el, { opacity: 0, y: 26 * dir, scale: opts.big ? 1.08 : 1 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.22, ease: POP }, times[i]);
+        });
+      }
+      function settle(sel, t, from = 1.12, to = 1, dur = 0.8) {
+        tl.fromTo(sel, { scale: from }, { scale: to, duration: dur, ease: "power3.out" }, t);
+      }
+      function flash(t, amt = 0.55, dur = 5 * F) {
+        tl.fromTo("#flash", { opacity: amt }, { opacity: 0, duration: dur, ease: "none", immediateRender: false }, t);
+      }
+      function pill(id, t, wordTimes, opts = {}) {
+        const p = "#" + id;
+        tl.fromTo(p + " .shell", { scaleX: 0.55, scaleY: 0.7, opacity: 0 }, { scaleX: 1, scaleY: 1, opacity: 1, duration: 0.24, ease: opts.soft ? "back.out(1.4)" : POP }, t);
+        tl.fromTo(p + " .ico", { opacity: 0, x: -18, y: 14, scale: 0.6 }, { opacity: 1, x: 0, y: 0, scale: 1, duration: 0.24, ease: POP }, t + 2 * F);
+        const parts = document.querySelectorAll(p + " .main span, " + p + " .sub span, " + p + " .latin");
+        parts.forEach((el, i) => {
+          const wt = wordTimes[i] !== undefined ? wordTimes[i] : wordTimes[wordTimes.length - 1] + 0.12 * (i - wordTimes.length + 1);
+          tl.fromTo(el, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: opts.soft ? 0.3 : 0.22, ease: opts.soft ? "back.out(1.4)" : POP }, wt);
+        });
+      }
+
+      // ---------- BEAT 01–02 : hook on Cam A ----------
+      settle("#wA1", 0, 1.12, 1, 0.8);
+      tl.fromTo("#nametag", { x: -205 }, { x: 0, duration: 0.85, ease: "power4.out" }, 0);
+      words("#P1 span", [0.02, 0.22, 0.46], { big: true });
+      settle("#wA2", 1.42, 1.10, 1.04, 0.6);
+      words("#P2 .t2 span", [0.84, 1.18, 1.34]);
+      tl.fromTo("#acc", { y: -90, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "back.out(1.8)" }, 1.40);
+      words("#acc span", [1.46, 2.08]);
+
+      // ---------- BEAT 03 : losing the plot ----------
+      tl.fromTo("#wBR1", { scale: 1.08, rotation: -2 }, { scale: 1.2, rotation: -1, duration: 2.07, ease: "none" }, 2.92);
+      tl.fromTo("#vBR1", { filter: "brightness(1) saturate(1)" }, { filter: "brightness(0.72) saturate(0.55)", duration: 0.4, ease: "power2.out" }, 4.02);
+      pill("pPlot", 3.72, [3.80, 3.94, 4.08]);
+
+      // ---------- BEAT 04–05 : the point ----------
+      flash(4.99, 0.6);
+      settle("#wB", 4.99, 1.12, 1, 0.95);
+      tl.fromTo("#vB", { filter: "blur(14px)" }, { filter: "blur(0px)", duration: 6 * F, ease: "power2.out" }, 4.99);
+      words("#P3 .t2 span", [5.07, 5.31, 5.57, 5.77, 5.89]);
+      words("#P3 .t1 span", [6.13], { big: true });
+      words("#P4 .t1 span", [6.77, 7.03], { big: true });
+      words("#P4 .t3 span", [7.63]);
+      tl.fromTo("#wBi", { scale: 1 }, { scale: 1.04, duration: 0.72, ease: "none" }, 7.55);
+
+      // ---------- BEAT 06 : product wall ----------
+      tl.fromTo("#wWall", { scale: 1.0 }, { scale: 1.04, duration: 2.18, ease: "none" }, 8.27);
+      tl.fromTo("#heroTile", { borderRadius: 0 }, { borderRadius: 40, duration: 0.3 }, 10.45);
+      tl.to("#wWall", { scale: 0.92, duration: 0.25, ease: "power2.in" }, 10.45);
+      tl.set("#wWall", { scale: 0.76 }, 10.72);
+      tl.to("#wWall", { scale: 0.62, duration: 0.25, ease: "power3.out" }, 10.74);
+      tl.to("#wWall", { scale: 0.60, y: 30, duration: 0.7, ease: "none" }, 10.99);
+      pill_badge("#cart", 9.40);
+      tl.fromTo("#cartN", { innerText: 1 }, { innerText: 27, snap: { innerText: 1 }, duration: 0.42, ease: "power1.in" }, 10.77);
+      document.querySelectorAll(".plus").forEach((b, i) => {
+        tl.fromTo(b, { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.2, ease: POP }, 10.95 + i * 0.1);
+      });
+      function pill_badge(sel, t) {
+        tl.fromTo(sel, { scale: 0.5, opacity: 0, y: -40 }, { scale: 1, opacity: 1, y: 0, duration: 0.26, ease: POP }, t);
+      }
+
+      // ---------- BEAT 07 : the turn (Cam C) ----------
+      flash(11.69, 0.6);
+      settle("#wC", 11.69, 1.12, 1, 0.9);
+      words("#P5 .t2 span", [11.70, 11.83, 12.01, 12.15, 12.45]);
+      words("#P5 .t1 span", [12.67], { big: true });
+      words("#P6 .t3 span", [13.55, 13.65]);
+      words("#P6 .t1 span", [14.11], { big: true });
+
+      // ---------- BEAT 08 : nervines + lavender ----------
+      tl.fromTo("#cardMove", { x: -320, rotation: -12 }, { x: 0, rotation: -3, duration: 0.42, ease: "power3.out" }, 14.79);
+      tl.fromTo("#wBR3", { scale: 1 }, { scale: 1.06, duration: 1.92, ease: "none" }, 14.79);
+      tl.set("#wBR3", { scale: 1.2 }, 16.71);
+      tl.to("#wBR3", { scale: 1.26, duration: 1.54, ease: "none" }, 16.71);
+      tl.fromTo("#blobA", { scale: 0 }, { scale: 1, duration: 0.66, ease: "power2.out" }, 14.85);
+      tl.fromTo("#blobB", { scale: 0 }, { scale: 1, duration: 0.66, ease: "power2.out" }, 15.05);
+      tl.to(["#blobA", "#blobB"], { scale: 1.06, duration: 1.4, ease: "sine.inOut", yoyo: true, repeat: 1 }, 15.6);
+      pill("pNerv", 15.75, [15.81, 16.10, 16.20, 16.30, 16.40], { soft: true });
+      pill("pLav", 16.65, [16.71, 17.30], { soft: true });
+
+      // ---------- BEAT 09 : herb constellation ----------
+      tl.fromTo("#flash", { opacity: 0.75 }, { opacity: 0, duration: 0.2, ease: "power1.out", immediateRender: false }, 18.25);
+      tl.set("#flash", { opacity: 0 }, 0);
+      tl.fromTo(["#vPlate", "#vCut"], { filter: "blur(16px)" }, { filter: "blur(0px)", duration: 0.2, ease: "power2.out" }, 18.25);
+      tl.fromTo("#wPlate", { y: 0, scale: 1.06 }, { y: -46, scale: 1.06, duration: 4.75, ease: "none" }, 18.25);
+      ["#s1", "#s2", "#s3", "#s4"].forEach((s) => {
+        const p = document.querySelector(s);
+        const L = p.getTotalLength();
+        p.style.strokeDasharray = L + " " + L;
+        tl.set(p, { strokeDashoffset: L }, 0);
+      });
+      const herbT = [18.32, 19.06, 19.86, 20.50, 21.18];
+      herbT.forEach((t, i) => pill("h" + (i + 1), t - 0.04, [t, t + 0.12], { soft: true }));
+      [[18.66, "#s1", "#lf1"], [19.46, "#s2", "#lf2"], [20.10, "#s3", "#lf3"], [20.78, "#s4", "#lf4"]].forEach(([t, s, lf]) => {
+        tl.to(s, { strokeDashoffset: 0, duration: 0.38, ease: "power2.inOut" }, t);
+        tl.fromTo(lf, { scale: 0, transformOrigin: "50% 100%" }, { scale: 1, duration: 0.3, ease: "back.out(2)" }, t + 0.25);
+      });
+      tl.fromTo("#bloom", { scale: 0, rotation: -40, transformOrigin: "50% 50%" }, { scale: 1, rotation: 0, duration: 0.35, ease: "back.out(2.4)" }, 21.42);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

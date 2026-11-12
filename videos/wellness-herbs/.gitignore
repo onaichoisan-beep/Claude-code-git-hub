@@ -1,0 +1,12 @@
+.hyperframes/
+node_modules/
+snaps/
+renders/
+# raw Mixkit downloads (re-fetch with tools/prep.sh)
+assets/mixkit/
+assets/audio/src/
+# client footage and anything containing it stays out of git
+assets/source/
+assets/footage/
+assets/audio/dialogue.wav
+assets/audio/mix.wav
