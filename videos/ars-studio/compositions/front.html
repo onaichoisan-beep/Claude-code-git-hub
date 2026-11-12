@@ -1,0 +1,535 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Instrument Serif";
+      font-style: italic;
+      font-weight: 400;
+      src: url("assets/fonts/InstrumentSerif-Italic.woff2") format("woff2");
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      --ink: #121318;
+      --cobalt: #2e3bff;
+      --canvas: #f1e3dd;
+    }
+    .serif {
+      position: absolute;
+      font-family: "Instrument Serif", serif;
+      font-style: italic;
+      font-weight: 400;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .mono {
+      position: absolute;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 700;
+      text-transform: uppercase;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .chip {
+      position: absolute;
+      background: var(--cobalt);
+      color: var(--canvas);
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 700;
+      font-size: 28px;
+      letter-spacing: 0.2em;
+      line-height: 1;
+      padding: 12px 14px 12px 18px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+    .corner {
+      position: absolute;
+      width: 70px;
+      height: 70px;
+      border: 0 solid var(--cobalt);
+    }
+    .kf {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      margin: -11px 0 0 -11px;
+    }
+    .kf > div,
+    #f-join .kf {
+      position: absolute;
+      inset: 0;
+      background: var(--cobalt);
+    }
+    #f-join .kf { inset: auto; width: 22px; height: 22px; }
+    .kf.outline > div {
+      background: transparent;
+      border: 3px solid var(--ink);
+    }
+    /* B01 */
+    #f-vf-tl { left: 86px; top: 230px; border-top-width: 6px; border-left-width: 6px; }
+    #f-vf-tr { left: 924px; top: 230px; border-top-width: 6px; border-right-width: 6px; }
+    #f-vf-bl { left: 86px; top: 1504px; border-bottom-width: 6px; border-left-width: 6px; }
+    #f-vf-br { left: 924px; top: 1504px; border-bottom-width: 6px; border-right-width: 6px; }
+    #f-tc {
+      left: 122px;
+      top: 266px;
+      font-size: 28px;
+      letter-spacing: 0.08em;
+      color: rgba(18, 19, 24, 0.7);
+    }
+    #f-tc b { color: var(--cobalt); }
+    #f-hey { left: 150px; top: 300px; font-size: 104px; color: var(--ink); }
+    #f-studio {
+      left: 0;
+      width: 1080px;
+      text-align: center;
+      top: 428px;
+      font-size: 46px;
+      letter-spacing: 0.62em;
+      text-indent: 0.62em;
+      color: var(--cobalt);
+    }
+    #f-studio span { display: inline-block; }
+    /* B02 */
+    #f-forbrands { left: 120px; top: 212px; }
+    #f-row { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+    .card {
+      position: absolute;
+      top: 270px;
+      width: 250px;
+      height: 444px;
+    }
+    .card-face {
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 2px solid var(--ink);
+      box-shadow: 0 18px 40px rgba(18, 19, 24, 0.18);
+      background: #ece2dc;
+    }
+    .card-label {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 700;
+      font-size: 28px;
+      letter-spacing: 0.08em;
+      color: var(--ink);
+      background: rgba(241, 227, 221, 0.86);
+      padding: 6px 8px;
+      border-radius: 4px;
+    }
+    .cm { position: absolute; width: 28px; height: 28px; border: 0 solid var(--cobalt); }
+    .cm.a { left: -12px; top: -12px; border-top-width: 4px; border-left-width: 4px; }
+    .cm.b { right: -12px; top: -12px; border-top-width: 4px; border-right-width: 4px; }
+    .cm.c { left: -12px; bottom: -12px; border-bottom-width: 4px; border-left-width: 4px; }
+    .cm.d { right: -12px; bottom: -12px; border-bottom-width: 4px; border-right-width: 4px; }
+    #f-card1 { left: 120px; }
+    #f-card2 { left: 415px; }
+    #f-card3 { left: 710px; }
+    .mini {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 250px;
+      height: 444px;
+    }
+    .mini video {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 250px;
+      height: 444px;
+      object-fit: cover;
+    }
+    #f-hq {
+      left: 0;
+      width: 1080px;
+      text-align: center;
+      top: 742px;
+      font-size: 88px;
+      color: var(--cobalt);
+    }
+    #f-hq span { display: inline-block; white-space: pre; }
+    /* B03 */
+    #f-playhead {
+      position: absolute;
+      left: 0;
+      top: 640px;
+      width: 6px;
+      height: 240px;
+      margin-left: -3px;
+      background: var(--cobalt);
+    }
+    #f-playhead i {
+      position: absolute;
+      left: -9px;
+      top: -12px;
+      width: 24px;
+      height: 24px;
+      background: var(--cobalt);
+      transform: rotate(45deg);
+    }
+    #f-videos { left: 660px; top: 800px; font-size: 156px; color: var(--cobalt); }
+    /* B04 */
+    #f-actually {
+      left: 0;
+      width: 1080px;
+      text-align: center;
+      top: 318px;
+      font-size: 32px;
+      letter-spacing: 0.3em;
+      text-indent: 0.3em;
+      color: rgba(18, 19, 24, 0.62);
+    }
+    #f-premium {
+      left: 0;
+      width: 1080px;
+      text-align: center;
+      top: 380px;
+      font-size: 300px;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+    #f-premium span { display: inline-block; }
+    #f-underline {
+      position: absolute;
+      left: 200px;
+      top: 718px;
+      width: 680px;
+      height: 6px;
+      background: var(--cobalt);
+      transform-origin: 0 50%;
+    }
+    /* B05 */
+    #f-your { left: 110px; top: 560px; font-size: 130px; color: var(--cobalt); }
+    #f-slot {
+      position: absolute;
+      left: 740px;
+      top: 890px;
+      width: 260px;
+      height: 462px;
+    }
+    #f-slot-empty {
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      border: 4px dashed var(--cobalt);
+      background: rgba(46, 59, 255, 0.05);
+    }
+    #f-slot-empty::before,
+    #f-slot-empty::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      background: var(--cobalt);
+    }
+    #f-slot-empty::before { width: 48px; height: 3px; margin: -1.5px 0 0 -24px; }
+    #f-slot-empty::after { width: 3px; height: 48px; margin: -24px 0 0 -1.5px; }
+    #f-slot-full {
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 2px solid var(--ink);
+      background: var(--canvas);
+      box-shadow: 0 18px 40px rgba(18, 19, 24, 0.18);
+    }
+    #f-slot-mini {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 260px;
+      height: 462px;
+    }
+    #f-slot-mini video {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 260px;
+      height: 462px;
+      object-fit: cover;
+    }
+    #f-slot-ars {
+      position: absolute;
+      left: 0;
+      width: 260px;
+      top: 70px;
+      text-align: center;
+      font-family: "Inter Tight", sans-serif;
+      font-weight: 900;
+      font-size: 104px;
+      letter-spacing: -0.035em;
+      line-height: 1;
+      color: var(--ink);
+    }
+    #f-slot-label {
+      position: absolute;
+      left: 16px;
+      top: 18px;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 700;
+      font-size: 28px;
+      letter-spacing: 0.1em;
+      color: var(--cobalt);
+      z-index: 3;
+    }
+    /* B06 */
+    #f-lets { left: 120px; top: 520px; font-size: 116px; color: var(--cobalt); }
+  </style>
+  <div id="root" data-composition-id="front" data-width="1080" data-height="1920" data-layout-allow-overlap>
+    <!-- ===== B01 NAME ===== -->
+    <div id="f-viewfinder" class="clip" data-start="0" data-duration="1.71" data-track-index="0" data-layout-allow-overflow>
+      <div id="f-vf-tl" class="corner"></div>
+      <div id="f-vf-tr" class="corner"></div>
+      <div id="f-vf-bl" class="corner"></div>
+      <div id="f-vf-br" class="corner"></div>
+      <div id="f-tc" class="mono">ARS <b>●</b> <span id="f-tc-val">00:00:00:00</span></div>
+    </div>
+    <div id="f-hey" class="serif clip" data-start="0.1" data-duration="1.61" data-track-index="1">
+      <div id="f-hey-in">Hey,</div>
+    </div>
+    <div id="f-studio" class="mono clip" data-start="1.16" data-duration="0.55" data-track-index="2">
+      <div id="f-studio-in"><span>S</span><span>T</span><span>U</span><span>D</span><span>I</span><span>O</span></div>
+    </div>
+    <div id="f-kf1" class="kf clip" data-start="0.75" data-duration="0.25" data-track-index="3" style="left: 150px; top: 520px"><div></div></div>
+    <div id="f-kf2" class="kf clip" data-start="1.42" data-duration="0.25" data-track-index="3" style="left: 820px; top: 450px"><div></div></div>
+
+    <!-- ===== B02 FOR BRANDS ===== -->
+    <div id="f-forbrands-clip" class="clip" data-start="1.92" data-duration="1.2" data-track-index="4"><div id="f-forbrands" class="chip">FOR BRANDS</div></div>
+    <div id="f-row" data-layout-allow-overlap>
+      <div id="f-row-in" style="position: absolute; left: 0; top: 0; width: 1080px; height: 1920px">
+        <!-- Card 1: product reel stand-in (swap for a real ARS reel) -->
+        <div id="f-card1" class="card">
+          <div class="card-face">
+            <svg width="250" height="444" viewBox="0 0 250 444">
+              <defs>
+                <linearGradient id="f-sweep" x1="0" x2="1">
+                  <stop offset="0" stop-color="#fff" stop-opacity="0" />
+                  <stop offset="0.5" stop-color="#fff" stop-opacity="0.75" />
+                  <stop offset="1" stop-color="#fff" stop-opacity="0" />
+                </linearGradient>
+                <clipPath id="f-bottle-clip"><rect x="88" y="150" width="74" height="150" rx="14" /></clipPath>
+              </defs>
+              <rect width="250" height="444" fill="#efe5df" />
+              <ellipse cx="125" cy="330" rx="92" ry="12" fill="#d9ccc4" />
+              <rect x="40" y="318" width="170" height="126" fill="#e3d7cf" />
+              <polygon points="165,300 230,300 210,318 150,318" fill="#d2c3ba" opacity="0.7" />
+              <rect x="88" y="150" width="74" height="150" rx="14" fill="#f8f4f1" opacity="0.85" />
+              <rect x="94" y="196" width="62" height="98" rx="10" fill="#2e3bff" />
+              <rect x="108" y="108" width="34" height="46" rx="6" fill="#121318" />
+              <rect x="116" y="84" width="18" height="28" rx="9" fill="#121318" />
+              <g clip-path="url(#f-bottle-clip)">
+                <rect id="f-sweep-band" x="-60" y="140" width="50" height="170" fill="url(#f-sweep)" />
+              </g>
+            </svg>
+            <div class="card-label">SKINCARE</div>
+          </div>
+          <i class="cm a"></i><i class="cm b"></i><i class="cm c"></i><i class="cm d"></i>
+        </div>
+        <!-- Card 2: café reel stand-in -->
+        <div id="f-card2" class="card">
+          <div class="card-face" style="background: #e7dad2">
+            <svg width="250" height="444" viewBox="0 0 250 444">
+              <rect width="250" height="444" fill="#e7dad2" />
+              <circle cx="125" cy="200" r="92" fill="#f6f1ec" />
+              <path d="M210 190 a26 26 0 0 1 0 40" stroke="#f6f1ec" stroke-width="14" fill="none" />
+              <circle cx="125" cy="200" r="74" fill="#6b4632" />
+              <g id="f-latte">
+                <path d="M125 245 C 82 210, 92 165, 125 185 C 158 165, 168 210, 125 245 Z" fill="#f3e7dc" />
+                <path d="M125 236 C 98 214, 104 186, 125 198 C 146 186, 152 214, 125 236 Z" fill="#8a5c42" />
+                <path d="M125 228 C 110 214, 114 198, 125 206 C 136 198, 140 214, 125 228 Z" fill="#f3e7dc" />
+              </g>
+              <rect x="18" y="330" width="214" height="2" fill="#121318" opacity="0.15" />
+            </svg>
+            <div class="card-label">CAFÉ</div>
+          </div>
+          <i class="cm a"></i><i class="cm b"></i><i class="cm c"></i><i class="cm d"></i>
+        </div>
+        <!-- Card 3: ARS's own founder reel (this shoot) -->
+        <div id="f-card3" class="card">
+          <div class="card-face">
+            <div class="mini" data-layout-allow-overflow>
+              <div id="f-card3-crop" style="position: absolute; left: 0; top: 0; width: 250px; height: 444px">
+                <video id="f-card3-vid" class="clip" src="assets/footage/mini-tight.mp4" data-start="2.75" data-duration="0.47" data-media-start="4.9" data-track-index="6" muted playsinline></video>
+              </div>
+            </div>
+            <div class="card-label">FOUNDER</div>
+          </div>
+          <i class="cm a"></i><i class="cm b"></i><i class="cm c"></i><i class="cm d"></i>
+        </div>
+      </div>
+    </div>
+    <div id="f-hq" class="serif clip" data-start="2.48" data-duration="0.62" data-track-index="7">
+      <div id="f-hq-in"><span>high</span><span>-</span><span>quality</span></div>
+    </div>
+    <div id="f-kf3" class="kf clip" data-start="2.1" data-duration="0.25" data-track-index="3" style="left: 370px; top: 270px"><div></div></div>
+    <div id="f-kf4" class="kf outline clip" data-start="2.6" data-duration="0.25" data-track-index="3" style="left: 665px; top: 270px"><div></div></div>
+    <div id="f-kf5" class="kf clip" data-start="2.93" data-duration="0.25" data-track-index="3" style="left: 960px; top: 270px"><div></div></div>
+
+    <!-- ===== B03 ENGAGING VIDEOS ===== -->
+    <div id="f-ph" class="clip" data-start="3.2" data-duration="1.47" data-track-index="8" data-layout-allow-overflow>
+      <div id="f-playhead"><i></i></div>
+    </div>
+    <div id="f-videos" class="serif clip" data-start="3.6" data-duration="1.07" data-track-index="9">
+      <div id="f-videos-in">videos</div>
+    </div>
+
+    <!-- ===== B04 PREMIUM ===== -->
+    <div id="f-actually" class="mono clip" data-start="4.94" data-duration="1.53" data-track-index="10">
+      <div id="f-actually-in">ACTUALLY</div>
+    </div>
+    <div id="f-premium" class="serif clip" data-start="5.32" data-duration="1.15" data-track-index="11" data-layout-allow-overflow>
+      <div id="f-premium-in"><span>p</span><span>r</span><span>e</span><span>m</span><span>i</span><span>u</span><span>m</span></div>
+    </div>
+    <div id="f-ul" class="clip" data-start="5.7" data-duration="0.77" data-track-index="12">
+      <div id="f-underline"></div>
+    </div>
+
+    <!-- ===== B05 YOUR BRAND ===== -->
+    <div id="f-your" class="serif clip" data-start="7.11" data-duration="1.65" data-track-index="13">
+      <div id="f-your-in">your</div>
+    </div>
+    <div id="f-slotwrap" data-layout-allow-overlap>
+      <div id="f-slot">
+        <div id="f-slot-empty"></div>
+        <div id="f-slot-full">
+          <div id="f-slot-mini" data-layout-allow-overflow>
+            <div id="f-slot-crop" style="position: absolute; left: 0; top: 0; width: 260px; height: 462px">
+              <video id="f-slot-vid" class="clip" src="assets/footage/mini-tight.mp4" data-start="7.98" data-duration="0.78" data-media-start="0.75" data-track-index="15" muted playsinline></video>
+            </div>
+          </div>
+          <div id="f-slot-ars">ARS</div>
+        </div>
+        <div id="f-slot-label">YOUR BRAND</div>
+      </div>
+    </div>
+    <div id="f-kf6" class="kf clip" data-start="8.0" data-duration="0.25" data-track-index="3" style="left: 740px; top: 890px"><div></div></div>
+    <div id="f-kf7" class="kf outline clip" data-start="8.04" data-duration="0.25" data-track-index="3" style="left: 1000px; top: 1352px"><div></div></div>
+
+    <!-- ===== B06 LET'S CONNECT ===== -->
+    <div id="f-lets" class="serif clip" data-start="9.0" data-duration="1.17" data-track-index="16">
+      <div id="f-lets-in">let's</div>
+    </div>
+    <div id="f-join" class="clip" data-start="9.24" data-duration="0.4" data-track-index="17" data-layout-allow-overflow>
+      <div id="f-join-l" class="kf" style="left: 642px; top: 676px"></div>
+      <div id="f-join-r" class="kf" style="left: 642px; top: 676px"></div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const F = 1 / 24;
+
+    // ---- keyframe diamond pops
+    const pop = (sel, t) => {
+      sel = sel + " > div";
+      tl.fromTo(sel, { rotation: 45, scale: 0 }, { rotation: 45, scale: 1.2, duration: 2 * F, ease: "power2.out" }, t);
+      tl.to(sel, { scale: 1, duration: 2 * F, ease: "power2.out" }, t + 2 * F);
+      tl.to(sel, { scale: 0, duration: 2 * F, ease: "power2.in" }, t + 5 * F);
+    };
+
+    // ---- B01: viewfinder opens on "Hey"
+    const vf = [
+      ["#f-vf-tl", 214, 390],
+      ["#f-vf-tr", -214, 390],
+      ["#f-vf-bl", 214, -114],
+      ["#f-vf-br", -214, -114],
+    ];
+    vf.forEach(([id, dx, dy]) => {
+      tl.fromTo(id, { x: dx, y: dy }, { x: 0, y: 0, duration: 0.21, ease: "expo.out" }, 0.1);
+    });
+    tl.fromTo("#f-tc", { opacity: 0 }, { opacity: 1, duration: 2 * F }, 0);
+    // running timecode, derived from timeline time only
+    const tc = { f: 0 };
+    const tcEl = document.querySelector("#f-tc-val");
+    tl.fromTo(
+      tc,
+      { f: 0 },
+      {
+        f: 41,
+        duration: 41 * F,
+        ease: "none",
+        onUpdate: () => {
+          const fr = Math.floor(tc.f);
+          tcEl.textContent = "00:00:0" + Math.floor(fr / 24) + ":" + String(fr % 24).padStart(2, "0");
+        },
+      },
+      0,
+    );
+    tl.fromTo("#f-hey-in", { opacity: 0, y: -12 }, { opacity: 1, y: 0, duration: 3 * F, ease: "power2.out" }, 0.1);
+    // STUDIO types out, one letter a frame
+    tl.fromTo("#f-studio-in span", { opacity: 0 }, { opacity: 1, duration: 0.001, stagger: F }, 1.17);
+    pop("#f-kf1", 0.75);
+    pop("#f-kf2", 1.42);
+    // squash out with ARS under the letterbox
+    tl.to(["#f-hey-in", "#f-studio-in"], { scaleY: 0, transformOrigin: "50% 50%", duration: 0.08, ease: "power3.in" }, 1.62);
+
+    // ---- B02: proof row
+    tl.fromTo(
+      "#f-forbrands",
+      { opacity: 0, x: -60, filter: "blur(6px)" },
+      { opacity: 1, x: 0, filter: "blur(0px)", duration: 4 * F, ease: "expo.out" },
+      1.92,
+    );
+    [["#f-card1", 1.92], ["#f-card2", 2.42], ["#f-card3", 2.75]].forEach(([id, t]) => {
+      tl.fromTo(id, { opacity: 0, scale: 0.7, y: 40 }, { opacity: 1, scale: 1.04, y: 0, duration: 4 * F, ease: "power3.out" }, t);
+      tl.to(id, { scale: 1, duration: 5 * F, ease: "power2.inOut" }, t + 4 * F);
+    });
+    // movement inside the stand-in cards
+    tl.fromTo("#f-sweep-band", { attr: { x: -60 } }, { attr: { x: 230 }, duration: 1.1, ease: "power1.inOut" }, 2.0);
+    tl.fromTo("#f-latte", { rotation: -8, svgOrigin: "125 210" }, { rotation: 8, svgOrigin: "125 210", duration: 0.8, ease: "none" }, 2.42);
+    tl.fromTo(
+      "#f-hq-in span",
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 4 * F, ease: "power2.out", stagger: F },
+      2.48,
+    );
+    pop("#f-kf3", 2.1);
+    pop("#f-kf4", 2.6);
+    pop("#f-kf5", 2.93);
+    // T2: the row collapses into one cobalt line — the playhead
+    tl.to("#f-row-in", { scaleX: 0, transformOrigin: "540px 50%", duration: 3 * F, ease: "power3.in" }, 3.08);
+    tl.to(["#f-forbrands", "#f-hq-in"], { opacity: 0, duration: 3 * F }, 3.08);
+
+    // ---- B03: playhead
+    tl.fromTo("#f-playhead", { x: 540, scaleY: 0.4 }, { x: 540, scaleY: 1, duration: F }, 3.2);
+    tl.to("#f-playhead", { x: 110, duration: F, ease: "power2.out" }, 3.25);
+    tl.to("#f-playhead", { x: 970, duration: 0.58, ease: "none" }, 3.96);
+    tl.fromTo("#f-videos-in", { opacity: 0, x: 24 }, { opacity: 1, x: 0, duration: 4 * F, ease: "expo.out" }, 3.62);
+    tl.to(["#f-videos-in", "#f-playhead"], { x: "-=260", opacity: 0, filter: "blur(10px)", duration: 0.08, ease: "power3.in" }, 4.6);
+
+    // ---- B04: the breath
+    tl.fromTo("#f-actually-in", { opacity: 0 }, { opacity: 1, duration: 4 * F, ease: "power1.out" }, 4.95);
+    tl.fromTo(
+      "#f-premium-in span",
+      { opacity: 0, filter: "blur(20px)" },
+      { opacity: 1, filter: "blur(0px)", duration: 7 * F, ease: "sine.out", stagger: 1.5 * F },
+      5.33,
+    );
+    tl.fromTo("#f-underline", { scaleX: 0 }, { scaleX: 1, duration: 10 * F, ease: "power2.inOut" }, 5.71);
+
+    // ---- B05: your brand
+    tl.fromTo("#f-your-in", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 4 * F, ease: "expo.out" }, 7.12);
+    tl.fromTo("#f-slot", { opacity: 0, scale: 0.7, y: 40 }, { opacity: 1, scale: 1.04, y: 0, duration: 4 * F, ease: "power3.out" }, 7.12);
+    tl.to("#f-slot", { scale: 1, duration: 5 * F, ease: "power2.inOut" }, 7.12 + 4 * F);
+    tl.fromTo("#f-slot-full", { opacity: 0 }, { opacity: 1, duration: 2 * F }, 7.98);
+    tl.fromTo("#f-slot-ars", { opacity: 0, filter: "blur(12px)" }, { opacity: 1, filter: "blur(0px)", duration: 6 * F, ease: "expo.out" }, 8.08);
+    tl.to("#f-slot-label", { color: "#121318", duration: 2 * F }, 7.98);
+    tl.set("#f-slot", { opacity: 0 }, 8.76);
+    pop("#f-kf6", 8.0);
+    pop("#f-kf7", 8.04);
+
+    // ---- B06: let's connect
+    tl.fromTo("#f-lets-in", { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 3 * F, ease: "power2.out" }, 9.02);
+    tl.fromTo("#f-join-l", { rotation: 45, x: -240, scale: 1 }, { rotation: 45, x: 0, duration: 0.3, ease: "expo.out" }, 9.25);
+    tl.fromTo("#f-join-r", { rotation: 45, x: 240, scale: 1 }, { rotation: 45, x: 0, duration: 0.3, ease: "expo.out" }, 9.25);
+    tl.to(["#f-join-l", "#f-join-r"], { scale: 1.4, duration: 2 * F, ease: "power2.out" }, 9.5);
+    tl.to(["#f-join-l", "#f-join-r"], { scale: 0, duration: 2 * F, ease: "power2.in" }, 9.5 + 2 * F);
+
+    window.__timelines["front"] = tl;
+  </script>
+</template>

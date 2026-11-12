@@ -1,0 +1,174 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Inter Tight";
+      font-weight: 900;
+      src: url("assets/fonts/InterTight-900.woff2") format("woff2");
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      --ink: #121318;
+      --cobalt: #2e3bff;
+      --canvas: #f1e3dd;
+    }
+    .bar {
+      position: absolute;
+      left: 0;
+      width: 1080px;
+      height: 962px;
+      background: var(--ink);
+    }
+    #x-bar-top {
+      top: 0;
+    }
+    #x-bar-bot {
+      top: 958px;
+    }
+    .iris {
+      position: absolute;
+      left: 270px;
+      top: 340px;
+      width: 540px;
+      height: 960px;
+      border-radius: 40px;
+    }
+    .iris.ring-o {
+      border: 10px solid var(--cobalt);
+    }
+    #x-iris-solid {
+      background: var(--cobalt);
+    }
+    #x-iris-hole {
+      box-shadow: 0 0 0 4000px var(--cobalt);
+    }
+    #x-end {
+      position: absolute;
+      inset: 0;
+      background: var(--ink);
+    }
+    #x-end-in {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1080px;
+      height: 1920px;
+    }
+    #x-end-ars {
+      position: absolute;
+      left: 0;
+      width: 1080px;
+      top: 700px;
+      text-align: center;
+      font-family: "Inter Tight", sans-serif;
+      font-weight: 900;
+      font-size: 280px;
+      letter-spacing: -0.035em;
+      line-height: 1;
+      color: var(--canvas);
+    }
+    #x-end-studio {
+      position: absolute;
+      left: 0;
+      width: 1080px;
+      top: 1000px;
+      text-align: center;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 700;
+      font-size: 40px;
+      letter-spacing: 0.62em;
+      text-indent: 0.62em;
+      line-height: 1;
+      color: var(--canvas);
+    }
+    #x-end-chip {
+      position: absolute;
+      left: 50%;
+      top: 1100px;
+      transform: translateX(-50%);
+      background: var(--cobalt);
+      color: var(--canvas);
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 700;
+      font-size: 32px;
+      letter-spacing: 0.18em;
+      line-height: 1;
+      padding: 16px 20px 16px 26px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+  </style>
+  <div id="root" data-composition-id="fx" data-width="1080" data-height="1920" data-layout-allow-overlap>
+    <!-- Letterbox shutter: T1, T5 and the closing bookend -->
+    <div id="x-letterbox" class="clip" data-start="0" data-duration="11.9" data-track-index="0" data-layout-allow-occlusion data-layout-allow-overflow>
+      <div id="x-bar-top" class="bar"></div>
+      <div id="x-bar-bot" class="bar"></div>
+    </div>
+
+    <!-- T4: 9:16 frame iris from his face -->
+    <div id="x-iris" class="clip" data-start="6.12" data-duration="0.52" data-track-index="1" data-layout-allow-occlusion data-layout-allow-overflow>
+      <div id="x-iris-1" class="iris ring-o"></div>
+      <div id="x-iris-2" class="iris ring-o"></div>
+      <div id="x-iris-3" class="iris ring-o"></div>
+      <div id="x-iris-solid" class="iris"></div>
+      <div id="x-iris-hole" class="iris"></div>
+    </div>
+
+    <!-- End lockup on the closed letterbox -->
+    <div id="x-endcard" class="clip" data-start="10.16" data-duration="1.74" data-track-index="2" data-layout-allow-occlusion>
+      <div id="x-end">
+        <div id="x-end-in">
+          <div id="x-end-ars">ARS</div>
+          <div id="x-end-studio">STUDIO</div>
+          <div id="x-end-chip">DM "CONNECT"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const F = 1 / 24;
+    const top_ = "#x-bar-top";
+    const bot = "#x-bar-bot";
+
+    // bars rest off-frame
+    tl.fromTo(top_, { yPercent: -101 }, { yPercent: -101, duration: F }, 0);
+    tl.fromTo(bot, { yPercent: 101 }, { yPercent: 101, duration: F }, 0);
+    // T1 — shutter on the breath after "hoon"
+    tl.to(top_, { yPercent: 0, duration: 0.08, ease: "expo.in" }, 1.62);
+    tl.to(bot, { yPercent: 0, duration: 0.08, ease: "expo.in" }, 1.62);
+    tl.to(top_, { yPercent: -101, duration: 0.17, ease: "expo.out" }, 1.75);
+    tl.to(bot, { yPercent: 101, duration: 0.17, ease: "expo.out" }, 1.75);
+    // T5 — shutter again before the CTA
+    tl.to(top_, { yPercent: 0, duration: 0.07, ease: "expo.in" }, 8.68);
+    tl.to(bot, { yPercent: 0, duration: 0.07, ease: "expo.in" }, 8.68);
+    tl.to(top_, { yPercent: -101, duration: 0.14, ease: "expo.out" }, 8.79);
+    tl.to(bot, { yPercent: 101, duration: 0.14, ease: "expo.out" }, 8.79);
+    // End — the frame closes
+    tl.to(top_, { yPercent: 0, duration: 0.34, ease: "power3.inOut" }, 9.83);
+    tl.to(bot, { yPercent: 0, duration: 0.34, ease: "power3.inOut" }, 9.83);
+
+    // T4 — three 9:16 outlines grow from the face, then a solid frame covers, then a hole opens
+    const origin = { transformOrigin: "50% 50%" };
+    ["#x-iris-1", "#x-iris-2", "#x-iris-3"].forEach((id, i) => {
+      tl.fromTo(
+        id,
+        { scale: 0.08, opacity: 1, ...origin },
+        { scale: 2.8, opacity: 0.2, duration: 0.25, ease: "expo.in", ...origin },
+        6.13 + i * 2 * F,
+      );
+    });
+    tl.fromTo("#x-iris-solid", { scale: 0.08, opacity: 1, ...origin }, { scale: 2.8, duration: 0.1, ease: "expo.in", ...origin }, 6.36);
+    tl.to("#x-iris-solid", { opacity: 0, duration: 0.001 }, 6.49);
+    tl.fromTo("#x-iris-hole", { scale: 0.001, opacity: 0, ...origin }, { scale: 0.001, opacity: 0, duration: 0.001, ...origin }, 6.12);
+    tl.to("#x-iris-hole", { opacity: 1, duration: 0.001 }, 6.49);
+    tl.to("#x-iris-hole", { scale: 2.9, duration: 0.14, ease: "expo.out" }, 6.49);
+
+    // End card lockup
+    tl.fromTo("#x-end-in", { opacity: 0 }, { opacity: 1, duration: 4 * F, ease: "power1.out" }, 10.17);
+
+    window.__timelines["fx"] = tl;
+  </script>
+</template>
