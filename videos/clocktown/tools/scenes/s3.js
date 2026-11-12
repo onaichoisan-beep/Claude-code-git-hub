@@ -1,0 +1,106 @@
+// "I ran to school ... less than a week."  19.2 - 31.3  (street on the way to school, day)
+const S = B.stage(CV, { bloom: 0.6, threshold: 1.1, exposure: 1.05 });
+const { scene, cam } = S;
+B.sky(scene, "#2f86e6", "#a8d6ff");
+scene.fog = new T.Fog(0xa8d6ff, 110, 260);
+const L = B.lights(scene, { sun: 3.2, hemi: 1.5 });
+B.town(scene, {});
+const leo = B.cast("leo", { face: "worried" });
+scene.add(leo.root);
+leo.setScreen({ big: "1", sub: "DAY", color: B.RED });
+const mia = B.cast("mia", { face: "smile" });
+mia.root.position.set(-1.0, 0, -14);
+scene.add(mia.root);
+const baker = B.cast("baker", { face: "smile" });
+baker.root.position.set(-5.0, 0, -2);
+baker.root.rotation.y = 0.5;
+scene.add(baker.root);
+B.addHolo(baker, "2 DAYS", B.RED, 4.5);
+const bread = B.box(1.1, 0.5, 0.5, B.mat("#d99a4a"), 0, -0.9, 0.35, 0.2);
+baker.armR.add(bread);
+const mail = B.cast("mailman", { face: "smile" });
+mail.root.position.set(5.0, 0, 6);
+mail.root.rotation.y = -0.6;
+scene.add(mail.root);
+B.addHolo(mail, "3 DAYS", B.RED);
+const bag = B.box(0.8, 0.9, 0.4, B.mat("#7a4f2c"), 0.65, 1.3, 0.1, 0.12);
+mail.body.add(bag);
+const kidsDays = ["5 DAYS", "4 DAYS", "6 DAYS", "2 DAYS", "5 DAYS", "3 DAYS"];
+const kids = kidsDays.map((d, i) => {
+  const p = B.kid(i, { face: i % 2 ? "neutral" : "smile" });
+  p.root.position.set(-6 + i * 2.4, 0, 30);
+  scene.add(p.root);
+  B.addHolo(p, d, i % 3 === 1 ? "#ff8a4a" : B.RED);
+  return p;
+});
+// a little school sign behind the kids
+const sign = B.box(10, 2.2, 0.4, B.mat("#ffffff"), 0, 7.0, 27.6, 0.1);
+scene.add(sign);
+const signTxt = new T.Mesh(new T.PlaneGeometry(9.4, 1.8), new T.MeshStandardMaterial({ map: B.canvasTex(940, 180, (g, w, h) => {
+  g.fillStyle = "#e34b3b"; g.fillRect(0, 0, w, h); g.fillStyle = "#fff"; g.font = `700 120px ${B.FONT}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("SCHOOL", w / 2, h / 2 + 6);
+}) }));
+signTxt.position.set(0, 7.0, 27.82);
+scene.add(signTxt);
+[-4.6, 4.6].forEach((x) => scene.add(B.box(0.3, 6.0, 0.3, "#8a8a92", x, 3.0, 27.6)));
+
+const shots = B.shots([
+  { at: 19.2, f: (lt, k, d, t) => { // "I ran to school" - follow from behind
+    leo.root.position.set(1.2, 0, 10 - lt * 5.5);
+    leo.root.rotation.y = Math.PI;
+    leo.pose({ walk: t * 13, walkAmt: 1.3, lean: 0.18 });
+    const z = leo.root.position.z;
+    B.camAt(cam, [2.4, 2.6, z + 6.5], [1.2, 2.2, z - 6], 46);
+    B.aimSun(L.sun, 1, 0, z, [-30, 50, 25]);
+  } },
+  { at: 20.3, f: (lt, k, d, t) => { // "to tell my best friend, Mia" - she turns and smiles
+    mia.root.rotation.y = B.lerp(Math.PI, 0, B.outBack(B.seg(lt, 0, 0.5)));
+    mia.setFace(lt < 0.4 ? "neutral" : "happy");
+    mia.pose({ armR: lt > 0.4 ? 2.5 + Math.sin(t * 10) * 0.2 : 0, armRz: 0.3 });
+    B.camMove(cam, [-0.6, 3.0, -9.2], [-0.7, 2.95, -10.0], [-1.0, 2.7, -14], [-1.0, 2.7, -14], B.outCubic(k), 36);
+    B.aimSun(L.sun, -1, 0, -14, [-30, 50, 25]);
+  } },
+  { at: 21.5, f: (lt, k, d, t) => { // "She grabbed my arm" - side two-shot
+    leo.root.position.set(0.6, 0, -14);
+    leo.root.rotation.y = -Math.PI / 2;
+    leo.setFace("worried");
+    leo.pose({ armL: 0.4 });
+    mia.root.position.set(-1.0, 0, -14);
+    mia.root.rotation.y = Math.PI / 2;
+    mia.setFace("worried");
+    const g = B.outBack(B.seg(lt, 0.2, 0.55));
+    mia.pose({ armR: 1.5 * g, armRz: -0.15 * g, lean: 0.08 * g });
+    B.camMove(cam, [-0.4, 3.0, -7.2], [-0.2, 2.9, -8.2], [-0.2, 2.2, -14], [-0.2, 2.2, -14], B.inOut(k), 40);
+  } },
+  { at: 22.9, f: (lt, k, d, t) => { // "Leo, look at everyone else's clocks."
+    mia.root.position.set(-1.0, 0, -14);
+    mia.root.rotation.y = 0.25;
+    mia.setFace("shock");
+    mia.pose({ armL: 1.6, armLz: 0.9, yaw: lt > 1.0 ? 0.35 : 0 });
+    B.camMove(cam, [-0.2, 3.1, -9.2], [-0.5, 3.0, -10.0], [-1.0, 2.7, -14], [-1.0, 2.75, -14], B.inOut(k), 34);
+  } },
+  { at: 25.5, f: (lt, k, d, t) => { // "The baker had two days left."
+    baker.setFace(t < 26.3 ? "smile" : "neutral");
+    baker.pose({ armR: 0.35, pitch: Math.sin(t * 2) * 0.04 });
+    baker.holo.scale.setScalar(1 + 0.25 * (1 - B.outCubic(B.seg(t, 26.1, 26.45))) * (t > 26.1 ? 1 : 0));
+    B.camMove(cam, [-1.4, 2.6, 5.0], [-2.0, 2.7, 4.0], [-5, 3.4, -2], [-5, 3.6, -2], B.inOut(k), 38);
+    B.aimSun(L.sun, -5, 0, -2, [-30, 50, 25]);
+  } },
+  { at: 27.4, f: (lt, k, d, t) => { // "The mailman had three."
+    mail.setFace("smile");
+    mail.pose({ armL: 0.3, armR: 2.3 + Math.sin(t * 9) * 0.2, armRz: 0.3 });
+    B.camMove(cam, [2.0, 3.3, 11.5], [2.7, 3.4, 10.5], [5, 3.0, 6], [5, 3.3, 6], B.inOut(k), 36);
+    B.aimSun(L.sun, 5, 0, 6, [-30, 50, 25]);
+  } },
+  { at: 28.3, f: (lt, k, d, t) => { // "Every kid in my class had less than a week." - dolly along the line
+    kids.forEach((p, i) => { p.pose({ armL: 0.1, armR: Math.sin(t * 3 + i) * 0.15, tilt: Math.sin(t * 2 + i) * 0.06 }); p.holo.position.y = 3.55 + Math.sin(t * 2 + i) * 0.06; });
+    B.camMove(cam, [-7, 3.0, 38.5], [4.5, 3.2, 38.0], [-5, 2.7, 30], [5, 2.7, 30], B.inOut(k), 40);
+    B.aimSun(L.sun, 0, 0, 30, [-30, 50, 25]);
+  } },
+], 31.3);
+
+function render(t) {
+  baker.holo.position.y = 4.5 + Math.sin(t * 2) * 0.05;
+  mail.holo.position.y = 3.75 + Math.sin(t * 2 + 1) * 0.05;
+  shots(t);
+  S.render();
+}

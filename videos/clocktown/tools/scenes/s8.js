@@ -1,0 +1,87 @@
+// "My clock jumped ... he crumbled into sand."  91.2 - 102.8  (inside the tower, after the flip)
+const S = B.stage(CV, { bloom: 1.0, threshold: 0.95, exposure: 1.1, vig: 0.45 });
+const { scene, cam } = S;
+const I = B.interior(scene);
+I.lever.rotation.z = -0.9;
+const wrist = B.wristProp({ sleeve: "#d94c3d" });
+wrist.group.scale.setScalar(0.45);
+wrist.group.position.set(14, 3.2, 6);
+wrist.group.rotation.set(0.08, -0.9, 0.05);
+scene.add(wrist.group);
+const leo = B.cast("leo", { face: "happy" });
+leo.root.position.set(12.2, 0, 9.4);
+leo.root.rotation.y = -0.64;
+scene.add(leo.root);
+const mayor = B.cast("mayor", { face: "scream" });
+mayor.root.position.set(-3.2, 0, 10.5);
+mayor.root.rotation.y = 0.75;
+scene.add(mayor.root);
+const mh = B.addHolo(mayor, "900 YEARS", B.GOLD, 3.9);
+const red = new T.PointLight(0xff3030, 400, 18, 2);
+red.position.set(-2.2, 6, 13);
+scene.add(red);
+const sand = B.sandBurst(420, 11);
+sand.mesh.position.copy(mayor.root.position);
+sand.mesh.rotation.y = 0.75;
+scene.add(sand.mesh);
+const hat = mayor.head.children.find((c) => c.type === "Group"); // hair/hat group
+
+const shots = B.shots([
+  { at: 91.2, f: (lt, k, d, t) => { // "My clock jumped."
+    const glitch = t > 91.6 && t < 92.6 ? (Math.floor(t * 20) % 2) : 0;
+    wrist.set(t < 91.6 ? { big: "00:02", sub: "SECONDS", color: B.RED } : { big: glitch ? "8 8 8" : "? ? ?", sub: "", color: glitch ? "#ffffff" : "#ffd257" }, 1.6 + glitch);
+    B.camMove(cam, [10.9, 3.8, 8.9], [11.6, 3.5, 8.3], [13.65, 3.2, 6.62], [13.65, 3.2, 6.62], B.inOut(k), 34);
+  } },
+  { at: 92.6, f: (lt, k, d, t) => { // "One day. Ten years. Seventy-five years."
+    const s = t < 93.24 ? { big: "1", sub: "DAY", color: "#ff8a4a" } : t < 94.36 ? { big: "10", sub: "YEARS", color: B.GOLD } : { big: "75", sub: "YEARS", color: "#59ff9a" };
+    const hit = t < 93.24 ? 92.64 : t < 94.36 ? 93.26 : 94.38;
+    wrist.set(s, 1.4 + (1 - B.seg(t, hit, hit + 0.4)) * 2 + (t > 94.36 ? 0.8 : 0));
+    B.camMove(cam, [11.6, 3.5, 8.3], [12.0, 3.4, 7.95], [13.65, 3.2, 6.62], [13.65, 3.2, 6.62], B.inOut(k), 34);
+  } },
+  { at: 95.0, f: (lt, k, d, t) => { // Leo's relief (tail of "seventy-five years")
+    leo.setFace("happy");
+    leo.pose({ armL: 2.8, armR: 2.8, armLz: 0.4, armRz: 0.4, jump: Math.abs(Math.sin((t - 95) * 7)) * 0.4 });
+    B.camAt(cam, [9.8, 3.0, 12.6], [12.2, 2.8, 9.4], 40);
+  } },
+  { at: 95.65, f: (lt, k, d, t) => { // "The mayor screamed."
+    mayor.setFace("scream");
+    mayor.pose({ armL: 2.6, armR: 2.6, armLz: 0.5, armRz: 0.5, pitch: -0.2 });
+    red.intensity = 300 + Math.sin(t * 30) * 200;
+    B.camMove(cam, [-1.2, 2.9, 13.6], [-1.6, 2.75, 12.9], [-2.92, 2.6, 10.8], [-2.92, 2.6, 10.8], B.outExpo(k), 36);
+    const sh = 0.05; cam.position.x += Math.sin(t * 60) * sh;
+  } },
+  { at: 97.0, f: (lt, k, d, t) => { // "His clock spun backwards, faster and faster,"
+    const u = B.seg(t, 97.0, 100.5);
+    const years = Math.max(0, Math.round(900 * (1 - u * u)));
+    mh.userData.set(years + " YEARS", u < 0.6 ? B.GOLD : B.RED);
+    mayor.setFace("scream");
+    mayor.pose({ armL: 2.0 + Math.sin(t * 12) * 0.3, armR: 2.0 - Math.sin(t * 12) * 0.3, armLz: 0.3, armRz: 0.3, yaw: Math.sin(t * 9) * 0.2 });
+    I.clock.set(11, 59 - (u * u) * 600);
+    B.camMove(cam, [1.5, 2.2, 20], [0.5, 3.0, 17], [-3.2, 5, 9], [-3.2, 4.8, 9.5], B.inOut(k), 46);
+  } },
+  { at: 100.0, f: (lt, k, d, t) => { // "until it cracked, and he crumbled into sand."
+    const crack = t >= 100.56;
+    mh.userData.set("0 YEARS", B.RED, crack ? "x" : "");
+    mh.material.opacity = t < 101.2 ? 1 : Math.max(0, 1 - (t - 101.2) * 3);
+    mh.position.x = crack && t < 101.2 ? Math.sin(t * 90) * 0.06 : 0;
+    const crumble = B.seg(t, 101.35, 102.5);
+    mayor.root.visible = crumble <= 0.02;
+    sand.mesh.visible = crumble > 0.02;
+    sand.set(crumble);
+    mayor.setFace("scream");
+    mayor.pose({ armL: 2.4, armR: 2.4, armLz: 0.5, armRz: 0.5 });
+    B.camMove(cam, [-1.0, 2.8, 16.0], [-1.4, 2.4, 15.0], [-3.2, 2.6, 10.5], [-3.2, 1.6, 10.5], B.inOut(k), 40);
+  } },
+], 102.8);
+
+function render(t) {
+  wrist.group.visible = (t >= 91.2 && t < 95.0);
+  mayor.root.visible = true;
+  sand.mesh.visible = false;
+  mh.material.opacity = 1;
+  red.intensity = 400;
+  I.animate(t, { gearAngle: 0, flip: 1 });
+  I.streams.update(t, 0.32, 1, true);
+  shots(t);
+  S.render();
+}

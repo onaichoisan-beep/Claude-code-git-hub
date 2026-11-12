@@ -1,0 +1,99 @@
+<template>
+  <style>
+    #s1-root { position: absolute; inset: 0; overflow: hidden; background: #000; }
+    #s1-root canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  </style>
+  <div id="s1-root" data-composition-id="s1" data-width="720" data-height="1280">
+    <canvas id="s1-cv"></canvas>
+  </div>
+  <script>
+    (function () {
+      // "In this town ... Eighty, if they're lucky."  0.00 - 8.93
+      const B = Blocky, T = THREE, T0 = 0, D = 8.93;
+      document.fonts.load("700 40px Fredoka").then(() => {
+        const S = B.stage(document.getElementById("s1-cv"), { bloom: 0.6, threshold: 1.1 });
+        const { scene, cam } = S;
+        B.sky(scene, "#2f86e6", "#a8d6ff");
+        scene.fog = new T.Fog(0xa8d6ff, 110, 260);
+        const L = B.lights(scene, { sun: 3.2, hemi: 1.5 });
+        const town = B.town(scene, {});
+        // townsfolk on the sidewalks, each with a floating number
+        const folk = [
+          { o: { shirt: "#3f7fd9", pants: "#2c2c3a", hair: "short", hairColor: "#2b1d14", face: "smile" }, pos: [-4.6, 0, 6], ry: 0.2, holo: ["70 YEARS", "#7dffb0"] },
+          { o: { shirt: "#e9a23b", pants: "#4a3a2a", hair: "pony", hairColor: "#c4572b", face: "happy", skin: "#e8b48a" }, pos: [-3.6, 0, 3.4], ry: 0.4, holo: ["72 YEARS", "#7dffb0"] },
+          { o: { shirt: "#5bbf8a", pants: "#2f3f6a", hair: "short", hairColor: "#5a3a1a", face: "smile", skin: "#c98d5e" }, pos: [-5.2, 0, 0.6], ry: 0.1, holo: ["68 YEARS", "#7dffb0"] },
+          { o: { shirt: "#c74a8a", pants: "#2c2c3a", hair: "bob", hairColor: "#1b1414", face: "smile", skin: "#8d5a3b" }, pos: [4.4, 0, -4], ry: -0.5, holo: ["66 YEARS", "#7dffb0"] },
+        ].map((f) => {
+          const p = B.person(f.o);
+          p.root.position.set(...f.pos);
+          p.root.rotation.y = f.ry;
+          scene.add(p.root);
+          const h = B.holo();
+          h.position.set(0, 3.55, 0);
+          h.userData.set(f.holo[0], f.holo[1]);
+          p.root.add(h);
+          return Object.assign(p, { holo: h, base: f.pos });
+        });
+        const granny = B.person({ shirt: "#9a7bd1", shirt2: "#f2e6ff", style: "cardigan", pants: "#5a4a6a", hair: "bun", hairColor: "#d9d9df", face: "happy", faceOpts: { wrinkles: true }, glasses: true });
+        granny.root.position.set(3.0, 0, 12);
+        granny.root.rotation.y = -0.35;
+        scene.add(granny.root);
+        const gh = B.holo();
+        gh.position.set(0, 3.6, 0);
+        gh.userData.set("80 YEARS", "#ffd257");
+        granny.root.add(gh);
+        // wrist close-up prop, parked at the near end of the street
+        const wrist = B.wristProp({ sleeve: "#3f7fd9" });
+        wrist.group.position.set(0.6, 3.2, 44);
+        wrist.group.rotation.set(0.05, -0.25, 0.06);
+        scene.add(wrist.group);
+
+        const shots = B.shots([
+          { at: 0.0, f: (lt, k) => { // drone over the street toward the tower
+            B.camMove(cam, [9, 17, 36], [6, 13.5, 26], [0, 9, -50], [0, 10, -60], B.inOut(k), 42);
+            B.aimSun(L.sun, 0, 0, -10, [-30, 50, 25]);
+          } },
+          { at: 1.6, f: (lt, k) => { // "born with a clock on their wrist"
+            wrist.set({ big: "71", sub: "YEARS LEFT", color: "#59ff9a" });
+            B.camMove(cam, [4.0, 7.0, 60], [3.0, 5.6, 56], [0.0, 2.6, 44], [0.3, 2.9, 44], B.outCubic(k), 34);
+            B.aimSun(L.sun, 0, 0, 44, [-30, 50, 25]);
+          } },
+          { at: 3.5, f: (lt, k, d, t) => { // "exactly when they're going to die" - live countdown
+            const s = Math.max(0, 54 - Math.floor(t * 1));
+            wrist.set({ big: "06:14:" + String(s).padStart(2, "0"), sub: "71Y 112D", color: "#ffd257" });
+            B.camMove(cam, [1.6, 4.4, 53.5], [1.1, 3.8, 51.5], [0.6, 3.2, 44], [0.6, 3.2, 44], B.inOut(k), 30);
+            cam.rotateZ(-0.06 * k);
+          } },
+          { at: 5.6, f: (lt, k, d, t) => { // "Most people get seventy years" - tracking the sidewalk
+            B.camMove(cam, [0.6, 3.0, 14], [0.2, 3.2, 10.5], [-4.6, 2.4, 2], [-4.6, 2.6, 1], B.inOut(k), 40);
+            B.aimSun(L.sun, -4, 0, 4, [-30, 50, 25]);
+          } },
+          { at: 7.45, f: (lt, k) => { // "Eighty, if they're lucky" - granny push-in
+            B.camMove(cam, [0.4, 3.0, 19.5], [1.4, 3.0, 17.0], [3.0, 3.1, 12], [3.0, 3.2, 12], B.outCubic(k), 36);
+            B.aimSun(L.sun, 3, 0, 12, [-30, 50, 25]);
+          } },
+        ], D);
+
+        function render(t) {
+          town.tower.setTime(10, 8 + t * 2);
+          folk.forEach((p, i) => {
+            const ph = t * 5 + i * 1.7;
+            p.pose({ walk: ph, walkAmt: 0.9 });
+            p.root.position.z = p.base[2] - t * 0.9 * (i % 2 ? 1 : -1) * 0.6;
+            p.holo.position.y = 3.55 + Math.sin(t * 2 + i) * 0.05;
+          });
+          granny.pose({ armR: 0.25 + Math.sin(t * 6) * 0.15, armRz: 0.5 + Math.max(0, Math.sin(t * 6)) * 0.3, yaw: -0.15, tilt: Math.sin(t * 1.5) * 0.06 });
+          gh.position.y = 3.6 + Math.sin(t * 2) * 0.05;
+          wrist.group.visible = t >= 1.6 && t < 5.6;
+          shots(t);
+          S.render();
+        }
+        const st = { t: 0 };
+        const tl = gsap.timeline({ paused: true });
+        tl.to(st, { t: D, duration: D, ease: "none", onUpdate: () => render(T0 + st.t) }, 0);
+        render(T0);
+        window.__timelines["s1"] = tl;
+      });
+    })();
+  </script>
+</template>

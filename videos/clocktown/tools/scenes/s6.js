@@ -1,0 +1,97 @@
+// "Suddenly, the doors slammed shut ... Stop the gears!"  60.6 - 76.15  (inside the tower)
+const S = B.stage(CV, { bloom: 0.95, threshold: 0.95, exposure: 1.1, vig: 0.5 });
+const { scene, cam } = S;
+const I = B.interior(scene);
+const leo = B.cast("leo", { face: "shock" }), mia = B.cast("mia", { face: "shock" });
+[leo, mia].forEach((p) => scene.add(p.root));
+const mayor = B.cast("mayor", { face: "grin" });
+scene.add(mayor.root);
+const red = new T.PointLight(0xff3030, 0, 18, 2);
+scene.add(red);
+const doorL = new T.PointLight(0xffb070, 300, 16, 2);
+doorL.position.set(0, 7, 17);
+scene.add(doorL);
+const wrist = B.wristProp({ sleeve: "#d94c3d" });
+wrist.group.scale.setScalar(0.45);
+wrist.group.position.set(14, 3.2, 6);
+wrist.group.rotation.set(0.08, -0.9, 0.05);
+scene.add(wrist.group);
+
+let flash = 0;
+const shots = B.shots([
+  { at: 60.6, f: (lt, k, d, t) => { // "Suddenly, the doors slammed shut."
+    const slam = B.inCubic(B.seg(t, 61.75, 62.1));
+    I.doors.forEach((dp, i) => (dp.rotation.y = (i ? -1 : 1) * 1.3 * (1 - slam)));
+    const turn = B.outCubic(B.seg(t, 62.1, 62.5));
+    leo.root.rotation.y = Math.PI * turn; mia.root.rotation.y = Math.PI * turn;
+    leo.setFace(t > 62.1 ? "shock" : "neutral"); mia.setFace(t > 62.1 ? "shock" : "neutral");
+    const sh = t > 62.1 ? Math.max(0, 1 - (t - 62.1) * 3) * 0.2 : 0;
+    flash = t > 62.1 ? Math.max(0, 0.35 - (t - 62.1)) : 0;
+    B.camMove(cam, [0.3, 6.6, 7.5], [0.3, 6.2, 9.0], [0, 3.6, 20], [0, 3.9, 22], B.inOut(k), 50);
+    cam.position.x += Math.sin(t * 70) * sh;
+    cam.position.y += Math.cos(t * 61) * sh;
+  } },
+  { at: 63.05, f: (lt, k, d, t) => { // "The mayor stepped out of the shadows."
+    I.doors.forEach((dp) => (dp.rotation.y = 0));
+    const w = B.inOut(B.seg(t, 63.1, 64.6));
+    mayor.root.position.set(B.lerp(-9, -3.2, w), 0, B.lerp(6, 10.5, w));
+    mayor.root.rotation.y = 0.75;
+    mayor.pose({ walk: t * 6, walkAmt: 1 - B.seg(t, 64.3, 64.6) });
+    mayor.setFace("sly");
+    red.intensity = 400 * B.smooth(B.seg(t, 63.1, 64.4));
+    B.camMove(cam, [-8.8, 2.0, 17.2], [-7.6, 2.3, 16.6], [-6.5, 3.2, 8], [-3.4, 3.4, 10.5], B.inOut(k), 44);
+  } },
+  { at: 64.9, f: (lt, k, d, t) => { // "You shouldn't be here, Leo."
+    mayor.setFace("grin");
+    mayor.pose({ armR: 1.3, armRz: 0.2, pitch: 0.1, tilt: Math.sin(t * 2) * 0.06 });
+    red.intensity = 400;
+    B.camMove(cam, [-1.4, 3.3, 15.4], [-1.7, 3.2, 14.6], [-3.2, 3.0, 10.5], [-3.2, 3.0, 10.5], B.inOut(k), 34);
+  } },
+  { at: 67.0, f: (lt, k, d, t) => { // "Your time is up." - extreme close
+    mayor.setFace("grin");
+    mayor.pose({ armR: 0.6, pitch: 0.18 });
+    B.camMove(cam, [-1.5, 2.6, 12.3], [-1.85, 2.55, 11.95], [-2.92, 2.5, 10.8], [-2.92, 2.5, 10.8], B.inCubic(k) * 0.6 + k * 0.4, 34);
+    cam.rotateZ(-0.08);
+  } },
+  { at: 68.6, f: (lt, k, d, t) => { // "My clock started beeping."
+    const beep = Math.sin((t - 68.6) * Math.PI * 4) > 0;
+    wrist.set({ big: "00:10", sub: "SECONDS", color: B.RED }, beep ? 2.6 : 1.1);
+    B.camMove(cam, [10.9, 3.8, 8.9], [11.6, 3.5, 8.3], [13.65, 3.2, 6.62], [13.65, 3.2, 6.62], B.inOut(k), 34);
+  } },
+  { at: 70.25, f: (lt, k, d, t) => { // "Ten seconds. Nine, eight."
+    const n = t < 71.36 ? 10 : t < 72.08 ? 9 : 8;
+    const hitT = n === 10 ? 70.3 : n === 9 ? 71.36 : 72.08;
+    const pulse = 1 - B.seg(t, hitT, hitT + 0.35);
+    wrist.set({ big: String(n), sub: "SECONDS", color: B.RED }, 1.2 + pulse * 2);
+    B.camMove(cam, [11.6, 3.5, 8.3], [11.95, 3.4, 8.0], [13.65, 3.2, 6.62], [13.65, 3.2, 6.62], B.inOut(k), 34);
+    cam.rotateZ(0.05 * Math.sin(t * 3));
+  } },
+  { at: 72.9, f: (lt, k, d, t) => { // "Leo, the gears!"
+    mia.root.position.set(-1.0, 0, 15.5);
+    mia.root.rotation.y = -2.6;
+    mia.setFace("scream");
+    mia.pose({ armR: 1.9, armRz: 0.1, lean: 0.1 });
+    B.camMove(cam, [-2.9, 3.0, 11.6], [-2.7, 2.95, 12.0], [-1.0, 2.7, 15.5], [-1.0, 2.7, 15.5], B.outCubic(k), 38);
+  } },
+  { at: 74.5, f: (lt, k, d, t) => { // "Stop the gears!" - gears grinding
+    B.camMove(cam, [3.5, 13.5, -4], [4.5, 14.5, -6.5], [6.8, 16.5, -12.4], [6.8, 16, -12.4], B.inOut(k), 44);
+  } },
+], 76.15);
+
+function render(t) {
+  wrist.group.visible = (t >= 68.6 && t < 72.9);
+  leo.root.position.set(1.0, 0, 15);
+  mia.root.position.set(-1.0, 0, 15.5);
+  leo.root.rotation.y = Math.PI; mia.root.rotation.y = Math.PI;
+  leo.pose({}); mia.pose({});
+  mayor.root.position.set(-3.2, 0, 10.5);
+  mayor.root.rotation.y = 0.75;
+  red.position.set(-2.2, 6, 13);
+  red.intensity = t < 63.1 ? 0 : 400;
+  flash = 0;
+  I.animate(t, { gearAngle: t * 0.6 + Math.max(0, t - 72.9) * 0.9 });
+  I.streams.update(t, 0.32, 1);
+  shots(t);
+  S.setLook(1.1, flash);
+  S.render();
+}
