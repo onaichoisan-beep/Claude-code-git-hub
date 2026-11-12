@@ -144,7 +144,17 @@
   }
   .stg { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 0 0; transform: scale(var(--k, 0.2)); }
   .stg > * { position: absolute; }
-  .stg img.pl, .stg img.ct { left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 540px 1050px; }
+  .stg img.pl, .stg img.ct, .stg canvas.pl, .stg canvas.ct { left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 540px 1050px; }
+  .stg canvas.pl, .stg canvas.ct { visibility: hidden; }
+  .stg.live canvas.pl, .stg.live canvas.ct { visibility: visible; }
+  .stg.live img.pl, .stg.live img.ct { visibility: hidden; }
+  .stg.go > .ov { animation: ov-in 0.42s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: calc(var(--i, 0) * 70ms + 120ms); }
+  @keyframes ov-in { from { opacity: 0; filter: blur(14px); translate: 0 24px; } to { opacity: 1; filter: blur(0); translate: 0 0; } }
+  .frame video.rv { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; background: var(--v-canvas); }
+  .livebar { display: flex; align-items: center; gap: 8px; font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+  .livebar i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+  .beat.active .livebar i { background: #e5484d; box-shadow: 0 0 0 3px rgba(229, 72, 77, 0.18); }
+  .beat.active .livebar { color: var(--ink); }
   .x-h { font-family: var(--f-display); font-weight: 900; line-height: 1; white-space: nowrap; color: var(--v-ink); }
   .x-s { font-family: var(--f-serif); font-style: italic; line-height: 1; white-space: nowrap; }
   .x-m { font-family: var(--f-mono); font-weight: 700; line-height: 1; white-space: nowrap; text-transform: uppercase; }
@@ -162,7 +172,7 @@
   td.mono { font-family: var(--f-mono); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
   tr:last-child td { border-bottom: 0; }
   .note { font-size: 13px; color: var(--muted); }
-  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } .stg.go > .ov { animation: none; } }
 </style>
 
 <div class="wrap">
@@ -174,6 +184,7 @@
     <nav class="picks" id="picks" aria-label="Jump to beat"></nav>
     <div class="tools">
       <span class="status" id="status" data-s="local">Connecting…</span>
+      <button class="btn" id="sound" type="button" aria-pressed="false">Sound off</button>
       <button class="btn ghost" id="copy" type="button">Copy plan as text</button>
     </div>
   </div>
@@ -197,7 +208,8 @@
   // ---------- mock helpers (1080x1920 canvas coordinates, same as the HyperFrames build) ----------
   const cam = (s, x = 0, y = 0) => `transform: translate(${x}px, ${y}px) scale(${s})`;
   const shot = (c, behind = "", front = "", under = "") =>
-    `<img class="pl" src="plate.jpg" alt="" style="${c}">${under}${behind}<img class="ct" src="cut.webp" alt="" style="${c}">${front}`;
+    `<img class="pl" src="plate.jpg" alt="" style="${c}"><canvas class="pl" width="540" height="960" style="${c}"></canvas>${under}${behind}` +
+    `<img class="ct" src="cut.webp" alt="" style="${c}"><canvas class="ct" width="540" height="960" style="${c}"></canvas>${front}`;
   const WIDE = cam(1.25, 0, 70), TIGHT = cam(1.65), MID = cam(1.5), LEFT = cam(1.25, -130, 70);
   const corners = (l, t, r, b, w = 6) =>
     `<div class="x-corner" style="left:${l}px;top:${t}px;border-top-width:${w}px;border-left-width:${w}px"></div>` +
@@ -222,7 +234,7 @@
   // ---------- the plan ----------
   const BEATS = [
     {
-      id: "b1", name: "Name", t: "0.00–1.63", line: "“Hey, main ARS Studio se hoon.”",
+      id: "b1", src: [0.0, 1.63], rr: [0.0, 1.63], name: "Name", t: "0.00–1.63", line: "“Hey, main ARS Studio se hoon.”",
       job: "Hook and identity. The name is the thumbnail frame.",
       heroLabel: "Name", accentLabel: "Greeting", hero: "ARS", accent: "Hey,",
       opts: [
@@ -255,7 +267,7 @@
       ],
     },
     {
-      id: "b2", name: "For brands", t: "1.80–3.08", line: "“Hum brands ke liye high quality…”",
+      id: "b2", src: [1.78, 3.08], rr: [1.78, 3.08], name: "For brands", t: "1.80–3.08", line: "“Hum brands ke liye high quality…”",
       job: "Credibility. Show the work before claiming quality.",
       heroLabel: "Label", accentLabel: "Claim", hero: "FOR BRANDS", accent: "high-quality",
       opts: [
@@ -291,7 +303,7 @@
       ],
     },
     {
-      id: "b3", name: "Engaging videos", t: "3.26–4.58", line: "“…aur engaging videos create karte hain.”",
+      id: "b3", src: [3.08, 4.58], rr: [3.08, 4.6], name: "Engaging videos", t: "3.26–4.58", line: "“…aur engaging videos create karte hain.”",
       job: "The core claim and the energy peak. The only sub impact in the film.",
       heroLabel: "Category word", accentLabel: "Second word", hero: "ENGAGING", accent: "videos",
       opts: [
@@ -320,7 +332,7 @@
       ],
     },
     {
-      id: "b4", name: "Premium", t: "4.88–6.13", line: "“Jo actually premium feel karein.”",
+      id: "b4", src: [4.81, 6.13], rr: [4.81, 6.13], name: "Premium", t: "4.88–6.13", line: "“Jo actually premium feel karein.”",
       job: "The standard. The breath after the peak: do less here.",
       heroLabel: "Hero word", accentLabel: "Lead-in", hero: "premium", accent: "ACTUALLY",
       opts: [
@@ -349,7 +361,7 @@
       ],
     },
     {
-      id: "b5", name: "Your brand", t: "6.62–8.69", line: "“Agar aap bhi apne brand ke liye aisa content chaahte hain,”",
+      id: "b5", src: [6.62, 8.69], rr: [6.62, 8.69], name: "Your brand", t: "6.62–8.69", line: "“Agar aap bhi apne brand ke liye aisa content chaahte hain,”",
       job: "The turn to the viewer. Make room for their brand on screen.",
       heroLabel: "Hero word", accentLabel: "Possessive", hero: "BRAND", accent: "your",
       opts: [
@@ -392,7 +404,7 @@
       ],
     },
     {
-      id: "b6", name: "Let's connect", t: "8.92–9.69", line: "“…toh let's connect.”",
+      id: "b6", src: [8.89, 9.64], rr: [8.89, 9.69], name: "Let's connect", t: "8.92–9.69", line: "“…toh let's connect.”",
       job: "The ask. Warm, direct, quick.",
       heroLabel: "Action word", accentLabel: "Lead-in", hero: "CONNECT", accent: "let's",
       opts: [
@@ -420,7 +432,7 @@
       ],
     },
     {
-      id: "b7", name: "Close", t: "9.69–11.90", line: "(end of speech — brand lockup)",
+      id: "b7", src: [8.95, 9.64], rr: [9.69, 11.88], name: "Close", t: "9.69–11.90", line: "(end of speech — brand lockup)",
       job: "Closure and the action to take. Readable for at least 1.6 s.",
       heroLabel: "Wordmark", accentLabel: "Call to action", hero: "ARS", accent: "DM \"CONNECT\"",
       opts: [
@@ -465,6 +477,7 @@
     <section class="beat" id="${b.id}" aria-labelledby="${b.id}-h">
       <div class="info">
         <div class="tc">${b.t} s</div>
+        <div class="livebar"><i></i><span>${b.id === "b7" ? "A plays the render · B/C loop the last frame" : "Loops live while on screen · A is the actual render"}</span></div>
         <h2 id="${b.id}-h">${esc(b.name)}</h2>
         <p class="line">${esc(b.line)}</p>
         <p class="job">${esc(b.job)}</p>
@@ -490,7 +503,12 @@
     const s = state[b.id];
     const h = esc(s.hero), a = esc(s.accent);
     b.opts.forEach((o) => {
-      document.getElementById(`${b.id}-${o.k}-stg`).innerHTML = o.mock(h, a);
+      const stg = document.getElementById(`${b.id}-${o.k}-stg`);
+      const wasLive = stg.classList.contains("live");
+      stg.innerHTML = o.mock(h, a);
+      let n = 0;
+      for (const el of stg.children) if (!el.matches("img.pl, img.ct, canvas")) { el.classList.add("ov"); el.style.setProperty("--i", String(n++)); }
+      if (wasLive) paintNow(stg);
       const el = document.querySelector(`.opt[data-b="${b.id}"][data-k="${o.k}"]`);
       el.classList.toggle("on", s.choice === o.k);
       el.querySelector("input").checked = s.choice === o.k;
@@ -521,6 +539,96 @@
   document.querySelectorAll(".frame").forEach((f) => ro.observe(f));
 
   drawAll();
+
+  // ---------- live footage ----------
+  // stack.mp4 = A-roll on top, person matte below; one decoder feeds every frame, so plate and cutout never drift.
+  const src = document.createElement("video");
+  Object.assign(src, { src: "stack.mp4", muted: true, playsInline: true, preload: "auto", loop: false });
+  src.setAttribute("playsinline", "");
+  src.style.cssText = "position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:0;pointer-events:none";
+  document.body.appendChild(src);
+  const rv = document.createElement("video");
+  Object.assign(rv, { src: "render.mp4", muted: true, playsInline: true, preload: "auto" });
+  rv.setAttribute("playsinline", "");
+  rv.className = "rv";
+  rv.setAttribute("aria-label", "Current render of this beat");
+
+  const tmp = document.createElement("canvas"); tmp.width = 540; tmp.height = 1920;
+  const tctx = tmp.getContext("2d", { willReadFrequently: true });
+  const cut = document.createElement("canvas"); cut.width = 540; cut.height = 960;
+  const cctx = cut.getContext("2d");
+  let haveFrame = false, active = null;
+
+  const grab = () => {
+    if (src.readyState < 2) return false;
+    tctx.drawImage(src, 0, 0, 540, 1920);
+    const top = tctx.getImageData(0, 0, 540, 960), bot = tctx.getImageData(0, 960, 540, 960);
+    const d = top.data, m = bot.data;
+    for (let i = 3; i < d.length; i += 4) { const v = m[i - 3]; d[i] = v < 24 ? 0 : v > 232 ? 255 : v; }
+    cctx.putImageData(top, 0, 0);
+    haveFrame = true;
+    return true;
+  };
+  function paintNow(stg) {
+    if (!haveFrame) return;
+    const pl = stg.querySelector("canvas.pl"), ct = stg.querySelector("canvas.ct");
+    if (!pl || !ct) return;
+    pl.getContext("2d").drawImage(tmp, 0, 0, 540, 960, 0, 0, 540, 960);
+    const c2 = ct.getContext("2d"); c2.clearRect(0, 0, 540, 960); c2.drawImage(cut, 0, 0);
+    stg.classList.add("live");
+  }
+  const liveStages = () => active ? active.opts.filter((o) => o.k !== "A").map((o) => document.getElementById(`${active.id}-${o.k}-stg`)) : [];
+  const replayOverlays = () => liveStages().forEach((stg) => { stg.classList.remove("go"); void stg.offsetWidth; stg.classList.add("go"); });
+
+  const tick = () => {
+    if (active && !src.paused && !src.seeking) {
+      const [s0, s1] = active.src;
+      if (src.currentTime >= s1 - 0.03 || src.currentTime < s0 - 0.2) { src.currentTime = s0; replayOverlays(); }
+    }
+    if (active && !rv.paused && !rv.seeking) {
+      const [r0, r1] = active.rr;
+      if (rv.currentTime >= r1 - 0.03 || rv.currentTime < r0 - 0.2) rv.currentTime = r0;
+    }
+    if (active && grab()) liveStages().forEach(paintNow);
+    schedule();
+  };
+  const schedule = () => (src.requestVideoFrameCallback ? src.requestVideoFrameCallback(tick) : requestAnimationFrame(tick));
+
+  const playBoth = () => {
+    const p = [src.play(), rv.play()].map((x) => (x && x.catch ? x.catch(() => "blocked") : x));
+    Promise.all(p).then((r) => { if (r.includes("blocked")) soundBtn.textContent = "Play"; });
+  };
+  const activate = (b) => {
+    if (active === b) return;
+    document.querySelectorAll(".beat.active").forEach((el) => el.classList.remove("active"));
+    active = b;
+    document.getElementById(b.id).classList.add("active");
+    const aFrame = document.getElementById(`${b.id}-A-stg`).parentElement;
+    aFrame.appendChild(rv);
+    try { src.currentTime = b.src[0]; rv.currentTime = b.rr[0]; } catch (e) {}
+    replayOverlays();
+    playBoth();
+  };
+  const ratios = new Map();
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => ratios.set(e.target.id, e.isIntersecting ? e.intersectionRatio : 0));
+    let best = null, br = 0;
+    ratios.forEach((r, id) => { if (r > br) { br = r; best = id; } });
+    if (best) activate(BEATS.find((x) => x.id === best));
+  }, { threshold: [0, 0.15, 0.3, 0.5, 0.7, 0.9] });
+  BEATS.forEach((b) => io.observe(document.getElementById(b.id)));
+  src.addEventListener("loadeddata", () => { if (active) { grab(); liveStages().forEach(paintNow); } });
+  schedule();
+
+  const soundBtn = document.getElementById("sound");
+  soundBtn.addEventListener("click", () => {
+    if (src.paused) { playBoth(); }
+    src.muted = !src.muted;
+    soundBtn.textContent = src.muted ? "Sound off" : "Sound on";
+    soundBtn.setAttribute("aria-pressed", String(!src.muted));
+    if (src.muted === false) playBoth();
+  });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) { src.pause(); rv.pause(); } else if (active) playBoth(); });
 
   // ---------- saving ----------
   const statusEl = document.getElementById("status");
