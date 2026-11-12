@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@700;900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,500&family=Inter+Tight:ital,wght@0,700;0,900;1,900&family=Space+Mono:wght@400;700&display=swap">
 <style>
   /* Layout: an editor's shot list — one band per beat, its facts on the left, three 9:16 design frames on the right. */
   :root {
@@ -11,30 +11,32 @@
     --ink: #121318;
     --muted: #615c63;
     --line: #e2d7d1;
-    --accent: #2e3bff;
+    --accent: #E8231B;
     --accent-soft: rgba(46, 59, 255, 0.08);
     --ok: #13795b;
     --warn: #a4471b;
     /* The video's own colours: fixed in both themes, because they are the footage. */
-    --v-ink: #121318;
-    --v-cobalt: #2e3bff;
+    --v-ink: #5E0B10;
+    --v-rose: #B04048;
+    --v-grad: linear-gradient(180deg, #E5484D 0%, #C2262D 52%, #6B0908 100%);
+    --v-cobalt: #E8231B;
     --v-canvas: #f1e3dd;
     --v-card: #ece2dc;
     --f-display: "Inter Tight", "Inter", system-ui, sans-serif;
     --f-body: "Inter", system-ui, -apple-system, sans-serif;
-    --f-serif: "Instrument Serif", Georgia, serif;
-    --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    --f-lead: "Inter", system-ui, sans-serif;
+    --f-mono: "Space Mono", ui-monospace, Menlo, monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #0f1014; --surface: #17181e; --ink: #eee7e3; --muted: #a09ba4;
-      --line: #2b2c34; --accent: #8a93ff; --accent-soft: rgba(138, 147, 255, 0.12);
+      --line: #2b2c34; --accent: #F0706F; --accent-soft: rgba(240, 112, 111, 0.12);
       --ok: #4fc79c; --warn: #f0a070; color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
     --bg: #0f1014; --surface: #17181e; --ink: #eee7e3; --muted: #a09ba4;
-    --line: #2b2c34; --accent: #8a93ff; --accent-soft: rgba(138, 147, 255, 0.12);
+    --line: #2b2c34; --accent: #F0706F; --accent-soft: rgba(240, 112, 111, 0.12);
     --ok: #4fc79c; --warn: #f0a070; color-scheme: dark;
   }
   * { box-sizing: border-box; }
@@ -68,7 +70,7 @@
     margin: 10px 0 12px;
     text-wrap: balance;
   }
-  h1 em { font-family: var(--f-serif); font-weight: 400; color: var(--accent); letter-spacing: 0; }
+  h1 em { font-style: italic; color: var(--accent); }
   .intro { max-width: 64ch; color: var(--muted); margin: 0; }
   .topbar {
     display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center;
@@ -104,7 +106,7 @@
   .info { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
   .tc { font-family: var(--f-mono); font-size: 12px; color: var(--accent); letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
   .info h2 { font-family: var(--f-display); font-weight: 900; font-size: 30px; letter-spacing: -0.03em; line-height: 1; margin: 2px 0 0; }
-  .line { font-family: var(--f-serif); font-style: italic; font-size: 22px; line-height: 1.25; margin: 0; }
+  .line { font-family: var(--f-lead); font-style: italic; font-weight: 500; font-size: 19px; line-height: 1.25; margin: 0; }
   .job { color: var(--muted); margin: 0; font-size: 14px; }
   .field { display: flex; flex-direction: column; gap: 5px; }
   .field label { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
@@ -155,8 +157,10 @@
   .livebar i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
   .beat.active .livebar i { background: #e5484d; box-shadow: 0 0 0 3px rgba(229, 72, 77, 0.18); }
   .beat.active .livebar { color: var(--ink); }
-  .x-h { font-family: var(--f-display); font-weight: 900; line-height: 1; white-space: nowrap; color: var(--v-ink); }
-  .x-s { font-family: var(--f-serif); font-style: italic; line-height: 1; white-space: nowrap; }
+  .x-h, .x-hi { background: var(--v-grad); -webkit-background-clip: text; background-clip: text; }
+  .x-h { font-family: var(--f-display); font-weight: 900; line-height: 1; white-space: nowrap; color: transparent; }
+  .x-s { font-family: var(--f-lead); font-style: italic; font-weight: 500; letter-spacing: -0.01em; line-height: 1; white-space: nowrap; }
+  .x-hi { font-family: var(--f-display); font-weight: 900; font-style: italic; line-height: 1; white-space: nowrap; color: transparent; letter-spacing: -0.035em; padding: 0 0.08em; }
   .x-m { font-family: var(--f-mono); font-weight: 700; line-height: 1; white-space: nowrap; text-transform: uppercase; }
   .x-c { left: 0; width: 1080px; text-align: center; }
   .x-chip { background: var(--v-cobalt); color: var(--v-canvas); font-family: var(--f-mono); font-weight: 700; font-size: 30px; letter-spacing: 0.18em; padding: 14px 18px 14px 22px; border-radius: 8px; line-height: 1; white-space: nowrap; }
@@ -217,7 +221,7 @@
     `<div class="x-corner" style="left:${l}px;top:${b - 70}px;border-bottom-width:${w}px;border-left-width:${w}px"></div>` +
     `<div class="x-corner" style="left:${r - 70}px;top:${b - 70}px;border-bottom-width:${w}px;border-right-width:${w}px"></div>`;
   const card = (l, t, w, h, inner, extra = "") =>
-    `<div style="left:${l}px;top:${t}px;width:${w}px;height:${h}px;border-radius:20px;overflow:hidden;border:3px solid var(--v-ink);background:var(--v-card);box-shadow:0 18px 40px rgba(18,19,24,.18);${extra}">${inner}</div>`;
+    `<div style="left:${l}px;top:${t}px;width:${w}px;height:${h}px;border-radius:20px;overflow:hidden;border:3px solid var(--v-ink);background:var(--v-card);box-shadow:0 18px 40px rgba(94,11,16,.18);${extra}">${inner}</div>`;
   const bottle = (w, h) =>
     `<div style="position:absolute;left:${w * 0.36}px;top:${h * 0.2}px;width:${w * 0.28}px;height:${h * 0.11}px;background:var(--v-ink);border-radius:8px"></div>` +
     `<div style="position:absolute;left:${w * 0.33}px;top:${h * 0.3}px;width:${w * 0.34}px;height:${h * 0.38}px;background:#faf6f3;border-radius:16px"></div>` +
@@ -229,7 +233,7 @@
     `<img src="plate.jpg" alt="" style="position:absolute;left:${-w * 0.6}px;top:${-h * 0.62}px;width:${w * 2.2}px;height:${h * 2.2}px">`;
   const label = (t) => `<div class="x-m" style="position:absolute;left:14px;bottom:14px;font-size:28px;letter-spacing:.08em;color:var(--v-ink);background:rgba(241,227,221,.88);padding:6px 8px;border-radius:4px">${t}</div>`;
   const cursor = (l, t) =>
-    `<svg style="left:${l}px;top:${t}px" width="70" height="90" viewBox="0 0 28 36"><path d="M2 2 L2 30 L9 23 L14 34 L19 32 L14 21 L24 21 Z" fill="#121318" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>`;
+    `<svg style="left:${l}px;top:${t}px" width="70" height="90" viewBox="0 0 28 36"><path d="M2 2 L2 30 L9 23 L14 34 L19 32 L14 21 L24 21 Z" fill="#5E0B10" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>`;
 
   // ---------- the plan ----------
   const BEATS = [
@@ -244,25 +248,25 @@
           mock: (h, a) => shot(TIGHT,
             `<div class="x-h x-c" style="top:452px;font-size:440px;letter-spacing:-.035em">${h}</div>`,
             corners(86, 230, 994, 1574) +
-            `<div class="x-m" style="left:122px;top:266px;font-size:28px;letter-spacing:.08em;color:rgba(18,19,24,.7)">ARS <span style="color:var(--v-cobalt)">●</span> 00:00:01:07</div>` +
-            `<div class="x-s" style="left:150px;top:300px;font-size:104px;color:var(--v-ink)">${a}</div>` +
+            `<div class="x-m" style="left:122px;top:266px;font-size:28px;letter-spacing:.08em;color:rgba(94,11,16,.7)">ARS <span style="color:var(--v-cobalt)">●</span> 00:00:01:07</div>` +
+            `<div class="x-s" style="left:150px;top:300px;font-size:64px;color:var(--v-rose)">${a}</div>` +
             `<div class="x-m x-c" style="top:428px;font-size:46px;letter-spacing:.62em;text-indent:.62em;color:var(--v-cobalt)">STUDIO</div>`) },
         { k: "B", name: "Render bar",
           idea: "ARS arrives as an outline, then fills with cobalt left to right like an export bar while he finishes the line. The studio literally renders its own name.",
           motion: "Outline on “ARS”, fill sweeps linear across “Studio se hoon”, lands on the last syllable.", sound: "Soft rising tone that clicks at 100%.",
           mock: (h, a) => shot(TIGHT,
-            `<div class="x-h x-c" style="top:452px;font-size:440px;letter-spacing:-.035em;color:transparent;-webkit-text-stroke:5px var(--v-ink)">${h}</div>` +
-            `<div class="x-h x-c" style="top:452px;font-size:440px;letter-spacing:-.035em;color:var(--v-cobalt);clip-path:inset(0 34% 0 0)">${h}</div>`,
-            `<div class="x-s" style="left:110px;top:236px;font-size:96px;color:var(--v-ink)">${a}</div>` +
+            `<div class="x-h x-c" style="top:452px;font-size:440px;letter-spacing:-.035em;color:transparent;background:none;-webkit-text-stroke:5px #7D1F25">${h}</div>` +
+            `<div class="x-h x-c" style="top:452px;font-size:440px;letter-spacing:-.035em;background:none;color:var(--v-cobalt);clip-path:inset(0 34% 0 0)">${h}</div>`,
+            `<div class="x-s" style="left:110px;top:236px;font-size:60px;color:var(--v-rose)">${a}</div>` +
             `<div class="x-m" style="left:600px;top:270px;font-size:30px;letter-spacing:.12em;color:var(--v-cobalt)">Rendering 66%</div>` +
-            `<div style="left:110px;top:400px;width:860px;height:8px;background:rgba(18,19,24,.12)"></div>` +
+            `<div style="left:110px;top:400px;width:860px;height:8px;background:rgba(94,11,16,.12)"></div>` +
             `<div style="left:110px;top:400px;width:568px;height:8px;background:var(--v-cobalt)"></div>`) },
         { k: "C", name: "Quiet signature",
-          idea: "No giant type. A small serif greeting and the studio name set like a signature above his head. Confidence through restraint; the polish comes later.",
+          idea: "No giant type. A small greeting and the studio name in black italic above his head. Confidence through restraint; the polish comes later.",
           motion: "One soft blur-in; hairline draws under it. Push to 1.5 only.", sound: "No effect; voice only.",
           mock: (h, a) => shot(MID, "",
-            `<div class="x-s x-c" style="top:430px;font-size:84px;color:rgba(18,19,24,.6)">${a}</div>` +
-            `<div class="x-s x-c" style="top:520px;font-size:170px;color:var(--v-ink)">${h} Studio</div>` +
+            `<div class="x-s x-c" style="top:430px;font-size:56px;color:rgba(94,11,16,.6)">${a}</div>` +
+            `<div class="x-hi x-c" style="top:540px;font-size:150px">${h} Studio</div>` +
             `<div style="left:390px;top:716px;width:300px;height:3px;background:var(--v-cobalt)"></div>`) },
       ],
     },
@@ -279,19 +283,19 @@
             card(120, 270, 250, 444, bottle(250, 444) + label("SKINCARE")) +
             card(415, 270, 250, 444, cup(250, 444) + label("CAFÉ")) +
             card(710, 270, 250, 444, mini(250, 444) + label("FOUNDER")) +
-            `<div class="x-s x-c" style="top:742px;font-size:88px;color:var(--v-cobalt)">${a}</div>`) },
+            `<div class="x-s x-c" style="top:742px;font-size:56px;color:var(--v-rose)">${a}</div>`) },
         { k: "B", name: "Timeline track",
           idea: "The proof sits on an editing timeline: three clips snap onto a track with a ruler and playhead. It says “we cut this” rather than “we posted this”.",
           motion: "Clips slide in from the right and snap to the track on each word; playhead scrubs.", sound: "Snap clicks; light tape scrub.",
           mock: (h, a) => shot(WIDE, "",
             `<div class="x-chip" style="left:80px;top:220px">${h}</div>` +
-            `<div class="x-m" style="left:80px;top:310px;width:920px;display:flex;justify-content:space-between;font-size:24px;color:rgba(18,19,24,.5)"><span>00:00</span><span>00:05</span><span>00:10</span><span>00:15</span></div>` +
-            `<div style="left:80px;top:350px;width:920px;height:200px;border-radius:14px;background:rgba(18,19,24,.07)"></div>` +
+            `<div class="x-m" style="left:80px;top:310px;width:920px;display:flex;justify-content:space-between;font-size:24px;color:rgba(94,11,16,.5)"><span>00:00</span><span>00:05</span><span>00:10</span><span>00:15</span></div>` +
+            `<div style="left:80px;top:350px;width:920px;height:200px;border-radius:14px;background:rgba(94,11,16,.07)"></div>` +
             `<div style="left:92px;top:362px;width:250px;height:176px;border-radius:10px;overflow:hidden;background:var(--v-cobalt)">${bottle(250, 176)}</div>` +
             `<div style="left:352px;top:362px;width:290px;height:176px;border-radius:10px;overflow:hidden;background:#6b4632"></div>` +
             `<div style="left:652px;top:362px;width:336px;height:176px;border-radius:10px;overflow:hidden;background:var(--v-ink)">${mini(336, 176)}</div>` +
             `<div style="left:560px;top:330px;width:6px;height:240px;background:var(--v-cobalt)"></div><div class="x-dia" style="left:550px;top:318px"></div>` +
-            `<div class="x-s x-c" style="top:620px;font-size:88px;color:var(--v-cobalt)">${a}</div>`) },
+            `<div class="x-s x-c" style="top:620px;font-size:56px;color:var(--v-rose)">${a}</div>`) },
         { k: "C", name: "One card, three reels",
           idea: "One large card beside him that flips through three reels, with a 01/03 counter. Bigger proof, fewer objects, more premium.",
           motion: "Speaker reframes left; reels flip vertically inside the card on each word.", sound: "Soft flick per reel.",
@@ -299,7 +303,7 @@
             `<div class="x-chip" style="left:680px;top:420px">${h}</div>` +
             `<div class="x-m" style="left:930px;top:490px;font-size:28px;color:var(--v-ink)">02/03</div>` +
             card(680, 530, 320, 569, cup(320, 569) + label("CAFÉ")) +
-            `<div class="x-s" style="left:680px;top:1120px;font-size:76px;color:var(--v-cobalt)">${a}</div>`) },
+            `<div class="x-s" style="left:680px;top:1120px;font-size:76px;color:var(--v-rose)">${a}</div>`) },
       ],
     },
     {
@@ -311,53 +315,53 @@
           idea: "ENGAGING lands as an outline behind his head; on “create” a cobalt playhead sweeps across and fills it solid.",
           motion: "Punch 1.25→1.65 with impact; letter cascade 1 frame apart; linear scrub.", sound: "Sub impact on “engaging”.",
           mock: (h, a) => shot(TIGHT,
-            `<div class="x-h x-c" style="top:660px;font-size:172px;letter-spacing:-.03em;color:transparent;-webkit-text-stroke:4px var(--v-ink)">${h}</div>` +
-            `<div class="x-h x-c" style="top:660px;font-size:172px;letter-spacing:-.03em;clip-path:inset(0 42% 0 0)">${h}</div>`,
+            `<div class="x-hi x-c" style="top:672px;font-size:150px;color:transparent;background:none;-webkit-text-stroke:4px #7D1F25">${h}</div>` +
+            `<div class="x-hi x-c" style="top:672px;font-size:150px;clip-path:inset(0 42% 0 0)">${h}</div>`,
             `<div style="left:620px;top:640px;width:6px;height:240px;background:var(--v-cobalt)"></div><div class="x-dia" style="left:610px;top:628px"></div>` +
-            `<div class="x-s" style="left:660px;top:800px;font-size:156px;color:var(--v-cobalt)">${a}</div>`) },
+            `<div class="x-s" style="left:660px;top:820px;font-size:76px;color:var(--v-rose)">${a}</div>`) },
         { k: "B", name: "Footage inside the word",
           idea: "ENGAGING is a window: ARS reels play inside the letters. The word is made of the work.",
           motion: "Letters punch in at 110%, settle; reels inside keep playing.", sound: "Sub impact; short shimmer.",
           mock: (h, a) => shot(TIGHT,
-            `<div class="x-h x-c" style="top:610px;font-size:200px;letter-spacing:-.035em;color:transparent;background:repeating-linear-gradient(115deg,#2e3bff 0 70px,#121318 70px 130px,#6b4632 130px 190px,#c9bdb6 190px 240px);-webkit-background-clip:text;background-clip:text">${h}</div>`,
-            `<div class="x-s" style="left:660px;top:820px;font-size:150px;color:var(--v-cobalt)">${a}</div>`) },
+            `<div class="x-hi x-c" style="top:640px;font-size:160px;color:transparent;background:repeating-linear-gradient(115deg,#E8231B 0 70px,#5E0B10 70px 130px,#6b4632 130px 190px,#c9bdb6 190px 240px);-webkit-background-clip:text;background-clip:text">${h}</div>`,
+            `<div class="x-s" style="left:660px;top:830px;font-size:76px;color:var(--v-rose)">${a}</div>`) },
         { k: "C", name: "Retention curve",
           idea: "A cobalt watch-time curve draws up across the top as he says it. Engagement shown as the number brands care about.",
           motion: "Curve draws left→right on “videos”; end dot pops on “create”.", sound: "Rising tick sequence.",
           mock: (h, a) => shot(TIGHT,
-            `<div class="x-h x-c" style="top:660px;font-size:172px;letter-spacing:-.03em">${h}</div>`,
-            `<svg style="left:0;top:0" width="1080" height="700" viewBox="0 0 1080 700"><path d="M90 600 C 300 590, 420 520, 560 440 S 860 300, 990 260" fill="none" stroke="#2e3bff" stroke-width="10" stroke-linecap="round"/><circle cx="990" cy="260" r="18" fill="#2e3bff"/></svg>` +
+            `<div class="x-hi x-c" style="top:672px;font-size:150px">${h}</div>`,
+            `<svg style="left:0;top:0" width="1080" height="700" viewBox="0 0 1080 700"><path d="M90 600 C 300 590, 420 520, 560 440 S 860 300, 990 260" fill="none" stroke="#E8231B" stroke-width="10" stroke-linecap="round"/><circle cx="990" cy="260" r="18" fill="#E8231B"/></svg>` +
             `<div class="x-m" style="left:700px;top:200px;font-size:28px;letter-spacing:.12em;color:var(--v-cobalt)">Watch time ↑</div>` +
-            `<div class="x-s" style="left:110px;top:430px;font-size:120px;color:var(--v-cobalt)">${a}</div>`) },
+            `<div class="x-s" style="left:110px;top:430px;font-size:74px;color:var(--v-rose)">${a}</div>`) },
       ],
     },
     {
       id: "b4", src: [4.81, 6.13], rr: [4.81, 6.13], name: "Premium", t: "4.88–6.13", line: "“Jo actually premium feel karein.”",
       job: "The standard. The breath after the peak: do less here.",
-      heroLabel: "Hero word", accentLabel: "Lead-in", hero: "premium", accent: "ACTUALLY",
+      heroLabel: "Hero word", accentLabel: "Lead-in", hero: "Premium", accent: "ACTUALLY",
       opts: [
-        { k: "A", name: "Slow serif + underline", built: true,
-          idea: "The only slow entrance in the film: a large italic serif resolves letter by letter while the camera pushes slowly. One cobalt underline on “feel”.",
+        { k: "A", name: "Slow italic + underline", built: true,
+          idea: "The only slow entrance in the film: a black italic in the red gradient resolves letter by letter while the camera pushes slowly. One cobalt underline on “feel”.",
           motion: "Linear push 1.45→1.53; letters 7 frames each.", sound: "Music hats drop out (when music is added).",
           mock: (h, a) => shot(MID, "",
-            `<div class="x-m x-c" style="top:318px;font-size:32px;letter-spacing:.3em;text-indent:.3em;color:rgba(18,19,24,.62)">${a}</div>` +
-            `<div class="x-s x-c" style="top:380px;font-size:300px;color:var(--v-ink)">${h}</div>` +
-            `<div style="left:200px;top:718px;width:680px;height:6px;background:var(--v-cobalt)"></div>`) },
-        { k: "B", name: "Ink room",
-          idea: "The set behind him goes ink-dark (he stays lit, on the cutout) and premium appears in pale serif. A mood change instead of an effect.",
+            `<div class="x-m x-c" style="top:318px;font-size:32px;letter-spacing:.3em;text-indent:.3em;color:rgba(94,11,16,.62)">${a}</div>` +
+            `<div class="x-hi x-c" style="top:430px;font-size:200px;text-transform:capitalize">${h}</div>` +
+            `<div style="left:220px;top:650px;width:640px;height:6px;background:var(--v-cobalt)"></div>`) },
+        { k: "B", name: "Maroon room",
+          idea: "The set behind him goes deep maroon (he stays lit, on the cutout) and Premium appears in pale black italic. A mood change instead of an effect.",
           motion: "Background dims to ink in 0.4 s ease-in-out; returns at the next reset.", sound: "Low pad swell.",
           mock: (h, a) => shot(MID, "",
             `<div class="x-m x-c" style="top:318px;font-size:32px;letter-spacing:.3em;text-indent:.3em;color:rgba(241,227,221,.6)">${a}</div>` +
-            `<div class="x-s x-c" style="top:380px;font-size:300px;color:var(--v-canvas)">${h}</div>`,
+            `<div class="x-hi x-c" style="top:430px;font-size:200px;text-transform:capitalize;background:none;color:var(--v-canvas)">${h}</div>`,
             `<div style="left:0;top:0;width:1080px;height:1920px;background:var(--v-ink)"></div>`) },
         { k: "C", name: "Cinema scope",
-          idea: "Black bars close to a 2.39:1 crop around his face. Premium is set small in the lower bar, like a film credit.",
+          idea: "Maroon bars close to a 2.39:1 crop around his face. Premium is set small in the lower bar, like a film credit.",
           motion: "Bars ease in over 0.5 s, hold, release at the pivot.", sound: "Projector-soft whoosh.",
           mock: (h, a) => shot(TIGHT, "",
             `<div style="left:0;top:0;width:1080px;height:600px;background:var(--v-ink)"></div>` +
             `<div style="left:0;top:1052px;width:1080px;height:868px;background:var(--v-ink)"></div>` +
             `<div class="x-m x-c" style="top:520px;font-size:30px;letter-spacing:.3em;text-indent:.3em;color:rgba(241,227,221,.6)">${a}</div>` +
-            `<div class="x-s x-c" style="top:1100px;font-size:140px;color:var(--v-canvas)">${h}</div>`) },
+            `<div class="x-hi x-c" style="top:1110px;font-size:120px;text-transform:capitalize;background:none;color:var(--v-canvas)">${h}</div>`) },
       ],
     },
     {
@@ -370,8 +374,8 @@
           motion: "Reframe left under the iris; slot pops on “apne”, fills on “content”.", sound: "Tick, then a soft drop.",
           mock: (h, a) => shot(LEFT,
             `<div class="x-h x-c" style="top:640px;font-size:240px;letter-spacing:-.035em">${h}</div>`,
-            `<div class="x-s" style="left:110px;top:560px;font-size:130px;color:var(--v-cobalt)">${a}</div>` +
-            `<div style="left:740px;top:890px;width:260px;height:462px;border-radius:24px;border:5px dashed var(--v-cobalt);background:rgba(46,59,255,.05)"></div>` +
+            `<div class="x-s" style="left:110px;top:606px;font-size:72px;color:var(--v-rose)">${a}</div>` +
+            `<div style="left:740px;top:890px;width:260px;height:462px;border-radius:24px;border:5px dashed var(--v-cobalt);background:rgba(232,35,27,.05)"></div>` +
             `<div class="x-m" style="left:760px;top:912px;font-size:28px;letter-spacing:.1em;color:var(--v-cobalt)">YOUR BRAND</div>` +
             `<div style="left:846px;top:1096px;width:48px;height:4px;background:var(--v-cobalt)"></div><div style="left:868px;top:1074px;width:4px;height:48px;background:var(--v-cobalt)"></div>`) },
         { k: "B", name: "Profile grid",
@@ -388,7 +392,7 @@
             }
             return shot(cam(1.25, -170, 70),
               `<div class="x-h x-c" style="top:420px;font-size:200px;letter-spacing:-.035em">${h}</div>`,
-              `<div class="x-s" style="left:110px;top:350px;font-size:120px;color:var(--v-cobalt)">${a}</div>` +
+              `<div class="x-s" style="left:110px;top:350px;font-size:74px;color:var(--v-rose)">${a}</div>` +
               `<div class="x-m" style="left:600px;top:650px;font-size:28px;color:var(--v-ink)">@yourbrand</div>` + tiles);
           } },
         { k: "C", name: "Split screen",
@@ -397,9 +401,9 @@
           mock: (h, a) => shot(cam(1.25, -270, 70), "",
             `<div style="left:540px;top:0;width:540px;height:1920px;background:#e8dcd5;border-left:4px solid var(--v-ink)"></div>` +
             corners(600, 600, 1020, 1300, 5) +
-            `<div class="x-s" style="left:540px;width:540px;text-align:center;top:770px;font-size:110px;color:var(--v-cobalt)">${a}</div>` +
+            `<div class="x-s" style="left:540px;width:540px;text-align:center;top:770px;font-size:68px;color:var(--v-rose)">${a}</div>` +
             `<div class="x-h" style="left:540px;width:540px;text-align:center;top:880px;font-size:150px;letter-spacing:-.035em">${h}</div>` +
-            `<div class="x-m" style="left:540px;width:540px;text-align:center;top:1070px;font-size:26px;letter-spacing:.12em;color:rgba(18,19,24,.6)">Drop it here</div>` +
+            `<div class="x-m" style="left:540px;width:540px;text-align:center;top:1070px;font-size:26px;letter-spacing:.12em;color:rgba(94,11,16,.6)">Drop it here</div>` +
             cursor(880, 1160)) },
       ],
     },
@@ -412,8 +416,8 @@
           idea: "CONN slides in from the left, ECT from the right, and they lock on a cobalt keyframe diamond behind his head.",
           motion: "Halves ±240 px, expo-out 0.3 s; diamonds merge and vanish.", sound: "Two ticks converge into a click.",
           mock: (h, a) => shot(TIGHT,
-            `<div class="x-h x-c" style="top:640px;font-size:200px;letter-spacing:-.03em">${h}</div>`,
-            `<div class="x-s" style="left:120px;top:520px;font-size:116px;color:var(--v-cobalt)">${a}</div>` +
+            `<div class="x-hi x-c" style="top:652px;font-size:178px">${h}</div>`,
+            `<div class="x-s" style="left:120px;top:584px;font-size:72px;color:var(--v-rose)">${a}</div>` +
             `<div class="x-dia" style="left:629px;top:663px"></div>`) },
         { k: "B", name: "DM bubble",
           idea: "A cobalt chat bubble types the word and sends, rising past his shoulder. The ask is the action itself.",
@@ -421,12 +425,12 @@
           mock: (h, a) => shot(TIGHT, "",
             `<div class="x-m" style="left:600px;top:960px;font-size:28px;letter-spacing:.12em;color:var(--v-ink)">DM US</div>` +
             `<div style="left:590px;top:1010px;width:430px;height:130px;border-radius:40px 40px 8px 40px;background:var(--v-cobalt)"></div>` +
-            `<div class="x-h" style="left:590px;width:430px;text-align:center;top:1048px;font-size:56px;letter-spacing:-.02em;color:var(--v-canvas);font-weight:700">${a} ${h.toLowerCase()}</div>`) },
+            `<div class="x-h" style="left:590px;width:430px;text-align:center;top:1048px;font-size:56px;letter-spacing:-.02em;background:none;color:var(--v-canvas);font-weight:700">${a} ${h.toLowerCase()}</div>`) },
         { k: "C", name: "Button press",
           idea: "A cobalt pill button beside him gets clicked by a cursor. Familiar UI language: the next step is one tap.",
           motion: "Button scales in; cursor glides in and presses (0.96 scale) on “connect”.", sound: "UI click.",
           mock: (h, a) => shot(TIGHT, "",
-            `<div style="left:560px;top:1010px;width:460px;height:120px;border-radius:60px;background:var(--v-cobalt);box-shadow:0 16px 36px rgba(18,19,24,.25)"></div>` +
+            `<div style="left:560px;top:1010px;width:460px;height:120px;border-radius:60px;background:var(--v-cobalt);box-shadow:0 16px 36px rgba(94,11,16,.25)"></div>` +
             `<div class="x-m" style="left:560px;width:460px;text-align:center;top:1052px;font-size:36px;letter-spacing:.06em;color:var(--v-canvas)">${a} ${h} →</div>` +
             cursor(930, 1090)) },
       ],
@@ -437,11 +441,11 @@
       heroLabel: "Wordmark", accentLabel: "Call to action", hero: "ARS", accent: "DM \"CONNECT\"",
       opts: [
         { k: "A", name: "Letterbox closes", built: true,
-          idea: "The black bars from the earlier resets close fully; the lockup sits on ink. Bookends the viewfinder opening.",
+          idea: "The black bars from the earlier resets close fully; the lockup sits on deep maroon. Bookends the viewfinder opening.",
           motion: "Bars close 0.34 s power3.inOut; lockup fades in 4 frames, then holds still.", sound: "Shutter click on close.",
           mock: (h, a) =>
             `<div style="left:0;top:0;width:1080px;height:1920px;background:var(--v-ink)"></div>` +
-            `<div class="x-h x-c" style="top:700px;font-size:280px;letter-spacing:-.035em;color:var(--v-canvas)">${h}</div>` +
+            `<div class="x-h x-c" style="top:700px;font-size:280px;letter-spacing:-.035em;background:none;color:var(--v-canvas)">${h}</div>` +
             `<div class="x-m x-c" style="top:1000px;font-size:40px;letter-spacing:.62em;text-indent:.62em;color:var(--v-canvas)">STUDIO</div>` +
             `<div style="left:0;width:1080px;top:1100px;display:flex;justify-content:center"><div class="x-chip" style="position:static;font-size:34px">${a}</div></div>` },
         { k: "B", name: "Freeze into a card",
@@ -457,9 +461,9 @@
           idea: "The crop marks from the opening return and close in on him; the timecode stops with CUT. The film ends where it started.",
           motion: "Corners travel inward 0.4 s; frame dims 35%; timecode freezes.", sound: "Shutter; tape stop.",
           mock: (h, a) => shot(TIGHT, "",
-            `<div style="left:0;top:0;width:1080px;height:1920px;background:rgba(18,19,24,.38)"></div>` +
+            `<div style="left:0;top:0;width:1080px;height:1920px;background:rgba(94,11,16,.38)"></div>` +
             corners(330, 600, 750, 1180) +
-            `<div class="x-h x-c" style="top:260px;font-size:220px;letter-spacing:-.035em;color:var(--v-canvas)">${h}</div>` +
+            `<div class="x-h x-c" style="top:260px;font-size:220px;letter-spacing:-.035em;background:none;color:var(--v-canvas)">${h}</div>` +
             `<div class="x-m x-c" style="top:520px;font-size:30px;letter-spacing:.14em;color:var(--v-canvas)">00:00:11:21 · CUT</div>` +
             `<div style="left:0;width:1080px;top:1220px;display:flex;justify-content:center"><div class="x-chip" style="position:static">${a}</div></div>`) },
       ],

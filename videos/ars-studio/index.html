@@ -1,7 +1,7 @@
 <!doctype html>
 <html
   lang="en"
-  data-composition-variables='[{"id":"ink","type":"color","label":"Ink","default":"#121318"},{"id":"cobalt","type":"color","label":"Accent (cobalt)","default":"#2E3BFF"},{"id":"canvas","type":"color","label":"Canvas","default":"#F1E3DD"}]'
+  data-composition-variables='[{"id":"ink","type":"color","label":"Ink","default":"#5E0B10"},{"id":"red","type":"color","label":"Accent (signal red)","default":"#E8231B"},{"id":"canvas","type":"color","label":"Canvas","default":"#F1E3DD"}]'
 >
   <head>
     <meta charset="UTF-8" />
@@ -9,8 +9,8 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
     <style>
       :root {
-        --ink: #121318;
-        --cobalt: #2e3bff;
+        --ink: #5E0B10;
+        --red: #E8231B;
         --canvas: #f1e3dd;
       }
       * {
@@ -211,7 +211,7 @@
       tl.to(cam, { x: 0, duration: 0.16, ease: "power3.out" }, 4.66);
       // B04 the breath: the one slow linear push
       tl.to(cam, { scale: 1.53, duration: 1.25, ease: "none" }, 4.88);
-      // T4: under the solid cobalt frame — WIDE, reframed left
+      // T4: under the solid red frame — WIDE, reframed left
       tl.set(cam, { scale: 1.25, x: -130, y: 70 }, 6.47);
       // T5: under the closed letterbox — TIGHT, centred
       tl.set(cam, { scale: 1.65, x: 0, y: 0 }, 8.76);

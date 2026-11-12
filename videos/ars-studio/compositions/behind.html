@@ -1,10 +1,10 @@
 <template>
   <style>
-    @font-face {
-      font-family: "Inter Tight";
-      font-weight: 900;
-      src: url("assets/fonts/InterTight-900.woff2") format("woff2");
-    }
+    @font-face { font-family: "Inter Tight"; font-weight: 900; font-style: normal; src: url("assets/fonts/InterTight-900.woff2") format("woff2"); }
+    @font-face { font-family: "Inter Tight"; font-weight: 900; font-style: italic; src: url("assets/fonts/InterTight-900-italic.woff2") format("woff2"); }
+    @font-face { font-family: "ARS Lead"; font-weight: 500; font-style: normal; src: url("assets/fonts/Inter-500.woff2") format("woff2"); }
+    @font-face { font-family: "ARS Lead"; font-weight: 500; font-style: italic; src: url("assets/fonts/Inter-500-italic.woff2") format("woff2"); }
+    @font-face { font-family: "ARS Mono"; font-weight: 700; src: url("assets/fonts/SpaceMono-700.woff2") format("woff2"); }
     #root {
       position: absolute;
       inset: 0;
@@ -18,11 +18,29 @@
       font-family: "Inter Tight", sans-serif;
       font-weight: 900;
       line-height: 1;
-      color: var(--ink, #121318);
+      color: var(--ink, #5E0B10);
       white-space: nowrap;
+    }
+    .hero span,
+    #b-eng-fill {
+      background: linear-gradient(180deg, #E5484D 0%, #C2262D 52%, #6B0908 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
     .hero span {
       display: inline-block;
+    }
+    #b-eng-outline span {
+      background: none;
+    }
+    #b-engaging span,
+    #b-connect span {
+      padding: 0 0.08em;
+      margin: 0 -0.08em;
+    }
+    #b-ars {
+      filter: drop-shadow(0 0 14px rgba(243, 181, 175, 0.85));
     }
     #b-ars {
       top: 452px;
@@ -30,8 +48,9 @@
       letter-spacing: -0.035em;
     }
     #b-engaging {
-      top: 660px;
-      font-size: 172px;
+      font-style: italic;
+      top: 672px;
+      font-size: 150px;
       letter-spacing: -0.03em;
     }
     #b-eng-outline,
@@ -43,7 +62,7 @@
     }
     #b-eng-outline {
       color: transparent;
-      -webkit-text-stroke: 3px var(--ink, #121318);
+      -webkit-text-stroke: 3px #7D1F25;
     }
     #b-brand {
       top: 640px;
@@ -51,8 +70,9 @@
       letter-spacing: -0.035em;
     }
     #b-connect {
-      top: 640px;
-      font-size: 200px;
+      font-style: italic;
+      top: 652px;
+      font-size: 178px;
       letter-spacing: -0.03em;
     }
     #b-conn,

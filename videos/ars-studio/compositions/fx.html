@@ -1,17 +1,17 @@
 <template>
   <style>
-    @font-face {
-      font-family: "Inter Tight";
-      font-weight: 900;
-      src: url("assets/fonts/InterTight-900.woff2") format("woff2");
-    }
+    @font-face { font-family: "Inter Tight"; font-weight: 900; font-style: normal; src: url("assets/fonts/InterTight-900.woff2") format("woff2"); }
+    @font-face { font-family: "Inter Tight"; font-weight: 900; font-style: italic; src: url("assets/fonts/InterTight-900-italic.woff2") format("woff2"); }
+    @font-face { font-family: "ARS Lead"; font-weight: 500; font-style: normal; src: url("assets/fonts/Inter-500.woff2") format("woff2"); }
+    @font-face { font-family: "ARS Lead"; font-weight: 500; font-style: italic; src: url("assets/fonts/Inter-500-italic.woff2") format("woff2"); }
+    @font-face { font-family: "ARS Mono"; font-weight: 700; src: url("assets/fonts/SpaceMono-700.woff2") format("woff2"); }
     #root {
       position: absolute;
       inset: 0;
       pointer-events: none;
       overflow: hidden;
-      --ink: #121318;
-      --cobalt: #2e3bff;
+      --ink: #5E0B10;
+      --red: #E8231B;
       --canvas: #f1e3dd;
     }
     .bar {
@@ -36,13 +36,13 @@
       border-radius: 40px;
     }
     .iris.ring-o {
-      border: 10px solid var(--cobalt);
+      border: 10px solid var(--red);
     }
     #x-iris-solid {
-      background: var(--cobalt);
+      background: var(--red);
     }
     #x-iris-hole {
-      box-shadow: 0 0 0 4000px var(--cobalt);
+      box-shadow: 0 0 0 4000px var(--red);
     }
     #x-end {
       position: absolute;
@@ -75,7 +75,7 @@
       width: 1080px;
       top: 1000px;
       text-align: center;
-      font-family: "JetBrains Mono", monospace;
+      font-family: "ARS Mono", "Space Mono", monospace;
       font-weight: 700;
       font-size: 40px;
       letter-spacing: 0.62em;
@@ -88,9 +88,9 @@
       left: 50%;
       top: 1100px;
       transform: translateX(-50%);
-      background: var(--cobalt);
+      background: var(--red);
       color: var(--canvas);
-      font-family: "JetBrains Mono", monospace;
+      font-family: "ARS Mono", "Space Mono", monospace;
       font-weight: 700;
       font-size: 32px;
       letter-spacing: 0.18em;
