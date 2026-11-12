@@ -1,0 +1,609 @@
+<title>ARS Studio Edit Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@700;900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  /* Layout: an editor's shot list — one band per beat, its facts on the left, three 9:16 design frames on the right. */
+  :root {
+    --bg: #f6f0ec;
+    --surface: #ffffff;
+    --ink: #121318;
+    --muted: #615c63;
+    --line: #e2d7d1;
+    --accent: #2e3bff;
+    --accent-soft: rgba(46, 59, 255, 0.08);
+    --ok: #13795b;
+    --warn: #a4471b;
+    /* The video's own colours: fixed in both themes, because they are the footage. */
+    --v-ink: #121318;
+    --v-cobalt: #2e3bff;
+    --v-canvas: #f1e3dd;
+    --v-card: #ece2dc;
+    --f-display: "Inter Tight", "Inter", system-ui, sans-serif;
+    --f-body: "Inter", system-ui, -apple-system, sans-serif;
+    --f-serif: "Instrument Serif", Georgia, serif;
+    --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1014; --surface: #17181e; --ink: #eee7e3; --muted: #a09ba4;
+      --line: #2b2c34; --accent: #8a93ff; --accent-soft: rgba(138, 147, 255, 0.12);
+      --ok: #4fc79c; --warn: #f0a070; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1014; --surface: #17181e; --ink: #eee7e3; --muted: #a09ba4;
+    --line: #2b2c34; --accent: #8a93ff; --accent-soft: rgba(138, 147, 255, 0.12);
+    --ok: #4fc79c; --warn: #f0a070; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 32px 64px;
+  }
+  .eyebrow {
+    font-family: var(--f-mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  h1 {
+    font-family: var(--f-display);
+    font-weight: 900;
+    font-size: clamp(36px, 6vw, 64px);
+    letter-spacing: -0.035em;
+    line-height: 0.95;
+    margin: 10px 0 12px;
+    text-wrap: balance;
+  }
+  h1 em { font-family: var(--f-serif); font-weight: 400; color: var(--accent); letter-spacing: 0; }
+  .intro { max-width: 64ch; color: var(--muted); margin: 0; }
+  .topbar {
+    display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center;
+    margin-top: 24px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  }
+  .picks { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 520px; min-width: 0; }
+  .pick {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--f-mono); font-size: 12px; text-decoration: none; color: var(--ink);
+    border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 10px 6px 6px;
+  }
+  .pick b {
+    display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent); color: var(--surface); font-weight: 700;
+  }
+  .pick:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, .opt:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tools { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .status { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+  .status[data-s="saved"] { color: var(--ok); }
+  .status[data-s="error"] { color: var(--warn); }
+  button.btn {
+    font: 600 13px/1 var(--f-body); color: var(--surface); background: var(--ink);
+    border: 0; border-radius: 8px; padding: 10px 14px; cursor: pointer;
+  }
+  button.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+
+  .beat {
+    display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 28px;
+    padding-block: 36px; border-bottom: 1px solid var(--line);
+    scroll-margin-top: 16px;
+  }
+  @media (max-width: 860px) { .beat { grid-template-columns: minmax(0, 1fr); gap: 18px; } }
+  .info { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .tc { font-family: var(--f-mono); font-size: 12px; color: var(--accent); letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
+  .info h2 { font-family: var(--f-display); font-weight: 900; font-size: 30px; letter-spacing: -0.03em; line-height: 1; margin: 2px 0 0; }
+  .line { font-family: var(--f-serif); font-style: italic; font-size: 22px; line-height: 1.25; margin: 0; }
+  .job { color: var(--muted); margin: 0; font-size: 14px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .field input, .field textarea {
+    font: 15px/1.4 var(--f-body); color: var(--ink); background: var(--surface);
+    border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; width: 100%;
+  }
+  .field textarea { min-height: 84px; resize: vertical; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; min-width: 0; }
+  .opt {
+    position: relative; display: flex; flex-direction: column; gap: 10px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px;
+    cursor: pointer; min-width: 0;
+  }
+  .opt.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .opt input { position: absolute; opacity: 0; pointer-events: none; }
+  .opt-head { display: flex; align-items: center; gap: 8px; }
+  .opt-key {
+    display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 7px;
+    font: 700 13px var(--f-mono); border: 1px solid var(--line); color: var(--ink);
+  }
+  .opt.on .opt-key { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+  .opt-name { font-weight: 600; font-size: 15px; line-height: 1.2; }
+  .tag { margin-left: auto; font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 7px; white-space: nowrap; }
+  .opt.on .tag.sel { color: var(--accent); border-color: var(--accent); }
+  .opt p { margin: 0; font-size: 13.5px; }
+  .opt dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 12.5px; color: var(--muted); }
+  .opt dt { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; padding-top: 2px; }
+  .opt dd { margin: 0; }
+
+  /* 9:16 frame: a 1080x1920 stage scaled to the card */
+  .frame {
+    position: relative; width: 100%; max-width: 100%; aspect-ratio: 9 / 16; overflow: hidden;
+    border-radius: 10px; background: var(--v-canvas); isolation: isolate;
+  }
+  .stg { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 0 0; transform: scale(var(--k, 0.2)); }
+  .stg > * { position: absolute; }
+  .stg img.pl, .stg img.ct { left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 540px 1050px; }
+  .x-h { font-family: var(--f-display); font-weight: 900; line-height: 1; white-space: nowrap; color: var(--v-ink); }
+  .x-s { font-family: var(--f-serif); font-style: italic; line-height: 1; white-space: nowrap; }
+  .x-m { font-family: var(--f-mono); font-weight: 700; line-height: 1; white-space: nowrap; text-transform: uppercase; }
+  .x-c { left: 0; width: 1080px; text-align: center; }
+  .x-chip { background: var(--v-cobalt); color: var(--v-canvas); font-family: var(--f-mono); font-weight: 700; font-size: 30px; letter-spacing: 0.18em; padding: 14px 18px 14px 22px; border-radius: 8px; line-height: 1; white-space: nowrap; }
+  .x-corner { width: 70px; height: 70px; border: 0 solid var(--v-cobalt); }
+  .x-dia { width: 26px; height: 26px; background: var(--v-cobalt); transform: rotate(45deg); }
+
+  .summary { margin-top: 40px; display: grid; gap: 12px; }
+  .summary h2 { font-family: var(--f-display); font-weight: 900; font-size: 26px; letter-spacing: -0.03em; margin: 0; }
+  .sumtable { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 13.5px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td.mono { font-family: var(--f-mono); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: 0; }
+  .note { font-size: 13px; color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">ARS Studio · Hinglish talking head · 9:16 · 24 fps · 11.9 s</div>
+  <h1>ARS Studio <em>Edit Plan</em></h1>
+  <p class="intro">Seven beats, three designs each. Option A is what the current render does. Pick a design per beat, change the words that go on screen, and leave notes. Your choices save to this page so the edit can be rebuilt from them.</p>
+
+  <div class="topbar">
+    <nav class="picks" id="picks" aria-label="Jump to beat"></nav>
+    <div class="tools">
+      <span class="status" id="status" data-s="local">Connecting…</span>
+      <button class="btn ghost" id="copy" type="button">Copy plan as text</button>
+    </div>
+  </div>
+
+  <main id="beats"></main>
+
+  <section class="summary" aria-labelledby="sum-h">
+    <h2 id="sum-h">Your cut</h2>
+    <div class="sumtable"><table>
+      <thead><tr><th>Time</th><th>Beat</th><th>Design</th><th>On screen</th><th>Notes</th></tr></thead>
+      <tbody id="sumbody"></tbody>
+    </table></div>
+    <p class="note">Mock frames are single key moments drawn from a real frame of the A-roll; motion and sound are described under each frame.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  // ---------- mock helpers (1080x1920 canvas coordinates, same as the HyperFrames build) ----------
+  const cam = (s, x = 0, y = 0) => `transform: translate(${x}px, ${y}px) scale(${s})`;
+  const shot = (c, behind = "", front = "", under = "") =>
+    `<img class="pl" src="plate.jpg" alt="" style="${c}">${under}${behind}<img class="ct" src="cut.webp" alt="" style="${c}">${front}`;
+  const WIDE = cam(1.25, 0, 70), TIGHT = cam(1.65), MID = cam(1.5), LEFT = cam(1.25, -130, 70);
+  const corners = (l, t, r, b, w = 6) =>
+    `<div class="x-corner" style="left:${l}px;top:${t}px;border-top-width:${w}px;border-left-width:${w}px"></div>` +
+    `<div class="x-corner" style="left:${r - 70}px;top:${t}px;border-top-width:${w}px;border-right-width:${w}px"></div>` +
+    `<div class="x-corner" style="left:${l}px;top:${b - 70}px;border-bottom-width:${w}px;border-left-width:${w}px"></div>` +
+    `<div class="x-corner" style="left:${r - 70}px;top:${b - 70}px;border-bottom-width:${w}px;border-right-width:${w}px"></div>`;
+  const card = (l, t, w, h, inner, extra = "") =>
+    `<div style="left:${l}px;top:${t}px;width:${w}px;height:${h}px;border-radius:20px;overflow:hidden;border:3px solid var(--v-ink);background:var(--v-card);box-shadow:0 18px 40px rgba(18,19,24,.18);${extra}">${inner}</div>`;
+  const bottle = (w, h) =>
+    `<div style="position:absolute;left:${w * 0.36}px;top:${h * 0.2}px;width:${w * 0.28}px;height:${h * 0.11}px;background:var(--v-ink);border-radius:8px"></div>` +
+    `<div style="position:absolute;left:${w * 0.33}px;top:${h * 0.3}px;width:${w * 0.34}px;height:${h * 0.38}px;background:#faf6f3;border-radius:16px"></div>` +
+    `<div style="position:absolute;left:${w * 0.36}px;top:${h * 0.4}px;width:${w * 0.28}px;height:${h * 0.26}px;background:var(--v-cobalt);border-radius:12px"></div>`;
+  const cup = (w, h) =>
+    `<div style="position:absolute;left:${w * 0.13}px;top:${h * 0.22}px;width:${w * 0.74}px;height:${w * 0.74}px;border-radius:50%;background:#f6f1ec"></div>` +
+    `<div style="position:absolute;left:${w * 0.22}px;top:${h * 0.22 + w * 0.09}px;width:${w * 0.56}px;height:${w * 0.56}px;border-radius:50%;background:#6b4632"></div>`;
+  const mini = (w, h) =>
+    `<img src="plate.jpg" alt="" style="position:absolute;left:${-w * 0.6}px;top:${-h * 0.62}px;width:${w * 2.2}px;height:${h * 2.2}px">`;
+  const label = (t) => `<div class="x-m" style="position:absolute;left:14px;bottom:14px;font-size:28px;letter-spacing:.08em;color:var(--v-ink);background:rgba(241,227,221,.88);padding:6px 8px;border-radius:4px">${t}</div>`;
+  const cursor = (l, t) =>
+    `<svg style="left:${l}px;top:${t}px" width="70" height="90" viewBox="0 0 28 36"><path d="M2 2 L2 30 L9 23 L14 34 L19 32 L14 21 L24 21 Z" fill="#121318" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>`;
+
+  // ---------- the plan ----------
+  const BEATS = [
+    {
+      id: "b1", name: "Name", t: "0.00–1.63", line: "“Hey, main ARS Studio se hoon.”",
+      job: "Hook and identity. The name is the thumbnail frame.",
+      heroLabel: "Name", accentLabel: "Greeting", hero: "ARS", accent: "Hey,",
+      opts: [
+        { k: "A", name: "Viewfinder + rack focus", built: true,
+          idea: "Cobalt crop marks frame him on the first frame and snap open on “Hey”; ARS racks into focus behind his head, STUDIO types out above it.",
+          motion: "Push 1.25→1.65 expo-out; letters blur 40→0, 2 frames apart.", sound: "Camera shutter into the letterbox reset.",
+          mock: (h, a) => shot(TIGHT,
+            `<div class="x-h x-c" style="top:452px;font-size:440px;letter-spacing:-.035em">${h}</div>`,
+            corners(86, 230, 994, 1574) +
+            `<div class="x-m" style="left:122px;top:266px;font-size:28px;letter-spacing:.08em;color:rgba(18,19,24,.7)">ARS <span style="color:var(--v-cobalt)">●</span> 00:00:01:07</div>` +
+            `<div class="x-s" style="left:150px;top:300px;font-size:104px;color:var(--v-ink)">${a}</div>` +
+            `<div class="x-m x-c" style="top:428px;font-size:46px;letter-spacing:.62em;text-indent:.62em;color:var(--v-cobalt)">STUDIO</div>`) },
+        { k: "B", name: "Render bar",
+          idea: "ARS arrives as an outline, then fills with cobalt left to right like an export bar while he finishes the line. The studio literally renders its own name.",
+          motion: "Outline on “ARS”, fill sweeps linear across “Studio se hoon”, lands on the last syllable.", sound: "Soft rising tone that clicks at 100%.",
+          mock: (h, a) => shot(TIGHT,
+            `<div class="x-h x-c" style="top:452px;font-size:440px;letter-spacing:-.035em;color:transparent;-webkit-text-stroke:5px var(--v-ink)">${h}</div>` +
+            `<div class="x-h x-c" style="top:452px;font-size:440px;letter-spacing:-.035em;color:var(--v-cobalt);clip-path:inset(0 34% 0 0)">${h}</div>`,
+            `<div class="x-s" style="left:110px;top:236px;font-size:96px;color:var(--v-ink)">${a}</div>` +
+            `<div class="x-m" style="left:600px;top:270px;font-size:30px;letter-spacing:.12em;color:var(--v-cobalt)">Rendering 66%</div>` +
+            `<div style="left:110px;top:400px;width:860px;height:8px;background:rgba(18,19,24,.12)"></div>` +
+            `<div style="left:110px;top:400px;width:568px;height:8px;background:var(--v-cobalt)"></div>`) },
+        { k: "C", name: "Quiet signature",
+          idea: "No giant type. A small serif greeting and the studio name set like a signature above his head. Confidence through restraint; the polish comes later.",
+          motion: "One soft blur-in; hairline draws under it. Push to 1.5 only.", sound: "No effect; voice only.",
+          mock: (h, a) => shot(MID, "",
+            `<div class="x-s x-c" style="top:430px;font-size:84px;color:rgba(18,19,24,.6)">${a}</div>` +
+            `<div class="x-s x-c" style="top:520px;font-size:170px;color:var(--v-ink)">${h} Studio</div>` +
+            `<div style="left:390px;top:716px;width:300px;height:3px;background:var(--v-cobalt)"></div>`) },
+      ],
+    },
+    {
+      id: "b2", name: "For brands", t: "1.80–3.08", line: "“Hum brands ke liye high quality…”",
+      job: "Credibility. Show the work before claiming quality.",
+      heroLabel: "Label", accentLabel: "Claim", hero: "FOR BRANDS", accent: "high-quality",
+      opts: [
+        { k: "A", name: "Contact-sheet row", built: true,
+          idea: "Three straight 9:16 reel cards pop in above his head, one per word, aligned like a contact sheet. Precision reads as quality.",
+          motion: "Cards 70→104→100% with a soft spring, no tilt; the row collapses into the playhead.", sound: "One tick per card.",
+          mock: (h, a) => shot(WIDE, "",
+            `<div class="x-chip" style="left:120px;top:206px">${h}</div>` +
+            card(120, 270, 250, 444, bottle(250, 444) + label("SKINCARE")) +
+            card(415, 270, 250, 444, cup(250, 444) + label("CAFÉ")) +
+            card(710, 270, 250, 444, mini(250, 444) + label("FOUNDER")) +
+            `<div class="x-s x-c" style="top:742px;font-size:88px;color:var(--v-cobalt)">${a}</div>`) },
+        { k: "B", name: "Timeline track",
+          idea: "The proof sits on an editing timeline: three clips snap onto a track with a ruler and playhead. It says “we cut this” rather than “we posted this”.",
+          motion: "Clips slide in from the right and snap to the track on each word; playhead scrubs.", sound: "Snap clicks; light tape scrub.",
+          mock: (h, a) => shot(WIDE, "",
+            `<div class="x-chip" style="left:80px;top:220px">${h}</div>` +
+            `<div class="x-m" style="left:80px;top:310px;width:920px;display:flex;justify-content:space-between;font-size:24px;color:rgba(18,19,24,.5)"><span>00:00</span><span>00:05</span><span>00:10</span><span>00:15</span></div>` +
+            `<div style="left:80px;top:350px;width:920px;height:200px;border-radius:14px;background:rgba(18,19,24,.07)"></div>` +
+            `<div style="left:92px;top:362px;width:250px;height:176px;border-radius:10px;overflow:hidden;background:var(--v-cobalt)">${bottle(250, 176)}</div>` +
+            `<div style="left:352px;top:362px;width:290px;height:176px;border-radius:10px;overflow:hidden;background:#6b4632"></div>` +
+            `<div style="left:652px;top:362px;width:336px;height:176px;border-radius:10px;overflow:hidden;background:var(--v-ink)">${mini(336, 176)}</div>` +
+            `<div style="left:560px;top:330px;width:6px;height:240px;background:var(--v-cobalt)"></div><div class="x-dia" style="left:550px;top:318px"></div>` +
+            `<div class="x-s x-c" style="top:620px;font-size:88px;color:var(--v-cobalt)">${a}</div>`) },
+        { k: "C", name: "One card, three reels",
+          idea: "One large card beside him that flips through three reels, with a 01/03 counter. Bigger proof, fewer objects, more premium.",
+          motion: "Speaker reframes left; reels flip vertically inside the card on each word.", sound: "Soft flick per reel.",
+          mock: (h, a) => shot(LEFT, "",
+            `<div class="x-chip" style="left:680px;top:420px">${h}</div>` +
+            `<div class="x-m" style="left:930px;top:490px;font-size:28px;color:var(--v-ink)">02/03</div>` +
+            card(680, 530, 320, 569, cup(320, 569) + label("CAFÉ")) +
+            `<div class="x-s" style="left:680px;top:1120px;font-size:76px;color:var(--v-cobalt)">${a}</div>`) },
+      ],
+    },
+    {
+      id: "b3", name: "Engaging videos", t: "3.26–4.58", line: "“…aur engaging videos create karte hain.”",
+      job: "The core claim and the energy peak. The only sub impact in the film.",
+      heroLabel: "Category word", accentLabel: "Second word", hero: "ENGAGING", accent: "videos",
+      opts: [
+        { k: "A", name: "Rendered by the playhead", built: true,
+          idea: "ENGAGING lands as an outline behind his head; on “create” a cobalt playhead sweeps across and fills it solid.",
+          motion: "Punch 1.25→1.65 with impact; letter cascade 1 frame apart; linear scrub.", sound: "Sub impact on “engaging”.",
+          mock: (h, a) => shot(TIGHT,
+            `<div class="x-h x-c" style="top:660px;font-size:172px;letter-spacing:-.03em;color:transparent;-webkit-text-stroke:4px var(--v-ink)">${h}</div>` +
+            `<div class="x-h x-c" style="top:660px;font-size:172px;letter-spacing:-.03em;clip-path:inset(0 42% 0 0)">${h}</div>`,
+            `<div style="left:620px;top:640px;width:6px;height:240px;background:var(--v-cobalt)"></div><div class="x-dia" style="left:610px;top:628px"></div>` +
+            `<div class="x-s" style="left:660px;top:800px;font-size:156px;color:var(--v-cobalt)">${a}</div>`) },
+        { k: "B", name: "Footage inside the word",
+          idea: "ENGAGING is a window: ARS reels play inside the letters. The word is made of the work.",
+          motion: "Letters punch in at 110%, settle; reels inside keep playing.", sound: "Sub impact; short shimmer.",
+          mock: (h, a) => shot(TIGHT,
+            `<div class="x-h x-c" style="top:610px;font-size:200px;letter-spacing:-.035em;color:transparent;background:repeating-linear-gradient(115deg,#2e3bff 0 70px,#121318 70px 130px,#6b4632 130px 190px,#c9bdb6 190px 240px);-webkit-background-clip:text;background-clip:text">${h}</div>`,
+            `<div class="x-s" style="left:660px;top:820px;font-size:150px;color:var(--v-cobalt)">${a}</div>`) },
+        { k: "C", name: "Retention curve",
+          idea: "A cobalt watch-time curve draws up across the top as he says it. Engagement shown as the number brands care about.",
+          motion: "Curve draws left→right on “videos”; end dot pops on “create”.", sound: "Rising tick sequence.",
+          mock: (h, a) => shot(TIGHT,
+            `<div class="x-h x-c" style="top:660px;font-size:172px;letter-spacing:-.03em">${h}</div>`,
+            `<svg style="left:0;top:0" width="1080" height="700" viewBox="0 0 1080 700"><path d="M90 600 C 300 590, 420 520, 560 440 S 860 300, 990 260" fill="none" stroke="#2e3bff" stroke-width="10" stroke-linecap="round"/><circle cx="990" cy="260" r="18" fill="#2e3bff"/></svg>` +
+            `<div class="x-m" style="left:700px;top:200px;font-size:28px;letter-spacing:.12em;color:var(--v-cobalt)">Watch time ↑</div>` +
+            `<div class="x-s" style="left:110px;top:430px;font-size:120px;color:var(--v-cobalt)">${a}</div>`) },
+      ],
+    },
+    {
+      id: "b4", name: "Premium", t: "4.88–6.13", line: "“Jo actually premium feel karein.”",
+      job: "The standard. The breath after the peak: do less here.",
+      heroLabel: "Hero word", accentLabel: "Lead-in", hero: "premium", accent: "ACTUALLY",
+      opts: [
+        { k: "A", name: "Slow serif + underline", built: true,
+          idea: "The only slow entrance in the film: a large italic serif resolves letter by letter while the camera pushes slowly. One cobalt underline on “feel”.",
+          motion: "Linear push 1.45→1.53; letters 7 frames each.", sound: "Music hats drop out (when music is added).",
+          mock: (h, a) => shot(MID, "",
+            `<div class="x-m x-c" style="top:318px;font-size:32px;letter-spacing:.3em;text-indent:.3em;color:rgba(18,19,24,.62)">${a}</div>` +
+            `<div class="x-s x-c" style="top:380px;font-size:300px;color:var(--v-ink)">${h}</div>` +
+            `<div style="left:200px;top:718px;width:680px;height:6px;background:var(--v-cobalt)"></div>`) },
+        { k: "B", name: "Ink room",
+          idea: "The set behind him goes ink-dark (he stays lit, on the cutout) and premium appears in pale serif. A mood change instead of an effect.",
+          motion: "Background dims to ink in 0.4 s ease-in-out; returns at the next reset.", sound: "Low pad swell.",
+          mock: (h, a) => shot(MID, "",
+            `<div class="x-m x-c" style="top:318px;font-size:32px;letter-spacing:.3em;text-indent:.3em;color:rgba(241,227,221,.6)">${a}</div>` +
+            `<div class="x-s x-c" style="top:380px;font-size:300px;color:var(--v-canvas)">${h}</div>`,
+            `<div style="left:0;top:0;width:1080px;height:1920px;background:var(--v-ink)"></div>`) },
+        { k: "C", name: "Cinema scope",
+          idea: "Black bars close to a 2.39:1 crop around his face. Premium is set small in the lower bar, like a film credit.",
+          motion: "Bars ease in over 0.5 s, hold, release at the pivot.", sound: "Projector-soft whoosh.",
+          mock: (h, a) => shot(TIGHT, "",
+            `<div style="left:0;top:0;width:1080px;height:600px;background:var(--v-ink)"></div>` +
+            `<div style="left:0;top:1052px;width:1080px;height:868px;background:var(--v-ink)"></div>` +
+            `<div class="x-m x-c" style="top:520px;font-size:30px;letter-spacing:.3em;text-indent:.3em;color:rgba(241,227,221,.6)">${a}</div>` +
+            `<div class="x-s x-c" style="top:1100px;font-size:140px;color:var(--v-canvas)">${h}</div>`) },
+      ],
+    },
+    {
+      id: "b5", name: "Your brand", t: "6.62–8.69", line: "“Agar aap bhi apne brand ke liye aisa content chaahte hain,”",
+      job: "The turn to the viewer. Make room for their brand on screen.",
+      heroLabel: "Hero word", accentLabel: "Possessive", hero: "BRAND", accent: "your",
+      opts: [
+        { k: "A", name: "Empty slot fills", built: true,
+          idea: "A dashed YOUR BRAND slot appears beside him and fills with a mini of this video's opening on “aisa content”.",
+          motion: "Reframe left under the iris; slot pops on “apne”, fills on “content”.", sound: "Tick, then a soft drop.",
+          mock: (h, a) => shot(LEFT,
+            `<div class="x-h x-c" style="top:640px;font-size:240px;letter-spacing:-.035em">${h}</div>`,
+            `<div class="x-s" style="left:110px;top:560px;font-size:130px;color:var(--v-cobalt)">${a}</div>` +
+            `<div style="left:740px;top:890px;width:260px;height:462px;border-radius:24px;border:5px dashed var(--v-cobalt);background:rgba(46,59,255,.05)"></div>` +
+            `<div class="x-m" style="left:760px;top:912px;font-size:28px;letter-spacing:.1em;color:var(--v-cobalt)">YOUR BRAND</div>` +
+            `<div style="left:846px;top:1096px;width:48px;height:4px;background:var(--v-cobalt)"></div><div style="left:868px;top:1074px;width:4px;height:48px;background:var(--v-cobalt)"></div>`) },
+        { k: "B", name: "Profile grid",
+          idea: "A 3×3 profile grid for @yourbrand. Empty tiles fill one by one with ARS-style posts on “content”. Shows the outcome: a feed that looks premium.",
+          motion: "Grid fades up; tiles fill 2 frames apart, left to right.", sound: "Rapid soft ticks.",
+          mock: (h, a) => {
+            let tiles = "";
+            const fill = ["var(--v-cobalt)", "var(--v-ink)", "#6b4632", "var(--v-cobalt)", "var(--v-ink)"];
+            for (let i = 0; i < 9; i++) {
+              const l = 600 + (i % 3) * 132, t = 700 + Math.floor(i / 3) * 206;
+              tiles += i < 5
+                ? `<div style="left:${l}px;top:${t}px;width:122px;height:196px;border-radius:8px;background:${fill[i]}"></div>`
+                : `<div style="left:${l}px;top:${t}px;width:122px;height:196px;border-radius:8px;border:4px dashed var(--v-cobalt)"></div>`;
+            }
+            return shot(cam(1.25, -170, 70),
+              `<div class="x-h x-c" style="top:420px;font-size:200px;letter-spacing:-.035em">${h}</div>`,
+              `<div class="x-s" style="left:110px;top:350px;font-size:120px;color:var(--v-cobalt)">${a}</div>` +
+              `<div class="x-m" style="left:600px;top:650px;font-size:28px;color:var(--v-ink)">@yourbrand</div>` + tiles);
+          } },
+        { k: "C", name: "Split screen",
+          idea: "The frame splits: he stays left, the right half becomes a blank canvas with crop marks where the viewer's brand goes, with a cursor about to drop it in.",
+          motion: "Right panel wipes in from the right edge; cursor drags in on “content”.", sound: "Wipe whoosh; click.",
+          mock: (h, a) => shot(cam(1.25, -270, 70), "",
+            `<div style="left:540px;top:0;width:540px;height:1920px;background:#e8dcd5;border-left:4px solid var(--v-ink)"></div>` +
+            corners(600, 600, 1020, 1300, 5) +
+            `<div class="x-s" style="left:540px;width:540px;text-align:center;top:770px;font-size:110px;color:var(--v-cobalt)">${a}</div>` +
+            `<div class="x-h" style="left:540px;width:540px;text-align:center;top:880px;font-size:150px;letter-spacing:-.035em">${h}</div>` +
+            `<div class="x-m" style="left:540px;width:540px;text-align:center;top:1070px;font-size:26px;letter-spacing:.12em;color:rgba(18,19,24,.6)">Drop it here</div>` +
+            cursor(880, 1160)) },
+      ],
+    },
+    {
+      id: "b6", name: "Let's connect", t: "8.92–9.69", line: "“…toh let's connect.”",
+      job: "The ask. Warm, direct, quick.",
+      heroLabel: "Action word", accentLabel: "Lead-in", hero: "CONNECT", accent: "let's",
+      opts: [
+        { k: "A", name: "Two halves meet", built: true,
+          idea: "CONN slides in from the left, ECT from the right, and they lock on a cobalt keyframe diamond behind his head.",
+          motion: "Halves ±240 px, expo-out 0.3 s; diamonds merge and vanish.", sound: "Two ticks converge into a click.",
+          mock: (h, a) => shot(TIGHT,
+            `<div class="x-h x-c" style="top:640px;font-size:200px;letter-spacing:-.03em">${h}</div>`,
+            `<div class="x-s" style="left:120px;top:520px;font-size:116px;color:var(--v-cobalt)">${a}</div>` +
+            `<div class="x-dia" style="left:629px;top:663px"></div>`) },
+        { k: "B", name: "DM bubble",
+          idea: "A cobalt chat bubble types the word and sends, rising past his shoulder. The ask is the action itself.",
+          motion: "Bubble pops at his shoulder, types in, then flies up and out.", sound: "Typing tick; send swoosh.",
+          mock: (h, a) => shot(TIGHT, "",
+            `<div class="x-m" style="left:600px;top:960px;font-size:28px;letter-spacing:.12em;color:var(--v-ink)">DM US</div>` +
+            `<div style="left:590px;top:1010px;width:430px;height:130px;border-radius:40px 40px 8px 40px;background:var(--v-cobalt)"></div>` +
+            `<div class="x-h" style="left:590px;width:430px;text-align:center;top:1048px;font-size:56px;letter-spacing:-.02em;color:var(--v-canvas);font-weight:700">${a} ${h.toLowerCase()}</div>`) },
+        { k: "C", name: "Button press",
+          idea: "A cobalt pill button beside him gets clicked by a cursor. Familiar UI language: the next step is one tap.",
+          motion: "Button scales in; cursor glides in and presses (0.96 scale) on “connect”.", sound: "UI click.",
+          mock: (h, a) => shot(TIGHT, "",
+            `<div style="left:560px;top:1010px;width:460px;height:120px;border-radius:60px;background:var(--v-cobalt);box-shadow:0 16px 36px rgba(18,19,24,.25)"></div>` +
+            `<div class="x-m" style="left:560px;width:460px;text-align:center;top:1052px;font-size:36px;letter-spacing:.06em;color:var(--v-canvas)">${a} ${h} →</div>` +
+            cursor(930, 1090)) },
+      ],
+    },
+    {
+      id: "b7", name: "Close", t: "9.69–11.90", line: "(end of speech — brand lockup)",
+      job: "Closure and the action to take. Readable for at least 1.6 s.",
+      heroLabel: "Wordmark", accentLabel: "Call to action", hero: "ARS", accent: "DM \"CONNECT\"",
+      opts: [
+        { k: "A", name: "Letterbox closes", built: true,
+          idea: "The black bars from the earlier resets close fully; the lockup sits on ink. Bookends the viewfinder opening.",
+          motion: "Bars close 0.34 s power3.inOut; lockup fades in 4 frames, then holds still.", sound: "Shutter click on close.",
+          mock: (h, a) =>
+            `<div style="left:0;top:0;width:1080px;height:1920px;background:var(--v-ink)"></div>` +
+            `<div class="x-h x-c" style="top:700px;font-size:280px;letter-spacing:-.035em;color:var(--v-canvas)">${h}</div>` +
+            `<div class="x-m x-c" style="top:1000px;font-size:40px;letter-spacing:.62em;text-indent:.62em;color:var(--v-canvas)">STUDIO</div>` +
+            `<div style="left:0;width:1080px;top:1100px;display:flex;justify-content:center"><div class="x-chip" style="position:static;font-size:34px">${a}</div></div>` },
+        { k: "B", name: "Freeze into a card",
+          idea: "The last frame freezes and shrinks into a 9:16 card on the canvas, framed by crop marks, with the lockup underneath. The video becomes a portfolio piece.",
+          motion: "Frame scales 1→0.35 with a soft spring; crop marks snap on.", sound: "Shutter; soft low hit.",
+          mock: (h, a) =>
+            `<div style="left:0;top:0;width:1080px;height:1920px;background:var(--v-canvas)"></div>` +
+            card(350, 380, 380, 676, `<img src="plate.jpg" alt="" style="position:absolute;left:-60px;top:-160px;width:500px;height:889px">`) +
+            corners(326, 356, 754, 1080, 5) +
+            `<div class="x-h x-c" style="top:1110px;font-size:120px;letter-spacing:-.035em">${h} <span style="font-family:var(--f-mono);font-weight:700;font-size:40px;letter-spacing:.4em;vertical-align:middle">STUDIO</span></div>` +
+            `<div style="left:0;width:1080px;top:1250px;display:flex;justify-content:center"><div class="x-chip" style="position:static">${a}</div></div>` },
+        { k: "C", name: "Viewfinder closes",
+          idea: "The crop marks from the opening return and close in on him; the timecode stops with CUT. The film ends where it started.",
+          motion: "Corners travel inward 0.4 s; frame dims 35%; timecode freezes.", sound: "Shutter; tape stop.",
+          mock: (h, a) => shot(TIGHT, "",
+            `<div style="left:0;top:0;width:1080px;height:1920px;background:rgba(18,19,24,.38)"></div>` +
+            corners(330, 600, 750, 1180) +
+            `<div class="x-h x-c" style="top:260px;font-size:220px;letter-spacing:-.035em;color:var(--v-canvas)">${h}</div>` +
+            `<div class="x-m x-c" style="top:520px;font-size:30px;letter-spacing:.14em;color:var(--v-canvas)">00:00:11:21 · CUT</div>` +
+            `<div style="left:0;width:1080px;top:1220px;display:flex;justify-content:center"><div class="x-chip" style="position:static">${a}</div></div>`) },
+      ],
+    },
+  ];
+
+  // ---------- state ----------
+  const state = {};
+  BEATS.forEach((b) => (state[b.id] = { choice: "A", hero: b.hero, accent: b.accent, notes: "" }));
+  const optOf = (b) => b.opts.find((o) => o.k === state[b.id].choice) || b.opts[0];
+
+  // ---------- render ----------
+  const main = document.getElementById("beats");
+  main.innerHTML = BEATS.map((b) => `
+    <section class="beat" id="${b.id}" aria-labelledby="${b.id}-h">
+      <div class="info">
+        <div class="tc">${b.t} s</div>
+        <h2 id="${b.id}-h">${esc(b.name)}</h2>
+        <p class="line">${esc(b.line)}</p>
+        <p class="job">${esc(b.job)}</p>
+        <div class="row2">
+          <div class="field"><label for="${b.id}-hero">${esc(b.heroLabel)}</label><input id="${b.id}-hero" data-b="${b.id}" data-f="hero" autocomplete="off"></div>
+          <div class="field"><label for="${b.id}-accent">${esc(b.accentLabel)}</label><input id="${b.id}-accent" data-b="${b.id}" data-f="accent" autocomplete="off"></div>
+        </div>
+        <div class="field"><label for="${b.id}-notes">Notes for the edit</label><textarea id="${b.id}-notes" data-b="${b.id}" data-f="notes" placeholder="Timing, copy, anything to change…"></textarea></div>
+      </div>
+      <div class="opts" role="radiogroup" aria-label="${esc(b.name)} designs">
+        ${b.opts.map((o) => `
+          <label class="opt" data-b="${b.id}" data-k="${o.k}">
+            <input type="radio" name="${b.id}-choice" id="${b.id}-${o.k}" value="${o.k}" data-b="${b.id}" data-f="choice">
+            <div class="opt-head"><span class="opt-key">${o.k}</span><span class="opt-name">${esc(o.name)}</span>${o.built ? '<span class="tag">In render</span>' : ""}</div>
+            <div class="frame"><div class="stg" id="${b.id}-${o.k}-stg"></div></div>
+            <p>${esc(o.idea)}</p>
+            <dl><dt>Motion</dt><dd>${esc(o.motion)}</dd><dt>Sound</dt><dd>${esc(o.sound)}</dd></dl>
+          </label>`).join("")}
+      </div>
+    </section>`).join("");
+
+  const drawBeat = (b) => {
+    const s = state[b.id];
+    const h = esc(s.hero), a = esc(s.accent);
+    b.opts.forEach((o) => {
+      document.getElementById(`${b.id}-${o.k}-stg`).innerHTML = o.mock(h, a);
+      const el = document.querySelector(`.opt[data-b="${b.id}"][data-k="${o.k}"]`);
+      el.classList.toggle("on", s.choice === o.k);
+      el.querySelector("input").checked = s.choice === o.k;
+    });
+  };
+  const syncFields = (b) => {
+    const s = state[b.id];
+    for (const f of ["hero", "accent", "notes"]) {
+      const el = document.getElementById(`${b.id}-${f}`);
+      if (document.activeElement !== el && el.value !== s[f]) el.value = s[f];
+    }
+  };
+  const picks = document.getElementById("picks");
+  const sumbody = document.getElementById("sumbody");
+  const drawSummary = () => {
+    picks.innerHTML = BEATS.map((b) => `<a class="pick" href="#${b.id}"><b>${state[b.id].choice}</b>${esc(b.name)}</a>`).join("");
+    sumbody.innerHTML = BEATS.map((b) => {
+      const s = state[b.id], o = optOf(b);
+      return `<tr><td class="mono">${b.t}</td><td>${esc(b.name)}</td><td>${o.k} · ${esc(o.name)}</td><td>${esc(s.accent)} / ${esc(s.hero)}</td><td>${esc(s.notes) || "—"}</td></tr>`;
+    }).join("");
+  };
+  const drawAll = () => { BEATS.forEach((b) => { syncFields(b); drawBeat(b); }); drawSummary(); };
+
+  // scale stages to their frames
+  const ro = new ResizeObserver((entries) => {
+    for (const e of entries) e.target.style.setProperty("--k", String(e.contentRect.width / 1080));
+  });
+  document.querySelectorAll(".frame").forEach((f) => ro.observe(f));
+
+  drawAll();
+
+  // ---------- saving ----------
+  const statusEl = document.getElementById("status");
+  const setStatus = (s, text) => { statusEl.dataset.s = s; statusEl.textContent = text; };
+  let db = null, canWrite = true;
+  const timers = {};
+  const save = (id) => {
+    if (!db || !canWrite) return;
+    clearTimeout(timers[id]);
+    setStatus("saving", "Saving…");
+    timers[id] = setTimeout(async () => {
+      try {
+        const s = state[id];
+        await db.doc(`beats/${id}`).set({ choice: s.choice, hero: s.hero, accent: s.accent, notes: s.notes, updatedAt: Date.now() });
+        setStatus("saved", "Saved");
+      } catch (e) {
+        if (e && (e.code === "permission_denied" || e.code === "not_granted")) {
+          canWrite = false;
+          setStatus("error", "View only: your changes stay on this screen");
+        } else {
+          setStatus("error", "Not saved. Check your connection and edit again.");
+        }
+      }
+    }, 500);
+  };
+
+  document.addEventListener("input", (e) => {
+    const t = e.target, id = t.dataset && t.dataset.b, f = t.dataset && t.dataset.f;
+    if (!id || !f || f === "choice") return;
+    state[id][f] = t.value;
+    const b = BEATS.find((x) => x.id === id);
+    if (f !== "notes") drawBeat(b);
+    drawSummary();
+    save(id);
+  });
+  document.addEventListener("change", (e) => {
+    const t = e.target;
+    if (!t.dataset || t.dataset.f !== "choice") return;
+    const id = t.dataset.b;
+    state[id].choice = t.value;
+    drawBeat(BEATS.find((x) => x.id === id));
+    drawSummary();
+    save(id);
+  });
+
+  // copy plan
+  document.getElementById("copy").addEventListener("click", () => {
+    const text = ["ARS Studio edit plan", ""].concat(BEATS.map((b) => {
+      const s = state[b.id], o = optOf(b);
+      return `${b.t}s  ${b.name}: ${o.k} · ${o.name}\n  On screen: ${s.accent} / ${s.hero}${s.notes ? `\n  Notes: ${s.notes}` : ""}`;
+    })).join("\n");
+    const btn = document.getElementById("copy");
+    navigator.clipboard.writeText(text).then(
+      () => { btn.textContent = "Copied"; setTimeout(() => (btn.textContent = "Copy plan as text"), 1600); },
+      () => { btn.textContent = "Copy failed — use the table below"; setTimeout(() => (btn.textContent = "Copy plan as text"), 2400); }
+    );
+  });
+
+  // connect to the shared store
+  (async () => {
+    const wait = setTimeout(() => setStatus("error", "Couldn't load saved choices; showing defaults"), 10000);
+    try {
+      db = window.claude && window.claude.use ? await window.claude.use("db") : null;
+    } catch (e) { db = null; }
+    if (!db) { clearTimeout(wait); setStatus("local", "Saving is off here; changes stay on this screen"); return; }
+    db.collection("beats").onSnapshot(
+      (snap) => {
+        clearTimeout(wait);
+        snap.docs.forEach((d) => {
+          const v = d.data(); const id = d.id;
+          if (!state[id] || !v) return;
+          for (const f of ["choice", "hero", "accent", "notes"]) {
+            if (typeof v[f] !== "string") continue;
+            const el = document.getElementById(`${id}-${f}`);
+            if (el && document.activeElement === el) continue;
+            state[id][f] = v[f];
+          }
+        });
+        drawAll();
+        if (statusEl.dataset.s !== "saving") setStatus("saved", snap.empty ? "Ready: edits save automatically" : "Saved choices loaded");
+      },
+      () => { clearTimeout(wait); setStatus("error", "Couldn't load saved choices; showing defaults"); }
+    );
+  })();
+})();
+</script>
