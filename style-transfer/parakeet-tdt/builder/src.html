@@ -26,9 +26,9 @@ button{cursor:pointer}
 .brand span{color:var(--mute);font-size:12px}
 .stagewrap{width:min(400px,calc((100vh - 200px) * 9 / 16));min-width:260px;aspect-ratio:9/16;max-width:100%;position:relative;border-radius:10px;overflow:hidden;background:#000;margin:0 auto}
 @media (max-width:860px){.stagewrap{width:min(100%,calc(62vh * 9 / 16))}}
-#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;transform-origin:0 0;background:#ededed;overflow:hidden}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;background:#ededed;overflow:hidden}
 .slab{position:absolute;left:0;right:0;top:380px;height:1060px;background:#3f4143;border-radius:30px}
-.card{position:absolute;left:33px;top:30px;width:1019px;height:1812px;border-radius:45px;box-shadow:14px 22px 28px rgba(0,0,0,.45);background:#000;transform:translateZ(0)}
+.card{position:absolute;left:33px;top:30px;width:1019px;height:1812px;border-radius:45px;box-shadow:14px 22px 28px rgba(0,0,0,.45);background:#000}
 .cn{position:absolute;width:46px;height:46px;z-index:5;pointer-events:none}
 .cn.a{left:0;top:0;background:radial-gradient(circle at 100% 100%,transparent 44px,#ededed 45.5px)}.cn.b{right:0;top:0;background:radial-gradient(circle at 0 100%,transparent 44px,#ededed 45.5px)}
 .cn.c{left:0;bottom:0;background:radial-gradient(circle at 100% 0,transparent 44px,#ededed 45.5px)}.cn.d{right:0;bottom:0;background:radial-gradient(circle at 0 0,transparent 44px,#ededed 45.5px)}
@@ -56,8 +56,8 @@ button{cursor:pointer}
 .brk{position:absolute;width:26px;height:26px;border:5px solid #ff2e63}
 .brk.tl{left:-8px;top:-8px;border-right:0;border-bottom:0}.brk.tr{right:-8px;top:-8px;border-left:0;border-bottom:0}
 .brk.bl{left:-8px;bottom:-8px;border-right:0;border-top:0}.brk.br{right:-8px;bottom:-8px;border-left:0;border-top:0}
-.gh{position:absolute;left:-3000px;width:7000px;height:2px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.55) 0 10px,transparent 10px 20px);opacity:0;pointer-events:none}
-.gv{position:absolute;top:-3000px;height:7000px;width:2px;background:repeating-linear-gradient(180deg,rgba(255,255,255,.5) 0 10px,transparent 10px 20px);opacity:0;pointer-events:none}
+.gh{position:absolute;left:-1200px;width:3400px;height:2px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.55) 0 10px,transparent 10px 20px);opacity:0;pointer-events:none}
+.gv{position:absolute;top:-1300px;height:3600px;width:2px;background:repeating-linear-gradient(180deg,rgba(255,255,255,.5) 0 10px,transparent 10px 20px);opacity:0;pointer-events:none}
 .bx{position:relative;padding:16px 46px 22px;display:flex;flex-direction:column;align-items:center;margin:8px 0}
 .bx .bgd{position:absolute;inset:0;background:rgba(26,24,26,.64);transform:scale(0)}
 .bx .glow{position:absolute;inset:0;border:3px solid #ff2e63;box-shadow:0 0 22px 3px rgba(255,40,90,.85),inset 0 0 16px rgba(255,40,90,.5);opacity:0}
@@ -172,6 +172,7 @@ button{cursor:pointer}
 
 <script>
 /*DATA*/
+const LITE=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent));
 const FPS=30, NF=Math.floor(EDIT_DUR*FPS), LEAD_B=2, LEAD_S=1, SAFE_BOT=1520, CAM_CY=730;
 const wf=i=>Math.round(WORDS[i-1][1]*FPS);
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -259,7 +260,7 @@ function reveal(n,a,b,lead,sh){const out=[],span=b-a+1;for(let i=0;i<n;i++){cons
 /* ---------- components ---------- */
 const el=(tag,cls,par)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(par)par.appendChild(e);return e};
 function spans(par,text){return text.split(/\s+/).filter(Boolean).map((w,i)=>{const s=el('span','',par);s.textContent=w;if(i)par.insertBefore(document.createTextNode(' '),s);return s})}
-function dropAnim(sp,times,dy,dur,blur){return f=>sp.forEach((s,i)=>{const p=tw(f,times[i],dur,EZ.p2o);if(s._p===p)return;s._p=p;s.style.opacity=p;s.style.transform=`translateY(${dy*(1-p)}px)`;s.style.filter=p>0&&p<1?`blur(${blur*(1-p)}px)`:'none'})}
+function dropAnim(sp,times,dy,dur,blur){return f=>sp.forEach((s,i)=>{const p=tw(f,times[i],dur,EZ.p2o);if(s._p===p)return;s._p=p;s.style.opacity=p;s.style.transform=`translateY(${dy*(1-p)}px)`;if(!LITE)s.style.filter=p>0&&p<1?`blur(${blur*(1-p)}px)`:'none'})}
 const C={
  sm(par,e,T,ev){const d=el('div','sm'+(e.r?' r':''),par);const sp=spans(d,T.text);const tm=reveal(sp.length,e.a,e.b,LEAD_S,T.sh);return dropAnim(sp,tm,-18,4,6)},
  bg(par,e,T,ev){const d=el('div','bg',par);const sp=spans(d,T.text);const tm=reveal(sp.length,e.a,e.b,LEAD_B,T.sh);ev.push({f:tm[0],k:'click',pri:2});
@@ -271,7 +272,7 @@ const C={
  bar(par,e,T,ev){const d=el('div','bar',par);const gh1=el('div','gh',d),gh2=el('div','gh',d),gv1=el('div','gv',d),gv2=el('div','gv',d);gh1.style.top='0';gh2.style.bottom='0';
    const inn=el('div','in',d);const b=el('div','bg',inn);spans(b,T.text);const t0=wf(e.a)-LEAD_B-1+T.sh;ev.push({f:t0,k:'open',pri:3,on:1});
    return f=>{const p=tw(f,t0,16,EZ.p2o);inn.style.clipPath=`inset(-30px ${50*(1-p)}% -30px ${50*(1-p)}%)`;inn.style.opacity=p>0?1:0;
-     const g=tw(f,t0,6,EZ.p2o)*.9;[gh1,gh2,gv1,gv2].forEach(x=>x.style.opacity=g);if(d._L==null){d._L=d.offsetLeft+84;gv1.style.left=(150-d._L)+'px';gv2.style.left=(930-d._L)+'px'}}},
+     const g=tw(f,t0,6,EZ.p2o)*.9;[gh1,gh2,gv1,gv2].forEach(x=>x.style.opacity=g);if(!d._Ls){d._Ls=1;if(d._L==null)d._L=d.offsetLeft+84;gv1.style.left=(150-d._L)+'px';gv2.style.left=(930-d._L)+'px'}}},
  box(par,e,T,ev){const d=el('div','bx',par);const bgd=el('div','bgd',d),glow=el('div','glow',d);['tl','tr','bl','br'].forEach(c=>el('div','brk '+c,glow));
    const gh1=el('div','gh',d),gh2=el('div','gh',d),gv1=el('div','gv',d),gv2=el('div','gv',d);gh1.style.top='0';gh2.style.bottom='0';gv1.style.left='0';gv2.style.right='0';
    const s=el('div','sm',d);const ss=spans(s,T.small);const b=el('div','bg',d);const bs=spans(b,T.big);
@@ -296,13 +297,15 @@ const $=id=>document.getElementById(id);
 const vid=$('vid'),gfx=$('gfx'),cam=$('cam');
 let built={key:'',bi:-1,pages:[],ev:[]};
 function buildBeat(bi){
+  const stg=$('stage');stg.style.zoom=1;
   const b=BEATS[bi],sb=ST.beats[bi],D=b.designs.find(x=>x.k===sb.d)||b.designs[0];gfx.innerHTML='';
   const st=safeTop(bi),bS=beatStart(bi),bE=beatEnd(bi),ev=[];
   const pages=D.pages.map((p,pi)=>{const ps=pi===0?bS:Math.max(bS,wf(p.at)-3);const pe=pi<D.pages.length-1?Math.max(bS,wf(D.pages[pi+1].at)-3):bE;
     const box=el('div','pg',gfx);const ups=p.els.map((e,ei)=>{const T={sh:sb.sh};for(const [fld] of FIELDS[e.t])T[fld]=txt(bi,D.k,pi,ei,fld,e[fld]);return C[e.t](box,e,T,ev,pe)});
     box.querySelectorAll('.bg').forEach(x=>{let fs=92;x.style.fontSize=fs+'px';while(x.scrollWidth>(x.closest('.bar,.bx')?720:800)&&fs>40){fs-=2;x.style.fontSize=fs+'px'}});
     box.style.top='0px';box.style.transform='none';const H=box.offsetHeight;let top=Math.max(st,1080+sb.ny);if(top+H>SAFE_BOT)top=Math.max(st,SAFE_BOT-H);let sc=1;if(top+H>SAFE_BOT)sc=(SAFE_BOT-top)/H;
-    box.style.top=top+'px';box.style.transform=`scale(${sc})`;box.style.display='none';return{ps,pe,box,ups}});
+    box.style.top=top+'px';box.style.transform=`scale(${sc})`;box.querySelectorAll('.bg').forEach(x=>x._w=x.offsetWidth);box.querySelectorAll('.bar').forEach(x=>x._L=x.offsetLeft+84);box.style.display='none';return{ps,pe,box,ups}});
+  stg.style.zoom=ZOOM;
   if(sb.flash&&bi>0)ev.push({f:bS,k:'whoosh',pri:4,peak:1});
   if(bi===0)ev.push({f:0,k:'glitch',pri:4});
   built={key:keyOf(bi),bi,pages,ev:thin(ev)};
@@ -390,8 +393,8 @@ $('reset').onclick=()=>{if($('reset').dataset.arm){ST=defState();save();panel();
 /* ---------- boot ---------- */
 (async()=>{try{const mp4=vid.canPlayType('video/mp4')!=='';const url=mp4?'aroll.mp4':'aroll.webm';const r=await fetch(url);if(!r.ok)return;const bl=await r.blob();const t=vid.currentTime,p=!vid.paused;
   vid.src=URL.createObjectURL(bl);vid.addEventListener('loadedmetadata',()=>{vid.currentTime=t;if(p)vid.play()},{once:true})}catch(e){}})();
-function fit(){const w=$('sw').clientWidth;$('stage').style.transform=`scale(${w/1080})`}
+let ZOOM=1;function fit(){ZOOM=$('sw').clientWidth/1080;$('stage').style.zoom=ZOOM}
 new ResizeObserver(fit).observe($('sw'));fit();
 drawTL();panel();
-Promise.all([document.fonts.load('italic 900 92px Saira'),document.fonts.load('400 59px Saira')]).catch(()=>{}).then(()=>{built.key='';seekF(Math.round(5.2*FPS));requestAnimationFrame(loop)});
+Promise.all([document.fonts.load('italic 900 92px Saira'),document.fonts.load('400 59px Saira')]).catch(()=>{}).then(()=>{events();built.key='';seekF(Math.round(5.2*FPS));requestAnimationFrame(loop)});
 </script>
