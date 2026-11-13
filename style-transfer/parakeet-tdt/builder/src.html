@@ -130,7 +130,7 @@ button{cursor:pointer}
       <div id="stage">
         <div class="slab"></div>
         <div class="card"><div class="frame" id="frame">
-          <div id="cam"><video id="vid" playsinline preload="auto"><source src="aroll.mp4" type="video/mp4"><source src="aroll.webm" type="video/webm"></video></div>
+          <div id="cam"><video id="vid" playsinline preload="auto"><source src="aroll540.mp4" type="video/mp4"><source src="aroll540.webm" type="video/webm"></video></div>
           <div class="layer" id="tint"></div>
           <div class="layer" id="scan"></div>
           <div class="layer" id="grad"></div>
@@ -354,7 +354,8 @@ function seekF(f){vid.currentTime=(clamp(f,0,NF)+0.5)/FPS;lastT=vid.currentTime;
 function tlSeek(ev){const r=tl.getBoundingClientRect();seekF(Math.round(clamp((ev.clientX-r.left)/r.width)*NF))}
 let drag=false;tl.addEventListener('pointerdown',e=>{drag=true;tl.setPointerCapture(e.pointerId);tlSeek(e)});tl.addEventListener('pointermove',e=>{if(drag)tlSeek(e)});tl.addEventListener('pointerup',()=>drag=false);
 tl.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){seekF(curF+(e.shiftKey?30:1));e.preventDefault()}if(e.key==='ArrowLeft'){seekF(curF-(e.shiftKey?30:1));e.preventDefault()}});
-$('play').onclick=async()=>{if(vid.paused){await initAudio();if(AC.state==='suspended')await AC.resume();if(curF>=NF-1)seekF(0);lastT=vid.currentTime;vid.play()}else vid.pause()};
+$('play').onclick=()=>{if(vid.paused){if(curF>=NF-1)seekF(0);lastT=vid.currentTime;const pr=vid.play();if(pr&&pr.catch)pr.catch(e=>{$('tc').innerHTML='<small>Video could not start: '+(e&&e.name||'error')+'. Tap Play again.</small>'});
+  try{initAudio();if(AC&&AC.state==='suspended')AC.resume()}catch(e){}}else vid.pause()};
 vid.addEventListener('play',()=>$('play').textContent='Pause');vid.addEventListener('pause',()=>$('play').textContent='Play');
 $('prev').onclick=()=>{vid.pause();seekF(curF-1)};$('next').onclick=()=>{vid.pause();seekF(curF+1)};
 $('sfxon').onchange=setGain;$('sfxlv').oninput=setGain;
@@ -391,10 +392,9 @@ $('copy').onclick=async()=>{const s=JSON.stringify(plan(),null,1);const ta=$('pl
 $('reset').onclick=()=>{if($('reset').dataset.arm){ST=defState();save();panel();drawTL();seekF(0);$('reset').textContent='Reset all choices';delete $('reset').dataset.arm}else{$('reset').dataset.arm=1;$('reset').textContent='Click again to reset';setTimeout(()=>{$('reset').textContent='Reset all choices';delete $('reset').dataset.arm},3000)}};
 
 /* ---------- boot ---------- */
-(async()=>{try{const mp4=vid.canPlayType('video/mp4')!=='';const url=mp4?'aroll.mp4':'aroll.webm';const r=await fetch(url);if(!r.ok)return;const bl=await r.blob();const t=vid.currentTime,p=!vid.paused;
-  vid.src=URL.createObjectURL(bl);vid.addEventListener('loadedmetadata',()=>{vid.currentTime=t;if(p)vid.play()},{once:true})}catch(e){}})();
+
 let ZOOM=1;function fit(){ZOOM=$('sw').clientWidth/1080;$('stage').style.zoom=ZOOM}
 new ResizeObserver(fit).observe($('sw'));fit();
 drawTL();panel();
-Promise.all([document.fonts.load('italic 900 92px Saira'),document.fonts.load('400 59px Saira')]).catch(()=>{}).then(()=>{events();built.key='';seekF(Math.round(5.2*FPS));requestAnimationFrame(loop)});
+Promise.all([document.fonts.load('italic 900 92px Saira'),document.fonts.load('400 59px Saira')]).catch(()=>{}).then(()=>{events();built.key='';render(48);requestAnimationFrame(loop);const go=()=>seekF(48);if(vid.readyState>=1)go();else vid.addEventListener('loadedmetadata',go,{once:true})});
 </script>
