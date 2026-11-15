@@ -22,6 +22,7 @@ import soundfile as sf
 SPEC, A, W, OUT = sys.argv[1:5]
 spec = runpy.run_path(SPEC)
 SHOTS, END, DROP = spec["SHOTS"], spec["END"], spec.get("DROP")
+XFADE, XD = spec.get("XFADE"), spec.get("XFADE_DUR", 0.4)   # e.g. "dissolve"; per shot override with "xfade"
 HERE = os.path.dirname(os.path.abspath(__file__))
 SFXDIR = os.path.join(HERE, "..", "..", "audio-lab", "sfx")
 FW, FH, FPS = 1080, 1920, 30
@@ -100,7 +101,8 @@ def stack(paths, pops, t0, d, out):
 segdir = os.path.join(W, f"{NAME}_segs"); os.makedirs(segdir, exist_ok=True)
 segs = []
 for i, s in enumerate(SHOTS):
-    t0 = s["t"]; t1 = SHOTS[i + 1]["t"] if i + 1 < len(SHOTS) else END; d = round(t1 - t0, 3)
+    t0 = s["t"]; t1 = SHOTS[i + 1]["t"] if i + 1 < len(SHOTS) else END
+    d = round(t1 - t0 + (XD if XFADE and i + 1 < len(SHOTS) else 0), 3)
     out = os.path.join(segdir, f"{i:02d}.mp4"); segs.append(out)
     if "stack" in s:
         stack([find(x) for x in s["stack"]], s["pops"], t0, d, out); label = "stack"
@@ -117,9 +119,18 @@ for i, s in enumerate(SHOTS):
             run(["ffmpeg", "-loglevel", "error", "-y", "-ss", str(sin), "-i", src, "-vf", ",".join(vf)] + ENC + ["-t", str(d), out])
     print(f"{t0:6.2f}-{t1:6.2f} {label:28.28} | {s.get('text', '')}")
 
-lst = os.path.join(W, f"{NAME}_concat.txt"); open(lst, "w").write("".join(f"file '{x}'\n" for x in segs))
 pic = os.path.join(W, f"{NAME}_picture.mp4")
-run(["ffmpeg", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", pic])
+if XFADE:
+    # shot i+1 starts dissolving in at its scheduled time; each segment carries an XD-long tail
+    ins, fc, cur = [], [], "0:v"
+    for x in segs: ins += ["-i", x]
+    for i in range(1, len(segs)):
+        kind = SHOTS[i].get("xfade", XFADE)
+        fc.append(f"[{cur}][{i}:v]xfade=transition={kind}:duration={XD}:offset={SHOTS[i]['t']}[v{i}]"); cur = f"v{i}"
+    run(["ffmpeg", "-loglevel", "error", "-y"] + ins + ["-filter_complex", ";".join(fc), "-map", f"[{cur}]"] + ENC + [pic])
+else:
+    lst = os.path.join(W, f"{NAME}_concat.txt"); open(lst, "w").write("".join(f"file '{x}'\n" for x in segs))
+    run(["ffmpeg", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", pic])
 
 # ------------------------------------------------------------------ text (white, lowercase look, soft shadow; emoji in colour)
 FONT = ImageFont.truetype(os.path.join(W, "fonts", "Ubuntu-Medium.ttf"), 64)
@@ -169,7 +180,9 @@ for i, s in enumerate(SHOTS):
     p = os.path.join(ovl, f"t{i:02d}.png"); h = text_png(s["text"], p)
     inputs += ["-loop", "1", "-framerate", str(FPS), "-t", str(END), "-i", p]; k += 1
     fi = 0.25 if t1 - t0 > 1.2 else 0.08
-    chain.append(f"[{k}:v]format=rgba,fade=t=in:st={t0}:d={fi}:alpha=1,fade=t=out:st={t1-0.06}:d=0.06:alpha=1[x{k}]")
+    fo = XD if XFADE and i + 1 < len(SHOTS) else 0.06
+    t1 = t1 + (XD if XFADE and i + 1 < len(SHOTS) else 0) - (0 if XFADE else 0)
+    chain.append(f"[{k}:v]format=rgba,fade=t=in:st={t0 + (XD*0.5 if XFADE and i else 0)}:d={fi}:alpha=1,fade=t=out:st={t1-fo}:d={fo}:alpha=1[x{k}]")
     chain.append(f"[{last}][x{k}]overlay=0:{int(FH*s.get('ty', 0.40)) - h//2}:enable='between(t,{t0},{t1})'[o{k}]"); last = f"o{k}"
 
 # ------------------------------------------------------------------ sound: whoosh on the drop, pops, extras
