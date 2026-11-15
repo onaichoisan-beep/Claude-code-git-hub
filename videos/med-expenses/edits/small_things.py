@@ -3,6 +3,7 @@ DROP = None
 END = 17.6
 XFADE = "dissolve"
 XFADE_DUR = 0.45
+WORD_CAPTIONS = True
 SHOTS = [
     {"t": 0.0,  "src": "F1D19DE4", "in": 0.5, "text": "small things that make MBBS worth it"},
     {"t": 2.6,  "src": "67168F2A", "in": 0.4, "text": "when the lab experiment actually works 🧪"},

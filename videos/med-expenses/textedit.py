@@ -206,7 +206,48 @@ for name, t, db in spec.get("SFX", []): place(name, t, db)
 mix = mix[:int(END * SR)]
 aud = os.path.join(W, f"{NAME}_sfx.wav"); sf.write(aud, mix, SR); inputs += ["-i", aud]
 
-run(["ffmpeg", "-loglevel", "error", "-y"] + inputs + ["-filter_complex", ";".join(chain), "-map", f"[{last}]",
-     "-map", f"{k+1}:a", "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-pix_fmt", "yuv420p", "-r", str(FPS),
-     "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", "-t", str(END), OUT])
+if not spec.get("WORD_CAPTIONS"):
+    run(["ffmpeg", "-loglevel", "error", "-y"] + inputs + ["-filter_complex", ";".join(chain), "-map", f"[{last}]",
+         "-map", f"{k+1}:a", "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-pix_fmt", "yuv420p", "-r", str(FPS),
+         "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", "-t", str(END), OUT])
+else:
+    # ONE WORD AT A TIME: instant on, single centred line, monoline sans (Inter SemiBold)
+    WFONT = ImageFont.truetype("/usr/share/fonts/opentype/inter/Inter-SemiBold.otf", 104)
+    def word_img(w):
+        if is_emoji(w[0]):
+            e = Image.new("RGBA", (160, 160), (0, 0, 0, 0)); ImageDraw.Draw(e).text((0, 0), w, font=EMOJI, embedded_color=True)
+            e = e.crop(e.getbbox()); return e.resize((int(e.width * 110 / e.height), 110))
+        l, t_, r, b = WFONT.getbbox(w); pad = 24
+        img = Image.new("RGBA", (r - l + 2 * pad, 150), (0, 0, 0, 0)); sh = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        ImageDraw.Draw(sh).text((pad - l + 3, 19), w, font=WFONT, fill=(0, 0, 0, 210))
+        img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(7)))
+        ImageDraw.Draw(img).text((pad - l, 14), w, font=WFONT, fill="white", stroke_width=2, stroke_fill=(0, 0, 0, 90))
+        return img
+    WORDS = []
+    for i, s_ in enumerate(SHOTS):
+        if not s_.get("text"): continue
+        st = s_["t"] + (XD * 0.5 if XFADE and i else 0)          # start once the dissolve is half done
+        en = SHOTS[i + 1]["t"] if i + 1 < len(SHOTS) else END
+        ws = s_["text"].split(); per = min(spec.get("WORD_DUR", 0.38), (en - st) / len(ws))
+        for j, w in enumerate(ws):
+            WORDS.append((st + j * per, en if j == len(ws) - 1 else st + (j + 1) * per, word_img(w), s_.get("ty", 0.40)))
+    print(len(WORDS), "word captions")
+    grade = ("eq=saturation=1.06:contrast=0.97:brightness=0.01,colorbalance=rs=0.05:gs=0.01:bs=-0.05:rm=0.03:bm=-0.03,"
+             f"fade=t=in:st=0:d=0.35,fade=t=out:st={END-0.9}:d=0.9")
+    dec = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-i", pic, "-vf", grade, "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+                           stdout=subprocess.PIPE)
+    enc = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{FW}x{FH}",
+                            "-r", str(FPS), "-i", "-", "-i", aud, "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-preset",
+                            "medium", "-crf", "19", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart",
+                            "-t", str(END), OUT], stdin=subprocess.PIPE)
+    fsz = FW * FH * 3; fno = 0
+    while True:
+        buf = dec.stdout.read(fsz)
+        if len(buf) < fsz: break
+        tt = fno / FPS; cur = [w for w in WORDS if w[0] <= tt < w[1]]
+        if cur:
+            fr = Image.frombuffer("RGB", (FW, FH), buf).convert("RGBA"); im, ty = cur[-1][2], cur[-1][3]
+            fr.alpha_composite(im, ((FW - im.width) // 2, int(FH * ty) - im.height // 2)); buf = fr.convert("RGB").tobytes()
+        enc.stdin.write(buf); fno += 1
+    enc.stdin.close(); enc.wait(); dec.wait()
 print("done", OUT, END)

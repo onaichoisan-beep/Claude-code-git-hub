@@ -86,29 +86,36 @@ lst = os.path.join(W, "pov_concat.txt"); open(lst, "w").write("".join(f"file '{s
 pic = os.path.join(W, "pov_picture.mp4")
 run(["ffmpeg", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", pic])
 
-# text: ONE WORD AT A TIME, instant on (no fade), single centred line, monoline sans (Inter SemiBold)
-WFONT = ImageFont.truetype("/usr/share/fonts/opentype/inter/Inter-SemiBold.otf", 104)
-EMOJI = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf", 109)
-def is_emoji(w): return any(ord(c) > 0x2600 and c not in "…₹" for c in w)
-def word_img(w):
-    if is_emoji(w):
-        e = Image.new("RGBA", (160, 160), (0, 0, 0, 0)); ImageDraw.Draw(e).text((0, 0), w, font=EMOJI, embedded_color=True)
-        e = e.crop(e.getbbox()); return e.resize((int(e.width * 110 / e.height), 110))
-    l, t, r, b = WFONT.getbbox(w); pad = 24
-    img = Image.new("RGBA", (r - l + 2 * pad, 150), (0, 0, 0, 0)); sh = Image.new("RGBA", img.size, (0, 0, 0, 0))
-    ImageDraw.Draw(sh).text((pad - l + 3, 14 + 5), w, font=WFONT, fill=(0, 0, 0, 210))
-    img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(7)))
-    ImageDraw.Draw(img).text((pad - l, 14), w, font=WFONT, fill="white", stroke_width=2, stroke_fill=(0, 0, 0, 90))
-    return img
+# text: clean white lowercase, soft shadow, centred slightly above middle
+FONT = ImageFont.truetype(os.path.join(W, "fonts", "Ubuntu-Medium.ttf"), 64)
+EMOJI = "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf"
+def text_png(t, path):
+    img = Image.new("RGBA", (FW, 260), (0, 0, 0, 0))
+    emo = None
+    if "🦴" in t:
+        t = t.replace(" 🦴", ""); emo = "🦴"
+    tw = FONT.getlength(t) + (80 if emo else 0); x = (FW - tw) / 2
+    sh = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    ImageDraw.Draw(sh).text((x + 3, 98 + 4), t, font=FONT, fill=(0, 0, 0, 200))
+    img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(6)))
+    ImageDraw.Draw(img).text((x, 98), t, font=FONT, fill="white")
+    if emo and os.path.exists(EMOJI):
+        ef = ImageFont.truetype(EMOJI, 109)
+        e = Image.new("RGBA", (140, 140), (0, 0, 0, 0)); ImageDraw.Draw(e).text((0, 0), emo, font=ef, embedded_color=True)
+        e = e.resize((70, 70)); img.alpha_composite(e, (int(x + FONT.getlength(t) + 14), 100))
+    img.save(path)
 
-# word timeline: words share the start of each shot (max 0.38 s each), the last word holds to the end of the shot
-WORDS = []
+ovl = os.path.join(W, "pov_ovl"); os.makedirs(ovl, exist_ok=True)
+inputs, chain, last = ["-i", pic], [], "0:v"
+# warm, soft film tone on the whole picture
+chain.append("[0:v]eq=saturation=1.06:contrast=0.97:brightness=0.01,colorbalance=rs=0.05:gs=0.01:bs=-0.05:rm=0.03:bm=-0.03,"
+             f"fade=t=in:st=0:d=0.35,fade=t=out:st={END-0.9}:d=0.9[g]"); last = "g"
 for i, (st, stem, sin, txt, ex) in enumerate(SHOTS):
     en = SHOTS[i + 1][0] if i + 1 < len(SHOTS) else END
-    ws = txt.split(); per = min(0.38, (en - st) / len(ws))
-    for k, w in enumerate(ws):
-        WORDS.append((round(st + k * per, 3), round(en if k == len(ws) - 1 else st + (k + 1) * per, 3), word_img(w)))
-print(len(WORDS), "word captions")
+    p = os.path.join(ovl, f"t{i:02d}.png"); text_png(txt, p); inputs += ["-loop", "1", "-framerate", str(FPS), "-t", str(END), "-i", p]
+    a_in = 0.25 if en - st > 1.2 else 0.08          # fade text in (quicker on fast shots)
+    chain.append(f"[{i+1}:v]format=rgba,fade=t=in:st={st}:d={a_in}:alpha=1,fade=t=out:st={en-0.06}:d=0.06:alpha=1[x{i}]")
+    chain.append(f"[{last}][x{i}]overlay=0:{int(FH*0.40)-130}:enable='between(t,{st},{en})'[o{i}]"); last = f"o{i}"
 
 # sound: only a whoosh into the drop and a pop on the bones; music gets added in Instagram
 SR = 48000
@@ -124,26 +131,9 @@ place("My_fav_whoosh", DROP, 4)
 n = int(0.09 * SR); t = np.arange(n) / SR
 pop = np.sin(2 * np.pi * np.cumsum(950 * np.exp(-t * 28) + 260) / SR) * np.exp(-t * 55) * 10 ** (-12 / 20)
 mix[int((DROP + 0.05) * SR):int((DROP + 0.05) * SR) + n] += pop.astype(np.float32)
-aud = os.path.join(W, "pov_sfx.wav"); sf.write(aud, mix, SR)
+aud = os.path.join(W, "pov_sfx.wav"); sf.write(aud, mix, SR); inputs += ["-i", aud]
 
-# one pass: grade the picture in ffmpeg, stamp the current word in Python, encode with the sound
-grade = ("eq=saturation=1.06:contrast=0.97:brightness=0.01,colorbalance=rs=0.05:gs=0.01:bs=-0.05:rm=0.03:bm=-0.03,"
-         f"fade=t=in:st=0:d=0.35,fade=t=out:st={END-0.9}:d=0.9")
-dec = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-i", pic, "-vf", grade, "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
-                       stdout=subprocess.PIPE)
-enc = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{FW}x{FH}",
-                        "-r", str(FPS), "-i", "-", "-i", aud, "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-preset", "medium",
-                        "-crf", "19", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart",
-                        "-t", str(END), OUT], stdin=subprocess.PIPE)
-fs = FW * FH * 3; f = 0
-while True:
-    buf = dec.stdout.read(fs)
-    if len(buf) < fs: break
-    tt = f / FPS; fr = Image.frombuffer("RGB", (FW, FH), buf)
-    cur = [w for w in WORDS if w[0] <= tt < w[1]]
-    if cur:
-        im = cur[-1][2]; fr = fr.convert("RGBA")
-        fr.alpha_composite(im, ((FW - im.width) // 2, int(FH * 0.40) - im.height // 2)); fr = fr.convert("RGB")
-    enc.stdin.write(fr.tobytes()); f += 1
-enc.stdin.close(); enc.wait(); dec.wait()
+run(["ffmpeg", "-loglevel", "error", "-y"] + inputs + ["-filter_complex", ";".join(chain), "-map", f"[{last}]",
+     "-map", f"{len(SHOTS)+1}:a", "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-pix_fmt", "yuv420p", "-r", str(FPS),
+     "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", "-t", str(END), OUT])
 print("done", OUT)
