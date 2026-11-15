@@ -1,16 +1,12 @@
 # Script: How much do I spend in a month (med student, GMC)
 
 Style: `../BUDGET_VLOG_STYLE.md`. Target length is about 55–60 s, about 175 words at 180 wpm.
-Title on screen the whole time: **MY ROOM COSTS 5X MY MBBS FEES?!** (fallback: HOW MUCH DO I SPEND IN A MONTH?!)
+Title on screen the whole time: **MY ROOM COSTS 5X MY MBBS FEES?!**
 
 **Hook (0–3 s, selfie in apron/scrubs, gesture around your room):**
 "Mera room meri MBBS fees se paanch guna mehenga hai. Let me show you where my money actually goes every month."
 (Room ₹8,200 vs fees ₹1,500 a month is about 5.5×, so the claim holds.)
 
-Alternate hooks:
-- "Government medical college: 1,500 a month. Mera kamra? 8,200. Let me explain."
-- "Med school is cheap. Living near it? Not so much."
-- "Guess karo, ek med student ka monthly kharcha kitna hai? …Nahi, aur zyada."
 
 Items follow your numbering. The monthly figures add up to about ₹18,950, which fits the 15–20K at the end.
 
