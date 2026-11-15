@@ -11,6 +11,7 @@ Alternate hooks:
 - "Government medical college: 1,500 a month. Mera kamra? 8,200. Let me explain."
 - "Med school is cheap. Living near it? Not so much."
 - "Guess karo, ek med student ka monthly kharcha kitna hai? …Nahi, aur zyada."
+
 Items follow your numbering. The monthly figures add up to about ₹18,950, which fits the 15–20K at the end.
 
 | # | Voice-over (Hinglish, read it straight through) | Yellow caption | B-roll to shoot (2–3 clips each, 3–6 s) |
@@ -29,7 +30,7 @@ Items follow your numbering. The monthly figures add up to about ₹18,950, whic
 ## Recording the voice-over
 - Record one take in a quiet room, with the phone about 15 cm from your mouth. Send it as .m4a or .wav.
 - Read it fast and conversationally, like you're telling a friend. Don't pause between items; I'll tighten the gaps.
-- Lean on the twist words: "the expensive one", "har mahine", "dangerous".
+- Lean on the twist words: "paanch guna", "the villain", "har mahine", "dangerous".
 - If you fluff a line, just say it again. I'll keep the best version.
 
 ## Shooting the clips
