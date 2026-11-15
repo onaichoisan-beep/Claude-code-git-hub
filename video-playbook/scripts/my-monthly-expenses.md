@@ -34,3 +34,17 @@ Items follow your numbering. The monthly figures add up to about ₹18,950, whic
 - You need about 25–30 clips. Include at least 4 selfies: the tired opener, the reaction for "the villain", eating out, and the smiling ending.
 - Name the files by topic if you can (`rent_1.mp4`, `blinkit_2.mp4` …). If not, I'll sort them.
 - The audio in the clips doesn't matter, because it will be muted.
+
+## Sound design (from `audio-lab/sfx`)
+I'll use 8–10 SFX in total, kept under the voice. Every other cut stays clean, so the video still feels like a real vlog.
+
+| Moment | SFX | Placement |
+|---|---|---|
+| Hook: "paanch guna" | `Reverse_Bass` → `THE_Boom_Sound_Effect` | The bass rise peaks on "paanch guna", and the boom hits on "mehenga" as the title appears |
+| Each yellow caption appears | `Quick_whoosh` (subtle) | Only on the first 3 captions, then none, so it doesn't get repetitive |
+| "…the villain." | `Lit_heartbeat1` | One heartbeat in the tiny pause before "Room rent" |
+| "8,200" | `Bass_Explosion` + `Lit_body_punch` | Hit lands on the number (the punch layer makes it audible on phone speakers) |
+| "Wo 10-minute delivery dangerous hai" | `Lit_shock` | Zap on "dangerous" |
+| End montage: "Rent, fees, mess, Blinkit, Rapido" | `Whoosh_2` / `My_fav_whoosh` / `Whoosh_4`, rotated | One whoosh on each 1 s cut |
+| "sab milake" | `Beeping_Sound_Effect` (trimmed to ~0.8 s) | Calculator "adding up" beeps |
+| "15 se 20K" | `THE_Boom_Sound_Effect` | Final reveal boom, faded out under "that's about it" |
