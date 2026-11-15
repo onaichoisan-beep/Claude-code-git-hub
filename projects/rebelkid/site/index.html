@@ -1,0 +1,583 @@
+<title>Rebel Kid Reel Builder</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Pinyon+Script&family=Libre+Bodoni:ital,wght@1,400;1,500&family=Syne:wght@600;700&family=Space+Grotesk:wght@400;500;600&family=Alex+Brush&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: editing-suite — sticky 9:16 preview on the left, beat list with 3 designs per beat on the right; stacks on phones.
+   Deliberately single dark theme (a video tool), colours set explicitly. */
+:root{
+  --bg:#191412; --panel:#231c19; --panel2:#2c2420; --line:#3d322c; --fg:#f2e7d2; --muted:#a8998a;
+  --cream:#F4E0A5; --maroon:#7a1a0c; --pick:#F4E0A5; --ok:#9fd38a;
+  --ui:'Inter',system-ui,sans-serif; --label:'Space Grotesk','Inter',sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:14px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding-block:14px;border-bottom:1px solid var(--line)}
+header h1{font-family:var(--label);font-size:18px;font-weight:600;margin:0;letter-spacing:.01em}
+header h1 small{font-weight:400;color:var(--muted);font-size:13px;margin-left:8px}
+.hgap{flex:1}
+button,.btn{font:500 13px var(--label);color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:#6a574c}
+button:focus-visible,input:focus-visible,textarea:focus-visible,label:focus-within{outline:2px solid var(--pick);outline-offset:2px}
+button.primary{background:var(--cream);color:#2a1508;border-color:var(--cream)}
+.chk{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;cursor:pointer}
+main{display:grid;grid-template-columns:minmax(280px,420px) minmax(0,1fr);gap:24px;padding-block:18px 40px}
+@media (max-width:860px){main{grid-template-columns:minmax(0,1fr)}}
+.stagecol{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);align-self:start;display:flex;flex-direction:column;gap:10px}
+@media (max-width:860px){.stagecol{position:static}}
+.phone{position:relative;width:100%;max-width:420px;aspect-ratio:9/16;background:#000;border-radius:14px;overflow:hidden;box-shadow:0 0 0 1px var(--line)}
+#cv{position:absolute;left:0;top:0;width:1080px;height:1920px;transform-origin:0 0;overflow:hidden;background:#000}
+.L{position:absolute;inset:0}
+#spkwrap{position:absolute;inset:0;transform-origin:540px 960px}
+#spk{position:absolute;inset:0;transform-origin:0 0}
+#av{width:1080px;height:1920px;object-fit:cover;display:block}
+#guides{pointer-events:none}
+.tbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.time{font:500 13px var(--label);font-variant-numeric:tabular-nums;color:var(--muted);min-width:96px}
+.tl{position:relative;height:30px;background:var(--panel);border-radius:6px;cursor:pointer;overflow:hidden;border:1px solid var(--line)}
+.tl .seg{position:absolute;top:0;bottom:0;border-right:1px solid var(--bg);display:flex;align-items:center;justify-content:center;font:600 10px var(--label);color:#2a1508}
+.tl .ph{position:absolute;top:0;bottom:0;width:2px;background:#fff;pointer-events:none}
+.hint{color:var(--muted);font-size:12.5px;line-height:1.45;margin:0}
+.beats{display:flex;flex-direction:column;gap:14px;min-width:0}
+.beat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.beat.on{border-color:#8d7564}
+.bh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.bh b{font:600 15px var(--label)}
+.bh .tc{font:500 12px var(--label);color:var(--muted);font-variant-numeric:tabular-nums}
+.bh .say{color:var(--muted);font-size:12.5px;flex-basis:100%;line-height:1.4}
+.bh button{margin-left:auto;padding:5px 10px}
+.opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.opts{grid-template-columns:minmax(0,1fr)}}
+.opt{display:flex;flex-direction:column;gap:4px;text-align:left;padding:10px;border-radius:9px;background:var(--panel2);border:1px solid var(--line);font-family:var(--ui);font-weight:400}
+.opt .k{font:600 12px var(--label);display:flex;gap:6px;align-items:center}
+.opt .k i{font-style:normal;font-weight:500;font-size:10.5px;padding:1px 6px;border-radius:99px;background:#3b2d26;color:#e8cfa6}
+.opt .k i.ref{background:var(--maroon);color:#ffe7c4}
+.opt .n{font-size:12.5px;color:var(--fg);line-height:1.35}
+.opt[aria-pressed="true"]{border-color:var(--pick);box-shadow:inset 0 0 0 1px var(--pick)}
+.ed{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px}
+@media (max-width:560px){.ed{grid-template-columns:minmax(0,1fr)}}
+.ed label{display:flex;flex-direction:column;gap:4px;font:500 11.5px var(--label);color:var(--muted);min-width:0}
+.ed label.wide{grid-column:1/-1}
+.ed input,.ed textarea{font:13px var(--ui);color:var(--fg);background:#1a1412;border:1px solid var(--line);border-radius:7px;padding:7px 8px;min-width:0;width:100%;box-sizing:border-box}
+.ed textarea{resize:vertical;min-height:64px;line-height:1.4}
+.slot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.slot .file{position:relative;overflow:hidden}
+.slot .file input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.note{font-size:12.5px;color:var(--muted);line-height:1.45;border-left:2px solid var(--line);padding-left:10px;margin:0}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--cream);color:#2a1508;font:600 13px var(--label);padding:9px 16px;border-radius:99px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+.toast.show{opacity:1}
+#jsonOut{width:100%;min-height:90px;font:12px ui-monospace,monospace;background:#120e0c;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px;box-sizing:border-box}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ===== canvas-space styles (1080x1920 px) ===== */
+.cx{position:absolute;white-space:nowrap;line-height:1}
+.wsh{text-shadow:0 2px 14px rgba(0,0,0,.28),0 1px 2px rgba(0,0,0,.25)}
+.card{position:absolute;inset:0}
+.grain{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .25  0 0 0 0 .1  0 0 0 .09 0'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>")}
+.clip{position:absolute;overflow:hidden;background:#222}
+.clip video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+</style>
+
+<header>
+  <h1>Reel Style Builder <small>fraym.fx "After" style → client A-roll · 20 beats × 3 designs</small></h1>
+  <span class="hgap"></span>
+  <label class="chk"><input type="checkbox" id="gSafe"> IG safe zone</label>
+  <label class="chk"><input type="checkbox" id="gFace"> chin line</label>
+  <button id="playAll" class="primary">▶ Play full edit</button>
+  <button id="copyBtn">Copy my picks</button>
+</header>
+
+<main>
+  <section class="stagecol" aria-label="Preview">
+    <div class="phone" id="phone">
+      <div id="cv">
+        <div class="L" id="under"></div>
+        <div id="spkwrap"><div id="spk"><video id="av" src="aroll.mp4" playsinline preload="auto"></video></div></div>
+        <div class="L" id="over"></div>
+        <svg class="L" id="guides" width="1080" height="1920" viewBox="0 0 1080 1920" hidden></svg>
+      </div>
+    </div>
+    <div class="tbar">
+      <button id="pp" aria-label="Play or pause">▶</button>
+      <button id="prevB" aria-label="Previous beat">◀ beat</button>
+      <button id="nextB" aria-label="Next beat">beat ▶</button>
+      <label class="chk"><input type="checkbox" id="loopB"> loop beat</label>
+      <span class="time" id="tm">0:00.00</span>
+    </div>
+    <div class="tl" id="tl" aria-label="Timeline"></div>
+    <p class="hint">Click a design to preview it on its beat. Edit the words underneath and the preview updates live. B-roll slots play placeholder footage from the client's own selfie/product shots until you drop in real b-roll. Picks are remembered in this browser; press <b>Copy my picks</b> and paste them to me to render the edit.</p>
+  </section>
+  <section class="beats" id="beats" aria-label="Beats"></section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="data.js"></script>
+<script>
+"use strict";
+/* ================= measured style (spec/STYLE.md) ================= */
+const P={cream:'#F4E0A5',polBg:'#F1E9D4',pol:'#FBF5E8',maroon:'#5F0100',red:'#B02A12',white:'#FFFEF5',lime:'#F3F83D',paleY:'#E5CF74',noteY:'#EDEB6A',box:'rgba(78,60,53,.55)',pink:'#CCB1AC',camBody:'#9C736D',camBg:'#F3F2E2'};
+const F={bold:"'Familjen Grotesk',Arial,sans-serif",script:"'Pinyon Script','Snell Roundhand',cursive",serif:"'Libre Bodoni','Bodoni 72',Georgia,serif",top:"'Syne','Space Grotesk',sans-serif",cap:"'Space Grotesk',Arial,sans-serif",brush:"'Alex Brush','Snell Roundhand',cursive"};
+const FPS=30, LAG=4/30;               // text appears ~4 frames AFTER the word (measured +1..+6 f)
+const SAFE={x0:84,x1:900,yMax:1520};   // Instagram safe zone
+const CAP_TOP=1462;                    // bottom caption, kept above y 1520
+
+/* ================= state ================= */
+const $=s=>document.querySelector(s);
+const av=$('#av'),cv=$('#cv'),under=$('#under'),over=$('#over'),spk=$('#spk'),spkwrap=$('#spkwrap');
+let picks={},edits={},slotSrc={};
+try{const s=JSON.parse(localStorage.getItem('rkb_v1')||'{}');picks=s.picks||{};edits=s.edits||{};}catch(e){}
+function save(){try{localStorage.setItem('rkb_v1',JSON.stringify({picks,edits}))}catch(e){}}
+
+/* ================= helpers ================= */
+const norm=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const fmt=t=>{const m=Math.floor(t/60),s=(t%60);return m+':'+(s<10?'0':'')+s.toFixed(2)};
+function faceRange(s,e){let top=1e9,chin=0;for(let f=Math.floor(s*FPS/3);f<=Math.ceil(e*FPS/3)&&f<FACES.length;f++){top=Math.min(top,FACES[f][0]);chin=Math.max(chin,FACES[f][1])}return{top,chin}}
+
+/* ================= engine ================= */
+// An element: {el, on, off, anim(fe,el)} ; visible when on<=t<off. Hard pops unless anim given.
+let ELS=[],SLOTS=[],SPK=null,CUR=null;
+function ctxFor(beat,dz){
+  const words=WORDS.filter(w=>w.s>=beat.s-0.06&&w.s<beat.e-0.01);
+  const fr=faceRange(beat.s,beat.e);
+  const c={beat,dz,words,
+    topBottom:clamp(fr.top-95,300,560),    // above the hair
+    midTop:clamp(fr.chin+40,1080,1300),    // below the chin
+    T:k=>{const e=(edits[beat.id]||{})[dz.id]||{};return (k in e)?e[k]:dz.texts[k]},
+    at(key,n=1){key=norm(String(key));let k=0;for(const w of words){if(norm(w.w).startsWith(key)&&++k>=n)return w.s+LAG}return beat.s+LAG},
+    end:beat.e+0.001};
+  return c;
+}
+function mk(layer,html,style,on,off,anim,cls){
+  const d=document.createElement('div');d.className='cx '+(cls||'');d.innerHTML=html;Object.assign(d.style,style||{});
+  (layer==='under'?under:over).appendChild(d);const o={el:d,on,off,anim};ELS.push(o);return o;}
+function esc(s){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
+
+// words of an editable string, each popping on its own anchor (ref: words build one by one, layout fixed)
+function wordSpans(text,times){return String(text).split(/\s+/).filter(Boolean).map((w,i)=>`<span data-on="${times[Math.min(i,times.length-1)]}">${esc(w)}</span>`).join(' ')}
+
+/* ---- components (numbers from spec/STYLE.md) ---- */
+function txt(c,text,o){ // generic single text block
+  const st={fontFamily:o.font,fontSize:o.size+'px',fontWeight:o.w||400,color:o.color||P.white,letterSpacing:(o.ls??0)+'em',fontStyle:o.it?'italic':'normal',top:o.y+'px'};
+  if(o.align==='l'){st.left=o.x+'px'}else if(o.align==='r'){st.right=(1080-o.x)+'px'}else{st.left=(o.x??540)+'px';st.transform='translateX(-50%)'}
+  if(o.skew)st.transform=(st.transform||'')+' skewX('+o.skew+'deg)';
+  const html=o.times?wordSpans(text,o.times):esc(text);
+  return mk(o.layer||'over',html,st,o.on,o.off??c.end,o.anim,(o.shadow===false?'':'wsh ')+(o.cls||''));}
+
+function SubCap(c,from,to){ // bottom phrase caption, hard swaps, Space Grotesk 500 49px
+  const lines=String(c.T('caps')).split('\n');const cues=CUES.filter(q=>q.s>=c.beat.s-0.05&&q.s<c.beat.e-0.05);
+  cues.forEach((q,i)=>{const on=q.s+LAG,off=i+1<cues.length?cues[i+1].s+LAG:c.end;
+    if(from!=null&&q.s<from-LAG-0.01)return; if(to!=null&&q.s>=to-LAG-0.01)return;
+    const t=(lines[i]??q.t).trim(); if(!t)return;
+    txt(c,t,{font:F.cap,size:49,w:500,ls:-0.05,y:CAP_TOP,on,off,cls:'cap'});});}
+function capsDefault(beat){return CUES.filter(q=>q.s>=beat.s-0.05&&q.s<beat.e-0.05).map(q=>q.t).join('\n')}
+
+function TopScript(c,text,on,off){ // "Literally": white Pinyon ~120px above the head
+  txt(c,text,{font:F.script,size:120,y:c.topBottom-120,on,off});}
+function TopWords(c,l1,t1,l2,t2,on,off){ // "Mujhe har dinn / yeh guilt": Syne 600 69px + Syne 700 84px
+  const y2=c.topBottom-84, y1=l2?y2-72:c.topBottom-69;
+  txt(c,l1,{font:F.top,size:69,w:600,ls:-0.03,y:y1,on,off,times:t1});
+  if(l2)txt(c,l2,{font:F.top,size:84,w:700,ls:-0.03,y:y2,on:Math.min(...t2),off,times:t2});}
+function PopWord(c,text,on,off,caps){ // one white word on the chest, replaced per word
+  txt(c,caps?String(text).toUpperCase():text,{font:F.top,size:caps?60:84,w:600,ls:caps?0.01:-0.03,y:c.midTop+40,on,off});}
+function PopLine(c,text,times,off){ // NOBODY ... TALKS (words keep final layout)
+  txt(c,String(text).toUpperCase(),{font:F.top,size:58,w:600,ls:0.02,y:c.midTop+50,on:Math.min(...times),off,times:times.map(String),cls:'gapw'});}
+function SideNote(c,text,side,on,off){ // small yellow note beside the head
+  const y=c.topBottom-40;
+  txt(c,text,{font:F.cap,size:38,w:500,ls:-0.03,color:P.noteY,y,x:side==='l'?96:888,align:side,on,off});}
+function TypeBox(c,text,on,off,y){ // typewriter in translucent box, ~2 f per char + cursor
+  text=String(text).toUpperCase();const n=text.length;y=y??c.topBottom-100;
+  const o=mk('over',`<span class="tb" style="display:inline-block;position:relative"><span class="tw"></span><span class="cur" style="display:inline-block;width:4px;height:52px;background:${P.white};margin-left:6px;vertical-align:-8px"></span><span style="visibility:hidden;position:absolute;left:0">${esc(text)}</span></span>`,
+    {left:'540px',top:y+'px',transform:'translateX(-50%)',background:P.box,borderRadius:'8px',padding:'14px 22px',fontFamily:F.cap,fontWeight:500,fontSize:'46px',letterSpacing:'-0.03em',color:P.white,minWidth:Math.min(780,n*30+60)+'px'},on,off,
+    (fe,el)=>{const k=clamp(Math.floor((fe-2)/2),0,n);el.querySelector('.tw').textContent=text.slice(0,k);el.querySelector('.cur').style.opacity=(k<n||Math.floor(fe/15)%2==0)?1:0});}
+function SerifStack(c,small,big,on,off,onBig){ // "spend / my life": Syne small + Libre Bodoni italic big
+  const yb=c.topBottom-128;
+  txt(c,small,{font:F.top,size:46,w:600,ls:-0.02,y:yb-44,on,off});
+  txt(c,big,{font:F.serif,size:128,w:400,it:true,ls:-0.05,y:yb,on:onBig??on,off});}
+function YellowItalic(c,text,on,off){
+  txt(c,text,{font:F.bold,size:62,w:600,it:true,ls:-0.01,color:P.paleY,y:c.topBottom-66,on,off});}
+function cascade(n,stagger,dur){return(fe,el)=>{el.querySelectorAll('.ch').forEach((s,i)=>s.style.opacity=clamp((fe-i*stagger)/dur,0,1))}}
+function chars(t){return [...String(t)].map(ch=>`<span class="ch" style="opacity:0">${ch===' '?'&nbsp;':esc(ch)}</span>`).join('')}
+function LimeWord(c,text,on,off){ // "Ice-creams": Familjen 700 italic, lime, letter cascade
+  const o=mk('over',chars(text),{left:'540px',top:(c.topBottom-92)+'px',transform:'translateX(-50%) skewX(-9deg)',fontFamily:F.bold,fontWeight:700,fontStyle:'italic',fontSize:'90px',letterSpacing:'-0.06em',color:P.lime,textShadow:'0 2px 0 rgba(60,50,0,.35),0 4px 16px rgba(0,0,0,.25)'},on,off,cascade(0,1.2,6));}
+function ScriptFade(c,text,on,off,y){ // "Cafe Mocha": Alex Brush, letter fade 6 f, stagger 1.2 f
+  mk('over',chars(text),{left:'540px',top:(y??c.topBottom-104)+'px',transform:'translateX(-50%)',fontFamily:F.brush,fontSize:'104px',color:P.white,letterSpacing:'-0.01em'},on,off,cascade(0,1.2,6),'wsh');}
+function ArcText(c,text,on,off){ // curved white text over the head, word by word
+  const id='arc'+Math.random().toString(36).slice(2,7),ws=String(text).split(/\s+/).filter(Boolean);
+  const cy=c.topBottom+270;
+  const o=mk('over',`<svg width="1080" height="700" viewBox="0 0 1080 700" style="overflow:visible"><defs><path id="${id}" d="M 150 ${cy-c.topBottom+190} A 420 330 0 0 1 930 ${cy-c.topBottom+190}"/></defs><text font-family="${F.cap.replace(/"/g,"'")}" font-size="42" font-weight="500" fill="${P.white}" letter-spacing="-0.5" style="text-shadow:0 2px 10px rgba(0,0,0,.3)"><textPath href="#${id}" startOffset="50%" text-anchor="middle">${ws.map((w,i)=>`<tspan class="aw">${esc(w)} </tspan>`).join('')}</textPath></text></svg>`,
+    {left:'0',top:(c.topBottom-190)+'px'},on,off,null);
+  o.arcWords=ws.length;o.wordTimes=null;return o;}
+function cardBg(c,color,on,off,layer){return mk(layer||'over','',{inset:'0',left:0,top:0,width:'1080px',height:'1920px',background:color},on,off,null,'card grain');}
+function TypeCard(c,lines,on,off){ // full cream card, stacked maroon type, word by word
+  cardBg(c,P.cream,on,off);
+  const H=lines.reduce((a,l)=>a+l.lh,0);let y=974-H/2;
+  for(const l of lines){
+    const st=l.kind==='script'?{font:F.script,size:149,w:400,ls:-0.05}:l.kind==='bold'?{font:F.bold,size:122,w:700,ls:-0.05}:{font:F.bold,size:78,w:700,ls:-0.05};
+    txt(c,l.text,Object.assign(st,{color:P.maroon,align:'l',x:l.x,y:y+(l.dy||0),on:Math.min(...l.times),off,times:l.times,shadow:false}));y+=l.lh;}
+}
+function clipBox(c,key,box,on,off,rot,frame,layer){ // a b-roll slot (video), optional polaroid frame
+  const s=slotFor(c,key);const wrap=document.createElement('div');
+  const o=mk(layer||'over','',{left:box[0]+'px',top:box[1]+'px',width:box[2]+'px',height:box[3]+'px',transform:`rotate(${rot||0}deg)`,whiteSpace:'normal'},on,off,null);
+  if(frame==='polaroid'){Object.assign(o.el.style,{background:P.pol,boxShadow:'0 10px 30px rgba(60,30,10,.22),0 1px 3px rgba(60,30,10,.2)',borderRadius:'6px'})}
+  if(frame==='card'){Object.assign(o.el.style,{boxShadow:'0 8px 24px rgba(60,30,10,.25)'})}
+  const inset=frame==='polaroid'?[22,22,22,150]:[0,0,0,0];
+  const cl=document.createElement('div');cl.className='clip';Object.assign(cl.style,{left:inset[0]+'px',top:inset[1]+'px',right:inset[2]+'px',bottom:inset[3]+'px'});
+  const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';v.src=s.url;cl.appendChild(v);o.el.appendChild(cl);
+  SLOTS.push({v,s,beat:c.beat,o});return o;}
+function pin(c,x,y,rot,on,off,color){mk('over',`<svg width="60" height="70" viewBox="0 0 60 70"><circle cx="30" cy="22" r="17" fill="${color||'#E79AB3'}"/><circle cx="24" cy="16" r="5" fill="#fff" opacity=".55"/><path d="M30 38 L30 66" stroke="#8a7f78" stroke-width="3" stroke-linecap="round"/></svg>`,{left:x+'px',top:y+'px',transform:`rotate(${rot}deg)`},on,off,null);}
+function doodle(c,x,y,on,off){mk('over',`<svg width="110" height="80" viewBox="0 0 110 80" fill="none" stroke="#3a2a22" stroke-width="2.4" stroke-linecap="round"><path d="M14 40 l8-14 8 14-14-9h16z"/><path d="M50 22c10 4 20 4 30 0M58 34c8 3 16 3 22 0M44 50c14 6 30 6 44 0"/></svg>`,{left:x+'px',top:y+'px'},on,off,null);}
+function heart(c,x,y,on,off,size){size=size||120;mk('over',`<svg width="${size}" height="${size}" viewBox="0 0 100 100"><path d="M50 88C20 66 6 50 8 32 10 16 28 8 40 18c5 4 8 9 10 14 2-5 5-10 10-14 12-10 30-2 32 14 2 18-12 34-42 56z" fill="#B3221A"/><path d="M50 80C26 62 15 50 16 35c1-11 13-17 22-10 5 4 9 11 12 17 3-6 7-13 12-17 9-7 21-1 22 10 1 15-10 27-34 45z" fill="none" stroke="#7d0f0a" stroke-width="3" opacity=".55"/><path d="M28 30c4-5 9-6 13-3" stroke="#fff" stroke-width="3" opacity=".5" fill="none"/></svg>`,{left:x+'px',top:y+'px',transform:'rotate(-8deg)'},on,off,null);}
+function Collage(c,lines,on,off){ // cream card, 3 tilted b-roll cards with pins, red type
+  cardBg(c,P.cream,on,off);
+  const t=lines.times;
+  clipBox(c,'clip1',[96,180,400,560],t[0],off,-5,'card');pin(c,330,150,8,t[0],off,'#E79AB3');
+  clipBox(c,'clip2',[560,700,380,560],t[1],off,3,'card');doodle(c,520,640,t[1],off);
+  clipBox(c,'clip3',[120,1050,420,600],t[2],off,-4,'card');pin(c,150,1010,-12,t[2],off,'#F2A5C0');
+  txt(c,lines.l1,{font:F.bold,size:60,w:700,ls:-0.05,color:P.red,x:880,align:'r',y:230,on:t[0],off,shadow:false});
+  txt(c,lines.l2,{font:F.bold,size:60,w:700,ls:-0.05,color:P.red,x:880,align:'r',y:290,on:t[1],off,shadow:false});
+  txt(c,lines.acc,{font:F.serif,size:84,w:400,it:true,ls:-0.04,color:P.red,x:880,align:'r',y:350,on:t[2],off,shadow:false});
+  txt(c,lines.l3,{font:F.bold,size:60,w:700,ls:-0.05,color:P.red,x:640,align:'l',y:1350,on:t[3],off,shadow:false});
+  txt(c,lines.acc2,{font:F.serif,size:84,w:400,it:true,ls:-0.04,color:P.red,x:640,align:'l',y:1410,on:t[4]??t[3],off,shadow:false});
+}
+function Polaroid(c,o,on,off){ // cream card, polaroid with b-roll, heart sticker, maroon type top
+  cardBg(c,P.polBg,on,off);
+  clipBox(c,'clip1',[130,400,760,1100],on,off,-1.5,'polaroid');heart(c,720,1350,on,off,130);
+  txt(c,o.l1,{font:F.bold,size:60,w:700,ls:-0.05,color:P.maroon,x:96,align:'l',y:150,on:o.t1,off,shadow:false});
+  txt(c,o.l1b||'',{font:F.bold,size:60,w:700,ls:-0.05,color:P.maroon,x:96,align:'l',y:206,on:o.t1,off,shadow:false});
+  txt(c,o.r1,{font:F.bold,size:60,w:700,ls:-0.05,color:P.maroon,x:900,align:'r',y:250,on:o.t2,off,shadow:false});
+  txt(c,o.acc,{font:F.serif,size:96,w:400,it:true,ls:-0.05,color:P.maroon,x:900,align:'r',y:318,on:o.t3,off,shadow:false});
+}
+function VideoCard(c,o,on,off){ // cream card, centred clip panel, red type top/bottom
+  cardBg(c,P.cream,on,off);
+  clipBox(c,'clip1',[150,330,750,1080],on,off,0);
+  txt(c,o.top,{font:F.top,size:62,w:600,ls:-0.04,color:P.red,x:150,align:'l',y:170,on:o.t1,off,shadow:false});
+  txt(c,o.acc,{font:F.serif,size:120,w:400,it:true,ls:-0.06,color:P.red,x:900,align:'r',y:196,on:o.t2,off,shadow:false});
+  txt(c,o.bot,{font:F.top,size:62,w:600,ls:-0.04,color:P.red,x:150,align:'l',y:1438,on:o.t3,off,shadow:false});
+}
+function setSpeaker(on,off,fn){SPK={on,off,fn}}
+function PinkFrame(c,on,off){ // pink glitter heart frame, speaker inset zooms in over 4 f (34->64->84->92 px)
+  mk('under',`<svg width="1080" height="1920" viewBox="0 0 1080 1920">${pinkArt()}</svg>`,{left:0,top:0},on,off,null);
+  const ins=[34,64,84,92];
+  setSpeaker(on,off,fe=>{const k=fe<0?92:ins[Math.min(Math.floor(fe),3)];const sx=(1080-2*k)/1080;return{scale:sx,clip:`inset(${k*1.8}px ${k}px ${k*1.8}px ${k}px round 22px)`}});
+}
+let _pink=null;function pinkArt(){if(_pink)return _pink;let s=`<defs><radialGradient id="pg" cx="50%" cy="50%" r="70%"><stop offset="0" stop-color="#E9CFCB"/><stop offset=".7" stop-color="${P.pink}"/><stop offset="1" stop-color="#B6848A"/></radialGradient><filter id="pb"><feGaussianBlur stdDeviation="9"/></filter></defs><rect width="1080" height="1920" fill="url(#pg)"/>`;
+  let r=7;const rnd=()=>(r=(r*9301+49297)%233280)/233280;
+  for(let i=0;i<70;i++){const x=rnd()*1080,y=rnd()*1920;s+=`<circle cx="${x|0}" cy="${y|0}" r="${(20+rnd()*60)|0}" fill="${rnd()<.5?'#F4DDD9':'#B97C86'}" opacity=".45" filter="url(#pb)"/>`}
+  for(let i=0;i<26;i++){const x=rnd()*1080,y=rnd()*1920,z=14+rnd()*22;s+=`<path transform="translate(${x|0},${y|0}) scale(${(z/40).toFixed(2)}) rotate(${(rnd()*40-20)|0})" d="M0 14C-12 4-18-4-14-12-10-19 -2-17 0-10 2-17 10-19 14-12 18-4 12 4 0 14z" fill="${rnd()<.5?'#C25A72':'#E7A3B4'}" opacity=".8"/>`}
+  return _pink=s;}
+function Digicam(c,on,off){ // retro camera on floral cream; speaker in the screen; pop .96->1.02->1.00
+  mk('under',`<svg width="1080" height="1920" viewBox="0 0 1080 1920">${floralArt()}</svg>`,{left:0,top:0},on,off,null);
+  const pop=fe=>fe<2?0.96+0.03*fe:fe<16?1.02-0.02*((fe-2)/14):1;
+  mk('over',`<svg width="1080" height="1920" viewBox="0 0 1080 1920">${camArt()}</svg>`,{left:0,top:0,transformOrigin:'540px 960px'},on,off,(fe,el)=>{el.style.transform=`scale(${pop(fe)})`});
+  setSpeaker(on,off,fe=>({group:pop(fe),scale:0.72,tx:151,ty:262,clip:'inset(560px 210px 830px 210px round 34px)'}));
+}
+let _flo=null;function floralArt(){if(_flo)return _flo;let s=`<rect width="1080" height="1920" fill="${P.camBg}"/>`;let r=3;const rnd=()=>(r=(r*9301+49297)%233280)/233280;
+  for(let i=0;i<60;i++){const x=rnd()*1080,y=rnd()*1920,z=.5+rnd()*.7;s+=`<g transform="translate(${x|0},${y|0}) scale(${z.toFixed(2)})" opacity=".85">${[0,72,144,216,288].map(a=>`<ellipse rx="7" ry="12" transform="rotate(${a}) translate(0,-11)" fill="#E6B9C3"/>`).join('')}<circle r="4" fill="#C98A5A"/></g>`}
+  s+=`<path d="M70 300c-30-90 60-170 160-120 40-80 190-60 200 40 20 110-110 160-210 150-70-5-130-20-150-70z" fill="#D9C2A6" opacity=".9"/>`;return _flo=s;}
+let _cam=null;function camArt(){if(_cam)return _cam;
+  let s=`<defs><linearGradient id="cb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C79C92"/><stop offset=".45" stop-color="${P.camBody}"/><stop offset="1" stop-color="#7c5650"/></linearGradient><radialGradient id="dl" cx=".4" cy=".35"><stop offset="0" stop-color="#f4ede8"/><stop offset=".6" stop-color="#b9b2ad"/><stop offset="1" stop-color="#7f7874"/></radialGradient></defs>
+  <path fill-rule="evenodd" fill="url(#cb)" d="M200 470h680a60 60 0 0 1 60 60v960a60 60 0 0 1-60 60H200a60 60 0 0 1-60-60V530a60 60 0 0 1 60-60z M244 560h592a34 34 0 0 1 34 34v462a34 34 0 0 1-34 34H244a34 34 0 0 1-34-34V594a34 34 0 0 1 34-34z"/>
+  <rect x="146" y="476" width="788" height="1072" rx="56" fill="none" stroke="#E3BEA6" stroke-width="4" opacity=".6"/>
+  <rect x="207" y="557" width="666" height="536" rx="36" fill="none" stroke="#5e403b" stroke-width="6"/>
+  <circle cx="350" cy="1290" r="130" fill="url(#dl)"/><circle cx="350" cy="1290" r="78" fill="#d9d3cf" stroke="#8d8681" stroke-width="4"/>
+  ${Array.from({length:36},(_,i)=>`<line x1="350" y1="1170" x2="350" y2="1186" stroke="#6f6863" stroke-width="3" transform="rotate(${i*10} 350 1290)"/>`).join('')}
+  <circle cx="600" cy="1250" r="42" fill="#c8b6ae" stroke="#6c4a45" stroke-width="4"/><circle cx="760" cy="1250" r="42" fill="#c8b6ae" stroke="#6c4a45" stroke-width="4"/>
+  ${Array.from({length:12},(_,i)=>`<circle cx="${620+(i%4)*36}" cy="${1380+Math.floor(i/4)*30}" r="7" fill="#5b3d38"/>`).join('')}
+  <rect x="770" y="500" width="70" height="26" rx="10" fill="#7c5650"/>`;
+  for(const [x,y,z,rot] of [[860,1430,1.25,10],[760,1530,.9,-20],[930,1560,.8,30]]){s+=`<g transform="translate(${x},${y}) scale(${z}) rotate(${rot})">${[0,60,120,180,240,300].map(a=>`<path transform="rotate(${a})" d="M0 0C14-20 14-60 0-82-14-60-14-20 0 0z" fill="#EFB7C6" stroke="#D97F99" stroke-width="2"/>`).join('')}<circle r="10" fill="#F7E28A"/>${[0,60,120,180,240,300].map(a=>`<line transform="rotate(${a+30})" x1="0" y1="0" x2="0" y2="-34" stroke="#B8536E" stroke-width="2"/>`).join('')}</g>`}
+  return _cam=s;}
+
+/* ================= b-roll slots ================= */
+// Default placeholders = the client's own non-talking footage in the A-roll (selfie scalp shots, product hold).
+const DEF_IN={self:null,selfie:58.9,product:57.0,selfie2:61.0};
+function slotFor(c,key){const k=c.beat.id+'/'+key;const def=(c.dz.slots||{})[key]||'selfie';
+  if(slotSrc[k])return{url:slotSrc[k].url,user:true,name:slotSrc[k].name,key:k};
+  return{url:'aroll.mp4',user:false,inP:DEF_IN[def],self:def==='self',key:k};}
+function syncSlots(t,playing){for(const S of SLOTS){const v=S.v;const vis=t>=S.o.on&&t<S.o.off;
+  if(!vis){if(!v.paused)v.pause();continue}
+  let target;if(S.s.user){const d=v.duration||5;target=(t-S.o.on)%d}else if(S.s.self){target=t}else{target=S.s.inP+((t-S.o.on)%4.2)}
+  if(Math.abs(v.currentTime-target)>0.3)try{v.currentTime=target}catch(e){}
+  if(playing&&v.paused)v.play().catch(()=>{});if(!playing&&!v.paused)v.pause();}}
+
+/* ================= beats & designs ================= */
+// Each beat: id, s, e (seconds, from the client's own caption timing). Each design: id A/B/C, name, ref tag, texts (editable), build(c).
+const B=(id,s,e)=>({id,s,e});
+const BEATS=[];
+function beat(id,s,e,designs){const b=B(id,s,e);b.designs=designs;BEATS.push(b);for(const d of designs){d.texts=Object.assign({caps:null},d.texts||{});}return b;}
+
+beat('B01',0.0,4.067,[
+ {id:'A',name:'Hook: script word + chest words',ref:'S01 1:1',texts:{script:'Recently',w1:'turned 25',w2:'and I',w3:'really',w4:'thought',w5:'ki koi',w6:'mere liye'},
+  build(c){TopScript(c,c.T('script'),c.at('recently'),c.end);
+   PopLine(c,c.T('w1'),[c.at('turned'),c.at('25')],c.at('and'));
+   const seq=[['w2','and'],['w3','really'],['w4','thought'],['w5','ki'],['w6','mere']];
+   seq.forEach(([k,a],i)=>PopWord(c,c.T(k),c.at(a),i+1<seq.length?c.at(seq[i+1][1]):c.end));}},
+ {id:'B',name:'Top words + bottom captions',ref:'S05 parts',texts:{l1:'So, I recently',l2:'turned 25'},
+  build(c){TopWords(c,c.T('l1'),[c.at('so'),c.at('i'),c.at('recently')],c.T('l2'),[c.at('turned'),c.at('25')],c.at('so'),c.at('and'));SubCap(c,c.at('and'));}},
+ {id:'C',name:'Serif stack hook',ref:'S07 parts',texts:{s1:'I recently turned',b1:'twenty five',s2:'and I really',b2:'thought…'},
+  build(c){SerifStack(c,c.T('s1'),c.T('b1'),c.at('i'),c.at('and'),c.at('25'));SerifStack(c,c.T('s2'),c.T('b2'),c.at('and'),c.end,c.at('thought'));PopWord(c,'ki koi mere liye',c.at('ki'),c.end);}}
+]);
+beat('B02',4.067,8.333,[
+ {id:'A',name:'Cream type card, word by word',ref:'S02 1:1',texts:{l1:'25 gifts',l2:'Birthday',l3:'surprise plan',l4:'karega kyu ki'},
+  build(c){TypeCard(c,[{kind:'script',text:c.T('l1'),times:[c.at('25'),c.at('gifts')],x:180,lh:118},{kind:'bold',text:c.T('l2'),times:[c.at('birthday')],x:300,lh:104},{kind:'small',text:c.T('l3'),times:[c.at('surprise'),c.at('plan')],x:216,lh:76},{kind:'small',text:c.T('l4'),times:[c.at('karega'),c.at('kyu'),c.at('ki')],x:350,lh:76}],c.beat.s,c.end);}},
+ {id:'B',name:'Polaroid with b-roll',ref:'S06 parts',slots:{clip1:'selfie'},texts:{l1:'25 gifts for',l1b:'your',r1:'25th',acc:'Birthday'},
+  build(c){Polaroid(c,{l1:c.T('l1'),l1b:c.T('l1b'),t1:c.at('25'),r1:c.T('r1'),t2:c.at('25',2),acc:c.T('acc'),t3:c.at('birthday')},c.beat.s,c.end);}},
+ {id:'C',name:'Yellow italic + captions',ref:'S10 parts',texts:{y1:'25 gifts??',y2:'surprise plan??'},
+  build(c){YellowItalic(c,c.T('y1'),c.at('25'),c.at('surprise'));YellowItalic(c,c.T('y2'),c.at('surprise'),c.end);SubCap(c);}}
+]);
+beat('B03',8.333,13.633,[
+ {id:'A',name:'Captions + side notes + typewriter',ref:'S03 1:1',texts:{n1:'Pinterest girl',n2:'realistic? nahi',tb:'kuch nahi kiya'},
+  build(c){SubCap(c);SideNote(c,c.T('n1'),'l',c.at('pinterest'),c.at('mujhe'));SideNote(c,c.T('n2'),'r',c.at('realistic'),c.at('but'));TypeBox(c,c.T('tb'),c.at('kisi'),c.end);}},
+ {id:'B',name:'Typewriter + top words',ref:'S03 + S05 parts',texts:{tb:'Pinterest pagal',l1:'kisi ne bhi',l2:'kuch nahi kiya'},
+  build(c){TypeBox(c,c.T('tb'),c.at('pinterest'),c.at('but'));SubCap(c,null,c.at('kisi'));TopWords(c,c.T('l1'),[c.at('kisi'),c.at('ne'),c.at('bhi')],c.T('l2'),[c.at('kuch'),c.at('nahi'),c.at('kiya')],c.at('kisi'),c.end);}},
+ {id:'C',name:'Chest pop words',ref:'S01 parts',texts:{w1:'Pinterest',w2:'pagal',w3:'realistic',w4:'nahi',w5:'literally',w6:'kuch nahi kiya'},
+  build(c){const seq=[['w1','pinterest'],['w2','pagal'],['w3','realistic'],['w4','nahi'],['w5','literally'],['w6','kuch']];seq.forEach(([k,a],i)=>PopWord(c,c.T(k),c.at(a),i+1<seq.length?c.at(seq[i+1][1]):c.end));}}
+]);
+beat('B04',13.633,17.233,[
+ {id:'A',name:'Cream collage, 3 b-roll cards',ref:'S04 1:1',slots:{clip1:'selfie',clip2:'product',clip3:'selfie2'},texts:{l1:'So instead,',l2:'I made a list',acc:'of things',l3:'to gift',acc2:'myself'},
+  build(c){Collage(c,{l1:c.T('l1'),l2:c.T('l2'),acc:c.T('acc'),l3:c.T('l3'),acc2:c.T('acc2'),times:[c.at('so'),c.at('made'),c.at('things'),c.at('gift'),c.at('myself')]},c.beat.s,c.end);}},
+ {id:'B',name:'Cream type card',ref:'S02 parts',texts:{l1:'a list of',l2:'Gifts',l3:'to myself',l4:'now'},
+  build(c){SubCap(c,null,c.at('made'));TypeCard(c,[{kind:'script',text:c.T('l1'),times:[c.at('list'),c.at('of'),c.at('things')],x:190,lh:118},{kind:'bold',text:c.T('l2'),times:[c.at('gift')],x:330,lh:104},{kind:'small',text:c.T('l3'),times:[c.at('to',2),c.at('myself')],x:250,lh:76},{kind:'small',text:c.T('l4'),times:[c.at('now')],x:420,lh:76}],c.at('made'),c.end);}},
+ {id:'C',name:'Video card',ref:'S08 parts',slots:{clip1:'product'},texts:{top:'I made a list',acc:'gifts',bot:'to myself now'},
+  build(c){SubCap(c,null,c.at('made'));VideoCard(c,{top:c.T('top'),t1:c.at('made'),acc:c.T('acc'),t2:c.at('gift'),bot:c.T('bot'),t3:c.at('myself')},c.at('made'),c.end);}}
+]);
+beat('B05',17.233,22.233,[
+ {id:'A',name:'Big top words + captions',ref:'S05 1:1',texts:{l1:'No. 1',l2:'10kg Badam',l3:'dimag',l4:'tezz'},
+  build(c){TopWords(c,c.T('l1'),[c.at('no'),c.at('1')],c.T('l2'),[c.at('10kg'),c.at('badam')],c.at('no'),c.at('kyu'));SubCap(c,c.at('kyu'),c.at('dimag'));TopWords(c,c.T('l3'),[c.at('dimag')],c.T('l4'),[c.at('tezz')],c.at('dimag'),c.end);}},
+ {id:'B',name:'Lime word + side note',ref:'S12 + S03 parts',texts:{lime:'10kg Badam',n1:'mummy kehti thi'},
+  build(c){LimeWord(c,c.T('lime'),c.at('10kg'),c.at('kyu'));SideNote(c,c.T('n1'),'l',c.at('mummy'),c.end);SubCap(c,c.at('kyu'));}},
+ {id:'C',name:'Cream type card',ref:'S02 parts',texts:{l1:'No. 1',l2:'10kg',l3:'of Badam'},
+  build(c){TypeCard(c,[{kind:'script',text:c.T('l1'),times:[c.at('no'),c.at('1')],x:220,lh:118},{kind:'bold',text:c.T('l2'),times:[c.at('10kg')],x:340,lh:104},{kind:'small',text:c.T('l3'),times:[c.at('of'),c.at('badam')],x:300,lh:76}],c.beat.s,c.at('kyu'));SubCap(c,c.at('kyu'));}}
+]);
+beat('B06',22.233,24.033,[
+ {id:'A',name:'Polaroid card',ref:'S06 1:1',slots:{clip1:'selfie2'},texts:{l1:'maine mummy',l1b:'ke kehne pe',r1:'Badam toh',acc:'nahi khaaye'},
+  build(c){Polaroid(c,{l1:c.T('l1'),l1b:c.T('l1b'),t1:c.at('maine'),r1:c.T('r1'),t2:c.at('badam'),acc:c.T('acc'),t3:c.at('nahi')},c.beat.s,c.end);}},
+ {id:'B',name:'Serif stack',ref:'S07 parts',texts:{s:'Badam toh',b:'nahi khaaye'},
+  build(c){SubCap(c,null,c.at('badam'));SerifStack(c,c.T('s'),c.T('b'),c.at('badam'),c.end,c.at('nahi'));}},
+ {id:'C',name:'Top words',ref:'S05 parts',texts:{l1:'Badam toh',l2:'nahi khaaye'},
+  build(c){SubCap(c,null,c.at('badam'));TopWords(c,c.T('l1'),[c.at('badam'),c.at('toh')],c.T('l2'),[c.at('nahi'),c.at('khaaye')],c.at('badam'),c.end);}}
+]);
+beat('B07',24.033,28.867,[
+ {id:'A',name:'Serif stacks, one per page',ref:'S07 1:1',texts:{s1:'iss',b1:'lifetime',s2:'kuch cheeze',b2:'bahot jyada',s3:'jaise ki',b3:'dhakke',b4:'taane',b5:'chotein'},
+  build(c){const p=[['s1','b1','par','lifetime'],['s2','b2','kuch','bahot'],['s3','b3','khaayi','dhakke']];
+   SerifStack(c,c.T('s1'),c.T('b1'),c.at('par'),c.at('kuch'),c.at('lifetime'));SerifStack(c,c.T('s2'),c.T('b2'),c.at('kuch'),c.at('khaayi'),c.at('bahot'));
+   SerifStack(c,c.T('s3'),c.T('b3'),c.at('jaise'),c.at('taane'),c.at('dhakke'));SerifStack(c,c.T('s3'),c.T('b4'),c.at('taane'),c.at('chotein'));SerifStack(c,c.T('s3'),c.T('b5'),c.at('chotein'),c.end);}},
+ {id:'B',name:'Chest pop list + captions',ref:'S01 parts',texts:{w1:'DHAKKE',w2:'TAANE',w3:'CHOTEIN'},
+  build(c){SubCap(c,null,c.at('dhakke'));PopWord(c,c.T('w1'),c.at('dhakke'),c.at('taane'));PopWord(c,c.T('w2'),c.at('taane'),c.at('chotein'));PopWord(c,c.T('w3'),c.at('chotein'),c.end);}},
+ {id:'C',name:'Typewriter list',ref:'S03 parts',texts:{tb:'dhakke, taane, chotein',n1:'lifetime mein',n2:'bahot jyada'},
+  build(c){SubCap(c,null,c.at('dhakke'));SideNote(c,c.T('n1'),'l',c.at('lifetime'),c.at('dhakke'));SideNote(c,c.T('n2'),'r',c.at('bahot'),c.at('dhakke'));TypeBox(c,c.T('tb'),c.at('dhakke'),c.end);}}
+]);
+beat('B08',28.867,31.2,[
+ {id:'A',name:'Video card',ref:'S08 1:1',slots:{clip1:'selfie'},texts:{top:'aur iss sabke',acc:'baad bhi',bot:'akkal nahi aayi'},
+  build(c){VideoCard(c,{top:c.T('top'),t1:c.at('aur'),acc:c.T('acc'),t2:c.at('baad'),bot:c.T('bot'),t3:c.at('akkal')},c.beat.s,c.end);}},
+ {id:'B',name:'Yellow italic',ref:'S10 parts',texts:{y:'akkal nahi aayi??'},
+  build(c){SubCap(c,null,c.at('mujhme'));YellowItalic(c,c.T('y'),c.at('akkal'),c.end);}},
+ {id:'C',name:'Cream type card',ref:'S02 parts',texts:{l1:'aur iss sabke baad bhi',l2:'akkal',l3:'nahi aayi'},
+  build(c){TypeCard(c,[{kind:'small',text:c.T('l1'),times:[c.at('aur'),c.at('iss'),c.at('sabke'),c.at('baad'),c.at('bhi')],x:150,lh:96},{kind:'script',text:c.T('l2'),times:[c.at('akkal')],x:300,lh:118},{kind:'bold',text:c.T('l3'),times:[c.at('nahi'),c.at('aayi')],x:330,lh:104}],c.beat.s,c.end);}}
+]);
+beat('B09',31.2,36.533,[
+ {id:'A',name:'Arc text + typewriter + captions',ref:'S09 1:1',texts:{arc:'and my frontal lobe has fully developed',tb:'Badam khaake hi'},
+  build(c){SubCap(c,null,c.at('and',2));const a=ArcText(c,c.T('arc'),c.at('and',2),c.at('ab'));a.wordTimes=[c.at('and',2),c.at('my'),c.at('frontal'),c.at('lobe'),c.at('has'),c.at('fully'),c.at('developed')];
+   SubCap(c,c.at('ab'));TypeBox(c,c.T('tb'),c.at('badam'),c.end);}},
+ {id:'B',name:'Top words + captions',ref:'S05 parts',texts:{l1:'frontal lobe',l2:'fully developed'},
+  build(c){TopWords(c,c.T('l1'),[c.at('frontal'),c.at('lobe')],c.T('l2'),[c.at('fully'),c.at('developed')],c.at('frontal'),c.at('ab'));SubCap(c);}},
+ {id:'C',name:'Lime word + script fade',ref:'S12 parts',texts:{lime:'Badam',sc:'akkal'},
+  build(c){SubCap(c);LimeWord(c,c.T('lime'),c.at('badam'),c.at('mujhme'));ScriptFade(c,c.T('sc'),c.at('akkal'),c.end);}}
+]);
+beat('B10',36.533,38.267,[
+ {id:'A',name:'Yellow italic',ref:'S10 1:1',texts:{y:'No. 2 ??'},
+  build(c){YellowItalic(c,c.T('y'),c.at('no'),c.end);SubCap(c,c.at('this'));}},
+ {id:'B',name:'Typewriter',ref:'S03 parts',texts:{tb:'No. 2'},
+  build(c){TypeBox(c,c.T('tb'),c.at('no'),c.end);SubCap(c);}},
+ {id:'C',name:'Cream type card',ref:'S02 parts',texts:{l1:'No. 2',l2:'This year'},
+  build(c){TypeCard(c,[{kind:'script',text:c.T('l1'),times:[c.at('no'),c.at('2')],x:240,lh:118},{kind:'bold',text:c.T('l2'),times:[c.at('this'),c.at('year')],x:300,lh:104}],c.beat.s,c.end);}}
+]);
+beat('B11',38.267,43.4,[
+ {id:'A',name:'Pink heart frame',ref:'S11 1:1',texts:{a1:'feel like',a2:'a girl',b1:'feeling like',b2:'a man',c1:'not because of',c2:'my biceps'},
+  build(c){PinkFrame(c,c.beat.s,c.end);
+   const pair=(k1,k2,a1,a2,on,off)=>{txt(c,c.T(k1),{font:F.top,size:72,w:700,ls:-0.03,y:300,on:a1,off});txt(c,c.T(k2),{font:F.serif,size:80,it:true,ls:-0.05,y:372,on:a2,off,x:600});};
+   pair('a1','a2',c.at('feel'),c.at('girl'),0,c.at('and'));pair('b1','b2',c.at('feeling'),c.at('man'),0,c.at('and',2));pair('c1','c2',c.at('not'),c.at('biceps'),0,c.end);}},
+ {id:'B',name:'Chest words + lime word',ref:'S01 + S12 parts',texts:{w1:'a girl',w2:'a man',lime:'biceps'},
+  build(c){SubCap(c);PopWord(c,c.T('w1'),c.at('girl'),c.at('and'));PopWord(c,c.T('w2'),c.at('man'),c.at('and',2));LimeWord(c,c.T('lime'),c.at('biceps'),c.end);}},
+ {id:'C',name:'Top words, no frame',ref:'S05 parts',texts:{l1:'feel like',l2:'a girl',l3:'feeling like',l4:'a man'},
+  build(c){TopWords(c,c.T('l1'),[c.at('feel'),c.at('like')],c.T('l2'),[c.at('a'),c.at('girl')],c.at('feel'),c.at('and'));TopWords(c,c.T('l3'),[c.at('feeling'),c.at('like',2)],c.T('l4'),[c.at('man')],c.at('feeling'),c.at('and',2));SubCap(c,c.at('and',2));}}
+]);
+beat('B12',43.4,51.133,[
+ {id:'A',name:'Lime word + script fade + side notes',ref:'S12 1:1',texts:{lime:'Balding',sc:'early 20s',n1:'2 kadam aage',n2:'3 steps back'},
+  build(c){SubCap(c);LimeWord(c,c.T('lime'),c.at('balding'),c.at('like'));ScriptFade(c,c.T('sc'),c.at('early'),c.at('zindagi'));SideNote(c,c.T('n1'),'l',c.at('2'),c.end);SideNote(c,c.T('n2'),'r',c.at('3'),c.end);}},
+ {id:'B',name:'Serif stacks',ref:'S07 parts',texts:{s1:'2 kadam',b1:'aage',s2:'my hairline',b2:'3 steps back'},
+  build(c){SubCap(c,null,c.at('2'));SerifStack(c,c.T('s1'),c.T('b1'),c.at('2'),c.at('my',2),c.at('aage'));SerifStack(c,c.T('s2'),c.T('b2'),c.at('my',2),c.end,c.at('3'));}},
+ {id:'C',name:'Typewriter + chest words',ref:'S03 + S01 parts',texts:{tb:'balding',w1:'2 kadam aage',w2:'3 steps back'},
+  build(c){TypeBox(c,c.T('tb'),c.at('balding'),c.at('zindagi'));SubCap(c,null,c.at('2'));PopWord(c,c.T('w1'),c.at('2'),c.at('3'));PopWord(c,c.T('w2'),c.at('3'),c.end);}}
+]);
+beat('B13',51.133,54.9,[
+ {id:'A',name:'Retro camera frame',ref:'S13 1:1',texts:{},
+  build(c){SubCap(c,null,c.at('but'));Digicam(c,c.at('but')-LAG,c.end);}},
+ {id:'B',name:'Yellow italic',ref:'S10 parts',texts:{y:'hairfall rant??'},
+  build(c){SubCap(c);YellowItalic(c,c.T('y'),c.at('hairfall'),c.end);}},
+ {id:'C',name:'Top words + typewriter',ref:'S05 + S03 parts',texts:{l1:'baap ki',l2:'nahi sunti',tb:'hairfall rant'},
+  build(c){TopWords(c,c.T('l1'),[c.at('baap'),c.at('ki')],c.T('l2'),[c.at('nahi'),c.at('sunti')],c.at('baap'),c.at('but'));TypeBox(c,c.T('tb'),c.at('hairfall'),c.end);SubCap(c,c.at('but'));}}
+]);
+beat('B14',54.9,58.833,[
+ {id:'A',name:'Captions only (her comment graphics stay)',ref:'S14 1:1',texts:{},
+  build(c){SubCap(c);}},
+ {id:'B',name:'Video card around this shot',ref:'S08 parts',slots:{clip1:'self'},texts:{top:'everyone told me',acc:'try this',bot:'Hair Growth Serum'},
+  build(c){VideoCard(c,{top:c.T('top'),t1:c.at('literally'),acc:c.T('acc'),t2:c.at('try'),bot:c.T('bot'),t3:c.at('wishcare')},c.beat.s,c.end);}},
+ {id:'C',name:'Polaroid around this shot',ref:'S06 parts',slots:{clip1:'self'},texts:{l1:'literally',l1b:'everyone said',r1:'try the',acc:'Wishcare'},
+  build(c){Polaroid(c,{l1:c.T('l1'),l1b:c.T('l1b'),t1:c.at('literally'),r1:c.T('r1'),t2:c.at('try'),acc:c.T('acc'),t3:c.at('wishcare')},c.beat.s,c.end);}}
+]);
+beat('B15',58.833,63.233,[
+ {id:'A',name:'Polaroid of the selfie shot',ref:'S06 parts',slots:{clip1:'self'},texts:{l1:'3 bottlein',l1b:'khaali',r1:'2 mahine',acc:'lagataar'},
+  build(c){Polaroid(c,{l1:c.T('l1'),l1b:c.T('l1b'),t1:c.at('3'),r1:c.T('r1'),t2:c.at('2'),acc:c.T('acc'),t3:c.at('lagataar')},c.beat.s,c.end);}},
+ {id:'B',name:'Lime word + script fade',ref:'S12 parts',texts:{lime:'3 bottlein',sc:'2 mahine'},
+  build(c){SubCap(c);LimeWord(c,c.T('lime'),c.at('3'),c.at('and'));ScriptFade(c,c.T('sc'),c.at('2'),c.end);}},
+ {id:'C',name:'Collage around the selfie shot',ref:'S04 parts',slots:{clip1:'self',clip2:'product',clip3:'selfie2'},texts:{l1:'maine iss serum ki',l2:'3 bottlein',acc:'khaali',l3:'2 mahine',acc2:'lagataar'},
+  build(c){Collage(c,{l1:c.T('l1'),l2:c.T('l2'),acc:c.T('acc'),l3:c.T('l3'),acc2:c.T('acc2'),times:[c.at('maine'),c.at('3'),c.at('khaali'),c.at('2'),c.at('lagataar')]},c.beat.s,c.end);}}
+]);
+beat('B16',63.233,68.767,[
+ {id:'A',name:'Script fade + side notes',ref:'S12 parts',texts:{sc:'baby hair',n1:'logo ka baby',n2:'mera baby hair'},
+  build(c){SubCap(c);ScriptFade(c,c.T('sc'),c.at('baby'),c.at('meri'));SideNote(c,c.T('n1'),'l',c.at('logo'),c.end);SideNote(c,c.T('n2'),'r',c.at('baby',3),c.end);}},
+ {id:'B',name:'Pink heart frame',ref:'S11 parts',texts:{a1:'mere',a2:'baby hair',b1:'logo ka',b2:'baby',c1:'khush',c2:'hu bhai'},
+  build(c){PinkFrame(c,c.beat.s,c.end);const pair=(k1,k2,a1,a2,off)=>{txt(c,c.T(k1),{font:F.top,size:72,w:700,ls:-0.03,y:300,on:a1,off});txt(c,c.T(k2),{font:F.serif,size:80,it:true,ls:-0.05,y:372,on:a2,off,x:600});};
+   pair('a1','a2',c.at('mere'),c.at('baby'),c.at('logo'));pair('b1','b2',c.at('logo'),c.at('baby',2),c.at('mai'));pair('c1','c2',c.at('khush'),c.at('bhai',2),c.end);}},
+ {id:'C',name:'Top words + captions',ref:'S05 parts',texts:{l1:'mere baby hair',l2:'aa rahe hai'},
+  build(c){TopWords(c,c.T('l1'),[c.at('mere'),c.at('baby'),c.at('hair')],c.T('l2'),[c.at('aa'),c.at('rahe'),c.at('hai')],c.at('mere'),c.at('meri'));SubCap(c,c.at('meri'));}}
+]);
+beat('B17',68.767,71.6,[
+ {id:'A',name:'Cream type card',ref:'S02 parts',texts:{l1:'No. 3',l2:'Braces',l3:'I already have',l4:'Veneers'},
+  build(c){TypeCard(c,[{kind:'script',text:c.T('l1'),times:[c.at('no'),c.at('3')],x:230,lh:118},{kind:'bold',text:c.T('l2'),times:[c.at('braces')],x:340,lh:104},{kind:'small',text:c.T('l3'),times:[c.at('i'),c.at('already'),c.at('have')],x:250,lh:76},{kind:'small',text:c.T('l4'),times:[c.at('veneers')],x:400,lh:76}],c.beat.s,c.end);}},
+ {id:'B',name:'Yellow italic',ref:'S10 parts',texts:{y:'No. 3 Braces??'},
+  build(c){YellowItalic(c,c.T('y'),c.at('no'),c.end);SubCap(c,c.at('i'));}},
+ {id:'C',name:'Typewriter + serif stack',ref:'S03 + S07 parts',texts:{tb:'No. 3 Braces',s:'already have',b:'Veneers'},
+  build(c){TypeBox(c,c.T('tb'),c.at('no'),c.at('i'));SerifStack(c,c.T('s'),c.T('b'),c.at('already'),c.end,c.at('veneers'));}}
+]);
+beat('B18',71.6,76.9,[
+ {id:'A',name:'Captions + typewriter + side note',ref:'S09 parts',texts:{tb:'itna zyada dard',n1:'kuch dino tak'},
+  build(c){SubCap(c);TypeBox(c,c.T('tb'),c.at('itna'),c.at('ki',2));SideNote(c,c.T('n1'),'r',c.at('kuch'),c.end);}},
+ {id:'B',name:'Chest pop words',ref:'S01 parts',texts:{w1:'itna',w2:'zyada',w3:'DARD'},
+  build(c){SubCap(c,null,c.at('itna'));PopWord(c,c.T('w1'),c.at('itna'),c.at('zyada'));PopWord(c,c.T('w2'),c.at('zyada'),c.at('dard'));PopWord(c,c.T('w3'),c.at('dard'),c.at('ki',2));SubCap(c,c.at('ki',2));}},
+ {id:'C',name:'Video card',ref:'S08 parts',slots:{clip1:'selfie2'},texts:{top:'Braces lagwane',acc:'dard',bot:'baat nahi kar paate'},
+  build(c){SubCap(c,null,c.at('braces'));VideoCard(c,{top:c.T('top'),t1:c.at('braces'),acc:c.T('acc'),t2:c.at('dard'),bot:c.T('bot'),t3:c.at('baat')},c.at('braces')-LAG,c.end);}}
+]);
+beat('B19',76.9,80.533,[
+ {id:'A',name:'Cream type card',ref:'S02 parts',texts:{l1:'staying',l2:'Silent',l3:'for a few days'},
+  build(c){SubCap(c,null,c.at('from'));TypeCard(c,[{kind:'script',text:c.T('l1'),times:[c.at('staying')],x:220,lh:118},{kind:'bold',text:c.T('l2'),times:[c.at('silent')],x:330,lh:104},{kind:'small',text:c.T('l3'),times:[c.at('for'),c.at('a'),c.at('few'),c.at('days')],x:280,lh:76}],c.at('from')-LAG,c.end);}},
+ {id:'B',name:'Serif stack',ref:'S07 parts',texts:{s:'staying',b:'silent'},
+  build(c){SubCap(c);SerifStack(c,c.T('s'),c.T('b'),c.at('staying'),c.end,c.at('silent'));}},
+ {id:'C',name:'Lime word',ref:'S12 parts',texts:{lime:'silent'},
+  build(c){SubCap(c);LimeWord(c,c.T('lime'),c.at('silent'),c.end);}}
+]);
+beat('B20',80.533,85.567,[
+ {id:'A',name:'Captions only, clean ending',ref:'S14 1:1',texts:{},
+  build(c){SubCap(c);}},
+ {id:'B',name:'Top words punchline',ref:'S05 parts',texts:{l1:'sirf apna',l2:'muh kholke'},
+  build(c){SubCap(c,null,c.at('sirf'));TopWords(c,c.T('l1'),[c.at('sirf'),c.at('apna')],c.T('l2'),[c.at('muh'),c.at('kholke')],c.at('sirf'),c.end);}},
+ {id:'C',name:'Serif stack punchline',ref:'S07 parts',texts:{s:'sirf apna',b:'muh kholke'},
+  build(c){SubCap(c,null,c.at('sirf'));SerifStack(c,c.T('s'),c.T('b'),c.at('sirf'),c.end,c.at('muh'));}}
+]);
+for(const b of BEATS){if(!picks[b.id])picks[b.id]='A';for(const d of b.designs){if(d.texts.caps===null)d.texts.caps=capsDefault(b)}}
+
+/* ================= build / update ================= */
+function clearAll(){ELS=[];for(const S of SLOTS){S.v.pause();S.v.removeAttribute('src');S.v.load()}SLOTS=[];SPK=null;under.innerHTML='';over.innerHTML=''}
+function build(b){clearAll();const d=b.designs.find(x=>x.id===picks[b.id])||b.designs[0];const c=ctxFor(b,d);
+  try{d.build(c)}catch(e){console.error(e)}
+  igSafe();CUR={b,d};}
+function igSafe(){ // move inside x 84-900 / y<=1520; shrink only if needed (skip full cards & art)
+  const k=cv.getBoundingClientRect().width/1080;
+  for(const o of ELS){const el=o.el;if(el.classList.contains('card')||el.querySelector('svg')||el.querySelector('.clip'))continue;
+    el.style.translate='';el.style.scale='';const prev=el.style.visibility;el.style.display='block';el.style.visibility='hidden';
+    const r=el.getBoundingClientRect(),cr=cv.getBoundingClientRect();const x0=(r.left-cr.left)/k,x1=(r.right-cr.left)/k,w=x1-x0;
+    let dx=0,sc=1;if(w>SAFE.x1-SAFE.x0){sc=(SAFE.x1-SAFE.x0)/w;}
+    const nw=w*sc,cx=(x0+x1)/2,nx0=cx-nw/2,nx1=cx+nw/2;if(nx1>SAFE.x1)dx=SAFE.x1-nx1;if(nx0+dx<SAFE.x0)dx=SAFE.x0-nx0;
+    if(dx||sc!==1){el.style.translate=dx+'px 0';el.style.scale=String(sc)}
+    el.style.visibility=prev||'';el.style.display='';}}
+function beatAt(t){for(const b of BEATS)if(t>=b.s&&t<b.e)return b;return BEATS[BEATS.length-1]}
+function update(t){
+  const fps=FPS;
+  for(const o of ELS){const vis=t>=o.on&&t<o.off;o.el.style.display=vis?'':'none';if(!vis)continue;
+    const fe=(t-o.on)*fps;if(o.anim)o.anim(fe,o.el);
+    o.el.querySelectorAll('span[data-on]').forEach(s=>s.style.visibility=t>=+s.dataset.on?'visible':'hidden');
+    if(o.wordTimes)o.el.querySelectorAll('.aw').forEach((s,i)=>s.style.visibility=t>=(o.wordTimes[i]??o.wordTimes[o.wordTimes.length-1])?'visible':'hidden');}
+  // speaker layer (pink frame / camera)
+  let g=1,sc=1,tx=0,ty=0,clip='none';
+  if(SPK&&t>=SPK.on&&t<SPK.off){const r=SPK.fn((t-SPK.on)*fps)||{};g=r.group??1;sc=r.scale??1;clip=r.clip??'none';
+    tx=r.tx??(1080*(1-sc)/2);ty=r.ty??(1920*(1-sc)/2);}
+  spkwrap.style.transform=g!==1?`scale(${g})`:'';spkwrap.style.clipPath=clip;spk.style.transform=(sc!==1||tx||ty)?`translate(${tx}px,${ty}px) scale(${sc})`:'';
+  syncSlots(t,!av.paused);
+  if(guideFace.checked)drawGuides(t);
+}
+
+/* ================= guides ================= */
+const gsvg=$('#guides'),gSafe=$('#gSafe'),guideFace=$('#gFace');
+function drawGuides(t){let s='';if(gSafe.checked)s+=`<rect x="${SAFE.x0}" y="0" width="${SAFE.x1-SAFE.x0}" height="${SAFE.yMax}" fill="none" stroke="#3cf" stroke-width="4" stroke-dasharray="18 12"/>`;
+  if(guideFace.checked){const f=FACES[Math.min(FACES.length-1,Math.floor(t*FPS/3))];s+=`<line x1="0" x2="1080" y1="${f[1]}" y2="${f[1]}" stroke="#f33" stroke-width="5"/><line x1="0" x2="1080" y1="${f[0]}" y2="${f[0]}" stroke="#f33" stroke-width="2" stroke-dasharray="10 10"/>`}
+  gsvg.innerHTML=s;gsvg.hidden=!s;}
+gSafe.onchange=guideFace.onchange=()=>drawGuides(av.currentTime);
+
+/* ================= UI ================= */
+const beatsEl=$('#beats'),tl=$('#tl');
+function fit(){const w=$('#phone').clientWidth;cv.style.transform=`scale(${w/1080})`}
+new ResizeObserver(()=>{fit();if(CUR)igSafe()}).observe($('#phone'));
+function renderList(){
+  beatsEl.innerHTML='';tl.innerHTML='<div class="ph" id="ph"></div>';
+  BEATS.forEach((b,bi)=>{
+    const sayTxt=CUES.filter(q=>q.s>=b.s-0.05&&q.s<b.e-0.05).map(q=>q.t).join(' / ');
+    const box=document.createElement('article');box.className='beat';box.id='beat-'+b.id;
+    box.innerHTML=`<div class="bh"><b>${b.id}</b><span class="tc">${fmt(b.s)} – ${fmt(b.e)} · ${(b.e-b.s).toFixed(1)} s</span><button data-play="${b.id}">▶ preview</button><span class="say">“${esc(sayTxt)}”</span></div>
+      <div class="opts">${b.designs.map(d=>`<button class="opt" data-b="${b.id}" data-d="${d.id}" aria-pressed="${picks[b.id]===d.id}"><span class="k">${d.id} <i class="${/1:1/.test(d.ref)?'ref':''}">${esc(d.ref)}</i></span><span class="n">${esc(d.name)}</span></button>`).join('')}</div>
+      <div class="edwrap"></div>`;
+    beatsEl.appendChild(box);renderEditor(b);
+    const seg=document.createElement('div');seg.className='seg';seg.style.left=(b.s/DUR*100)+'%';seg.style.width=((b.e-b.s)/DUR*100)+'%';
+    seg.style.background=['#F4E0A5','#e7c98b','#d9b77d'][bi%3];seg.textContent=picks[b.id];seg.title=b.id;seg.dataset.b=b.id;tl.insertBefore(seg,tl.firstChild);});
+}
+function renderEditor(b){
+  const box=$('#beat-'+b.id+' .edwrap');const d=b.designs.find(x=>x.id===picks[b.id]);const e=(edits[b.id]||{})[d.id]||{};
+  const keys=Object.keys(d.texts).filter(k=>k!=='caps');const usesCaps=/SubCap/.test(d.build.toString());
+  let h=`<div class="ed">`;
+  for(const k of keys)h+=`<label>${esc(labelFor(k))}<input id="in-${b.id}-${d.id}-${k}" data-k="${k}" value="${esc(k in e?e[k]:d.texts[k])}"></label>`;
+  if(usesCaps)h+=`<label class="wide">Bottom captions (one line per caption)<textarea id="in-${b.id}-${d.id}-caps" data-k="caps">${esc('caps' in e?e.caps:d.texts.caps)}</textarea></label>`;
+  h+=`</div>`;
+  for(const [sk,def] of Object.entries(d.slots||{})){const k=b.id+'/'+sk;const u=slotSrc[k];
+    h+=`<div class="slot"><span>B-roll slot <b>${sk}</b>: ${u?esc(u.name):(def==='self'?'this moment of the A-roll (live)':'placeholder from her '+(def==='product'?'product shot':'selfie shot'))}</span><label class="btn file">Replace clip<input type="file" accept="video/*,image/*" data-slot="${k}" id="f-${k.replace('/','-')}"></label>${u?`<button data-unslot="${k}">Use placeholder</button>`:''}</div>`;}
+  h+=`<p class="note">${esc(noteFor(b,d))}</p>`;
+  box.innerHTML=h;
+  box.querySelectorAll('[data-k]').forEach(inp=>inp.addEventListener('input',()=>{edits[b.id]=edits[b.id]||{};edits[b.id][d.id]=edits[b.id][d.id]||{};edits[b.id][d.id][inp.dataset.k]=inp.value;save();if(CUR&&CUR.b===b){build(b);update(av.currentTime)}}));
+  box.querySelectorAll('input[type=file]').forEach(inp=>inp.addEventListener('change',()=>{const f=inp.files[0];if(!f)return;slotSrc[inp.dataset.slot]={url:URL.createObjectURL(f),name:f.name};renderEditor(b);go(b,false)}));
+  box.querySelectorAll('[data-unslot]').forEach(bt=>bt.addEventListener('click',()=>{delete slotSrc[bt.dataset.unslot];renderEditor(b);go(b,false)}));
+}
+const LABELS={script:'Script word',l1:'Line 1',l1b:'Line 1 (2nd row)',l2:'Line 2',l3:'Line 3',l4:'Line 4',r1:'Right line',acc:'Script/serif accent',acc2:'Second accent',top:'Top line',bot:'Bottom line',tb:'Typewriter box',n1:'Side note (left)',n2:'Side note (right)',y:'Yellow italic',y1:'Yellow italic 1',y2:'Yellow italic 2',lime:'Lime word',sc:'Script word',arc:'Arc text',s:'Small line',b:'Big serif word',s1:'Small line 1',b1:'Big serif 1',s2:'Small line 2',b2:'Big serif 2',s3:'Small line 3',b3:'Big serif 3',b4:'Big serif 4',b5:'Big serif 5'};
+function labelFor(k){return LABELS[k]||(/^w\d/.test(k)?'Chest word '+k.slice(1):/^[abc][12]$/.test(k)?'Frame text '+k:k)}
+function noteFor(b,d){
+  if(/1:1/.test(d.ref))return 'Copies the reference section '+d.ref.split(' ')[0]+' one to one on her sentence.';
+  return 'Built only from reference parts ('+d.ref.replace(' parts','')+'): same fonts, colours and pop timing.';}
+function go(b,play){av.currentTime=b.s+0.001;build(b);update(b.s);if(play)av.play().catch(()=>{});markActive(b)}
+function markActive(b){document.querySelectorAll('.beat').forEach(x=>x.classList.toggle('on',x.id==='beat-'+b.id))}
+beatsEl.addEventListener('click',e=>{const o=e.target.closest('.opt');if(o){const b=BEATS.find(x=>x.id===o.dataset.b);picks[b.id]=o.dataset.d;save();
+    b && document.querySelectorAll(`.opt[data-b="${b.id}"]`).forEach(x=>x.setAttribute('aria-pressed',x.dataset.d===picks[b.id]));
+    const seg=tl.querySelector(`.seg[data-b="${b.id}"]`);if(seg)seg.textContent=picks[b.id];renderEditor(b);go(b,true);return}
+  const p=e.target.closest('[data-play]');if(p){go(BEATS.find(x=>x.id===p.dataset.play),true)}});
+tl.addEventListener('click',e=>{const r=tl.getBoundingClientRect();const t=clamp((e.clientX-r.left)/r.width*DUR,0,DUR-0.05);av.currentTime=t;const b=beatAt(t);build(b);update(t);markActive(b)});
+$('#pp').onclick=()=>{if(av.paused)av.play().catch(()=>{});else av.pause()};
+av.addEventListener('play',()=>$('#pp').textContent='❚❚');av.addEventListener('pause',()=>$('#pp').textContent='▶');
+$('#prevB').onclick=()=>{const i=BEATS.indexOf(CUR?CUR.b:BEATS[0]);go(BEATS[Math.max(0,i-1)],!av.paused)};
+$('#nextB').onclick=()=>{const i=BEATS.indexOf(CUR?CUR.b:BEATS[0]);go(BEATS[Math.min(BEATS.length-1,i+1)],!av.paused)};
+$('#playAll').onclick=()=>{$('#loopB').checked=false;go(BEATS[0],true)};
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+$('#copyBtn').onclick=()=>{const out={reference:'fraym.fx After',aroll:'the.rebel.kid',picks:{}};
+  for(const b of BEATS){const d=picks[b.id];const e=(edits[b.id]||{})[d]||{};const sl={};for(const k of Object.keys(slotSrc))if(k.startsWith(b.id+'/'))sl[k.split('/')[1]]=slotSrc[k].name;
+    out.picks[b.id]=Object.assign({design:d},Object.keys(e).length?{texts:e}:{},Object.keys(sl).length?{broll:sl}:{});}
+  const s=JSON.stringify(out,null,1);
+  navigator.clipboard.writeText(s).then(()=>toast('Picks copied: paste them to Claude')).catch(()=>{let ta=$('#jsonOut');if(!ta){ta=document.createElement('textarea');ta.id='jsonOut';ta.setAttribute('aria-label','Your picks');$('.stagecol').appendChild(ta)}ta.value=s;ta.select();toast('Select all and copy the box')});};
+
+/* ================= loop ================= */
+function tick(){const t=av.currentTime;const b=beatAt(t);
+  if($('#loopB').checked&&CUR&&!av.paused&&t>=CUR.b.e-0.02){av.currentTime=CUR.b.s+0.001}
+  else if(!CUR||CUR.b!==b){build(b);markActive(b)}
+  update(av.currentTime);$('#tm').textContent=fmt(t)+' / '+fmt(DUR);const ph=$('#ph');if(ph)ph.style.left=(t/DUR*100)+'%';
+  requestAnimationFrame(tick)}
+renderList();fit();
+document.fonts.ready.then(()=>{build(BEATS[0]);update(0);markActive(BEATS[0]);requestAnimationFrame(tick)});
+</script>

@@ -1,0 +1,12 @@
+# media and generated frames are never committed
+*.mp4
+*.mov
+*.wav
+ref/f/
+ref/n/
+aroll/f/
+web/fonts/cand/
+an/
+*.png
+*.jpg
+site/wrap.html
