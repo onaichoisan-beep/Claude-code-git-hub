@@ -56,20 +56,22 @@ EDL = [
     (18.66, "v", find(B, "26EEAFDA"), 0.3, {}),                     # "summer" sun
     (19.40, "v", find(B, "IMG_2135"), 0.2, {}),                     # "winter" rain
     (20.66, "stack", None, 0, stack([(B, "IMG_4056"), (B, "IMG_3677"), (B, "IMG_0863")],
-                                    [20.66, 21.56, 22.28])),       # mess 3000
-    (22.82, "v", find(B, "FFC484C5"), 0.3, {}),                     # "aur actually..." eating out
-    (23.90, "v", find(B, "IMG_2134"), 0.0, {}),                     # "khaata kaun hai" reaction
-    (25.42, "stack", None, 0, stack([(F, "IMG_0094"), (B, "IMG_3599"), (F, "IMG_8621"), (F, "IMG_1146")],
-                                    [25.42, 25.92, 26.44, 26.96])),  # dine out pile 1
-    (27.44, "v", find(B, "IMG_6575"), 1.0, {}),                     # "har month kyunki" drinking juice
-    (28.52, "stack", None, 0, stack([(B, "IMG_0678"), (F, "IMG_6714"), (B, "IMG_8626")],
-                                    [28.52, 28.85, 29.18])),       # dine out pile 2 (triple pop)
-    (29.54, "v", find(B, "4BB8245D"), 2.0, {"zoom": 1.4, "cy": 0.1}),                     # "aur phir aata hai" friend coming up
-    (30.48, "stack", None, 0, stack([(B, "IMG_0465"), (B, "IMG_0712"), (F, "IMG_0885"), (B, "IMG_0868")],
-                                    [30.48, 31.12, 31.56, 32.18])),  # blinkit pile 1
-    (32.74, "v", find(B, "IMG_8298"), 1.0, {"cx": 0.72}),                     # "groceries" selfie reaction
-    (33.56, "stack", None, 0, stack([(F, "IMG_0181"), (F, "IMG_0924"), (B, "IMG_3781"), (F, "IMG_0676")],
-                                    [33.56, 34.04, 34.86, 35.38])),  # blinkit pile 2
+                                    [20.66, 21.56, 22.28])),       # "mess ka khaana... 3000"
+    (23.02, "v", find(C, "2FC33FFA"), 2.85, {}),                     # "aur actually mess ka khaana" friend looks back, confused
+    (24.58, "v", find(B, "IMG_2134"), 0.3, {}),                     # "khaata kaun hai" reaction
+    (25.42, "v", find(B, "FFC484C5"), 0.2, {}),                     # "so dine out is around" eating chaat with friends
+    (26.44, "stack", None, 0, stack([(F, "IMG_0094"), (F, "IMG_8621"), (F, "IMG_1146")],
+                                    [26.44, 26.78, 27.10])),       # "1500 har month" quick triple pop
+    (27.44, "v", find(B, "IMG_6575"), 1.0, {}),                     # "kyunki" drinking juice
+    (28.10, "v", find(C, "0E716FE9"), 0.3, {}),                     # "mess ka khaana bilkul achha nahi" unimpressed face
+    (29.54, "v", find(B, "4BB8245D"), 2.0, {"zoom": 1.4, "cy": 0.1}),  # "aur phir aata hai" friend coming up
+    (30.48, "stack", None, 0, stack([(B, "IMG_0465"), (B, "IMG_0712")],
+                                    [30.48, 31.12])),              # "Blinkit"
+    (31.56, "v", find(B, "IMG_0959"), 2.0, {}),                     # "impulsive buys" late-night study cravings
+    (32.74, "v", find(B, "IMG_8298"), 1.0, {"cx": 0.72}),           # "groceries" selfie
+    (33.56, "stack", None, 0, stack([(B, "IMG_0868"), (F, "IMG_0924")],
+                                    [33.56, 34.04])),              # "1500"
+    (34.86, "v", find(C, "2A473245"), 1.0, {}),                     # "2000 per month" night ride out
     (36.12, "v", find(B, "IMG_9200"), 1.0, {"transpose": 1, "cx": 0.62}),  # "transportation" auto ride
     (37.80, "v", find(B, "IMG_4359"), 0.3, {}),                     # "college meri room se"
     (38.82, "v", find(B, "IMG_4198"), 3.0, {}),                     # "thoda hi dur" whip walk
@@ -81,7 +83,7 @@ EDL = [
     (44.56, "v", find(B, "IMG_1365"), 2.0, {}),                     # "music"
     (45.48, "v", find(B, "IMG_1479"), 4.0, {}),                     # "YouTube" lecture
     (46.62, "v", find(B, "IMG_1366"), 1.0, {}),                     # "apps"
-    (47.96, "v", find(B, "IMG_0959"), 10.0, {}),                    # "500 lagte hai" studying
+    (47.96, "v", find(B, "IMG_2281"), 4.0, {}),                     # "500 lagte hai" selfie
     (49.18, "v", find(B, "26EEAFDA"), 3.45, {}),                     # "comment me" face to camera
     (50.48, "v", find(B, "IMG_9328"), 2.0, {}),                     # ending, standing in coat
 ]
