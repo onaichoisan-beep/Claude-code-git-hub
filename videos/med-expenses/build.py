@@ -59,7 +59,7 @@ EDL = [
                                     [20.66, 21.56, 22.28])),       # "mess ka khaana... 3000"
     (23.02, "v", find(C, "2FC33FFA"), 2.85, {}),                     # "aur actually mess ka khaana" friend looks back, confused
     (24.58, "v", find(B, "IMG_2134"), 0.3, {}),                     # "khaata kaun hai" reaction
-    (25.42, "v", find(B, "FFC484C5"), 0.2, {}),                     # "so dine out is around" eating chaat with friends
+    (25.42, "v", find(B, "FFC484C5"), 0.2, {}),                     # "so dine out is around" eating momos with friends
     (26.44, "stack", None, 0, stack([(F, "IMG_0094"), (F, "IMG_8621"), (F, "IMG_1146")],
                                     [26.44, 26.78, 27.10])),       # "1500 har month" quick triple pop
     (27.44, "v", find(B, "IMG_6575"), 1.0, {}),                     # "kyunki" drinking juice

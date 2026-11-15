@@ -38,7 +38,7 @@ SHOTS = [
     (12.3, "IMG_0959", 6.0,  "late nights", {}),
     (13.1, "IMG_9200", 1.0,  "auto rides", {"transpose": 1, "cx": 0.62}),
     (13.9, "IMG_6393", 2.45, "your people", {}),
-    (14.7, "FFC484C5", 0.2,  "chaat breaks", {}),
+    (14.7, "FFC484C5", 0.2,  "momo breaks", {}),
     # part 3: slow ending
     (15.5, "E56BD187", 0.0,  "and fees of ₹1500/month", {}),
     (17.9, "IMG_9328", 1.0,  "worth every sleepless night.", {}),
