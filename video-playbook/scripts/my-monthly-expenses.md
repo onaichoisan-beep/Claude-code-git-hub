@@ -1,14 +1,23 @@
 # Script: How much do I spend in a month (med student, GMC)
 
 Style: `../BUDGET_VLOG_STYLE.md`. Target length is about 55–60 s, about 175 words at 180 wpm.
-Title on screen the whole time: **HOW MUCH DO I SPEND IN A MONTH?!**
+Title on screen the whole time: **MY ROOM COSTS 5X MY MBBS FEES?!** (fallback: HOW MUCH DO I SPEND IN A MONTH?!)
+
+**Hook (0–3 s, selfie in apron/scrubs, gesture around your room):**
+"Mera room meri MBBS fees se paanch guna mehenga hai. Let me show you where my money actually goes every month."
+(Room ₹8,200 vs fees ₹1,500 a month is about 5.5×, so the claim holds.)
+
+Alternate hooks:
+- "Government medical college: 1,500 a month. Mera kamra? 8,200. Let me explain."
+- "Med school is cheap. Living near it? Not so much."
+- "Guess karo, ek med student ka monthly kharcha kitna hai? …Nahi, aur zyada."
 Items follow your numbering. The monthly figures add up to about ₹18,950, which fits the 15–20K at the end.
 
 | # | Voice-over (Hinglish, read it straight through) | Yellow caption | B-roll to shoot (2–3 clips each, 3–6 s) |
 |---|---|---|---|
-| Hook | "So let me show you how much I actually spend in a month as a med student in India… and number two is going to hurt." | — | **Selfie**: you in scrubs/apron after duty, tired face |
+| Hook | "Mera room meri MBBS fees se paanch guna mehenga hai. Let me show you where my money actually goes every month." | — | **Selfie**: you in scrubs/apron after duty, tired face |
 | 1 | "Sabse pehle, college fee. GMC mein poore saal ki fees sirf 18,000 hai… matlab roughly 1,500 a month." | `college fee: ₹1500/month` | College gate or building, walking in, ID card or apron in hand |
-| 2 | "Aur ab… the expensive one. Room rent: 8,200. Har mahine. Haan, mera kamra college se zyada leta hai." | `room rent: ₹8200` | **Selfie** with a dramatic face, then a POV walk into your room, keys or door opening |
+| 2 | "Aur ab… the villain. Room rent: 8,200. Har mahine." | `room rent: ₹8200` | **Selfie** with a dramatic face, then a POV walk into your room, keys or door opening |
 | 3 | "Uske baad electricity bill, roughly 2,000." | `electricity: ~₹2000` | Switching on a light, fan or AC, or a lamp over your study desk at night |
 | 4 | "Khaana: mess ka 3,000." | `mess food: ₹3000` | Mess thali, queue, or hand picking up a roti |
 | 5 | "Plus dine out, around 1,500, kyunki kabhi kabhi mess se break chahiye hi hota hai." | `dining out: ₹1500` | **Selfie** eating out with friends, café table, or a food close-up |
@@ -25,6 +34,6 @@ Items follow your numbering. The monthly figures add up to about ₹18,950, whic
 
 ## Shooting the clips
 - Shoot vertical at 1080p or 4K, 30 or 60 fps. Keep each clip 3–6 s, with something moving: a hand, a walk, or your face.
-- You need about 25–30 clips. Include at least 4 selfies: the tired opener, the reaction for "expensive", eating out, and the smiling ending.
+- You need about 25–30 clips. Include at least 4 selfies: the tired opener, the reaction for "the villain", eating out, and the smiling ending.
 - Name the files by topic if you can (`rent_1.mp4`, `blinkit_2.mp4` …). If not, I'll sort them.
 - The audio in the clips doesn't matter, because it will be muted.
