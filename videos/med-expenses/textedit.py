@@ -113,8 +113,8 @@ for i, s in enumerate(SHOTS):
         else:
             sp = s.get("speed", 1.0); sin = s.get("in", 0.0)
             vf = ([f"transpose={s['transpose']}"] if "transpose" in s else []) + [
-                f"scale={FW}:{FH}:force_original_aspect_ratio=increase",
-                f"crop={FW}:{FH}:(iw-{FW})*{s.get('cx', .5)}:(ih-{FH})/2", f"setpts=PTS/{sp}", f"fps={FPS}", "setsar=1"]
+                f"scale={int(FW*s.get('vzoom',1))}:{int(FH*s.get('vzoom',1))}:force_original_aspect_ratio=increase",
+                f"crop={FW}:{FH}:(iw-{FW})*{s.get('cx', .5)}:(ih-{FH})*{s.get('cy', .5)}", f"setpts=PTS/{sp}", f"fps={FPS}", "setsar=1"]
             if (dur_of(src) - sin) / sp < d: vf.append(f"tpad=stop_mode=clone:stop_duration={d}")
             run(["ffmpeg", "-loglevel", "error", "-y", "-ss", str(sin), "-i", src, "-vf", ",".join(vf)] + ENC + ["-t", str(d), out])
     print(f"{t0:6.2f}-{t1:6.2f} {label:28.28} | {s.get('text', '')}")
