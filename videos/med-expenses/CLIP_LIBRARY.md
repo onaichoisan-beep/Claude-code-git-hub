@@ -47,6 +47,7 @@ Times in brackets are good, steady windows.
 - **IMG_2124**: someone else in a striped shirt
 - **IMG_8972**: sideways and messy
 - **IMG_4703**: gallery walk-through (removed at the creator's request, never use)
+- **IMG_9246**: rooftop group shoot and jump (removed at the creator's request, never use)
 
 ## Unused parts of used clips
 - IMG_6455 (BP practical, 23 s): only 7–10 s used; there are other angles, but check for girls

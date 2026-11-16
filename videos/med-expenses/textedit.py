@@ -121,7 +121,9 @@ for i, s in enumerate(SHOTS):
                 [f"scale=w='trunc({FW}*(1+{s['pushin']}*t/{d})/2)*2':h=-2:eval=frame:flags=bicubic",
                  f"crop={FW}:{FH}:(iw-{FW})/2:(ih-{FH})*{s.get('py', 0.5)}"]
                 if s.get("pushin") else [])
-            if (dur_of(src) - sin) / sp < d: vf.append(f"tpad=stop_mode=clone:stop_duration={d}")
+            if "freeze_at" in s:   # play up to this source time, then hold that frame
+                vf.insert(0, f"trim=end={s['freeze_at'] - sin},setpts=PTS-STARTPTS"); vf.append(f"tpad=stop_mode=clone:stop_duration={d}")
+            elif (dur_of(src) - sin) / sp < d: vf.append(f"tpad=stop_mode=clone:stop_duration={d}")
             run(["ffmpeg", "-loglevel", "error", "-y", "-ss", str(sin), "-i", src, "-vf", ",".join(vf)] + ENC + ["-t", str(d), out])
     print(f"{t0:6.2f}-{t1:6.2f} {label:28.28} | {s.get('text', '')}")
 
