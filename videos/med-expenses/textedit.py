@@ -112,7 +112,8 @@ for i, s in enumerate(SHOTS):
             still(src, d, out, s.get("zoom", 0.08))
         else:
             sp = s.get("speed", 1.0); sin = s.get("in", 0.0)
-            vf = ([f"transpose={s['transpose']}"] if "transpose" in s else []) + [
+            vf = ([f"transpose={s['transpose']}"] if "transpose" in s else []) + (
+                [f"scale=-2:{FH*1.12:.0f}", "deshake=rx=48:ry=48:edge=clamp"] if s.get("stabilize") else []) + [
                 f"scale={int(FW*s.get('vzoom',1))}:{int(FH*s.get('vzoom',1))}:force_original_aspect_ratio=increase",
                 f"crop={FW}:{FH}:(iw-{FW})*{s.get('cx', .5)}:(ih-{FH})*{s.get('cy', .5)}", f"setpts=PTS/{sp}", f"fps={FPS}", "setsar=1"]
             if (dur_of(src) - sin) / sp < d: vf.append(f"tpad=stop_mode=clone:stop_duration={d}")
@@ -143,11 +144,11 @@ def runs(t):
         if out and out[-1][1] == e: out[-1][0] += ch
         else: out.append([ch, e])
     return out
-def emoji_img(s):
+def emoji_img(s, hgt=62):
     s = s.replace("️", "")
     im = Image.new("RGBA", (140 * len(s), 140), (0, 0, 0, 0))
     ImageDraw.Draw(im).text((0, 0), s, font=EMOJI, embedded_color=True)
-    im = im.crop(im.getbbox() or (0, 0, 1, 1)); return im.resize((int(im.width * 62 / max(1, im.height)), 62))
+    im = im.crop(im.getbbox() or (0, 0, 1, 1)); return im.resize((int(im.width * hgt / max(1, im.height)), hgt))
 def wrap(t, maxw=FW - 120):
     lines, cur = [], ""
     for w in t.split(" "):
@@ -155,12 +156,24 @@ def wrap(t, maxw=FW - 120):
         if FONT.getlength(c) > maxw and cur: lines.append(cur); cur = w
         else: cur = c
     return lines + [cur]
+def fit_font(t):
+    size = 64
+    while size > 34:
+        f = ImageFont.truetype(os.path.join(W, "fonts", "Ubuntu-Medium.ttf"), size)
+        w = sum((size * 1.05) if e else f.getlength(x) for x, e in runs(t))
+        if w <= FW - 90: return f, size
+        size -= 2
+    return f, size
 def text_png(t, path):
-    lines = wrap(t); lh = 82
+    global FONT
+    if spec.get("SINGLE_LINE"):
+        FONT, fsz = fit_font(t); lines = [t]; lh = int(fsz * 1.3)
+    else:
+        lines = wrap(t); lh = 82
     img = Image.new("RGBA", (FW, 60 + lh * len(lines)), (0, 0, 0, 0))
     sh = Image.new("RGBA", img.size, (0, 0, 0, 0))
     for k, ln in enumerate(lines):
-        parts = [(emoji_img(x) if e else x, e) for x, e in runs(ln)]
+        parts = [(emoji_img(x, int(FONT.size * 0.97)) if e else x, e) for x, e in runs(ln)]
         width = sum((p.width + 8) if e else FONT.getlength(p) for p, e in parts); x = (FW - width) / 2; y = 30 + k * lh
         for p, e in parts:
             if e: img.alpha_composite(p, (int(x + 4), y + 6)); x += p.width + 8
@@ -188,7 +201,21 @@ for i, s in enumerate(SHOTS):
 # ------------------------------------------------------------------ sound: whoosh on the drop, pops, extras
 SR = 48000; mix = np.zeros(int(END * SR) + SR, np.float32)
 cat = {c["name"]: c for c in json.load(open(os.path.join(SFXDIR, "catalog.json")))}
+def synth(name, at, db):
+    n = int(0.16 * SR); t = np.arange(n) / SR
+    if name == "pop":
+        y = np.sin(2 * np.pi * np.cumsum(950 * np.exp(-t * 28) + 260) / SR) * np.exp(-t * 55)
+    elif name == "bubble":   # rising "bloop" like a bubble in a test tube
+        p = random.uniform(0.8, 1.3)
+        y = np.sin(2 * np.pi * np.cumsum((280 + 900 * (1 - np.exp(-t * 40))) * p) / SR) * np.exp(-t * 38)
+    elif name == "beep":     # soft patient-monitor beep
+        y = np.sin(2 * np.pi * 1000 * t) * np.minimum(1, t / 0.005) * (t < 0.11) * np.exp(-t * 6)
+    elif name == "tick":
+        y = np.random.randn(n) * np.exp(-t * 400)
+    y = (y / (np.abs(y).max() + 1e-9) * 10 ** (db / 20)).astype(np.float32)
+    s0 = int(at * SR); e = min(len(mix), s0 + n); mix[s0:e] += y[:e - s0]
 def place(name, at, db=0):
+    if name in ("pop", "bubble", "beep", "tick"): return synth(name, at, db)
     c = cat[name]
     y = np.frombuffer(subprocess.run(["ffmpeg", "-loglevel", "error", "-i", os.path.join(SFXDIR, c["file"]), "-f", "f32le",
                                       "-ac", "1", "-ar", str(SR), "-"], capture_output=True, check=True).stdout, np.float32)
@@ -204,6 +231,8 @@ for s in SHOTS:
     if s.get("pop_on_cut"): pop(s["t"] + 0.03)
 for name, t, db in spec.get("SFX", []): place(name, t, db)
 mix = mix[:int(END * SR)]
+pk = np.abs(mix).max()
+if pk > 10 ** (-1.5 / 20): mix *= 10 ** (-1.5 / 20) / pk   # keep SFX from clipping
 aud = os.path.join(W, f"{NAME}_sfx.wav"); sf.write(aud, mix, SR); inputs += ["-i", aud]
 
 if not spec.get("WORD_CAPTIONS"):
