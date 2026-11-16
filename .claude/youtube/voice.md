@@ -8,10 +8,12 @@ rewrite the sections marked PROVISIONAL.
 
 ## Who I am talking to
 
-One person: a NEET aspirant or a just-admitted first-year in India, probably from a middle-income
-family, who wants to know what govt-college MBBS is ACTUALLY like - what it costs, what first year
-feels like, whether it was worth it. They are a year or two behind me, not a peer and not a parent.
-I talk to them like a senior in the hostel corridor, not like a coaching teacher.
+One person: an Indian 17-24-year-old figuring out how to live on their own - money, routine,
+choices, family, career - who likes me as a person, not as a source of exam tips. They might be in
+any course; MBBS is my setting, not my subject. I am a lifestyle / personality creator: NO
+educational content, no NEET or MBBS how-tos. Medical college clips are welcome as backdrop and
+story. I talk to them like a friend a year or two ahead who is honest about his own mess, not
+like a teacher or a guru.
 
 ## How I actually talk
 
