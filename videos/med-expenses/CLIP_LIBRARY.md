@@ -1,5 +1,7 @@
 # Clip library (Drive folder "money spent")
 
+**Used in dear_aspirant + from_this (Nov 16):** IMG_8965 ×4, studyclip ×2, IMG_9242 ×2, walkinginapron ×2, MeinLAB ×3, IMG_6273, IMG_9246 (40.4–41.8 s only), bc1a3ac4 (the presentation is the creator), IMG_2515. Count these before reusing them.
+
 107 files: 66 videos, 41 photos. Check this list before planning a video.
 **Rule:** build each new video mostly from FRESH clips (used 0–1 times). Use any OVERUSED clip at most once per video, and never as the hook.
 Times in brackets are good, steady windows.

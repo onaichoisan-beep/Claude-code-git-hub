@@ -30,6 +30,8 @@ NAME = os.path.splitext(os.path.basename(SPEC))[0]
 random.seed(11)
 
 def find(stem):
+    for f in sorted(os.listdir(A)):                      # top-level clips first (your own picks)
+        if f.startswith(stem) and os.path.isfile(os.path.join(A, f)): return os.path.join(A, f)
     for fo in ("B.RoLLs", "CollegeNMCH", "Food"):
         for f in sorted(os.listdir(os.path.join(A, fo))):
             if f.startswith(stem): return os.path.join(A, fo, f)
@@ -115,7 +117,10 @@ for i, s in enumerate(SHOTS):
             vf = ([f"transpose={s['transpose']}"] if "transpose" in s else []) + (
                 [f"scale=-2:{FH*1.12:.0f}", "deshake=rx=48:ry=48:edge=clamp"] if s.get("stabilize") else []) + [
                 f"scale={int(FW*s.get('vzoom',1))}:{int(FH*s.get('vzoom',1))}:force_original_aspect_ratio=increase",
-                f"crop={FW}:{FH}:(iw-{FW})*{s.get('cx', .5)}:(ih-{FH})*{s.get('cy', .5)}", f"setpts=PTS/{sp}", f"fps={FPS}", "setsar=1"]
+                f"crop={FW}:{FH}:(iw-{FW})*{s.get('cx', .5)}:(ih-{FH})*{s.get('cy', .5)}", f"setpts=PTS/{sp}", f"fps={FPS}", "setsar=1"] + (
+                [f"scale=w='trunc({FW}*(1+{s['pushin']}*t/{d})/2)*2':h=-2:eval=frame:flags=bicubic",
+                 f"crop={FW}:{FH}:(iw-{FW})/2:(ih-{FH})*{s.get('py', 0.5)}"]
+                if s.get("pushin") else [])
             if (dur_of(src) - sin) / sp < d: vf.append(f"tpad=stop_mode=clone:stop_duration={d}")
             run(["ffmpeg", "-loglevel", "error", "-y", "-ss", str(sin), "-i", src, "-vf", ",".join(vf)] + ENC + ["-t", str(d), out])
     print(f"{t0:6.2f}-{t1:6.2f} {label:28.28} | {s.get('text', '')}")
@@ -210,12 +215,14 @@ def synth(name, at, db):
         y = np.sin(2 * np.pi * np.cumsum((280 + 900 * (1 - np.exp(-t * 40))) * p) / SR) * np.exp(-t * 38)
     elif name == "beep":     # soft patient-monitor beep
         y = np.sin(2 * np.pi * 1000 * t) * np.minimum(1, t / 0.005) * (t < 0.11) * np.exp(-t * 6)
+    elif name == "step":     # soft footstep thud
+        y = (np.sin(2 * np.pi * 90 * t) * 0.8 + np.random.randn(n) * 0.25) * np.exp(-t * 35)
     elif name == "tick":
         y = np.random.randn(n) * np.exp(-t * 400)
     y = (y / (np.abs(y).max() + 1e-9) * 10 ** (db / 20)).astype(np.float32)
     s0 = int(at * SR); e = min(len(mix), s0 + n); mix[s0:e] += y[:e - s0]
 def place(name, at, db=0):
-    if name in ("pop", "bubble", "beep", "tick"): return synth(name, at, db)
+    if name in ("pop", "bubble", "beep", "tick", "step"): return synth(name, at, db)
     c = cat[name]
     y = np.frombuffer(subprocess.run(["ffmpeg", "-loglevel", "error", "-i", os.path.join(SFXDIR, c["file"]), "-f", "f32le",
                                       "-ac", "1", "-ar", str(SR), "-"], capture_output=True, check=True).stdout, np.float32)
