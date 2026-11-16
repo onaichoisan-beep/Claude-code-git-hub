@@ -28,6 +28,6 @@ window.events=function(){const out=[];for(const b of BEATS){build(b);
     out.push({b:b.id,t:o.on,k,n,txt:el.textContent.slice(0,30)});
     if(k==='word'||k==='cap'){}
   }}curB=null;return out};
-window.ready=document.fonts.ready.then(()=>true);
+window.ready=Promise.all([document.fonts.ready,...['assets/gingham.jpg','assets/camera.png'].map(u=>{const i=new Image();i.src=u;return i.decode()})]).then(()=>true);
 </script></body></html>'''%json.dumps(picks)
 open('site/render.html','w').write(head+s+tail)

@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&display=swap">
+<style>html,body{margin:0;width:1080px;height:1920px;background:transparent}
+body.bg{background:linear-gradient(#FDFECF 0 50%,#FBB2C0 50% 100%)}
+.t{position:absolute;white-space:nowrap;line-height:1;font-family:Cinzel,serif;font-weight:700}
+.sh{position:absolute;border-radius:18px;box-shadow:0 18px 44px rgba(124,30,31,.28),0 4px 12px rgba(124,30,31,.2);background:#000}
+.s{position:absolute}
+</style></head><body><div id="L"></div>
+<script>
+const star=(f,z,r)=>`<svg width="${z}" height="${z}" viewBox="0 0 100 100" style="transform:rotate(${r}deg)"><path d="M50 4 61 38 97 38 68 59 79 94 50 72 21 94 32 59 3 38 39 38Z" fill="${f}"/></svg>`;
+const mode=location.hash.slice(1);const L=document.getElementById('L');
+if(mode==='bg'){document.body.className='bg';
+ L.innerHTML=
+ `<div class="s" style="left:860px;top:140px">${star('#FBB2C0',120,8)}</div>`+
+ `<div class="s" style="left:70px;top:330px">${star('#FBB2C0',96,-8)}</div>`+
+ `<div class="s" style="left:905px;top:1455px">${star("#FDFECF",90,10)}</div>`+
+ `<div class="s" style="left:80px;top:1660px">${star('#FDFECF',120,-6)}</div>`+
+ `<div class="s" style="left:880px;top:1760px">${star('#FDFECF',80,14)}</div>`+
+ `<div class="t" style="left:540px;top:270px;transform:translateX(-50%);font-size:58px;letter-spacing:.01em;color:#7C1E1F">The difference editing makes</div>
+ <div class="t" style="right:106px;top:428px;font-size:52px;color:#7C1E1F">After</div>
+ <div class="t" style="left:92px;top:540px;font-size:52px;color:#7C1E1F">Before</div>
+ <div class="t" style="left:540px;top:1572px;transform:translateX(-50%);font-size:50px;letter-spacing:.01em;color:#7C1E1F">DM for such UGC Edits</div>
+ <div class="sh" style="left:90px;top:609px;width:394px;height:700px"></div>`;}
+else{L.innerHTML=`<div class="sh" style="left:455px;top:497px;width:520px;height:926px"></div>`;}
+</script></body></html>

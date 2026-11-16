@@ -119,7 +119,8 @@ main{display:grid;grid-template-columns:minmax(280px,420px) minmax(0,1fr);gap:24
 <script>
 "use strict";
 /* ================= measured style (spec/STYLE.md) ================= */
-const P={cream:'#F4E0A5',polBg:'#F1E9D4',pol:'#FBF5E8',maroon:'#5F0100',red:'#B02A12',white:'#FFFEF5',lime:'#F3F83D',paleY:'#E5CF74',noteY:'#EDEB6A',box:'rgba(78,60,53,.55)',pink:'#CCB1AC',camBody:'#9C736D',camBg:'#F3F2E2'};
+const BR={cream:'#FDFECF',cherry:'#FBB2C0',maroon:'#7C1E1F'};   // client brand kit (palette card + chat bubbles)
+const P={cream:BR.cream,polBg:BR.cream,pol:'#FFFFF4',maroon:BR.maroon,red:BR.maroon,white:'#FFFEF5',lime:BR.cherry,paleY:BR.cherry,noteY:BR.cream,box:'rgba(124,30,31,.86)',pink:'#CCB1AC',camBody:'#9C736D',camBg:'#F3F2E2'};
 const F={bold:"'Familjen Grotesk',Arial,sans-serif",script:"'Pinyon Script','Snell Roundhand',cursive",serif:"'Libre Bodoni','Bodoni 72',Georgia,serif",top:"'Syne','Space Grotesk',sans-serif",cap:"'Space Grotesk',Arial,sans-serif",brush:"'Alex Brush','Snell Roundhand',cursive"};
 const FPS=30, LAG=4/30;               // text appears ~4 frames AFTER the word (measured +1..+6 f)
 const SAFE={x0:84,x1:900,yMax:1520};   // Instagram safe zone
@@ -193,9 +194,13 @@ function PopWord(c,text,on,off,caps){ // one white word on the chest, replaced p
   txt(c,caps?String(text).toUpperCase():text,{font:F.top,size:caps?60:84,w:600,ls:caps?0.01:-0.03,y:c.midTop+40,on,off});}
 function PopLine(c,text,times,off){ // NOBODY ... TALKS (words keep final layout)
   txt(c,String(text).toUpperCase(),{font:F.top,size:58,w:600,ls:0.02,y:c.midTop+50,on:Math.min(...times),off,times:times.map(String),cls:'gapw'});}
-function SideNote(c,text,side,on,off){ // small yellow note beside the head
-  const y=c.topBottom-40;
-  txt(c,text,{font:F.cap,size:38,w:500,ls:-0.03,color:P.noteY,y,x:side==='l'?96:888,align:side,on,off});}
+function SideNote(c,text,side,on,off){ // side note in the brand's maroon chat bubble (tail on the outer side)
+  const y=c.topBottom-96;
+  const tail=side==='l'?`<svg width="40" height="40" viewBox="0 0 40 40" style="position:absolute;left:-14px;bottom:-2px"><path d="M40 0 C38 20 30 34 2 38 C16 30 20 20 20 4 Z" fill="${BR.maroon}"/></svg>`
+                       :`<svg width="40" height="40" viewBox="0 0 40 40" style="position:absolute;right:-14px;bottom:-2px"><path d="M0 0 C2 20 10 34 38 38 C24 30 20 20 20 4 Z" fill="${BR.maroon}"/></svg>`;
+  const st={top:y+'px',background:BR.maroon,borderRadius:'999px',padding:'20px 34px 22px',fontFamily:F.cap,fontWeight:500,fontSize:'38px',letterSpacing:'-0.02em',color:BR.cream,boxShadow:'0 6px 18px rgba(60,10,10,.25)'};
+  if(side==='l')st.left='96px';else st.right=(1080-888)+'px';
+  mk('over',`${tail}<span style="position:relative">${esc(text)}</span>`,st,on,off,null,'note');}
 function TypeBox(c,text,on,off,y){ // typewriter in translucent box, ~2 f per char + cursor
   text=String(text).toUpperCase();const n=text.length;y=y??c.topBottom-100;
   const o=mk('over',`<span class="tb" style="display:inline-block;position:relative"><span class="tw"></span><span class="cur" style="display:inline-block;width:4px;height:52px;background:${P.white};margin-left:6px;vertical-align:-8px"></span><span style="visibility:hidden;position:absolute;left:0">${esc(text)}</span></span>`,
@@ -210,7 +215,7 @@ function YellowItalic(c,text,on,off){
 function cascade(n,stagger,dur){return(fe,el)=>{el.querySelectorAll('.ch').forEach((s,i)=>s.style.opacity=clamp((fe-i*stagger)/dur,0,1))}}
 function chars(t){return [...String(t)].map(ch=>`<span class="ch" style="opacity:0">${ch===' '?'&nbsp;':esc(ch)}</span>`).join('')}
 function LimeWord(c,text,on,off){ // "Ice-creams": Familjen 700 italic, lime, letter cascade
-  const o=mk('over',chars(text),{left:'540px',top:(c.topBottom-92)+'px',transform:'translateX(-50%) skewX(-9deg)',fontFamily:F.bold,fontWeight:700,fontStyle:'italic',fontSize:'90px',letterSpacing:'-0.06em',color:P.lime,textShadow:'0 2px 0 rgba(60,50,0,.35),0 4px 16px rgba(0,0,0,.25)'},on,off,cascade(0,1.2,6));}
+  const o=mk('over',chars(text),{left:'540px',top:(c.topBottom-92)+'px',transform:'translateX(-50%) skewX(-9deg)',fontFamily:F.bold,fontWeight:700,fontStyle:'italic',fontSize:'90px',letterSpacing:'-0.06em',color:P.lime,textShadow:`0 3px 0 ${BR.maroon},0 6px 16px rgba(0,0,0,.25)`},on,off,cascade(0,1.2,6));}
 function ScriptFade(c,text,on,off,y){ // "Cafe Mocha": Alex Brush, letter fade 6 f, stagger 1.2 f
   mk('over',chars(text),{left:'540px',top:(y??c.topBottom-104)+'px',transform:'translateX(-50%)',fontFamily:F.brush,fontSize:'104px',color:P.white,letterSpacing:'-0.01em'},on,off,cascade(0,1.2,6),'wsh');}
 function ArcText(c,text,on,off){ // curved white text over the head, word by word
@@ -219,7 +224,10 @@ function ArcText(c,text,on,off){ // curved white text over the head, word by wor
   const o=mk('over',`<svg width="1080" height="700" viewBox="0 0 1080 700" style="overflow:visible"><defs><path id="${id}" d="M 150 ${cy-c.topBottom+190} A 420 330 0 0 1 930 ${cy-c.topBottom+190}"/></defs><text font-family="${F.cap.replace(/"/g,"'")}" font-size="42" font-weight="500" fill="${P.white}" letter-spacing="-0.5" style="text-shadow:0 2px 10px rgba(0,0,0,.3)"><textPath href="#${id}" startOffset="50%" text-anchor="middle">${ws.map((w,i)=>`<tspan class="aw">${esc(w)} </tspan>`).join('')}</textPath></text></svg>`,
     {left:'0',top:(c.topBottom-190)+'px'},on,off,null);
   o.arcWords=ws.length;o.wordTimes=null;return o;}
-function cardBg(c,color,on,off,layer){return mk(layer||'over','',{inset:'0',left:0,top:0,width:'1080px',height:'1920px',background:color},on,off,null,'card grain');}
+function star(fill,size){return `<svg width="${size}" height="${size}" viewBox="0 0 100 100"><path d="M50 4 61 38 97 38 68 59 79 94 50 72 21 94 32 59 3 38 39 38Z" fill="${fill}"/></svg>`}
+function cardBg(c,color,on,off,layer){const o=mk(layer||'over','',{inset:'0',left:0,top:0,width:'1080px',height:'1920px',background:color},on,off,null,'card');
+  if(color===BR.cream)for(const [x,y,z,r] of [[720,300,120,8],[96,560,104,-6],[830,1300,108,12],[120,1500,96,-10]])o.el.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:${x}px;top:${y}px;transform:rotate(${r}deg)">${star(BR.cherry,z)}</div>`);
+  return o;}
 function TypeCard(c,lines,on,off){ // full cream card, stacked maroon type, word by word
   cardBg(c,P.cream,on,off);
   // measured line pitch (top to top): script->bold 122, bold->small 87, small->small 84
@@ -272,7 +280,7 @@ function VideoCard(c,o,on,off){ // cream card, centred clip panel, red type top/
 }
 function setSpeaker(on,off,fn){SPK={on,off,fn}}
 function PinkFrame(c,on,off){ // pink glitter heart frame, speaker inset zooms in over 4 f (34->64->84->92 px)
-  mk('under',`<svg width="1080" height="1920" viewBox="0 0 1080 1920">${pinkArt()}</svg>`,{left:0,top:0},on,off,null);
+  mk('under','',{left:0,top:0,width:'1080px',height:'1920px',background:'url(assets/gingham.jpg) center/cover'},on,off,null);
   const ins=[34,64,84,92];
   setSpeaker(on,off,fe=>{const k=fe<0?92:ins[Math.min(Math.floor(fe),3)];const sx=(1080-2*k)/1080;return{scale:sx,clip:`inset(${k*1.8}px ${k}px ${k*1.8}px ${k}px round 22px)`}});
 }
@@ -282,10 +290,11 @@ let _pink=null;function pinkArt(){if(_pink)return _pink;let s=`<defs><radialGrad
   for(let i=0;i<26;i++){const x=rnd()*1080,y=rnd()*1920,z=14+rnd()*22;s+=`<path transform="translate(${x|0},${y|0}) scale(${(z/40).toFixed(2)}) rotate(${(rnd()*40-20)|0})" d="M0 14C-12 4-18-4-14-12-10-19 -2-17 0-10 2-17 10-19 14-12 18-4 12 4 0 14z" fill="${rnd()<.5?'#C25A72':'#E7A3B4'}" opacity=".8"/>`}
   return _pink=s;}
 function Digicam(c,on,off){ // retro camera on floral cream; speaker in the screen; pop .96->1.02->1.00
-  mk('under',`<svg width="1080" height="1920" viewBox="0 0 1080 1920">${floralArt()}</svg>`,{left:0,top:0},on,off,null);
+  const bgc=mk('under','',{left:0,top:0,width:'1080px',height:'1920px',background:BR.cream},on,off,null);
+  for(const [x,y,z,r] of [[90,260,110,-8],[880,330,90,10],[70,1560,100,6],[860,1640,120,-12],[480,140,70,0]])bgc.el.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:${x}px;top:${y}px;transform:rotate(${r}deg)">${star(BR.cherry,z)}</div>`);
   const pop=fe=>fe<2?0.96+0.03*fe:fe<16?1.02-0.02*((fe-2)/14):1;
-  mk('over',`<svg width="1080" height="1920" viewBox="0 0 1080 1920">${camArt()}</svg>`,{left:0,top:0,transformOrigin:'540px 960px'},on,off,(fe,el)=>{el.style.transform=`scale(${pop(fe)})`});
-  setSpeaker(on,off,fe=>({group:pop(fe),scale:0.72,tx:151,ty:262,clip:'inset(560px 210px 830px 210px round 34px)'}));
+  mk('over',`<img src="assets/camera.png" width="1080" height="1920" alt="">`,{left:0,top:0,transformOrigin:'540px 960px'},on,off,(fe,el)=>{el.style.transform=`scale(${pop(fe)})`},'camfr');
+  setSpeaker(on,off,fe=>({group:pop(fe),scale:0.55,tx:207,ty:350,clip:'inset(583px 346px 704px 266px round 6px)'}));
 }
 let _flo=null;function floralArt(){if(_flo)return _flo;let s=`<rect width="1080" height="1920" fill="${P.camBg}"/>`;let r=3;const rnd=()=>(r=(r*9301+49297)%233280)/233280;
   for(let i=0;i<60;i++){const x=rnd()*1080,y=rnd()*1920,z=.5+rnd()*.7;s+=`<g transform="translate(${x|0},${y|0}) scale(${z.toFixed(2)})" opacity=".85">${[0,72,144,216,288].map(a=>`<ellipse rx="7" ry="12" transform="rotate(${a}) translate(0,-11)" fill="#E6B9C3"/>`).join('')}<circle r="4" fill="#C98A5A"/></g>`}
@@ -503,7 +512,7 @@ function build(b){clearAll();const d=b.designs.find(x=>x.id===picks[b.id])||b.de
   igSafe();CUR={b,d};}
 function igSafe(){ // move inside x 84-900 / y<=1520; shrink only if needed (skip full cards & art)
   const k=cv.getBoundingClientRect().width/1080;
-  for(const o of ELS){const el=o.el;if(el.classList.contains('card')||el.querySelector('svg')||el.querySelector('.clip'))continue;
+  for(const o of ELS){const el=o.el;if(el.parentNode===under||el.classList.contains('card')||el.querySelector('svg,img')||el.querySelector('.clip'))continue;
     el.style.translate='';el.style.scale='';const prev=el.style.visibility;el.style.display='block';el.style.visibility='hidden';
     const r=el.getBoundingClientRect(),cr=cv.getBoundingClientRect();const x0=(r.left-cr.left)/k,x1=(r.right-cr.left)/k,w=x1-x0;
     let dx=0,sc=1;if(w>SAFE.x1-SAFE.x0){sc=(SAFE.x1-SAFE.x0)/w;}
@@ -519,6 +528,8 @@ function update(t){
     if(o.wordTimes)o.el.querySelectorAll('.aw').forEach((s,i)=>s.style.visibility=t>=(o.wordTimes[i]??o.wordTimes[o.wordTimes.length-1])?'visible':'hidden');}
   const cardOn=ELS.some(o=>o.el.style.display!=='none'&&o.el.classList.contains('card'));
   for(const o of ELS)if(o.el.classList.contains('cap')&&cardOn)o.el.style.display='none';
+  const camOn=ELS.some(o=>o.el.style.display!=='none'&&o.el.classList.contains('camfr'));
+  for(const o of ELS)if(o.el.classList.contains('cap'))o.el.style.top=(camOn?1128:CAP_TOP)+'px';
   // speaker layer (pink frame / camera)
   let g=1,sc=1,tx=0,ty=0,clip='none';
   if(SPK&&t>=SPK.on&&t<SPK.off){const r=SPK.fn((t-SPK.on)*fps)||{};g=r.group??1;sc=r.scale??1;clip=r.clip??'none';
@@ -597,5 +608,6 @@ function tick(){const t=av.currentTime;const b=beatAt(t);
   update(av.currentTime);$('#tm').textContent=fmt(t)+' / '+fmt(DUR);const ph=$('#ph');if(ph)ph.style.left=(t/DUR*100)+'%';
   requestAnimationFrame(tick)}
 renderList();fit();
+for(const u of ['assets/gingham.jpg','assets/camera.png']){const i=new Image();i.src=u}
 if(!window.RENDER)document.fonts.ready.then(()=>{build(BEATS[0]);update(0);markActive(BEATS[0]);requestAnimationFrame(tick)});
 </script>
