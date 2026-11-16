@@ -1,6 +1,7 @@
 # Clip library (Drive folder "money spent")
 
 **Used in dear_aspirant + from_this (Nov 16):** IMG_8965 ×4, studyclip ×2, IMG_9242 ×2, walkinginapron ×2, MeinLAB ×3, IMG_6273, IMG_9246 (40.4–41.8 s only), bc1a3ac4 (the presentation is the creator), IMG_2515. Count these before reusing them.
+**Used in coaching_never_shows (Nov 16):** IMG_6272, IMG_9839 (1.6–3.8 s), IMG_6455 (21.75–22.4 s, stethoscope), 5D64FC48 (2.4–3.7 s), MeinLAB 16.5–22 s. MeinLAB is now used 5× in total: rest it.
 
 107 files: 66 videos, 41 photos. Check this list before planning a video.
 **Rule:** build each new video mostly from FRESH clips (used 0–1 times). Use any OVERUSED clip at most once per video, and never as the hook.
@@ -38,7 +39,6 @@ Times in brackets are good, steady windows.
 | **IMG_9247** | face selfies on the rooftop, 6.8 s | close-up emotion | sideways, needs rotation |
 | **IMG_8784 / 8785 / 8913** | low-angle walking selfies under trees and sun | | sideways or tilted, needs rotation |
 | **IMG_0773** | classroom, then you walking in smiling, 5.9 s [4.5–5.9 s] | | girls in the background |
-| **IMG_4703** | gallery or museum walk-through, 8.1 s | | unclear: check |
 | **5D64FC48** | lab hall walk, then bench, 3.8 s | | shaky |
 
 ## Avoid
@@ -46,6 +46,7 @@ Times in brackets are good, steady windows.
 - **IMG_4317, IMG_1065, IMG_1178**: a girl featured (you asked to avoid girls)
 - **IMG_2124**: someone else in a striped shirt
 - **IMG_8972**: sideways and messy
+- **IMG_4703**: gallery walk-through (removed at the creator's request, never use)
 
 ## Unused parts of used clips
 - IMG_6455 (BP practical, 23 s): only 7–10 s used; there are other angles, but check for girls
