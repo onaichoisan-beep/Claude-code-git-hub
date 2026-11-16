@@ -1,0 +1,152 @@
+[
+{
+"frame": 298,
+"t": 9.93,
+"dur_f": 10,
+"peak_db": -32.4,
+"rel_voice_db": -11.4,
+"centroid": 3409,
+"low": 0.11,
+"hi": 0.32
+},
+{
+"frame": 325,
+"t": 10.83,
+"dur_f": 47,
+"peak_db": -27.5,
+"rel_voice_db": -6.4,
+"centroid": 1575,
+"low": 0.13,
+"hi": 0.05
+},
+{
+"frame": 376,
+"t": 12.51,
+"dur_f": 2,
+"peak_db": -35.4,
+"rel_voice_db": -14.3,
+"centroid": 2626,
+"low": 0.08,
+"hi": 0.22
+},
+{
+"frame": 381,
+"t": 12.68,
+"dur_f": 9,
+"peak_db": -6.5,
+"rel_voice_db": 14.6,
+"centroid": 1329,
+"low": 0.03,
+"hi": 0.08
+},
+{
+"frame": 779,
+"t": 25.95,
+"dur_f": 14,
+"peak_db": -22.2,
+"rel_voice_db": -1.2,
+"centroid": 1250,
+"low": 0.52,
+"hi": 0.08
+},
+{
+"frame": 937,
+"t": 31.23,
+"dur_f": 6,
+"peak_db": -39.2,
+"rel_voice_db": -18.1,
+"centroid": 7361,
+"low": 0.02,
+"hi": 0.79
+},
+{
+"frame": 1082,
+"t": 36.05,
+"dur_f": 3,
+"peak_db": -46.2,
+"rel_voice_db": -25.2,
+"centroid": 5088,
+"low": 0.06,
+"hi": 0.37
+},
+{
+"frame": 1148,
+"t": 38.25,
+"dur_f": 27,
+"peak_db": -37.7,
+"rel_voice_db": -16.6,
+"centroid": 6243,
+"low": 0.04,
+"hi": 0.55
+},
+{
+"frame": 1251,
+"t": 41.68,
+"dur_f": 4,
+"peak_db": -28.7,
+"rel_voice_db": -7.6,
+"centroid": 5545,
+"low": 0.02,
+"hi": 0.55
+},
+{
+"frame": 1418,
+"t": 47.25,
+"dur_f": 14,
+"peak_db": -23.2,
+"rel_voice_db": -2.2,
+"centroid": 2550,
+"low": 0.38,
+"hi": 0.28
+},
+{
+"frame": 1656,
+"t": 55.18,
+"dur_f": 2,
+"peak_db": -43.7,
+"rel_voice_db": -22.7,
+"centroid": 9283,
+"low": 0.02,
+"hi": 0.89
+},
+{
+"frame": 1717,
+"t": 57.21,
+"dur_f": 6,
+"peak_db": -20.7,
+"rel_voice_db": 0.4,
+"centroid": 8101,
+"low": 0.01,
+"hi": 0.8
+},
+{
+"frame": 1814,
+"t": 60.46,
+"dur_f": 23,
+"peak_db": -28.5,
+"rel_voice_db": -7.5,
+"centroid": 7526,
+"low": 0.01,
+"hi": 0.74
+},
+{
+"frame": 1887,
+"t": 62.9,
+"dur_f": 3,
+"peak_db": -45.7,
+"rel_voice_db": -24.6,
+"centroid": 6113,
+"low": 0.05,
+"hi": 0.77
+},
+{
+"frame": 2392,
+"t": 79.7,
+"dur_f": 3,
+"peak_db": -29.0,
+"rel_voice_db": -7.9,
+"centroid": 3061,
+"low": 0.01,
+"hi": 0.19
+}
+]

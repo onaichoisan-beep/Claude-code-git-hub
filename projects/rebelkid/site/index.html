@@ -74,6 +74,7 @@ main{display:grid;grid-template-columns:minmax(280px,420px) minmax(0,1fr);gap:24
 
 /* ===== canvas-space styles (1080x1920 px) ===== */
 .cx{position:absolute;white-space:nowrap;line-height:1}
+.cx.cap{z-index:10}
 .wsh{text-shadow:0 2px 14px rgba(0,0,0,.28),0 1px 2px rgba(0,0,0,.25)}
 .card{position:absolute;inset:0}
 .grain{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .25  0 0 0 0 .1  0 0 0 .09 0'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>")}
@@ -141,13 +142,17 @@ function faceRange(s,e){let top=1e9,chin=0;for(let f=Math.floor(s*FPS/3);f<=Math
 // An element: {el, on, off, anim(fe,el)} ; visible when on<=t<off. Hard pops unless anim given.
 let ELS=[],SLOTS=[],SPK=null,CUR=null;
 function ctxFor(beat,dz){
-  const words=WORDS.filter(w=>w.s>=beat.s-0.06&&w.s<beat.e-0.01);
+  const words=WORDS.filter(w=>CUES[w.c].s>=beat.s0-0.05&&CUES[w.c].s<beat.e0-0.05);
   const fr=faceRange(beat.s,beat.e);
   const c={beat,dz,words,
     topBottom:clamp(fr.top-95,300,560),    // above the hair
     midTop:clamp(fr.chin+40,1080,1300),    // below the chin
     T:k=>{const e=(edits[beat.id]||{})[dz.id]||{};return (k in e)?e[k]:dz.texts[k]},
     at(key,n=1){key=norm(String(key));let k=0;for(const w of words){if(norm(w.w).startsWith(key)&&++k>=n)return w.s+LAG}return beat.s+LAG},
+    _cur:0,_last:null,
+    seq(text){return String(text).split(/\s+/).filter(Boolean).map(tok=>{const k=norm(tok);
+      for(let i=c._cur;i<words.length;i++){const n=norm(words[i].w);if(n&&k&&(n.startsWith(k)||k.startsWith(n))){c._cur=i+1;return c._last=words[i].s+LAG}}
+      return c._last??beat.s+LAG})},
     end:beat.e+0.001};
   return c;
 }
@@ -167,13 +172,16 @@ function txt(c,text,o){ // generic single text block
   const html=o.times?wordSpans(text,o.times):esc(text);
   return mk(o.layer||'over',html,st,o.on,o.off??c.end,o.anim,(o.shadow===false?'':'wsh ')+(o.cls||''));}
 
-function SubCap(c,from,to){ // bottom phrase caption, hard swaps, Space Grotesk 500 49px
-  const lines=String(c.T('caps')).split('\n');const cues=CUES.filter(q=>q.s>=c.beat.s-0.05&&q.s<c.beat.e-0.05);
-  cues.forEach((q,i)=>{const on=q.s+LAG,off=i+1<cues.length?cues[i+1].s+LAG:c.end;
-    if(from!=null&&q.s<from-LAG-0.01)return; if(to!=null&&q.s>=to-LAG-0.01)return;
+function SubCap(c,from,to,strict){ // bottom phrase caption, hard swaps, Space Grotesk 500 49px; runs the whole beat (hidden under full cards)
+  const lines=String(c.T('caps')).split('\n');const cues=CUES.filter(q=>q.s>=c.beat.s0-0.05&&q.s<c.beat.e0-0.05);
+  const lastW=q=>{const ci=CUES.indexOf(q);let m=q.s;for(const x of WORDS)if(x.c===ci)m=Math.max(m,x.s);return m};
+  const st=q=>{const ci=CUES.indexOf(q),w=WORDS.find(x=>x.c===ci);let t=Math.min(q.s,w?w.s:q.s);
+    const pq=CUES[ci-1];if(pq)t=Math.max(t,lastW(pq)+0.16);return Math.max(c.beat.s,t)+LAG};
+  cues.forEach((q,i)=>{const on=i===0?Math.max(c.beat.s,st(q)-LAG):st(q),off=i+1<cues.length?st(cues[i+1]):c.end;
+    if(strict&&from!=null&&q.s<from-LAG-0.01)return; if(strict&&to!=null&&q.s>=to-LAG-0.01)return;
     const t=(lines[i]??q.t).trim(); if(!t)return;
     txt(c,t,{font:F.cap,size:49,w:500,ls:-0.05,y:CAP_TOP,on,off,cls:'cap'});});}
-function capsDefault(beat){return CUES.filter(q=>q.s>=beat.s-0.05&&q.s<beat.e-0.05).map(q=>q.t).join('\n')}
+function capsDefault(beat){return CUES.filter(q=>q.s>=beat.s0-0.05&&q.s<beat.e0-0.05).map(q=>q.t).join('\n')}
 
 function TopScript(c,text,on,off){ // "Literally": white Pinyon ~120px above the head
   txt(c,text,{font:F.script,size:120,y:c.topBottom-120,on,off});}
@@ -214,10 +222,14 @@ function ArcText(c,text,on,off){ // curved white text over the head, word by wor
 function cardBg(c,color,on,off,layer){return mk(layer||'over','',{inset:'0',left:0,top:0,width:'1080px',height:'1920px',background:color},on,off,null,'card grain');}
 function TypeCard(c,lines,on,off){ // full cream card, stacked maroon type, word by word
   cardBg(c,P.cream,on,off);
-  const H=lines.reduce((a,l)=>a+l.lh,0);let y=974-H/2;
+  // measured line pitch (top to top): script->bold 122, bold->small 87, small->small 84
+  const LH={script:132,bold:112,small:90};const H=lines.reduce((a,l)=>a+LH[l.kind],0);let y=974-H/2;
   for(const l of lines){
     const st=l.kind==='script'?{font:F.script,size:149,w:400,ls:-0.05}:l.kind==='bold'?{font:F.bold,size:122,w:700,ls:-0.05}:{font:F.bold,size:78,w:700,ls:-0.05};
-    txt(c,l.text,Object.assign(st,{color:P.maroon,align:'l',x:l.x,y:y+(l.dy||0),on:Math.min(...l.times),off,times:l.times,shadow:false}));y+=l.lh;}
+    const x=Math.min(l.x,300);
+    const o=txt(c,l.text,Object.assign(st,{color:P.maroon,align:'l',x,y,on:Math.min(...l.times),off,times:l.times,shadow:false}));
+    const w=o.el.scrollWidth,room=SAFE.x1-x;if(w>room){const k=room/w;o.el.style.fontSize=(st.size*k).toFixed(1)+'px';o.el.style.top=(y+st.size*(1-k)*0.5)+'px';y-=LH[l.kind]*(1-k)*0.6}
+    y+=LH[l.kind];}
 }
 function clipBox(c,key,box,on,off,rot,frame,layer){ // a b-roll slot (video), optional polaroid frame
   const s=slotFor(c,key);const wrap=document.createElement('div');
@@ -305,7 +317,7 @@ function syncSlots(t,playing){for(const S of SLOTS){const v=S.v;const vis=t>=S.o
 
 /* ================= beats & designs ================= */
 // Each beat: id, s, e (seconds, from the client's own caption timing). Each design: id A/B/C, name, ref tag, texts (editable), build(c).
-const B=(id,s,e)=>({id,s,e});
+const B=(id,s,e)=>({id,s,e,s0:s,e0:e});
 const BEATS=[];
 function beat(id,s,e,designs){const b=B(id,s,e);b.designs=designs;BEATS.push(b);for(const d of designs){d.texts=Object.assign({caps:null},d.texts||{});}return b;}
 
@@ -317,12 +329,12 @@ beat('B01',0.0,4.067,[
    seq.forEach(([k,a],i)=>PopWord(c,c.T(k),c.at(a),i+1<seq.length?c.at(seq[i+1][1]):c.end));}},
  {id:'B',name:'Top words + bottom captions',ref:'S05 parts',texts:{l1:'So, I recently',l2:'turned 25'},
   build(c){TopWords(c,c.T('l1'),[c.at('so'),c.at('i'),c.at('recently')],c.T('l2'),[c.at('turned'),c.at('25')],c.at('so'),c.at('and'));SubCap(c,c.at('and'));}},
- {id:'C',name:'Serif stack hook',ref:'S07 parts',texts:{s1:'I recently turned',b1:'twenty five',s2:'and I really',b2:'thought…'},
-  build(c){SerifStack(c,c.T('s1'),c.T('b1'),c.at('i'),c.at('and'),c.at('25'));SerifStack(c,c.T('s2'),c.T('b2'),c.at('and'),c.end,c.at('thought'));PopWord(c,'ki koi mere liye',c.at('ki'),c.end);}}
+ {id:'C',name:'Serif stack hook',ref:'S07 parts',texts:{s1:'So, I recently turned',b1:'25',s2:'and I really',b2:'thought…'},
+  build(c){SerifStack(c,c.T('s1'),c.T('b1'),c.beat.s+LAG,c.at('and'),c.at('25'));SerifStack(c,c.T('s2'),c.T('b2'),c.at('and'),c.end,c.at('thought'));PopWord(c,'ki koi mere liye',c.at('ki'),c.end);}}
 ]);
 beat('B02',4.067,8.333,[
- {id:'A',name:'Cream type card, word by word',ref:'S02 1:1',texts:{l1:'25 gifts',l2:'Birthday',l3:'surprise plan',l4:'karega kyu ki'},
-  build(c){TypeCard(c,[{kind:'script',text:c.T('l1'),times:[c.at('25'),c.at('gifts')],x:180,lh:118},{kind:'bold',text:c.T('l2'),times:[c.at('birthday')],x:300,lh:104},{kind:'small',text:c.T('l3'),times:[c.at('surprise'),c.at('plan')],x:216,lh:76},{kind:'small',text:c.T('l4'),times:[c.at('karega'),c.at('kyu'),c.at('ki')],x:350,lh:76}],c.beat.s,c.end);}},
+ {id:'A',name:'Cream type card, word by word',ref:'S02 1:1',texts:{l1:'25 gifts for your',l2:'25th Birthday',l3:'type ka surprise plan',l4:'karega kyu ki'},
+  build(c){TypeCard(c,[{kind:'script',text:c.T('l1'),times:c.seq(c.T('l1')),x:130,lh:118},{kind:'bold',text:c.T('l2'),times:c.seq(c.T('l2')),x:250,lh:104},{kind:'small',text:c.T('l3'),times:c.seq(c.T('l3')),x:170,lh:76},{kind:'small',text:c.T('l4'),times:c.seq(c.T('l4')),x:330,lh:76}],c.beat.s,c.end);}},
  {id:'B',name:'Polaroid with b-roll',ref:'S06 parts',slots:{clip1:'selfie'},texts:{l1:'25 gifts for',l1b:'your',r1:'25th',acc:'Birthday'},
   build(c){Polaroid(c,{l1:c.T('l1'),l1b:c.T('l1b'),t1:c.at('25'),r1:c.T('r1'),t2:c.at('25',2),acc:c.T('acc'),t3:c.at('birthday')},c.beat.s,c.end);}},
  {id:'C',name:'Yellow italic + captions',ref:'S10 parts',texts:{y1:'25 gifts??',y2:'surprise plan??'},
@@ -339,8 +351,8 @@ beat('B03',8.333,13.633,[
 beat('B04',13.633,17.233,[
  {id:'A',name:'Cream collage, 3 b-roll cards',ref:'S04 1:1',slots:{clip1:'selfie',clip2:'product',clip3:'selfie2'},texts:{l1:'So instead,',l2:'I made a list',acc:'of things',l3:'to gift',acc2:'myself'},
   build(c){Collage(c,{l1:c.T('l1'),l2:c.T('l2'),acc:c.T('acc'),l3:c.T('l3'),acc2:c.T('acc2'),times:[c.at('so'),c.at('made'),c.at('things'),c.at('gift'),c.at('myself')]},c.beat.s,c.end);}},
- {id:'B',name:'Cream type card',ref:'S02 parts',texts:{l1:'a list of',l2:'Gifts',l3:'to myself',l4:'now'},
-  build(c){SubCap(c,null,c.at('made'));TypeCard(c,[{kind:'script',text:c.T('l1'),times:[c.at('list'),c.at('of'),c.at('things')],x:190,lh:118},{kind:'bold',text:c.T('l2'),times:[c.at('gift')],x:330,lh:104},{kind:'small',text:c.T('l3'),times:[c.at('to',2),c.at('myself')],x:250,lh:76},{kind:'small',text:c.T('l4'),times:[c.at('now')],x:420,lh:76}],c.at('made'),c.end);}},
+ {id:'B',name:'Cream type card',ref:'S02 parts',texts:{l1:'I made a list of',l2:'things',l3:'that I want to gift',l4:'to myself now'},
+  build(c){SubCap(c);c.seq('so instead');TypeCard(c,[{kind:'script',text:c.T('l1'),times:c.seq(c.T('l1')),x:150,lh:118},{kind:'bold',text:c.T('l2'),times:c.seq(c.T('l2')),x:300,lh:104},{kind:'small',text:c.T('l3'),times:c.seq(c.T('l3')),x:200,lh:76},{kind:'small',text:c.T('l4'),times:c.seq(c.T('l4')),x:380,lh:76}],c.at('made')-LAG,c.end);}},
  {id:'C',name:'Video card',ref:'S08 parts',slots:{clip1:'product'},texts:{top:'I made a list',acc:'gifts',bot:'to myself now'},
   build(c){SubCap(c,null,c.at('made'));VideoCard(c,{top:c.T('top'),t1:c.at('made'),acc:c.T('acc'),t2:c.at('gift'),bot:c.T('bot'),t3:c.at('myself')},c.at('made'),c.end);}}
 ]);
@@ -375,8 +387,8 @@ beat('B08',28.867,31.2,[
   build(c){VideoCard(c,{top:c.T('top'),t1:c.at('aur'),acc:c.T('acc'),t2:c.at('baad'),bot:c.T('bot'),t3:c.at('akkal')},c.beat.s,c.end);}},
  {id:'B',name:'Yellow italic',ref:'S10 parts',texts:{y:'akkal nahi aayi??'},
   build(c){SubCap(c,null,c.at('mujhme'));YellowItalic(c,c.T('y'),c.at('akkal'),c.end);}},
- {id:'C',name:'Cream type card',ref:'S02 parts',texts:{l1:'aur iss sabke baad bhi',l2:'akkal',l3:'nahi aayi'},
-  build(c){TypeCard(c,[{kind:'small',text:c.T('l1'),times:[c.at('aur'),c.at('iss'),c.at('sabke'),c.at('baad'),c.at('bhi')],x:150,lh:96},{kind:'script',text:c.T('l2'),times:[c.at('akkal')],x:300,lh:118},{kind:'bold',text:c.T('l3'),times:[c.at('nahi'),c.at('aayi')],x:330,lh:104}],c.beat.s,c.end);}}
+ {id:'C',name:'Cream type card',ref:'S02 parts',texts:{l1:'aur iss sabke baad bhi',l2:'mujhme akkal',l3:'nahi aayi hai'},
+  build(c){TypeCard(c,[{kind:'small',text:c.T('l1'),times:c.seq(c.T('l1')),x:150,lh:96},{kind:'script',text:c.T('l2'),times:c.seq(c.T('l2')),x:220,lh:118},{kind:'bold',text:c.T('l3'),times:c.seq(c.T('l3')),x:300,lh:104}],c.beat.s,c.end);}}
 ]);
 beat('B09',31.2,36.533,[
  {id:'A',name:'Arc text + typewriter + captions',ref:'S09 1:1',texts:{arc:'and my frontal lobe has fully developed',tb:'Badam khaake hi'},
@@ -392,12 +404,12 @@ beat('B10',36.533,38.267,[
   build(c){YellowItalic(c,c.T('y'),c.at('no'),c.end);SubCap(c,c.at('this'));}},
  {id:'B',name:'Typewriter',ref:'S03 parts',texts:{tb:'No. 2'},
   build(c){TypeBox(c,c.T('tb'),c.at('no'),c.end);SubCap(c);}},
- {id:'C',name:'Cream type card',ref:'S02 parts',texts:{l1:'No. 2',l2:'This year'},
-  build(c){TypeCard(c,[{kind:'script',text:c.T('l1'),times:[c.at('no'),c.at('2')],x:240,lh:118},{kind:'bold',text:c.T('l2'),times:[c.at('this'),c.at('year')],x:300,lh:104}],c.beat.s,c.end);}}
+ {id:'C',name:'Cream type card',ref:'S02 parts',texts:{l1:'No. 2',l2:'This year',l3:'I really want'},
+  build(c){TypeCard(c,[{kind:'script',text:c.T('l1'),times:c.seq(c.T('l1')),x:240,lh:118},{kind:'bold',text:c.T('l2'),times:c.seq(c.T('l2')),x:300,lh:104},{kind:'small',text:c.T('l3'),times:c.seq(c.T('l3')),x:270,lh:76}],c.beat.s,c.end);}}
 ]);
 beat('B11',38.267,43.4,[
  {id:'A',name:'Pink heart frame',ref:'S11 1:1',texts:{a1:'feel like',a2:'a girl',b1:'feeling like',b2:'a man',c1:'not because of',c2:'my biceps'},
-  build(c){PinkFrame(c,c.beat.s,c.end);
+  build(c){PinkFrame(c,c.beat.s,c.end);SubCap(c);
    const pair=(k1,k2,a1,a2,on,off)=>{txt(c,c.T(k1),{font:F.top,size:72,w:700,ls:-0.03,y:300,on:a1,off});txt(c,c.T(k2),{font:F.serif,size:80,it:true,ls:-0.05,y:372,on:a2,off,x:600});};
    pair('a1','a2',c.at('feel'),c.at('girl'),0,c.at('and'));pair('b1','b2',c.at('feeling'),c.at('man'),0,c.at('and',2));pair('c1','c2',c.at('not'),c.at('biceps'),0,c.end);}},
  {id:'B',name:'Chest words + lime word',ref:'S01 + S12 parts',texts:{w1:'a girl',w2:'a man',lime:'biceps'},
@@ -423,7 +435,7 @@ beat('B13',51.133,54.9,[
 ]);
 beat('B14',54.9,58.833,[
  {id:'A',name:'Captions only (her comment graphics stay)',ref:'S14 1:1',texts:{},
-  build(c){SubCap(c,null,c.at('wishcare'));}},   // her footage already shows the product label from here
+  build(c){SubCap(c,null,c.at('wishcare'),true);}},   // her footage already shows the product label from here
  {id:'B',name:'Video card around this shot',ref:'S08 parts',slots:{clip1:'self'},texts:{top:'everyone told me',acc:'try this',bot:'Hair Growth Serum'},
   build(c){VideoCard(c,{top:c.T('top'),t1:c.at('literally'),acc:c.T('acc'),t2:c.at('try'),bot:c.T('bot'),t3:c.at('wishcare')},c.beat.s,c.end);}},
  {id:'C',name:'Polaroid around this shot',ref:'S06 parts',slots:{clip1:'self'},texts:{l1:'literally',l1b:'everyone said',r1:'try the',acc:'Wishcare'},
@@ -441,14 +453,14 @@ beat('B16',63.233,68.767,[
  {id:'A',name:'Script fade + side notes',ref:'S12 parts',texts:{sc:'baby hair',n1:'logo ka baby',n2:'mera baby hair'},
   build(c){SubCap(c);ScriptFade(c,c.T('sc'),c.at('baby'),c.at('meri'));SideNote(c,c.T('n1'),'l',c.at('logo'),c.end);SideNote(c,c.T('n2'),'r',c.at('baby',3),c.end);}},
  {id:'B',name:'Pink heart frame',ref:'S11 parts',texts:{a1:'mere',a2:'baby hair',b1:'logo ka',b2:'baby',c1:'khush',c2:'hu bhai'},
-  build(c){PinkFrame(c,c.beat.s,c.end);const pair=(k1,k2,a1,a2,off)=>{txt(c,c.T(k1),{font:F.top,size:72,w:700,ls:-0.03,y:300,on:a1,off});txt(c,c.T(k2),{font:F.serif,size:80,it:true,ls:-0.05,y:372,on:a2,off,x:600});};
+  build(c){PinkFrame(c,c.beat.s,c.end);SubCap(c);const pair=(k1,k2,a1,a2,off)=>{txt(c,c.T(k1),{font:F.top,size:72,w:700,ls:-0.03,y:300,on:a1,off});txt(c,c.T(k2),{font:F.serif,size:80,it:true,ls:-0.05,y:372,on:a2,off,x:600});};
    pair('a1','a2',c.at('mere'),c.at('baby'),c.at('logo'));pair('b1','b2',c.at('logo'),c.at('baby',2),c.at('mai'));pair('c1','c2',c.at('khush'),c.at('bhai',2),c.end);}},
  {id:'C',name:'Top words + captions',ref:'S05 parts',texts:{l1:'mere baby hair',l2:'aa rahe hai'},
   build(c){TopWords(c,c.T('l1'),[c.at('mere'),c.at('baby'),c.at('hair')],c.T('l2'),[c.at('aa'),c.at('rahe'),c.at('hai')],c.at('mere'),c.at('meri'));SubCap(c,c.at('meri'));}}
 ]);
 beat('B17',68.767,71.6,[
- {id:'A',name:'Cream type card',ref:'S02 parts',texts:{l1:'No. 3',l2:'Braces',l3:'I already have',l4:'Veneers'},
-  build(c){TypeCard(c,[{kind:'script',text:c.T('l1'),times:[c.at('no'),c.at('3')],x:230,lh:118},{kind:'bold',text:c.T('l2'),times:[c.at('braces')],x:340,lh:104},{kind:'small',text:c.T('l3'),times:[c.at('i'),c.at('already'),c.at('have')],x:250,lh:76},{kind:'small',text:c.T('l4'),times:[c.at('veneers')],x:400,lh:76}],c.beat.s,c.end);}},
+ {id:'A',name:'Cream type card',ref:'S02 parts',texts:{l1:'No. 3',l2:'Braces',l3:'I know, I already have',l4:'Veneers'},
+  build(c){TypeCard(c,[{kind:'script',text:c.T('l1'),times:c.seq(c.T('l1')),x:230,lh:118},{kind:'bold',text:c.T('l2'),times:c.seq(c.T('l2')),x:340,lh:104},{kind:'small',text:c.T('l3'),times:c.seq(c.T('l3')),x:200,lh:76},{kind:'small',text:c.T('l4'),times:c.seq(c.T('l4')),x:400,lh:76}],c.beat.s,c.end);}},
  {id:'B',name:'Yellow italic',ref:'S10 parts',texts:{y:'No. 3 Braces??'},
   build(c){YellowItalic(c,c.T('y'),c.at('no'),c.end);SubCap(c,c.at('i'));}},
  {id:'C',name:'Typewriter + serif stack',ref:'S03 + S07 parts',texts:{tb:'No. 3 Braces',s:'already have',b:'Veneers'},
@@ -463,8 +475,8 @@ beat('B18',71.6,76.9,[
   build(c){SubCap(c,null,c.at('braces'));VideoCard(c,{top:c.T('top'),t1:c.at('braces'),acc:c.T('acc'),t2:c.at('dard'),bot:c.T('bot'),t3:c.at('baat')},c.at('braces')-LAG,c.end);}}
 ]);
 beat('B19',76.9,80.533,[
- {id:'A',name:'Cream type card',ref:'S02 parts',texts:{l1:'staying',l2:'Silent',l3:'for a few days'},
-  build(c){SubCap(c,null,c.at('from'));TypeCard(c,[{kind:'script',text:c.T('l1'),times:[c.at('staying')],x:220,lh:118},{kind:'bold',text:c.T('l2'),times:[c.at('silent')],x:330,lh:104},{kind:'small',text:c.T('l3'),times:[c.at('for'),c.at('a'),c.at('few'),c.at('days')],x:280,lh:76}],c.at('from')-LAG,c.end);}},
+ {id:'A',name:'Cream type card',ref:'S02 parts',texts:{l1:'from staying',l2:'Silent',l3:'for a few days'},
+  build(c){SubCap(c);c.seq('and I could really benefit');TypeCard(c,[{kind:'script',text:c.T('l1'),times:c.seq(c.T('l1')),x:180,lh:118},{kind:'bold',text:c.T('l2'),times:c.seq(c.T('l2')),x:330,lh:104},{kind:'small',text:c.T('l3'),times:c.seq(c.T('l3')),x:280,lh:76}],c.at('from')-LAG,c.end);}},
  {id:'B',name:'Serif stack',ref:'S07 parts',texts:{s:'staying',b:'silent'},
   build(c){SubCap(c);SerifStack(c,c.T('s'),c.T('b'),c.at('staying'),c.end,c.at('silent'));}},
  {id:'C',name:'Lime word',ref:'S12 parts',texts:{lime:'silent'},
@@ -478,6 +490,10 @@ beat('B20',80.533,85.567,[
  {id:'C',name:'Serif stack punchline',ref:'S07 parts',texts:{s:'sirf apna',b:'muh kholke'},
   build(c){SubCap(c,null,c.at('sirf'));SerifStack(c,c.T('s'),c.T('b'),c.at('sirf'),c.end,c.at('muh'));}}
 ]);
+// a beat holds until its last spoken word has shown (aligned words can run past the caption-cue boundary)
+for(let i=0;i<BEATS.length-1;i++){const b=BEATS[i];let last=0;
+  CUES.forEach((q,ci)=>{if(q.s>=b.s0-0.05&&q.s<b.e0-0.05)for(const w of WORDS)if(w.c===ci)last=Math.max(last,w.s)});
+  const e=Math.max(b.e,last+LAG+0.2);b.e=e;BEATS[i+1].s=Math.max(BEATS[i+1].s,e);}
 for(const b of BEATS){if(!picks[b.id])picks[b.id]='A';for(const d of b.designs){if(d.texts.caps===null)d.texts.caps=capsDefault(b)}}
 
 /* ================= build / update ================= */
@@ -501,6 +517,8 @@ function update(t){
     const fe=(t-o.on)*fps;if(o.anim)o.anim(fe,o.el);
     o.el.querySelectorAll('span[data-on]').forEach(s=>s.style.visibility=t>=+s.dataset.on?'visible':'hidden');
     if(o.wordTimes)o.el.querySelectorAll('.aw').forEach((s,i)=>s.style.visibility=t>=(o.wordTimes[i]??o.wordTimes[o.wordTimes.length-1])?'visible':'hidden');}
+  const cardOn=ELS.some(o=>o.el.style.display!=='none'&&o.el.classList.contains('card'));
+  for(const o of ELS)if(o.el.classList.contains('cap')&&cardOn)o.el.style.display='none';
   // speaker layer (pink frame / camera)
   let g=1,sc=1,tx=0,ty=0,clip='none';
   if(SPK&&t>=SPK.on&&t<SPK.off){const r=SPK.fn((t-SPK.on)*fps)||{};g=r.group??1;sc=r.scale??1;clip=r.clip??'none';
@@ -524,7 +542,7 @@ new ResizeObserver(()=>{fit();if(CUR)igSafe()}).observe($('#phone'));
 function renderList(){
   beatsEl.innerHTML='';tl.innerHTML='<div class="ph" id="ph"></div>';
   BEATS.forEach((b,bi)=>{
-    const sayTxt=CUES.filter(q=>q.s>=b.s-0.05&&q.s<b.e-0.05).map(q=>q.t).join(' / ');
+    const sayTxt=CUES.filter(q=>q.s>=b.s0-0.05&&q.s<b.e0-0.05).map(q=>q.t).join(' / ');
     const box=document.createElement('article');box.className='beat';box.id='beat-'+b.id;
     box.innerHTML=`<div class="bh"><b>${b.id}</b><span class="tc">${fmt(b.s)} – ${fmt(b.e)} · ${(b.e-b.s).toFixed(1)} s</span><button data-play="${b.id}">▶ preview</button><span class="say">“${esc(sayTxt)}”</span></div>
       <div class="opts">${b.designs.map(d=>`<button class="opt" data-b="${b.id}" data-d="${d.id}" aria-pressed="${picks[b.id]===d.id}"><span class="k">${d.id} <i class="${/1:1/.test(d.ref)?'ref':''}">${esc(d.ref)}</i></span><span class="n">${esc(d.name)}</span></button>`).join('')}</div>
