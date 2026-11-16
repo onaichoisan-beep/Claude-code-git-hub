@@ -2,6 +2,7 @@
 
 **Used in dear_aspirant + from_this (Nov 16):** IMG_8965 ×4, studyclip ×2, IMG_9242 ×2, walkinginapron ×2, MeinLAB ×3, IMG_6273, IMG_9246 (40.4–41.8 s only), bc1a3ac4 (the presentation is the creator), IMG_2515. Count these before reusing them.
 **Used in coaching_never_shows (Nov 16):** IMG_6272, IMG_9839 (1.6–3.8 s), IMG_6455 (21.75–22.4 s, stethoscope), 5D64FC48 (2.4–3.7 s), MeinLAB 16.5–22 s. MeinLAB is now used 5× in total: rest it.
+**Used in one_day_you / same_2am / first_doctor (Nov 16):** bc1a3ac4 (presentation, 5 windows), IMG_1364, IMG_9323, IMG_8161, IMG_0959, IMG_9308 ×2, 2A473245, E56BD187, IMG_6575, IMG_1510, IMG_6262, IMG_6261, IMG_1480, IMG_8784, 26EEAFDA. Almost all the footage is now used: new clips are needed (see the shoot list).
 
 107 files: 66 videos, 41 photos. Check this list before planning a video.
 **Rule:** build each new video mostly from FRESH clips (used 0–1 times). Use any OVERUSED clip at most once per video, and never as the hook.

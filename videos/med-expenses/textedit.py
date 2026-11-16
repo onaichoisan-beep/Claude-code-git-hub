@@ -205,6 +205,24 @@ for i, s in enumerate(SHOTS):
     chain.append(f"[{k}:v]format=rgba,fade=t=in:st={t0 + (XD*0.5 if XFADE and i else 0)}:d={fi}:alpha=1,fade=t=out:st={t1-fo}:d={fo}:alpha=1[x{k}]")
     chain.append(f"[{last}][x{k}]overlay=0:{int(FH*s.get('ty', 0.40)) - h//2}:enable='between(t,{t0},{t1})'[o{k}]"); last = f"o{k}"
 
+# single white flash on a hard cut (FLASH = time), no crossfade
+if spec.get("FLASH") is not None:
+    fl = spec["FLASH"]
+    chain.append(f"color=white:s={FW}x{FH}:r={FPS}:d={END},format=rgba,fade=t=in:st={fl-0.08}:d=0.08:alpha=1,"
+                 f"fade=t=out:st={fl}:d=0.35:alpha=1[flash]")
+    chain.append(f"[{last}][flash]overlay=0:0:enable='between(t,{fl-0.08},{fl+0.36})'[ofl]"); last = "ofl"
+
+# credibility tag: small line, e.g. ("MBBS student · NMCH Patna", t0, t1, ty)
+if spec.get("TAG"):
+    tg, a0, a1, tyy = spec["TAG"]
+    tf = ImageFont.truetype(os.path.join(W, "fonts", "Ubuntu-Medium.ttf"), 40)
+    im = Image.new("RGBA", (FW, 90), (0, 0, 0, 0)); sh = Image.new("RGBA", im.size, (0, 0, 0, 0)); x = (FW - tf.getlength(tg)) / 2
+    ImageDraw.Draw(sh).text((x + 2, 27), tg, font=tf, fill=(0, 0, 0, 220)); im.alpha_composite(sh.filter(ImageFilter.GaussianBlur(4)))
+    ImageDraw.Draw(im).text((x, 24), tg, font=tf, fill=(255, 255, 255, 235))
+    tp = os.path.join(ovl, "tag.png"); im.save(tp); inputs += ["-loop", "1", "-framerate", str(FPS), "-t", str(END), "-i", tp]; k += 1
+    chain.append(f"[{k}:v]format=rgba,fade=t=in:st={a0}:d=0.25:alpha=1[x{k}]")
+    chain.append(f"[{last}][x{k}]overlay=0:{int(FH*tyy) - 45}:enable='between(t,{a0},{a1})'[o{k}]"); last = f"o{k}"
+
 # ------------------------------------------------------------------ sound: whoosh on the drop, pops, extras
 SR = 48000; mix = np.zeros(int(END * SR) + SR, np.float32)
 cat = {c["name"]: c for c in json.load(open(os.path.join(SFXDIR, "catalog.json")))}
