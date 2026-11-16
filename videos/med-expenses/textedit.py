@@ -124,7 +124,13 @@ for i, s in enumerate(SHOTS):
             if "freeze_at" in s:   # play up to this source time, then hold that frame
                 vf.insert(0, f"trim=end={s['freeze_at'] - sin},setpts=PTS-STARTPTS"); vf.append(f"tpad=stop_mode=clone:stop_duration={d}")
             elif (dur_of(src) - sin) / sp < d: vf.append(f"tpad=stop_mode=clone:stop_duration={d}")
-            run(["ffmpeg", "-loglevel", "error", "-y", "-ss", str(sin), "-i", src, "-vf", ",".join(vf)] + ENC + ["-t", str(d), out])
+            if s.get("smooth"):   # two-pass gimbal-style stabilisation (vid.stab), minimal adaptive crop
+                trf = out + ".trf"; span = ["-ss", str(sin), "-t", f"{d * sp + 0.2:.3f}", "-i", src]
+                run(["ffmpeg", "-loglevel", "error", "-y"] + span + ["-vf", ",".join(vf) + f",vidstabdetect=shakiness=6:accuracy=15:result={trf}", "-f", "null", "-"])
+                run(["ffmpeg", "-loglevel", "error", "-y"] + span + ["-vf", ",".join(vf) + f",vidstabtransform=input={trf}:smoothing=20:optzoom=2:zoomspeed=0.15:interpol=bicubic,unsharp=5:5:0.5"]
+                    + ENC + ["-t", str(d), out])
+            else:
+                run(["ffmpeg", "-loglevel", "error", "-y", "-ss", str(sin), "-i", src, "-vf", ",".join(vf)] + ENC + ["-t", str(d), out])
     print(f"{t0:6.2f}-{t1:6.2f} {label:28.28} | {s.get('text', '')}")
 
 pic = os.path.join(W, f"{NAME}_picture.mp4")
@@ -193,7 +199,7 @@ def text_png(t, path):
 ovl = os.path.join(W, f"{NAME}_ovl"); os.makedirs(ovl, exist_ok=True)
 inputs, chain = ["-i", pic], []
 chain.append("[0:v]eq=saturation=1.06:contrast=0.97:brightness=0.01,colorbalance=rs=0.05:gs=0.01:bs=-0.05:rm=0.03:bm=-0.03,"
-             f"fade=t=in:st=0:d=0.35,fade=t=out:st={END-0.9}:d=0.9[g]"); last = "g"; k = 0
+             f"fade=t=in:st=0:d=0.2,fade=t=out:st={END-spec.get('FADE_OUT', 0.9)}:d={spec.get('FADE_OUT', 0.9)}[g]"); last = "g"; k = 0
 for i, s in enumerate(SHOTS):
     if not s.get("text"): continue
     t0 = s["t"]; t1 = s.get("text_until") or (SHOTS[i + 1]["t"] if i + 1 < len(SHOTS) else END)
