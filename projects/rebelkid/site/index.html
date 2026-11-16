@@ -423,7 +423,7 @@ beat('B13',51.133,54.9,[
 ]);
 beat('B14',54.9,58.833,[
  {id:'A',name:'Captions only (her comment graphics stay)',ref:'S14 1:1',texts:{},
-  build(c){SubCap(c);}},
+  build(c){SubCap(c,null,c.at('wishcare'));}},   // her footage already shows the product label from here
  {id:'B',name:'Video card around this shot',ref:'S08 parts',slots:{clip1:'self'},texts:{top:'everyone told me',acc:'try this',bot:'Hair Growth Serum'},
   build(c){VideoCard(c,{top:c.T('top'),t1:c.at('literally'),acc:c.T('acc'),t2:c.at('try'),bot:c.T('bot'),t3:c.at('wishcare')},c.beat.s,c.end);}},
  {id:'C',name:'Polaroid around this shot',ref:'S06 parts',slots:{clip1:'self'},texts:{l1:'literally',l1b:'everyone said',r1:'try the',acc:'Wishcare'},
@@ -579,5 +579,5 @@ function tick(){const t=av.currentTime;const b=beatAt(t);
   update(av.currentTime);$('#tm').textContent=fmt(t)+' / '+fmt(DUR);const ph=$('#ph');if(ph)ph.style.left=(t/DUR*100)+'%';
   requestAnimationFrame(tick)}
 renderList();fit();
-document.fonts.ready.then(()=>{build(BEATS[0]);update(0);markActive(BEATS[0]);requestAnimationFrame(tick)});
+if(!window.RENDER)document.fonts.ready.then(()=>{build(BEATS[0]);update(0);markActive(BEATS[0]);requestAnimationFrame(tick)});
 </script>

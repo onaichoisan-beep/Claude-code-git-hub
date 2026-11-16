@@ -10,3 +10,6 @@ an/
 *.png
 *.jpg
 site/wrap.html
+Video/
+vid/
+site/render.html
