@@ -285,7 +285,7 @@ def mix_audio():
         inputs += ['-i', f'whoosh{k % 4}.wav']  # only on the selected transitions
         st = max(0, tc - 0.5)
         d = int(st * 1000)
-        parts.append(f'[{k + 2}:a]adelay={d}|{d},volume=0.38[w{k}]')
+        parts.append(f'[{k + 2}:a]adelay={d}|{d},volume=0.24[w{k}]')
         labels.append(f'[w{k}]')
     parts.append(''.join(labels) + f'amix=inputs={len(labels)}:normalize=0,atrim=0:{TOTAL},'
                  'loudnorm=I=-14:TP=-1.5:LRA=11[a]')
