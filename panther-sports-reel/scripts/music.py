@@ -75,7 +75,18 @@ def riser(d):
 def impact():
     n=int(2.0*SR); t=np.arange(n)/SR
     return (np.sin(2*np.pi*(40+60*np.exp(-t/.05))*t)*np.exp(-t/.5)*.9 + rng.standard_normal(n)*np.exp(-t/.25)*.25)
-for tt in (9.36,21.26,72.26):
+from edl import FLASH,BURN,LEAK,PUNCH,GLITCH
+def whoosh(d=0.5):
+    n=int(d*SR); t=np.arange(n)/SR; nz=rng.standard_normal(n)
+    out=np.zeros(n); acc=0.
+    a=0.02+0.5*np.sin(np.pi*t/d)**2
+    for i in range(n): acc+=a[i]*(nz[i]-acc); out[i]=acc
+    return out*np.sin(np.pi*t/d)**1.5*.9
+for tt in BURN+LEAK+PUNCH:
+    add(whoosh(0.5),tt-0.28,.55,0.3*np.sin(tt))
+for tt in GLITCH:
+    add(rng.standard_normal(int(.12*SR))*np.exp(-np.arange(int(.12*SR))/SR/.04)*.35,tt,1)
+for tt in FLASH:
     add(riser(1.5),tt-1.5,.8); add(impact(),tt,.8)
 # fade out
 fo=int(3*SR); 

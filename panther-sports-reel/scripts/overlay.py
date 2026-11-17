@@ -79,7 +79,9 @@ CAPS="""0.00|क्या आप जानना
 70.12|आज ही
 70.64|पैंथर स्पोर्ट्स
 71.58|इंडिया प्राइवेट
-72.26|END"""
+72.26|लिमिटेड से जुड़िए!
+73.40|आज ही जुड़िए!
+75.00|END"""
 caps=[(float(a),b) for a,b in (l.split('|') for l in CAPS.strip().splitlines())]
 segs=[(caps[i][0],min(caps[i+1][0],caps[i][0]+3.2),caps[i][1]) for i in range(len(caps)-1)]
 RED=(226,30,38,255)
@@ -101,8 +103,9 @@ def title_img(l1,l2):
     im=Image.new('RGBA',(max(a.width,b.width),a.height+b.height-6),(0,0,0,0))
     im.alpha_composite(a,((im.width-a.width)//2,0)); im.alpha_composite(b,((im.width-b.width)//2,a.height-6)); return im
 TITLE=title_img('PANTHER SPORTS','INDIA PVT. LTD.')
-titles=[(21.26,23.76,TITLE)]
-flashes=[6.54,9.36,21.26,23.76,72.26]
+titles=[(21.26,23.76,TITLE),(73.18,75.0,TITLE)]
+from edl import FLASH
+flashes=FLASH
 CAP_CY=1500
 out=sys.stdout.buffer
 base=Image.new('RGBA',(W,H),(0,0,0,0))
