@@ -8,4 +8,4 @@
 - `scripts/music.py`: synthesizes the original BGM (`bgm.wav`).
 - `scripts/overlay.py`: draws the logo, Hindi captions (Mukta ExtraBold, red box), the title card and the flashes. Pipe its output into ffmpeg over `base_fx.mp4`.
 - Final mix: VO loudnorm to -15 LUFS, BGM -4 dB with sidechain ducking, alimiter.
-- `logo_badge.png`: the Magadh Panthor badge cut out of its checkered background.
+- `logo_badge_patna.png`: the Patna Cricket Academy logo (current). `logo_badge.png` is the earlier Magadh Panthor badge.

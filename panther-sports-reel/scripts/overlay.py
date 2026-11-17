@@ -96,7 +96,7 @@ def box_text(text,size,fill=RED,txt=(255,255,255,255),padx=34,pady=14,rad=16):
     return im
 cap_imgs={t:box_text(t,74) for _,_,t in segs}
 # logo: white rounded tile like the reference
-badge=Image.open('../logo_badge.png'); bw=badge.width
+badge=Image.open('../logo_badge_patna.png'); bw=badge.width
 TS=176; tile=Image.new('RGBA',(TS+40,TS+40),(0,0,0,0))
 tsh=Image.new('RGBA',tile.size,(0,0,0,0)); ImageDraw.Draw(tsh).rounded_rectangle((20,24,20+TS,24+TS),26,fill=(0,0,0,110)); tile=Image.alpha_composite(tile,tsh.filter(ImageFilter.GaussianBlur(8)))
 ImageDraw.Draw(tile).rounded_rectangle((20,20,20+TS,20+TS),26,fill=(255,253,245,255))
