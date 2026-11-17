@@ -95,18 +95,38 @@ def box_text(text,size,fill=RED,txt=(255,255,255,255),padx=34,pady=14,rad=16):
     d.text((10+padx-bb[0],10+pady-bb[1]),text,font=f,fill=txt,language='hi',stroke_width=2,stroke_fill=(120,0,0,255))
     return im
 cap_imgs={t:box_text(t,74) for _,_,t in segs}
-logo=Image.open('../logo_badge.png')
-LX,LY=W-logo.width-14,14
+# logo: white rounded tile like the reference
+badge=Image.open('../logo_badge.png'); bw=badge.width
+TS=176; tile=Image.new('RGBA',(TS+40,TS+40),(0,0,0,0))
+tsh=Image.new('RGBA',tile.size,(0,0,0,0)); ImageDraw.Draw(tsh).rounded_rectangle((20,24,20+TS,24+TS),26,fill=(0,0,0,110)); tile=Image.alpha_composite(tile,tsh.filter(ImageFilter.GaussianBlur(8)))
+ImageDraw.Draw(tile).rounded_rectangle((20,20,20+TS,20+TS),26,fill=(255,253,245,255))
+b2=badge.resize((int(bw*0.78),int(bw*0.78)),Image.LANCZOS); tile.alpha_composite(b2,((tile.width-b2.width)//2,(tile.height-b2.height)//2+1))
+logo=tile; LX,LY=W-logo.width-26,40
+# CALL NOW + phone strip like the reference
+FL='/usr/share/fonts/opentype/inter/Inter-ExtraBold.otf'
+def pill(text,size,fill,txt,outline=None,padx=14,pady=6,rad=10):
+    f=ImageFont.truetype(FL,size); bb=f.getbbox(text); tw,th=bb[2]-bb[0],bb[3]-bb[1]
+    im=Image.new('RGBA',(tw+2*padx+6,th+2*pady+6),(0,0,0,0)); d=ImageDraw.Draw(im)
+    d.rounded_rectangle((3,3,3+tw+2*padx,3+th+2*pady),rad,fill=fill,outline=outline,width=3 if outline else 0)
+    d.text((3+padx-bb[0],3+pady-bb[1]),text,font=f,fill=txt); return im
+nums=[pill(n,40,(226,30,38,255),(255,255,255,255),outline=(255,255,255,255)) for n in ('9153834432','6201538442','7870650296')]
+gap=10; sw=sum(p.width for p in nums)+gap*2
+STRIP=Image.new('RGBA',(W,140),(0,0,0,0))
+cn=pill('CALL NOW',22,(18,18,18,235),(255,255,255,255),padx=16,pady=6,rad=14)
+STRIP.alpha_composite(cn,((W-cn.width)//2,0))
+x=(W-sw)//2
+for p in nums: STRIP.alpha_composite(p,(x,cn.height+2)); x+=p.width+gap
+STRIP_Y=1440-cn.height-2
 # brand titles (red box top, white text) like the reference
 def title_img(l1,l2):
     a=box_text(l1,80,padx=30,pady=8,rad=10); b=box_text(l2,56,padx=24,pady=6,rad=10)
     im=Image.new('RGBA',(max(a.width,b.width),a.height+b.height-6),(0,0,0,0))
     im.alpha_composite(a,((im.width-a.width)//2,0)); im.alpha_composite(b,((im.width-b.width)//2,a.height-6)); return im
-TITLE=title_img('PANTHER SPORTS','INDIA PVT. LTD.')
+TITLE=title_img('PANTHOR SPORTS','INDIA PVT. LTD.')
 titles=[(21.26,23.76,TITLE),(73.18,75.0,TITLE)]
 from edl import FLASH
 flashes=FLASH
-CAP_CY=1500
+CAP_CY=1560
 out=sys.stdout.buffer
 base=Image.new('RGBA',(W,H),(0,0,0,0))
 cache={}
@@ -133,10 +153,11 @@ for n in range(int(DUR*FPS)):
             ci=cap_imgs[key[1]]; s=[0.7,0.88,1.06,1.03,1.0,1.0][key[2]]
             ci2=ci.resize((int(ci.width*s),int(ci.height*s)),Image.BICUBIC)
             im.alpha_composite(ci2,((W-ci2.width)//2,CAP_CY-ci2.height//2))
+        im.alpha_composite(STRIP,(0,STRIP_Y))
         im.alpha_composite(logo,(LX,LY))
         if flv>0:
             fw=Image.new('RGBA',(W,H),(255,255,255,int(200*flv))); im=Image.alpha_composite(fw,im) if False else Image.alpha_composite(im,fw)
-            im.alpha_composite(logo,(LX,LY))
+            im.alpha_composite(STRIP,(0,STRIP_Y)); im.alpha_composite(logo,(LX,LY))
         if len(cache)>60: cache.clear()
         cache[ck]=im.tobytes()
     out.write(cache[ck])
