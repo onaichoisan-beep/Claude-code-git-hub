@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Arya</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Arya — UGC ad, reel and talking-head video editing.">
+<meta name="description" content="Arya: UGC, Reels and talking-head video editing. Short-form editing that keeps viewers watching.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap">
 <style>
-/* Layout: playful ceramics-shop language: checker trims, cream / cobalt / butter bands with wavy seams,
-   three hash-routed pages (#intro, #work, #contact) sharing one nav and one footer wordmark. */
+/* Layout: one scrolling page in three sections (Intro, Work, Contact) with checker trims and wavy seams;
+   the nav scrolls to each section. Best Works is a sideways row of autoplaying 9:16 videos. */
 :root{
   --cream:#FBF4E2;
   --cobalt:#2443A6;
@@ -28,133 +28,119 @@
   color-scheme:light;
 }
 *{box-sizing:border-box}
+html{scroll-behavior:smooth}
 html,body{margin:0}
 body{background:var(--cream);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;overflow-x:hidden}
 img{max-width:100%;display:block}
 [hidden]{display:none!important}
 a{color:inherit}
 :focus-visible{outline:3px dashed var(--pink);outline-offset:3px}
-h1,h2,h3{font-family:var(--display);font-weight:800;letter-spacing:-.02em;line-height:1.1;text-wrap:balance;margin:0}
+h1,h2,h3{font-family:var(--display);font-weight:800;letter-spacing:-.02em;line-height:1.08;text-wrap:balance;margin:0}
 .wrap{max-width:1120px;margin:0 auto;padding-left:var(--gutter-l);padding-right:var(--gutter-r)}
+section{scroll-margin-top:84px}
 
-/* checker trim */
 .trim{height:16px;background:repeating-linear-gradient(90deg,var(--cobalt) 0 48px,var(--pink) 48px 96px)}
 
 /* nav */
 header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--cream)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--cobalt)}
-.nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;padding-block:14px}
+.nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;padding-block:12px}
 .avail{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--cobalt)}
 .avail i{width:9px;height:9px;border-radius:50%;background:#2DBE6C;box-shadow:0 0 0 3px rgba(45,190,108,.25)}
 .logo{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--cobalt);line-height:.9}
-.logo b{font-family:var(--logo);font-weight:400;font-size:38px;letter-spacing:.01em}
+.logo b{font-family:var(--logo);font-weight:400;font-size:38px;letter-spacing:.02em}
 .logo small{font-family:var(--body);font-weight:700;font-size:9px;letter-spacing:.55em;margin-right:-.55em}
-.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0;flex-wrap:wrap;justify-content:flex-end}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0;justify-content:flex-end}
 .nav a.tab{display:block;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:.06em;text-transform:uppercase;padding:8px 14px;border-radius:999px;color:var(--cobalt)}
 .nav a.tab:hover{background:var(--butter)}
-.nav a.tab[aria-current="page"]{background:var(--cobalt);color:var(--white)}
-
-/* views */
-.view{display:none}
-.view.on{display:block;animation:pop .45s cubic-bezier(.2,.9,.3,1.2)}
-@keyframes pop{from{transform:translateY(14px)}to{transform:none}}
+.nav a.tab[aria-current="true"]{background:var(--cobalt);color:var(--white)}
 
 /* buttons */
 .pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--body);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;cursor:pointer;
   background:var(--pink);color:var(--cobalt);border:2.5px dashed var(--cobalt);border-radius:999px;padding:10px 20px;transition:transform .2s}
 .pill:hover{transform:rotate(-3deg) scale(1.04)}
-.pill.solid{background:var(--cobalt);color:var(--white);border-color:var(--pink)}
+.pill.solid{background:var(--cobalt);color:var(--white);border:2.5px solid var(--cobalt)}
+.pill.ghost{background:transparent}
 
 /* ---------- INTRO ---------- */
-.hero{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,64px);align-items:center;padding-block:clamp(28px,6vw,64px)}
-.hero-text{text-align:center;display:grid;gap:14px;justify-items:center;min-width:0}
-.hero-text h1{font-size:clamp(36px,5.4vw,60px);color:var(--cobalt)}
-.hero-text p{margin:0;max-width:44ch;font-size:15px}
-.hero-text .role{font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:var(--cobalt);background:var(--butter);padding:4px 12px;border-radius:999px}
-.hero-art{position:relative;min-width:0;width:100%;max-width:340px;justify-self:center}
-.frame{position:relative;border-radius:22px;overflow:hidden;background:var(--white);border:3px solid var(--cobalt);box-shadow:10px 10px 0 var(--pink)}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(24px,5vw,64px);align-items:center;padding-block:clamp(28px,6vw,64px)}
+.hero-text{display:grid;gap:16px;justify-items:start;min-width:0}
+.hero-text h1{font-size:clamp(40px,6vw,68px);color:var(--cobalt)}
+.hero-text .lead{margin:0;max-width:46ch;font-size:clamp(16px,1.6vw,18px)}
+.hero-text .tagline{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(18px,2vw,22px);color:var(--cobalt);border-left:4px solid var(--pink);padding-left:12px}
+.role{font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:var(--cobalt);background:var(--butter);padding:4px 12px;border-radius:999px}
+.ctas{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.hero-art{position:relative;min-width:0;width:100%;max-width:380px;justify-self:center}
+.frame{position:relative;border-radius:22px;overflow:hidden;border:3px solid var(--cobalt);box-shadow:10px 10px 0 var(--pink);background:var(--white)}
 .frame img{width:100%;height:auto;aspect-ratio:1/1;object-fit:cover}
-.sticker{position:absolute;font-family:var(--display);font-weight:800;color:var(--cobalt);background:var(--butter);border:2.5px solid var(--cobalt);border-radius:999px;padding:6px 14px;font-size:14px;white-space:nowrap}
-.s1{top:-14px;left:-10px;transform:rotate(-8deg)}
-.s2{bottom:18px;right:-12px;transform:rotate(6deg);background:var(--pink)}
 .rec{position:absolute;top:14px;right:16px;display:flex;align-items:center;gap:6px;font:700 12px var(--body);letter-spacing:.1em;color:var(--white);background:rgba(27,42,99,.8);padding:4px 10px;border-radius:6px}
 .rec i{width:8px;height:8px;border-radius:50%;background:#FF5A6E;animation:blink 1.2s infinite}
 @keyframes blink{50%{opacity:.2}}
 
-/* ticker strip + wave seam */
-.ticker{background:var(--cobalt-deep);color:var(--butter);overflow:hidden;border-block:3px solid var(--pink);margin-top:clamp(8px,2vw,20px)}
-.ticker-track{display:flex;width:max-content;animation:tick 30s linear infinite}
-.ticker-track span{font-family:var(--logo);font-size:clamp(22px,3vw,30px);letter-spacing:.06em;text-transform:uppercase;padding-block:10px;white-space:nowrap;padding-right:28px}
-.ticker-track b{color:var(--pink);font-weight:400;padding-inline:14px}
-@keyframes tick{to{transform:translateX(-50%)}}
-.seam{display:block;width:100%;height:clamp(28px,5vw,60px);margin-top:-1px;margin-bottom:-2px}
+/* wavy marquee */
+.marquee{display:block;width:100%;height:auto;margin-bottom:-2px}
+.marquee text{font-family:var(--logo);font-size:34px;fill:var(--cobalt);letter-spacing:.05em}
+.marquee tspan.dot{fill:#E46FB3}
 
-/* blue band */
+/* ---------- WORK ---------- */
 .band{background:var(--cobalt);color:var(--white)}
-.band .wrap{padding-block:clamp(36px,6vw,64px)}
-.band h2{font-size:clamp(34px,5vw,56px);color:var(--butter);text-align:center}
-.services{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:40px}
-.svc{display:grid;justify-items:center;gap:12px;text-align:center;min-width:0}
-.svc h3{font-size:26px;color:var(--white)}
-.svc p{margin:0;font-size:14px;opacity:.9;max-width:30ch}
-.phone{width:min(130px,60%);aspect-ratio:9/16;border-radius:22px;border:4px solid var(--white);position:relative;transition:transform .3s}
-.svc:hover .phone{transform:rotate(-5deg) translateY(-6px)}
-.phone::after{content:"";position:absolute;top:8px;left:50%;width:34%;height:6px;border-radius:6px;background:var(--white);transform:translateX(-50%);opacity:.9}
+.band .wrap{padding-block:clamp(32px,5vw,56px) clamp(40px,6vw,72px)}
+.work-head{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:16px}
+.work-head h2{font-size:clamp(36px,5vw,58px);color:var(--butter)}
+.work-head p{margin:6px 0 0;opacity:.9;max-width:48ch}
+.arrows{display:flex;gap:8px}
+.arrow{width:46px;height:46px;border-radius:50%;border:2.5px solid var(--butter);background:transparent;color:var(--butter);font:700 20px var(--body);cursor:pointer;display:grid;place-items:center}
+.arrow:hover{background:var(--butter);color:var(--cobalt)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.chip{font:700 13px var(--body);letter-spacing:.06em;text-transform:uppercase;padding:8px 16px;border-radius:999px;border:2px solid var(--butter);background:transparent;color:var(--butter);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--butter);color:var(--cobalt)}
+.strip{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-left:2px;padding:22px 2px 18px;margin-top:6px;scrollbar-width:thin;scrollbar-color:var(--pink) transparent;overscroll-behavior-x:contain}
+.strip::-webkit-scrollbar{height:8px}
+.strip::-webkit-scrollbar-thumb{background:var(--pink);border-radius:8px}
+.reel{all:unset;cursor:pointer;flex:0 0 clamp(150px,21vw,230px);scroll-snap-align:start;display:grid;gap:8px;min-width:0}
+.reel:focus-visible{outline:3px dashed var(--pink);outline-offset:4px;border-radius:20px}
+.thumb{position:relative;aspect-ratio:9/16;max-width:100%;border-radius:18px;overflow:hidden;border:3px solid var(--white);transition:transform .25s,box-shadow .25s;background:var(--cobalt-deep)}
+.reel:hover .thumb{transform:translateY(-6px) rotate(-1.5deg);box-shadow:8px 8px 0 var(--pink)}
+.thumb video,.thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tag{position:absolute;top:10px;left:10px;font:700 10px var(--body);letter-spacing:.1em;text-transform:uppercase;background:var(--white);color:var(--cobalt);border:2px solid var(--cobalt);padding:3px 8px;border-radius:999px;z-index:2}
+.soon{position:absolute;inset:auto 10px 10px;z-index:2;text-align:center;font:700 11px var(--body);letter-spacing:.1em;text-transform:uppercase;background:rgba(27,42,99,.85);color:var(--white);padding:6px;border-radius:8px}
+.sound{position:absolute;bottom:10px;right:10px;z-index:2;font:700 11px var(--body);background:rgba(27,42,99,.8);color:var(--white);padding:4px 8px;border-radius:6px}
+.reel h3{font-size:17px;color:var(--white);font-weight:700;letter-spacing:-.01em}
+.reel .meta{font-size:13px;opacity:.8;margin-top:-6px}
 .pat-stripe{background:repeating-linear-gradient(90deg,var(--pink) 0 16px,var(--white) 16px 32px)}
 .pat-gingham{background-color:var(--butter);background-image:linear-gradient(90deg,rgba(240,190,60,.55) 50%,transparent 50%),linear-gradient(rgba(240,190,60,.55) 50%,transparent 50%);background-size:24px 24px}
 .pat-wave{background:radial-gradient(circle at 30% 30%,var(--white) 0 18%,transparent 19%),radial-gradient(circle at 75% 70%,var(--white) 0 22%,transparent 23%),#9EC1F2;background-size:60px 60px}
 .pat-dots{background:radial-gradient(var(--cobalt) 22%,transparent 24%) 0 0/18px 18px,var(--pink)}
-.pat-check{background:conic-gradient(var(--cobalt) 25%,var(--cream) 0 50%,var(--cobalt) 0 75%,var(--cream) 0) 0 0/28px 28px}
+.pat-check{background:conic-gradient(var(--cobalt-deep) 25%,var(--cream) 0 50%,var(--cobalt-deep) 0 75%,var(--cream) 0) 0 0/28px 28px}
 .pat-flower{background:radial-gradient(circle,var(--butter) 0 12%,var(--pink) 13% 30%,transparent 31%) 0 0/44px 44px,var(--white)}
 
-
-/* ---------- WORK ---------- */
-.work-head{text-align:center;display:grid;gap:10px;justify-items:center;padding-top:clamp(28px,5vw,56px)}
-.work-head h1{font-size:clamp(36px,5.4vw,60px);color:var(--cobalt)}
-.work-head p{margin:0;max-width:52ch}
-.filters{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px}
-.chip{font:700 13px var(--body);letter-spacing:.06em;text-transform:uppercase;padding:8px 16px;border-radius:999px;border:2px solid var(--cobalt);background:var(--white);color:var(--cobalt);cursor:pointer}
-.chip[aria-pressed="true"]{background:var(--cobalt);color:var(--white)}
-.reels{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:22px;padding-block:32px clamp(40px,6vw,72px)}
-.reel{all:unset;cursor:pointer;display:grid;gap:10px;min-width:0}
-.reel:focus-visible{outline:3px dashed var(--pink);outline-offset:4px;border-radius:20px}
-.thumb{position:relative;aspect-ratio:9/16;max-width:100%;border-radius:20px;overflow:hidden;border:3px solid var(--cobalt);transition:transform .25s,box-shadow .25s}
-.reel:hover .thumb{transform:translateY(-6px) rotate(-1.5deg);box-shadow:8px 8px 0 var(--pink)}
-.thumb video,.thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.tag{position:absolute;top:10px;left:10px;font:700 11px var(--body);letter-spacing:.1em;text-transform:uppercase;background:var(--white);color:var(--cobalt);border:2px solid var(--cobalt);padding:3px 9px;border-radius:999px;z-index:2}
-.len{position:absolute;bottom:10px;right:10px;font:700 12px var(--body);background:var(--ink);color:var(--white);padding:2px 8px;border-radius:6px;font-variant-numeric:tabular-nums;z-index:2}
-.play{position:absolute;inset:0;margin:auto;width:62px;height:62px;border-radius:50%;background:var(--cobalt);border:3px solid var(--white);display:grid;place-items:center;z-index:2;transition:transform .2s}
-.play::before{content:"";border-left:18px solid var(--white);border-top:11px solid transparent;border-bottom:11px solid transparent;margin-left:5px}
-.reel:hover .play{transform:scale(1.12)}
-.reel h3{font-size:19px;color:var(--cobalt)}
-.reel .meta{font-size:13px;opacity:.8;margin-top:-6px}
-.note{font-size:13px;text-align:center;padding:10px 14px;border-radius:12px;background:var(--butter);border:2px dashed var(--cobalt);max-width:60ch;margin:22px auto 0}
-
 /* modal */
-.modal{position:fixed;inset:0;z-index:50;background:rgba(27,42,99,.82);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) var(--gutter-r) max(16px,env(safe-area-inset-bottom,0px)) var(--gutter-l)}
+.modal{position:fixed;inset:0;z-index:50;background:rgba(27,42,99,.85);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) var(--gutter-r) max(16px,env(safe-area-inset-bottom,0px)) var(--gutter-l)}
 .modal-card{background:var(--cream);border:3px solid var(--pink);border-radius:22px;padding:16px;width:min(420px,100%);max-height:100%;overflow:auto;display:grid;gap:12px;position:relative}
-.modal-card .thumb{width:min(100%,38vh);margin:0 auto}
+.modal-card .thumb{width:min(100%,38vh);margin:0 auto;border-color:var(--cobalt)}
 .modal-card h3{font-size:22px;color:var(--cobalt);padding-right:44px}
 .modal-card p{margin:0;font-size:14px}
 .x{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;border:2px solid var(--cobalt);background:var(--white);color:var(--cobalt);font:700 20px var(--body);cursor:pointer;line-height:1}
 
 /* ---------- CONTACT ---------- */
 .contact{background:var(--butter)}
-.contact .wrap{padding-block:clamp(32px,6vw,64px);display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(24px,5vw,56px);align-items:start}
-.contact h1{font-size:clamp(36px,5.4vw,60px);color:var(--cobalt)}
-.contact-main{display:grid;gap:18px;min-width:0}
+.contact .wrap{padding-block:clamp(36px,6vw,64px);display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(24px,5vw,56px);align-items:start}
+.contact h2{font-size:clamp(36px,5vw,58px);color:var(--cobalt)}
+.contact-main{display:grid;gap:18px;min-width:0;justify-items:start}
 .contact-main > p{margin:0;max-width:48ch}
-.mail{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:var(--white);border:3px solid var(--cobalt);border-radius:999px;padding:8px 8px 8px 22px;box-shadow:6px 6px 0 var(--pink);max-width:100%}
-.mail span{font-family:var(--display);font-weight:700;font-size:clamp(17px,2.4vw,22px);color:var(--cobalt);overflow-wrap:anywhere;min-width:0;flex:1 1 180px;user-select:all}
+.mail{display:grid;gap:12px;background:var(--white);border:3px solid var(--cobalt);border-radius:22px;padding:18px 20px;box-shadow:6px 6px 0 var(--pink);width:100%;max-width:520px}
+.mail small{font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--cobalt);opacity:.8}
+.mail .addr{font-family:var(--display);font-weight:700;font-size:clamp(20px,2.6vw,26px);color:var(--cobalt);overflow-wrap:anywhere;user-select:all;line-height:1.2}
+.mail .row{display:flex;flex-wrap:wrap;gap:10px}
 .steps{background:var(--cobalt);color:var(--white);border-radius:24px;padding:22px;display:grid;gap:14px;min-width:0}
-.steps h2{font-size:26px;color:var(--butter)}
+.steps h3{font-size:24px;color:var(--butter)}
 .steps ol{margin:0;padding:0;list-style:none;display:grid;gap:12px;counter-reset:s}
 .steps li{display:grid;grid-template-columns:36px 1fr;gap:12px;align-items:start;counter-increment:s;font-size:14px}
 .steps li::before{content:counter(s);display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--pink);color:var(--cobalt);font:800 17px var(--display)}
 .steps li b{display:block;font-size:15px}
 
 /* ---------- FOOTER ---------- */
-footer{background:var(--butter);border-top:0}
+footer{background:var(--butter)}
 footer .cols{display:grid;grid-template-columns:1.4fr 1fr 1.2fr;gap:24px;padding-block:28px 8px;font-size:13px}
 footer .cols > *{min-width:0}
 footer p{margin:0 0 8px}
@@ -162,24 +148,27 @@ footer ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 footer a{text-decoration:none;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--cobalt)}
 footer a:hover{text-decoration:underline}
 footer h4{margin:0 0 8px;font:700 14px var(--body);text-transform:uppercase;letter-spacing:.05em;color:var(--cobalt)}
-/* Big wordmark: sized by script to the exact container width, never clipped (no overflow:hidden, generous line-height). */
+footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
+/* Big wordmark: sized by script to fit its box, never clipped. */
 .wordmark{padding-block:10px 18px;text-align:center}
 .wordmark div{display:inline-block;font-family:var(--logo);color:var(--cobalt);white-space:nowrap;line-height:1.1;font-size:22vw;letter-spacing:.04em;padding-top:.04em}
 
 @media (max-width:760px){
   .hero,.contact .wrap{grid-template-columns:1fr}
-  .hero-art{max-width:280px;margin:0 auto}
-  .services{grid-template-columns:1fr;gap:36px}
+  .hero-text{justify-items:center;text-align:center}
+  .hero-text .tagline{border-left:0;padding-left:0}
+  .hero-art{max-width:300px}
   footer .cols{grid-template-columns:1fr 1fr}
   footer .cols > :first-child{grid-column:1/-1}
-  .nav a.tab{padding:7px 10px;font-size:12px}
-  .logo b{font-size:30px}
   .nav{grid-template-columns:auto 1fr}
   .avail{display:none}
   .nav .logo{justify-self:start}
+  .nav a.tab{padding:7px 10px;font-size:12px}
+  .logo b{font-size:30px}
+  .arrows{display:none}
 }
-@media (max-width:600px){ .reels{grid-template-columns:1fr 1fr;gap:14px} .play{width:46px;height:46px} .reel h3{font-size:16px} }
 @media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
@@ -190,82 +179,85 @@ footer h4{margin:0 0 8px;font:700 14px var(--body);text-transform:uppercase;lett
   <div class="trim" aria-hidden="true"></div>
   <nav class="wrap nav" aria-label="Main">
     <span class="avail"><i aria-hidden="true"></i>Open for projects</span>
-    <a class="logo" href="#intro" aria-label="Arya home"><b>ARYA</b><small>EDITOR</small></a>
+    <a class="logo" href="#intro" aria-label="Arya, back to top"><b>ARYA</b><small>EDITOR</small></a>
     <ul>
-      <li><a class="tab" href="#intro" data-view="intro">Intro</a></li>
-      <li><a class="tab" href="#work" data-view="work">Work</a></li>
-      <li><a class="tab" href="#contact" data-view="contact">Contact</a></li>
+      <li><a class="tab" href="#intro" data-s="intro">Intro</a></li>
+      <li><a class="tab" href="#work" data-s="work">Work</a></li>
+      <li><a class="tab" href="#contact" data-s="contact">Contact</a></li>
     </ul>
   </nav>
 </header>
 
 <main>
-<!-- ================= PAGE 1 : INTRO ================= -->
-<section class="view" id="view-intro" aria-label="Intro">
+<!-- ================= INTRO ================= -->
+<section id="intro" aria-label="Intro">
   <div class="wrap hero">
     <div class="hero-text">
       <span class="role">Video editor · UGC specialist</span>
       <h1>Hi! I'm Arya.</h1>
-      <p>I edit UGC ads, reels and talking-head videos for brands that want people to stop scrolling and actually watch.</p>
-      <p>Send me raw footage and a pile of B-roll. You get back a tight cut with clean captions, a hook in the first two seconds, and B-roll that hides every jump cut.</p>
-      <p>Everything is cut for 9:16 and kept inside Meta and TikTok safe zones, so nothing important hides under the buttons.</p>
-      <a class="pill" href="#work">See my edits →</a>
+      <p class="lead">I turn raw footage into high-retention UGC, Reels &amp; talking-head content with sharp cuts, clean captions, strong hooks, and purposeful B-roll.</p>
+      <p class="tagline">Short-form editing that keeps viewers watching.</p>
+      <div class="ctas">
+        <a class="pill solid" href="#work">See my work →</a>
+        <a class="pill" href="#contact">Hire me</a>
+      </div>
     </div>
     <div class="hero-art">
       <div class="frame">
-        <img src="assets/avatar.jpg" alt="Cartoon portrait of Arya wearing headphones, clear glasses and a sticker-covered black jacket" width="900" height="900">
+        <img src="assets/avatar.jpg" alt="Arya wearing headphones and clear glasses, as a playful toy figure" width="1000" height="1000">
         <span class="rec" aria-hidden="true"><i></i>REC</span>
       </div>
     </div>
   </div>
 
-  <div class="ticker" aria-hidden="true"><div class="ticker-track"><span>UGC Ads<b>✦</b>Reels<b>✦</b>Talking Heads<b>✦</b>Captions<b>✦</b>B-Roll<b>✦</b>Hooks<b>✦</b>Meta &amp; TikTok<b>✦</b></span><span>UGC Ads<b>✦</b>Reels<b>✦</b>Talking Heads<b>✦</b>Captions<b>✦</b>B-Roll<b>✦</b>Hooks<b>✦</b>Meta &amp; TikTok<b>✦</b></span></div></div>
-  <svg class="seam" viewBox="0 0 1200 60" preserveAspectRatio="none" aria-hidden="true">
-    <path d="M0 60 L0 30 C200 0 400 60 600 30 C800 0 1000 60 1200 30 L1200 60 Z" fill="var(--cobalt)"/>
+  <svg class="marquee" viewBox="0 0 1200 110" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 110 L0 80 C200 50 400 110 600 80 C800 50 1000 110 1200 80 L1200 110 Z" fill="var(--cobalt)"/>
+    <path id="wave" d="M-1200 58 C-1000 28 -800 88 -600 58 C-400 28 -200 88 0 58 C200 28 400 88 600 58 C800 28 1000 88 1200 58" fill="none"/>
+    <text><textPath id="tp" href="#wave" startOffset="0"><animate attributeName="startOffset" from="0" to="1200" dur="24s" repeatCount="indefinite"/></textPath></text>
   </svg>
-
-  <div class="band">
-    <div class="wrap">
-      <h2>My Best Works</h2>
-      <div class="services">
-        <div class="svc"><div class="phone pat-stripe" aria-hidden="true"></div><h3>UGC Ads</h3><p>Creator testimonials and product demos cut for Meta and TikTok ads, with hooks you can A/B test.</p></div>
-        <div class="svc"><div class="phone pat-wave" aria-hidden="true"></div><h3>Reels</h3><p>Fast, beat-synced short-form for brand pages and creators, with captions styled to match.</p></div>
-        <div class="svc"><div class="phone pat-gingham" aria-hidden="true"></div><h3>Talking Heads</h3><p>Long takes turned into tight clips: jump cuts covered, pacing fixed, punch-ins where they land.</p></div>
-      </div>
-    </div>
-  </div>
 </section>
 
-<!-- ================= PAGE 2 : WORK ================= -->
-<section class="view" id="view-work" aria-label="Video showcase">
+<!-- ================= WORK ================= -->
+<section id="work" class="band" aria-label="My best works">
   <div class="wrap">
     <div class="work-head">
-      <h1>Fresh off the timeline</h1>
-      <p>A few recent edits. Tap any video to play it.</p>
-      <div class="filters" role="group" aria-label="Filter videos">
-        <button class="chip" type="button" data-f="all" aria-pressed="true">All</button>
-        <button class="chip" type="button" data-f="UGC Ad" aria-pressed="false">UGC Ads</button>
-        <button class="chip" type="button" data-f="Reel" aria-pressed="false">Reels</button>
-        <button class="chip" type="button" data-f="Talking Head" aria-pressed="false">Talking Heads</button>
+      <div>
+        <h2>My Best Works</h2>
+        <p>Every video plays on its own. Tap one to watch it with sound.</p>
+      </div>
+      <div class="arrows">
+        <button class="arrow" type="button" id="prev" aria-label="Scroll videos left">←</button>
+        <button class="arrow" type="button" id="next" aria-label="Scroll videos right">→</button>
       </div>
     </div>
-    <div class="reels" id="reels"></div>
+    <div class="filters" role="group" aria-label="Filter videos">
+      <button class="chip" type="button" data-f="all" aria-pressed="true">All</button>
+      <button class="chip" type="button" data-f="UGC Ad" aria-pressed="false">UGC Ads</button>
+      <button class="chip" type="button" data-f="Reel" aria-pressed="false">Reels</button>
+      <button class="chip" type="button" data-f="Talking Head" aria-pressed="false">Talking Heads</button>
+    </div>
+    <div class="strip" id="strip" tabindex="0" aria-label="Videos, scroll sideways"></div>
   </div>
 </section>
 
-<!-- ================= PAGE 3 : CONTACT ================= -->
-<section class="view contact" id="view-contact" aria-label="Contact">
+<!-- ================= CONTACT ================= -->
+<section id="contact" class="contact" aria-label="Contact">
+  <div class="trim" aria-hidden="true"></div>
   <div class="wrap">
     <div class="contact-main">
-      <h1>Let's make your next ad</h1>
+      <h2>Let's make your next ad</h2>
       <p>Tell me the product, how many videos you need and when you need them. I reply within a day.</p>
       <div class="mail">
-        <span id="email">hello@aryaedits.com</span>
-        <button class="pill solid" type="button" id="copy">Copy email</button>
+        <small>Email me at</small>
+        <span class="addr" id="email">aryaworks181@gmail.com</span>
+        <div class="row">
+          <a class="pill solid" href="mailto:aryaworks181@gmail.com?subject=Video%20editing%20project">Send an email</a>
+          <button class="pill ghost" type="button" id="copy">Copy address</button>
+        </div>
       </div>
     </div>
     <div class="steps">
-      <h2>How a project runs</h2>
+      <h3>How a project runs</h3>
       <ol>
         <li><span><b>Send the footage</b>Raw takes, B-roll, brand guide and a reference ad or two, in one Drive folder.</span></li>
         <li><span><b>First cut in 48 hours</b>Hook, captions, B-roll and music, rendered at 1080×1920.</span></li>
@@ -281,17 +273,17 @@ footer h4{margin:0 0 8px;font:700 14px var(--body);text-transform:uppercase;lett
   <div class="trim" aria-hidden="true"></div>
   <div class="wrap cols">
     <div>
-      <p>Edits for scroll-stopping hooks, clean captions and B-roll that actually matches the line.</p>
-      <p>UGC ads, reels and talking heads, cut for 9:16.</p>
+      <p>I turn raw footage into high-retention UGC, Reels &amp; talking-head content.</p>
+      <p>Short-form editing that keeps viewers watching.</p>
     </div>
     <div>
-      <h4>Pages</h4>
+      <h4>Sections</h4>
       <ul><li><a href="#intro">Intro</a></li><li><a href="#work">Work</a></li><li><a href="#contact">Contact</a></li></ul>
     </div>
     <div>
       <h4>Got footage?</h4>
       <p>Send it over and get a first cut back in 48 hours.</p>
-      <a class="pill" href="#contact">Start a project</a>
+      <p><a class="mailto" href="mailto:aryaworks181@gmail.com">aryaworks181@gmail.com</a></p>
     </div>
   </div>
   <div class="wrap wordmark" aria-hidden="true"><div id="wordmark">ARYA</div></div>
@@ -309,54 +301,70 @@ footer h4{margin:0 0 8px;font:700 14px var(--body);text-transform:uppercase;lett
 <script>
 /* ============================================================
    YOUR VIDEOS: edit this list.
-   src    : path to an .mp4 (e.g. "videos/skincare-ad.mp4") — plays on the page
-   link   : OR a link to Instagram / TikTok / Drive — opens in a new tab
-   poster : optional thumbnail image (e.g. "thumbs/skincare.jpg")
+   src    : path to an .mp4 (e.g. "videos/skincare-ad.mp4"). It plays on its own, on loop, muted.
+   poster : optional still image shown while the video loads (e.g. "thumbs/skincare.jpg")
    type   : "UGC Ad" | "Reel" | "Talking Head"  (used by the filter buttons)
    ============================================================ */
 const VIDEOS = [
-  { title:"Glow serum: 3 hooks",      client:"Skincare brand",  type:"UGC Ad",       length:"0:32", pattern:"pat-stripe",  src:"", link:"", poster:"", desc:"Creator testimonial with three hook variants for testing." },
-  { title:"Morning routine",          client:"Coffee brand",    type:"Reel",         length:"0:18", pattern:"pat-gingham", src:"", link:"", poster:"", desc:"Beat-synced routine reel with on-beat captions." },
-  { title:"Why I switched",           client:"Pet care brand",  type:"Talking Head", length:"0:45", pattern:"pat-wave",    src:"", link:"", poster:"", desc:"Long take tightened into a 45-second story, jump cuts covered with B-roll." },
-  { title:"Unboxing in 15s",          client:"Tech accessory",  type:"UGC Ad",       length:"0:15", pattern:"pat-dots",    src:"", link:"", poster:"", desc:"Fast unboxing with punch-ins and a product close-up end card." },
-  { title:"Studio day",               client:"Ceramics shop",   type:"Reel",         length:"0:22", pattern:"pat-check",   src:"", link:"", poster:"", desc:"Behind-the-scenes reel with hand-drawn style titles." },
-  { title:"Founder story",            client:"Wellness brand",  type:"Talking Head", length:"1:02", pattern:"pat-flower",  src:"", link:"", poster:"", desc:"Founder interview cut into a one-minute brand story." }
+  { title:"Glow serum: 3 hooks",  client:"Skincare brand", type:"UGC Ad",       pattern:"pat-stripe",  src:"", poster:"", desc:"Creator testimonial with three hook variants for testing." },
+  { title:"Morning routine",      client:"Coffee brand",   type:"Reel",         pattern:"pat-gingham", src:"", poster:"", desc:"Beat-synced routine reel with on-beat captions." },
+  { title:"Why I switched",       client:"Pet care brand", type:"Talking Head", pattern:"pat-wave",    src:"", poster:"", desc:"Long take tightened into a 45-second story, jump cuts covered with B-roll." },
+  { title:"Unboxing in 15s",      client:"Tech accessory", type:"UGC Ad",       pattern:"pat-dots",    src:"", poster:"", desc:"Fast unboxing with punch-ins and a product close-up end card." },
+  { title:"Studio day",           client:"Ceramics shop",  type:"Reel",         pattern:"pat-check",   src:"", poster:"", desc:"Behind-the-scenes reel with bold on-screen titles." },
+  { title:"Founder story",        client:"Wellness brand", type:"Talking Head", pattern:"pat-flower",  src:"", poster:"", desc:"Founder interview cut into a one-minute brand story." }
 ];
 
 const $ = s => document.querySelector(s);
-const reels = $("#reels");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
+/* wavy ticker text */
+const TICK = ["UGC ADS","REELS","TALKING HEADS","CAPTIONS","B-ROLL","HOOKS","META & TIKTOK"];
+const tp = $("#tp"), anim = tp.querySelector("animate");
+for (let r = 0; r < 4; r++) TICK.forEach(t => {
+  const a = document.createElementNS("http://www.w3.org/2000/svg","tspan"); a.textContent = t + " ";
+  const d = document.createElementNS("http://www.w3.org/2000/svg","tspan"); d.setAttribute("class","dot"); d.textContent = "✦ ";
+  tp.insertBefore(a, anim); tp.insertBefore(d, anim);
+});
+if (matchMedia("(prefers-reduced-motion: reduce)").matches) anim.remove();
+
+/* video row */
+const strip = $("#strip");
 function render(filter){
-  reels.innerHTML = "";
-  VIDEOS.filter(v => filter === "all" || v.type === filter).forEach((v,i) => {
+  strip.innerHTML = "";
+  VIDEOS.filter(v => filter === "all" || v.type === filter).forEach(v => {
     const b = document.createElement("button");
     b.className = "reel"; b.type = "button";
-    b.setAttribute("aria-label", "Play " + v.title);
-    const media = v.poster ? `<img src="${v.poster}" alt="">`
-               : v.src ? `<video src="${v.src}#t=0.5" muted playsinline preload="metadata"></video>` : "";
-    b.innerHTML = `<div class="thumb ${v.pattern}">${media}<span class="tag">${v.type}</span><span class="play" aria-hidden="true"></span><span class="len">${v.length}</span></div>
-      <h3>${v.title}</h3><div class="meta">${v.client}</div>`;
+    b.setAttribute("aria-label", "Watch " + v.title + " with sound");
+    const media = v.src
+      ? `<video src="${esc(v.src)}" ${v.poster ? `poster="${esc(v.poster)}"` : ""} autoplay muted loop playsinline preload="auto"></video><span class="sound">🔊 tap</span>`
+      : (v.poster ? `<img src="${esc(v.poster)}" alt="">` : "") + `<span class="soon">Video coming soon</span>`;
+    b.innerHTML = `<div class="thumb ${v.pattern}">${media}<span class="tag">${esc(v.type)}</span></div>
+      <h3>${esc(v.title)}</h3><div class="meta">${esc(v.client)}</div>`;
     const vid = b.querySelector("video");
-    if (vid){ b.addEventListener("mouseenter",()=>vid.play().catch(()=>{})); b.addEventListener("mouseleave",()=>{vid.pause();}); }
+    if (vid) vid.play().catch(() => {});
     b.addEventListener("click", () => openVideo(v));
-    reels.appendChild(b);
+    strip.appendChild(b);
   });
+  strip.scrollLeft = 0;
 }
+const step = () => (strip.querySelector(".reel")?.offsetWidth || 200) + 18;
+$("#prev").addEventListener("click", () => strip.scrollBy({left: -step() * 2, behavior: "smooth"}));
+$("#next").addEventListener("click", () => strip.scrollBy({left: step() * 2, behavior: "smooth"}));
+document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+  document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c));
+  render(c.dataset.f);
+}));
 
+/* modal: watch with sound */
 const modal = $("#modal");
 let lastFocus = null;
 function openVideo(v){
   lastFocus = document.activeElement;
   $("#m-title").textContent = v.title + " · " + v.client;
   $("#m-desc").textContent = v.desc;
-  const m = $("#m-media");
-  if (v.src){
-    m.innerHTML = `<div class="thumb"><video src="${v.src}" controls playsinline autoplay ${v.poster?`poster="${v.poster}"`:""}></video></div>`;
-  } else if (v.link){
-    m.innerHTML = `<div class="thumb ${v.pattern}"><span class="play" aria-hidden="true"></span></div><a class="pill solid" href="${v.link}" target="_blank" rel="noopener">Watch it →</a>`;
-  } else {
-    m.innerHTML = `<div class="thumb ${v.pattern}"><span class="tag">${v.type}</span><span class="play" aria-hidden="true"></span></div><p class="note">Sample slot. Add this video's file or link in the VIDEOS list at the bottom of index.html.</p>`;
-  }
+  $("#m-media").innerHTML = v.src
+    ? `<div class="thumb"><video src="${esc(v.src)}" controls playsinline autoplay loop></video></div>`
+    : `<div class="thumb ${v.pattern}"><span class="tag">${esc(v.type)}</span><span class="soon">Video coming soon</span></div>`;
   modal.hidden = false;
   $("#m-close").focus();
 }
@@ -370,36 +378,26 @@ $("#m-close").addEventListener("click", closeVideo);
 modal.addEventListener("click", e => { if (e.target === modal) closeVideo(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !modal.hidden) closeVideo(); });
 
-document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
-  document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c));
-  render(c.dataset.f);
-}));
-
-/* page routing: #intro, #work, #contact */
-const VIEWS = ["intro","work","contact"];
-function route(){
-  const name = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "intro";
-  VIEWS.forEach(v => document.getElementById("view-"+v).classList.toggle("on", v === name));
-  document.querySelectorAll(".tab").forEach(t => {
-    if (t.dataset.view === name) t.setAttribute("aria-current","page"); else t.removeAttribute("aria-current");
-  });
-  window.scrollTo(0,0);
-  fitWordmark();
-}
-window.addEventListener("hashchange", route);
+/* highlight the nav tab for the section on screen */
+const tabs = [...document.querySelectorAll(".tab")];
+const setTab = id => tabs.forEach(t => t.dataset.s === id ? t.setAttribute("aria-current","true") : t.removeAttribute("aria-current"));
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) setTab(e.target.id); });
+}, { rootMargin: "-45% 0px -50% 0px" });
+document.querySelectorAll("main section").forEach(s => io.observe(s));
 
 /* copy email */
 $("#copy").addEventListener("click", async () => {
   const btn = $("#copy"), text = $("#email").textContent;
   try { await navigator.clipboard.writeText(text); btn.textContent = "Copied!"; }
   catch { const r = document.createRange(); r.selectNodeContents($("#email")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = "Selected, press Ctrl+C"; }
-  setTimeout(() => btn.textContent = "Copy email", 2200);
+  setTimeout(() => btn.textContent = "Copy address", 2200);
 });
 
-/* Fit the big footer wordmark to the exact width of its box so no letter is ever cut off. */
+/* Fit the big footer wordmark to its box so no letter is ever cut off. */
 function fitWordmark(){
-  const el = $("#wordmark"), box = el.parentElement;
-  const avail = box.clientWidth - parseFloat(getComputedStyle(box).paddingLeft) - parseFloat(getComputedStyle(box).paddingRight);
+  const el = $("#wordmark"), box = el.parentElement, cs = getComputedStyle(box);
+  const avail = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
   el.style.fontSize = "100px";
   const w = el.getBoundingClientRect().width;
   if (w > 0) el.style.fontSize = Math.min(Math.floor(100 * avail / w * 0.98), 340) + "px";
@@ -407,10 +405,9 @@ function fitWordmark(){
 window.addEventListener("resize", fitWordmark);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitWordmark);
 
-if (matchMedia("(prefers-reduced-motion: reduce)").matches) document.querySelectorAll("animate").forEach(a => a.remove());
-
 render("all");
-route();
+fitWordmark();
+setTab("intro");
 </script>
 </body>
 </html>
