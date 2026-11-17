@@ -27,8 +27,8 @@ for i in range(N):
                 cx=bx+vx*u*side*-1; cy=by+vy*u
                 m+=np.exp(-(((xx-cx)/r)**2+((yy-cy)/(r*1.6))**2)*2.2)
             edge=np.clip((xx if side>0 else 1-xx)*1.4-0.2,0,1)**1.5
-            m=np.clip(m*0.7+edge*0.6,0,1.6)*env*(0.9+0.2*rng.random())
-            col=np.stack([np.clip(m*1.15,0,1),np.clip(m**1.6*0.75,0,1),np.clip(m**3*0.35,0,1)],-1)
+            m=np.clip(m*0.55+edge*0.35,0,1.0)*env*(0.95+0.1*rng.random())   # soft: capped, no white core
+            col=np.stack([m*0.62,(m**1.5)*0.30,(m**2.5)*0.08],-1)
             img=1-(1-img)*(1-col)
     p.stdin.write((np.clip(img,0,1)*255).astype(np.uint8).tobytes())
 p.stdin.close(); p.wait()
