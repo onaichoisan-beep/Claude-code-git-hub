@@ -56,6 +56,7 @@ print(f'real {real_t:.1f}s  ai {ai_t:.1f}s  ({100*real_t/(real_t+ai_t):.0f}% rea
 lst=[]
 for i,(a,b,k,src,si,so) in enumerate(E):
     d=b-a; out=f'{W}/seg/{i:02d}.mp4'; lst.append(out)
+    if os.path.exists(out): continue  # delete seg/ after changing the EDL
     nf=round(b*FPS)-round(a*FPS)
     if k=='P':
         vf=(f"scale=2160:-1,zoompan=z='1+0.10*on/{nf}':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d={nf}:s=1080x1920:fps={FPS},"
@@ -74,17 +75,18 @@ for i,(a,b,k,src,si,so) in enumerate(E):
 with open(f'{W}/seg/list.txt','w') as f: f.writelines(f"file '{p}'\n" for p in lst)
 subprocess.run(['ffmpeg','-v','error','-y','-f','concat','-safe','0','-i',f'{W}/seg/list.txt','-c','copy',f'{W}/body.mp4'],check=True)
 # final: logo corner always, address 64.4-68.6, phone 68.9-73.4, tagline + big logo 73.4-end
-fc=("[0:v][2:v]overlay=W-w-14:14[v1];"
+fc=("[0:v]format=gbrp[base];[8:v]scale=1080:1920:flags=bicubic,gblur=sigma=6,format=gbrp[fx];[base][fx]blend=all_mode=screen,format=yuv420p[vb];"
+    "[vb][2:v]overlay=W-w-14:14[v1];"
     "[3:v]fade=in:st=64.5:d=0.3:alpha=1,fade=out:st=68.3:d=0.25:alpha=1[ad];[v1][ad]overlay=(W-w)/2:1180:enable='between(t,64.4,68.6)'[v2];"
     "[4:v]fade=in:st=68.8:d=0.3:alpha=1,fade=out:st=73.2:d=0.2:alpha=1[ph];[v2][ph]overlay=(W-w)/2:1200:enable='between(t,68.7,73.45)'[v3];"
     "[5:v]scale=520:520,fade=in:st=73.4:d=0.4:alpha=1[bl];[v3][bl]overlay=(W-w)/2:560:enable='gte(t,73.4)'[v4];"
     "[6:v]fade=in:st=73.7:d=0.4:alpha=1[tg];[v4][tg]overlay=(W-w)/2:1180:enable='gte(t,73.6)'[vout];"
     "[1:a]aresample=48000,volume=1.0,asplit=2[vo][key];"
-    "[7:a]aresample=48000,volume=0.42[bg];[bg][key]sidechaincompress=threshold=0.03:ratio=6:attack=15:release=350[bgd];"
+    "[7:a]aresample=48000,volume=0.62[bg];[bg][key]sidechaincompress=threshold=0.03:ratio=4:attack=15:release=350[bgd];"
     "[vo][bgd]amix=inputs=2:normalize=0:duration=longest,loudnorm=I=-14:TP=-1.5:LRA=11,atrim=0:77,apad=whole_dur=77[aout]")
 cmd=['ffmpeg','-v','error','-y','-i',f'{W}/body.mp4','-i',f'{W}/vo.mp3',
      '-loop','1','-i',f'{W}/ov/logo_corner.png','-loop','1','-i',f'{W}/ov/address.png','-loop','1','-i',f'{W}/ov/phone.png',
-     '-loop','1','-i',f'{W}/ov/logo_full.png','-loop','1','-i',f'{W}/ov/tagline.png','-i',f'{W}/bgm.wav',
+     '-loop','1','-i',f'{W}/ov/logo_full.png','-loop','1','-i',f'{W}/ov/tagline.png','-i',f'{W}/bgm.wav','-i',f'{W}/fx.mp4',
      '-filter_complex',fc,'-map','[vout]','-map','[aout]','-t','77','-c:v','libx264','-preset','slow','-crf','18','-pix_fmt','yuv420p',
      '-c:a','aac','-b:a','192k','-movflags','+faststart',f'{W}/glamour_final.mp4']
 subprocess.run(cmd,check=True)
