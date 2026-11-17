@@ -22,7 +22,8 @@ EDL = [
     (13.00, R + 'R01.mp4', 9.60, 1.0, None, 'nets batting - "pratibhashali bachchon"'),
     (15.95, R + 'R07.mp4', 45.90, 1.0, TOPCUT(250), 'boys in room - "1 mahine ka hostel free"'),
     (18.25, A + 'A3.mp4', 2.30, 0.76, None, 'AI: HOSTEL + FOOD / FREE - "bhojan bhi free"'),
-    (20.75, R + 'R07.mp4', 72.60, 1.0, TOPCUT(250), 'boys in hostel beds - "ji haan, suvidha"'),
+    (20.75, R + 'R07.mp4', 53.60, 1.0, TOPCUT(250), 'kids in tracksuits on hostel bed - "ji haan"'),
+    (22.25, R + 'R07.mp4', 87.10, 1.0, TOPCUT(250), 'boys (all clothed) in hostel bed - "suvidha ka laabh"'),
     (23.75, A + 'A3.mp4', 4.45, 0.72, None, 'AI: ONLY ADMISSION FEE'),
     (26.30, R + 'R12.mp4', 7.40, 1.0, None, 'batter walks out - "agar aapka bachcha"'),
     (28.00, R + 'R08.mp4', 65.45, 1.0, None, 'openers glove-bump - "bhavishya"'),
@@ -36,7 +37,33 @@ EDL = [
     (43.60, A + 'A1.mp4', 4.25, 0.55, None, 'AI: phone number 97982 70035'),
     (47.60, A + 'A1.mp4', 7.20, 0.95, None, 'AI: logo reveal outro'),
 ]
-CUTS = [e[0] for e in EDL[1:]]
+# transitions (flash + film burn + whoosh) only on the big section changes; everything else is a hard cut
+CUTS = [4.95, 15.95, 26.30, 33.05, 47.60]
+
+# captions: (start, end, text, highlighted words). None during AI text cards / address / phone / outro.
+CAPS = [
+    (0.00, 1.90, 'अब पैसों की कमी नहीं बनेगी', {'पैसों'}),
+    (1.90, 3.62, 'आपके बच्चे के क्रिकेटर बनने के', {'क्रिकेटर'}),
+    (3.62, 4.95, 'सपने में रुकावट!', {'रुकावट!'}),
+    (4.95, 6.62, 'Magadh Panthor Cricket Club', {'Magadh', 'Panthor'}),
+    (6.62, 7.50, 'लेकर आया है', set()),
+    (7.50, 8.98, 'BPL विद्यार्थियों के लिए', {'BPL'}),
+    (8.98, 10.83, 'एक खास छठ स्पेशल ऑफर!', {'छठ', 'स्पेशल', 'ऑफर!'}),
+    (10.83, 12.08, 'इस ऑफर के तहत', set()),
+    (12.08, 14.10, 'आर्थिक रूप से कमजोर परिवारों के', set()),
+    (14.10, 15.95, 'प्रतिभाशाली बच्चों को मिलेगा', {'प्रतिभाशाली'}),
+    (15.95, 17.16, '1 महीने का हॉस्टल', {'हॉस्टल'}),
+    (17.16, 18.25, 'बिल्कुल मुफ्त!', {'मुफ्त!'}),
+    (20.75, 21.88, 'जी हाँ!', {'हाँ!'}),
+    (21.88, 22.94, 'इस खास सुविधा का', {'सुविधा'}),
+    (22.94, 23.75, 'लाभ उठाने के लिए', set()),
+    (26.30, 27.40, 'अगर आपका बच्चा भी', set()),
+    (27.40, 28.54, 'क्रिकेट में अपना भविष्य', {'भविष्य'}),
+    (28.54, 29.75, 'बनाना चाहता है', set()),
+    (29.75, 31.24, 'तो उसे दीजिए अपनी प्रतिभा', {'प्रतिभा'}),
+    (31.24, 33.05, 'दिखाने का एक सुनहरा मौका!', {'सुनहरा', 'मौका!'}),
+    (33.05, 34.70, 'आज ही संपर्क करें', {'संपर्क'}),
+]
 
 
 def fr(t): return int(round(t * FPS))
@@ -98,8 +125,69 @@ def address_card():
 
 
 CARD = address_card()
+
+FDEV = 'Mukta-ExtraBold.ttf'
+YELLOW, WHITE, RED = (255, 214, 10, 255), (255, 255, 255, 255), (226, 27, 35, 255)
+
+
+def caption_img(text, hl):
+    f = ImageFont.truetype(FDEV, 74, layout_engine=ImageFont.Layout.RAQM)
+    words = text.split(' ')
+    tmp = ImageDraw.Draw(Image.new('RGBA', (10, 10)))
+    sp_w = tmp.textlength(' ', font=f)
+    ws = [tmp.textlength(w, font=f) for w in words]
+    tw = int(sum(ws) + sp_w * (len(words) - 1))
+    while tw > 900 and f.size > 50:  # shrink long lines
+        f = ImageFont.truetype(FDEV, f.size - 4, layout_engine=ImageFont.Layout.RAQM)
+        sp_w = tmp.textlength(' ', font=f); ws = [tmp.textlength(w, font=f) for w in words]
+        tw = int(sum(ws) + sp_w * (len(words) - 1))
+    h = int(f.size * 1.6)
+    im = Image.new('RGBA', (tw + 40, h + 30), (0, 0, 0, 0))
+    sh = Image.new('RGBA', im.size, (0, 0, 0, 0)); ds = ImageDraw.Draw(sh)
+    d = ImageDraw.Draw(im); x = 20
+    for w, ww in zip(words, ws):
+        col = YELLOW if w in hl else WHITE
+        ds.text((x + 3, 22), w, font=f, fill=(0, 0, 0, 200), stroke_width=7, stroke_fill=(0, 0, 0, 200))
+        d.text((x, 18), w, font=f, fill=col, stroke_width=6, stroke_fill=(0, 0, 0, 255))
+        x += ww + sp_w
+    sh = sh.filter(ImageFilter.GaussianBlur(6)); sh.alpha_composite(im)
+    return sh
+
+
+CAP_IMGS = [(a, b, caption_img(t, hl)) for a, b, t, hl in CAPS]
+CAP_CY = 1235  # caption centre line (inside Reels safe area)
+
+
+def cta_img():
+    f = ImageFont.truetype(FDEV, 58, layout_engine=ImageFont.Layout.RAQM)
+    fn = ImageFont.truetype('montserrat-latin-800-normal.ttf', 54)
+    t1, t2 = 'आज ही कॉल करें', '97982 70035'
+    tmp = ImageDraw.Draw(Image.new('RGBA', (10, 10)))
+    w1, w2 = tmp.textlength(t1, font=f), tmp.textlength(t2, font=fn)
+    icon = 64; gap = 22
+    pw = int(36 + icon + gap + w1 + gap + 4 + gap + w2 + 40); ph = 104
+    im = Image.new('RGBA', (pw + 40, ph + 40), (0, 0, 0, 0))
+    sh = Image.new('RGBA', im.size, (0, 0, 0, 0))
+    ImageDraw.Draw(sh).rounded_rectangle([20, 26, 20 + pw, 26 + ph], ph // 2, fill=(0, 0, 0, 140))
+    sh = sh.filter(ImageFilter.GaussianBlur(10)); im.alpha_composite(sh)
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([20, 20, 20 + pw, 20 + ph], ph // 2, fill=RED, outline=(255, 255, 255, 255), width=4)
+    # phone icon: white disc with red handset
+    cx, cy = 20 + 36 + icon // 2, 20 + ph // 2
+    d.ellipse([cx - icon // 2, cy - icon // 2, cx + icon // 2, cy + icon // 2], fill=WHITE)
+    hs = Image.open('emoji_phone.png').convert('RGBA').resize((46, 45), Image.LANCZOS)
+    im.alpha_composite(hs, (cx - 23, cy - 22))
+    x = cx + icon // 2 + gap
+    d.text((x, cy + 3), t1, font=f, fill=WHITE, anchor='lm'); x += w1 + gap
+    d.line([x, cy - 26, x, cy + 26], fill=(255, 255, 255, 180), width=4); x += 4 + gap
+    d.text((x, cy + 2), t2, font=fn, fill=WHITE, anchor='lm')
+    return im
+
+
+CTA = cta_img()
+CTA_Y = 1385
 CARD_T0, CARD_T1 = 36.75, 43.45
-CX, CY = (W - CARD.shape[1]) // 2, 1180
+CX, CY = (W - CARD.shape[1]) // 2, 720
 
 
 def comp(frame, ov, x, y, alpha=1.0):
@@ -153,6 +241,19 @@ def fx(frame, t, idx):
         a = max(0, a)
         off = int((1 - a) * 40)
         comp(frame, CARD, CX, CY + off, a)
+    # captions (pop in)
+    for a, b, im in CAP_IMGS:
+        if a <= t < b:
+            p = min(1.0, (t - a) / 0.12)
+            sc = 0.86 + 0.14 * (1 - (1 - p) ** 3)
+            ci = im if sc >= 0.999 else im.resize((max(1, int(im.width * sc)), max(1, int(im.height * sc))), Image.BILINEAR)
+            ca = np.asarray(ci).astype(np.float32) / 255
+            comp(frame, ca, (W - ci.width) // 2, CAP_CY - ci.height // 2, min(1.0, p * 1.5))
+            break
+    # red call-to-action with mobile number, whole video (gentle pulse)
+    sc = 1.0 + 0.025 * (0.5 + 0.5 * np.sin(2 * np.pi * t / 1.2))
+    ci = CTA.resize((int(CTA.width * sc), int(CTA.height * sc)), Image.BILINEAR)
+    comp(frame, np.asarray(ci).astype(np.float32) / 255, (W - ci.width) // 2, CTA_Y - (ci.height - CTA.height) // 2)
     # logo, top-right, whole video
     comp(frame, LOGO_A, LX, LY)
     return frame
@@ -175,16 +276,16 @@ def render_fx():
 
 
 def mix_audio():
-    inputs = ['-i', 'vo.mp3', '-i', 'bgm.wav']
+    inputs = ['-i', 'vo.mp3', '-i', 'bgm_sports.wav']
     parts = ['[0:a]aresample=44100,apad=whole_dur=50.6,asplit=2[vo][vosc]',
-             '[1:a]volume=0.32[bg]',
+             '[1:a]volume=0.30[bg]',
              '[bg][vosc]sidechaincompress=threshold=0.04:ratio=4:attack=20:release=300[bgd]']
     labels = ['[vo]', '[bgd]']
     for k, tc in enumerate(CUTS):
-        inputs += ['-i', f'whoosh{k % 4}.wav']
+        inputs += ['-i', f'whoosh{k % 4}.wav']  # only on the selected transitions
         st = max(0, tc - 0.5)
         d = int(st * 1000)
-        parts.append(f'[{k + 2}:a]adelay={d}|{d},volume=0.30[w{k}]')
+        parts.append(f'[{k + 2}:a]adelay={d}|{d},volume=0.38[w{k}]')
         labels.append(f'[w{k}]')
     parts.append(''.join(labels) + f'amix=inputs={len(labels)}:normalize=0,atrim=0:{TOTAL},'
                  'loudnorm=I=-14:TP=-1.5:LRA=11[a]')
