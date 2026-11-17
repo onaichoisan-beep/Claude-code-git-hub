@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ARS Studio</title>
+<title>Arya</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="ARS Studio — UGC ad, reel and talking-head video editing.">
+<meta name="description" content="Arya — UGC ad, reel and talking-head video editing.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Lilita+One&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap">
 <style>
 /* Layout: playful ceramics-shop language: checker trims, cream / cobalt / butter bands with wavy seams,
    three hash-routed pages (#intro, #work, #contact) sharing one nav and one footer wordmark. */
@@ -20,7 +20,7 @@
   --butter:#FCF0B5;
   --ink:#1B2A63;
   --white:#FFFDF7;
-  --display:"Lilita One","Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
+  --display:"Bricolage Grotesque","Helvetica Neue",Arial,system-ui,sans-serif;
   --logo:"Anton","Impact","Arial Narrow Bold",sans-serif;
   --body:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --gutter-l:max(16px, env(safe-area-inset-left, 0px));
@@ -34,7 +34,7 @@ img{max-width:100%;display:block}
 [hidden]{display:none!important}
 a{color:inherit}
 :focus-visible{outline:3px dashed var(--pink);outline-offset:3px}
-h1,h2,h3{font-family:var(--display);font-weight:400;letter-spacing:.01em;line-height:1.1;text-wrap:balance;margin:0}
+h1,h2,h3{font-family:var(--display);font-weight:800;letter-spacing:-.02em;line-height:1.1;text-wrap:balance;margin:0}
 .wrap{max-width:1120px;margin:0 auto;padding-left:var(--gutter-l);padding-right:var(--gutter-r)}
 
 /* checker trim */
@@ -81,9 +81,13 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .rec i{width:8px;height:8px;border-radius:50%;background:#FF5A6E;animation:blink 1.2s infinite}
 @keyframes blink{50%{opacity:.2}}
 
-/* wavy marquee */
-.marquee{display:block;width:100%;height:auto;margin-bottom:-2px}
-.marquee text{font-family:var(--display);font-weight:400;font-size:32px;fill:var(--cobalt);letter-spacing:.02em}
+/* ticker strip + wave seam */
+.ticker{background:var(--cobalt-deep);color:var(--butter);overflow:hidden;border-block:3px solid var(--pink);margin-top:clamp(8px,2vw,20px)}
+.ticker-track{display:flex;width:max-content;animation:tick 30s linear infinite}
+.ticker-track span{font-family:var(--logo);font-size:clamp(22px,3vw,30px);letter-spacing:.06em;text-transform:uppercase;padding-block:10px;white-space:nowrap;padding-right:28px}
+.ticker-track b{color:var(--pink);font-weight:400;padding-inline:14px}
+@keyframes tick{to{transform:translateX(-50%)}}
+.seam{display:block;width:100%;height:clamp(28px,5vw,60px);margin-top:-1px;margin-bottom:-2px}
 
 /* blue band */
 .band{background:var(--cobalt);color:var(--white)}
@@ -103,10 +107,6 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .pat-check{background:conic-gradient(var(--cobalt) 25%,var(--cream) 0 50%,var(--cobalt) 0 75%,var(--cream) 0) 0 0/28px 28px}
 .pat-flower{background:radial-gradient(circle,var(--butter) 0 12%,var(--pink) 13% 30%,transparent 31%) 0 0/44px 44px,var(--white)}
 
-.stats{display:grid;gap:8px;align-content:start}
-.stat{display:flex;align-items:baseline;gap:10px;border:2px dashed var(--cobalt);border-radius:12px;padding:6px 12px;background:var(--white)}
-.stat b{font-family:var(--display);font-weight:400;font-size:20px;color:var(--cobalt);font-variant-numeric:tabular-nums;min-width:3.2ch}
-.stat span{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--cobalt)}
 
 /* ---------- WORK ---------- */
 .work-head{text-align:center;display:grid;gap:10px;justify-items:center;padding-top:clamp(28px,5vw,56px)}
@@ -145,21 +145,17 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .contact-main{display:grid;gap:18px;min-width:0}
 .contact-main > p{margin:0;max-width:48ch}
 .mail{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:var(--white);border:3px solid var(--cobalt);border-radius:999px;padding:8px 8px 8px 22px;box-shadow:6px 6px 0 var(--pink);max-width:100%}
-.mail span{font-family:var(--display);font-weight:400;font-size:clamp(17px,2.4vw,22px);color:var(--cobalt);overflow-wrap:anywhere;min-width:0;flex:1 1 180px;user-select:all}
-.links{display:grid;gap:10px;list-style:none;padding:0;margin:0}
-.links a{display:flex;justify-content:space-between;align-items:center;gap:12px;text-decoration:none;font-weight:700;color:var(--cobalt);border-bottom:2px dashed var(--cobalt);padding:10px 2px}
-.links a:hover{color:var(--ink);background:var(--white)}
-.links small{font-weight:500;opacity:.75;overflow-wrap:anywhere;text-align:right}
+.mail span{font-family:var(--display);font-weight:700;font-size:clamp(17px,2.4vw,22px);color:var(--cobalt);overflow-wrap:anywhere;min-width:0;flex:1 1 180px;user-select:all}
 .steps{background:var(--cobalt);color:var(--white);border-radius:24px;padding:22px;display:grid;gap:14px;min-width:0}
 .steps h2{font-size:26px;color:var(--butter)}
 .steps ol{margin:0;padding:0;list-style:none;display:grid;gap:12px;counter-reset:s}
 .steps li{display:grid;grid-template-columns:36px 1fr;gap:12px;align-items:start;counter-increment:s;font-size:14px}
-.steps li::before{content:counter(s);display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--pink);color:var(--cobalt);font:400 18px var(--display)}
+.steps li::before{content:counter(s);display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--pink);color:var(--cobalt);font:800 17px var(--display)}
 .steps li b{display:block;font-size:15px}
 
 /* ---------- FOOTER ---------- */
 footer{background:var(--butter);border-top:0}
-footer .cols{display:grid;grid-template-columns:1.3fr .7fr 1.1fr 1.2fr;gap:24px;padding-block:28px 8px;font-size:13px}
+footer .cols{display:grid;grid-template-columns:1.4fr 1fr 1.2fr;gap:24px;padding-block:28px 8px;font-size:13px}
 footer .cols > *{min-width:0}
 footer p{margin:0 0 8px}
 footer ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
@@ -168,14 +164,14 @@ footer a:hover{text-decoration:underline}
 footer h4{margin:0 0 8px;font:700 14px var(--body);text-transform:uppercase;letter-spacing:.05em;color:var(--cobalt)}
 /* Big wordmark: sized by script to the exact container width, never clipped (no overflow:hidden, generous line-height). */
 .wordmark{padding-block:10px 18px;text-align:center}
-.wordmark div{display:inline-block;font-family:var(--logo);color:var(--cobalt);white-space:nowrap;line-height:1.1;font-size:14vw;letter-spacing:.01em;padding-top:.04em}
+.wordmark div{display:inline-block;font-family:var(--logo);color:var(--cobalt);white-space:nowrap;line-height:1.1;font-size:22vw;letter-spacing:.04em;padding-top:.04em}
 
 @media (max-width:760px){
   .hero,.contact .wrap{grid-template-columns:1fr}
   .hero-art{max-width:280px;margin:0 auto}
   .services{grid-template-columns:1fr;gap:36px}
   footer .cols{grid-template-columns:1fr 1fr}
-  footer .cols > :first-child,footer .cols > :last-child{grid-column:1/-1}
+  footer .cols > :first-child{grid-column:1/-1}
   .nav a.tab{padding:7px 10px;font-size:12px}
   .logo b{font-size:30px}
   .nav{grid-template-columns:auto 1fr}
@@ -194,7 +190,7 @@ footer h4{margin:0 0 8px;font:700 14px var(--body);text-transform:uppercase;lett
   <div class="trim" aria-hidden="true"></div>
   <nav class="wrap nav" aria-label="Main">
     <span class="avail"><i aria-hidden="true"></i>Open for projects</span>
-    <a class="logo" href="#intro" aria-label="ARS Studio home"><b>ARS</b><small>STUDIO</small></a>
+    <a class="logo" href="#intro" aria-label="Arya home"><b>ARYA</b><small>EDITOR</small></a>
     <ul>
       <li><a class="tab" href="#intro" data-view="intro">Intro</a></li>
       <li><a class="tab" href="#work" data-view="work">Work</a></li>
@@ -209,7 +205,7 @@ footer h4{margin:0 0 8px;font:700 14px var(--body);text-transform:uppercase;lett
   <div class="wrap hero">
     <div class="hero-text">
       <span class="role">Video editor · UGC specialist</span>
-      <h1>Hi! I'm ARS.</h1>
+      <h1>Hi! I'm Arya.</h1>
       <p>I edit UGC ads, reels and talking-head videos for brands that want people to stop scrolling and actually watch.</p>
       <p>Send me raw footage and a pile of B-roll. You get back a tight cut with clean captions, a hook in the first two seconds, and B-roll that hides every jump cut.</p>
       <p>Everything is cut for 9:16 and kept inside Meta and TikTok safe zones, so nothing important hides under the buttons.</p>
@@ -217,16 +213,15 @@ footer h4{margin:0 0 8px;font:700 14px var(--body);text-transform:uppercase;lett
     </div>
     <div class="hero-art">
       <div class="frame">
-        <img src="assets/avatar.jpg" alt="Cartoon portrait of ARS wearing headphones, clear glasses and a sticker-covered black jacket" width="900" height="900">
+        <img src="assets/avatar.jpg" alt="Cartoon portrait of Arya wearing headphones, clear glasses and a sticker-covered black jacket" width="900" height="900">
         <span class="rec" aria-hidden="true"><i></i>REC</span>
       </div>
     </div>
   </div>
 
-  <svg class="marquee" viewBox="0 0 1200 110" preserveAspectRatio="none" aria-hidden="true">
-    <path d="M0 110 L0 78 C200 48 400 108 600 78 C800 48 1000 108 1200 78 L1200 110 Z" fill="var(--cobalt)"/>
-    <path id="wave" d="M-1200 58 C-1000 28 -800 88 -600 58 C-400 28 -200 88 0 58 C200 28 400 88 600 58 C800 28 1000 88 1200 58" fill="none"/>
-    <text><textPath href="#wave" startOffset="0">CUT. CAPTION. CONVERT. ✿ CUT. CAPTION. CONVERT. ✿ CUT. CAPTION. CONVERT. ✿ CUT. CAPTION. CONVERT. ✿ CUT. CAPTION. CONVERT. ✿ CUT. CAPTION. CONVERT. ✿<animate attributeName="startOffset" from="0" to="1200" dur="22s" repeatCount="indefinite"/></textPath></text>
+  <div class="ticker" aria-hidden="true"><div class="ticker-track"><span>UGC Ads<b>✦</b>Reels<b>✦</b>Talking Heads<b>✦</b>Captions<b>✦</b>B-Roll<b>✦</b>Hooks<b>✦</b>Meta &amp; TikTok<b>✦</b></span><span>UGC Ads<b>✦</b>Reels<b>✦</b>Talking Heads<b>✦</b>Captions<b>✦</b>B-Roll<b>✦</b>Hooks<b>✦</b>Meta &amp; TikTok<b>✦</b></span></div></div>
+  <svg class="seam" viewBox="0 0 1200 60" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 60 L0 30 C200 0 400 60 600 30 C800 0 1000 60 1200 30 L1200 60 Z" fill="var(--cobalt)"/>
   </svg>
 
   <div class="band">
@@ -265,14 +260,9 @@ footer h4{margin:0 0 8px;font:700 14px var(--body);text-transform:uppercase;lett
       <h1>Let's make your next ad</h1>
       <p>Tell me the product, how many videos you need and when you need them. I reply within a day.</p>
       <div class="mail">
-        <span id="email">hello@arsstudio.com</span>
+        <span id="email">hello@aryaedits.com</span>
         <button class="pill solid" type="button" id="copy">Copy email</button>
       </div>
-      <ul class="links">
-        <li><a href="https://instagram.com/" target="_blank" rel="noopener">Instagram <small>@ars.studio</small></a></li>
-        <li><a href="https://wa.me/" target="_blank" rel="noopener">WhatsApp <small>+00 00000 00000</small></a></li>
-        <li><a href="https://www.linkedin.com/" target="_blank" rel="noopener">LinkedIn <small>ARS Studio</small></a></li>
-      </ul>
     </div>
     <div class="steps">
       <h2>How a project runs</h2>
@@ -298,18 +288,13 @@ footer h4{margin:0 0 8px;font:700 14px var(--body);text-transform:uppercase;lett
       <h4>Pages</h4>
       <ul><li><a href="#intro">Intro</a></li><li><a href="#work">Work</a></li><li><a href="#contact">Contact</a></li></ul>
     </div>
-    <div class="stats">
-      <div class="stat"><b>48h</b><span>first cut</span></div>
-      <div class="stat"><b>9:16</b><span>safe-zone checked</span></div>
-      <div class="stat"><b>2</b><span>revision rounds</span></div>
-    </div>
     <div>
       <h4>Got footage?</h4>
       <p>Send it over and get a first cut back in 48 hours.</p>
       <a class="pill" href="#contact">Start a project</a>
     </div>
   </div>
-  <div class="wrap wordmark" aria-hidden="true"><div id="wordmark">ARS STUDIO</div></div>
+  <div class="wrap wordmark" aria-hidden="true"><div id="wordmark">ARYA</div></div>
 </footer>
 
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="m-title">
@@ -417,7 +402,7 @@ function fitWordmark(){
   const avail = box.clientWidth - parseFloat(getComputedStyle(box).paddingLeft) - parseFloat(getComputedStyle(box).paddingRight);
   el.style.fontSize = "100px";
   const w = el.getBoundingClientRect().width;
-  if (w > 0) el.style.fontSize = Math.floor(100 * avail / w * 0.98) + "px";
+  if (w > 0) el.style.fontSize = Math.min(Math.floor(100 * avail / w * 0.98), 340) + "px";
 }
 window.addEventListener("resize", fitWordmark);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitWordmark);
