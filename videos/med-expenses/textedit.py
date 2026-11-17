@@ -121,6 +121,19 @@ for i, s in enumerate(SHOTS):
                 [f"scale=w='trunc({FW}*(1+{s['pushin']}*t/{d})/2)*2':h=-2:eval=frame:flags=bicubic",
                  f"crop={FW}:{FH}:(iw-{FW})/2:(ih-{FH})*{s.get('py', 0.5)}"]
                 if s.get("pushin") else [])
+            if s.get("fit"):   # whole landscape/rotated frame, centred over a blurred copy: no crop, no zoom
+                pre = ([f"transpose={s['transpose']}"] if "transpose" in s else []) + [f"scale={FW}:-2"]
+                post = (f"split[fa][fb];[fa]scale={FW}:{FH}:force_original_aspect_ratio=increase,crop={FW}:{FH},"
+                        f"boxblur=40:4,eq=brightness=-0.08[fbg];[fbg][fb]overlay=(W-w)/2:(H-h)/2,setpts=PTS/{sp},fps={FPS},setsar=1")
+                span = ["-ss", str(sin), "-t", f"{d * sp + 0.2:.3f}", "-i", src]
+                if s.get("smooth"):
+                    trf = out + ".trf"
+                    run(["ffmpeg", "-loglevel", "error", "-y"] + span + ["-vf", ",".join(pre) + f",vidstabdetect=shakiness=6:accuracy=15:result={trf}", "-f", "null", "-"])
+                    mid = f",vidstabtransform=input={trf}:smoothing=20:optzoom=2:zoomspeed=0.15:interpol=bicubic"
+                else:
+                    mid = ""
+                run(["ffmpeg", "-loglevel", "error", "-y"] + span + ["-vf", ",".join(pre) + mid + "," + post] + ENC + ["-t", str(d), out])
+                print(f"{t0:6.2f}-{t1:6.2f} {label:28.28} | {s.get('text', '')}  [fit]"); continue
             if "freeze_at" in s:   # play up to this source time, then hold that frame
                 vf.insert(0, f"trim=end={s['freeze_at'] - sin},setpts=PTS-STARTPTS"); vf.append(f"tpad=stop_mode=clone:stop_duration={d}")
             elif (dur_of(src) - sin) / sp < d: vf.append(f"tpad=stop_mode=clone:stop_duration={d}")
@@ -177,9 +190,26 @@ def fit_font(t):
         if w <= FW - 90: return f, size
         size -= 2
     return f, size
+MID = spec.get("MID_CAPTIONS")          # centred, smaller, safe-zone captions (max 2 lines)
+SAFE_W = 860                            # ~80% of 1080: clear of screen edges and Instagram's side buttons
+def measure(t, f):
+    return sum((emoji_img(x, int(f.size * 0.97)).width + 8) if e else f.getlength(x) for x, e in runs(t))
+def mid_lines(t):
+    for size in range(46, 34, -2):
+        f = ImageFont.truetype(os.path.join(W, "fonts", "Ubuntu-Medium.ttf"), size)
+        lines, cur = [], ""
+        for w_ in t.split(" "):
+            c = (cur + " " + w_).strip()
+            if measure(c, f) > SAFE_W and cur: lines.append(cur); cur = w_
+            else: cur = c
+        lines.append(cur)
+        if len(lines) <= 2 and all(measure(l, f) <= SAFE_W for l in lines): return f, size, lines
+    return f, size, lines
 def text_png(t, path):
     global FONT
-    if spec.get("SINGLE_LINE"):
+    if MID:
+        FONT, fsz, lines = mid_lines(t); lh = int(fsz * 1.32)
+    elif spec.get("SINGLE_LINE"):
         FONT, fsz = fit_font(t); lines = [t]; lh = int(fsz * 1.3)
     else:
         lines = wrap(t); lh = 82
@@ -209,7 +239,8 @@ for i, s in enumerate(SHOTS):
     fo = XD if XFADE and i + 1 < len(SHOTS) else 0.06
     t1 = t1 + (XD if XFADE and i + 1 < len(SHOTS) else 0) - (0 if XFADE else 0)
     chain.append(f"[{k}:v]format=rgba,fade=t=in:st={t0 + (XD*0.5 if XFADE and i else 0)}:d={fi}:alpha=1,fade=t=out:st={t1-fo}:d={fo}:alpha=1[x{k}]")
-    chain.append(f"[{last}][x{k}]overlay=0:{int(FH*s.get('ty', 0.40)) - h//2}:enable='between(t,{t0},{t1})'[o{k}]"); last = f"o{k}"
+    yy = spec.get("MID_Y", 0.5) if MID else s.get('ty', 0.40)
+    chain.append(f"[{last}][x{k}]overlay=0:{int(FH*yy) - h//2}:enable='between(t,{t0},{t1})'[o{k}]"); last = f"o{k}"
 
 # single white flash on a hard cut (FLASH = time), no crossfade
 if spec.get("FLASH") is not None:
@@ -221,7 +252,8 @@ if spec.get("FLASH") is not None:
 # credibility tag: small line, e.g. ("MBBS student · NMCH Patna", t0, t1, ty)
 if spec.get("TAG"):
     tg, a0, a1, tyy = spec["TAG"]
-    tf = ImageFont.truetype(os.path.join(W, "fonts", "Ubuntu-Medium.ttf"), 40)
+    if MID: tyy = spec.get("MID_Y", 0.5) + 0.075
+    tf = ImageFont.truetype(os.path.join(W, "fonts", "Ubuntu-Medium.ttf"), 32 if MID else 40)
     im = Image.new("RGBA", (FW, 90), (0, 0, 0, 0)); sh = Image.new("RGBA", im.size, (0, 0, 0, 0)); x = (FW - tf.getlength(tg)) / 2
     ImageDraw.Draw(sh).text((x + 2, 27), tg, font=tf, fill=(0, 0, 0, 220)); im.alpha_composite(sh.filter(ImageFilter.GaussianBlur(4)))
     ImageDraw.Draw(im).text((x, 24), tg, font=tf, fill=(255, 255, 255, 235))
