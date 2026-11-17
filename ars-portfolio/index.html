@@ -69,9 +69,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .hero-text h1{font-size:clamp(36px,5.4vw,60px);color:var(--cobalt)}
 .hero-text p{margin:0;max-width:44ch;font-size:15px}
 .hero-text .role{font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:var(--cobalt);background:var(--butter);padding:4px 12px;border-radius:999px}
-.hero-art{position:relative;min-width:0}
+.hero-art{position:relative;min-width:0;width:100%;max-width:340px;justify-self:center}
 .frame{position:relative;border-radius:22px;overflow:hidden;background:var(--white);border:3px solid var(--cobalt);box-shadow:10px 10px 0 var(--pink)}
-.frame img{width:100%;aspect-ratio:1/1;object-fit:cover}
+.frame img{width:100%;height:auto;aspect-ratio:1/1;object-fit:cover}
 .sticker{position:absolute;font-family:var(--display);font-weight:800;color:var(--cobalt);background:var(--butter);border:2.5px solid var(--cobalt);border-radius:999px;padding:6px 14px;font-size:14px;white-space:nowrap}
 .s1{top:-14px;left:-10px;transform:rotate(-8deg)}
 .s2{bottom:18px;right:-12px;transform:rotate(6deg);background:var(--pink)}
@@ -170,7 +170,7 @@ footer h4{margin:0 0 8px;font:700 14px var(--body);text-transform:uppercase;lett
 
 @media (max-width:760px){
   .hero,.contact .wrap{grid-template-columns:1fr}
-  .hero-art{max-width:420px;margin:0 auto;width:100%}
+  .hero-art{max-width:280px;margin:0 auto}
   .services{grid-template-columns:1fr;gap:36px}
   footer .cols{grid-template-columns:1fr 1fr}
   footer .cols > :first-child{grid-column:1/-1}
@@ -227,7 +227,7 @@ footer h4{margin:0 0 8px;font:700 14px var(--body);text-transform:uppercase;lett
 
   <div class="band">
     <div class="wrap">
-      <h2>What I edit</h2>
+      <h2>My Best Works</h2>
       <div class="services">
         <div class="svc"><div class="phone pat-stripe" aria-hidden="true"></div><h3>UGC Ads</h3><p>Creator testimonials and product demos cut for Meta and TikTok ads, with hooks you can A/B test.</p></div>
         <div class="svc"><div class="phone pat-wave" aria-hidden="true"></div><h3>Reels</h3><p>Fast, beat-synced short-form for brand pages and creators, with captions styled to match.</p></div>
