@@ -63,12 +63,13 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .pill.ghost{background:transparent}
 
 /* ---------- INTRO ---------- */
+.intro{background:var(--butter)}
 .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(24px,5vw,64px);align-items:center;padding-block:clamp(28px,6vw,64px)}
 .hero-text{display:grid;gap:16px;justify-items:start;min-width:0}
 .hero-text h1{font-size:clamp(40px,6vw,68px);color:var(--cobalt)}
 .hero-text .lead{margin:0;max-width:46ch;font-size:clamp(16px,1.6vw,18px)}
 .hero-text .tagline{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(18px,2vw,22px);color:var(--cobalt);border-left:4px solid var(--pink);padding-left:12px}
-.role{font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:var(--cobalt);background:var(--butter);padding:4px 12px;border-radius:999px}
+.role{font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:var(--cobalt);background:var(--white);border:2px solid var(--cobalt);padding:4px 12px;border-radius:999px}
 .ctas{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
 .hero-art{position:relative;min-width:0;width:100%;max-width:380px;justify-self:center}
 .frame{position:relative;border-radius:22px;overflow:hidden;border:3px solid var(--cobalt);box-shadow:10px 10px 0 var(--pink);background:var(--white)}
@@ -141,7 +142,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 
 /* ---------- FOOTER ---------- */
 footer{background:var(--butter)}
-footer .cols{display:grid;grid-template-columns:1.4fr 1fr 1.2fr;gap:24px;padding-block:28px 8px;font-size:13px}
+footer .cols{display:grid;grid-template-columns:1.4fr 1fr;gap:24px;padding-block:28px 8px;font-size:13px}
 footer .cols > *{min-width:0}
 footer p{margin:0 0 8px}
 footer ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
@@ -158,8 +159,7 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
   .hero-text{justify-items:center;text-align:center}
   .hero-text .tagline{border-left:0;padding-left:0}
   .hero-art{max-width:300px}
-  footer .cols{grid-template-columns:1fr 1fr}
-  footer .cols > :first-child{grid-column:1/-1}
+  footer .cols{grid-template-columns:1fr}
   .nav{grid-template-columns:auto 1fr}
   .avail{display:none}
   .nav .logo{justify-self:start}
@@ -190,7 +190,7 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
 
 <main>
 <!-- ================= INTRO ================= -->
-<section id="intro" aria-label="Intro">
+<section id="intro" class="intro" aria-label="Intro">
   <div class="wrap hero">
     <div class="hero-text">
       <span class="role">Video editor · UGC specialist</span>
@@ -223,7 +223,6 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
     <div class="work-head">
       <div>
         <h2>My Best Works</h2>
-        <p>Every video plays on its own. Tap one to watch it with sound.</p>
       </div>
       <div class="arrows">
         <button class="arrow" type="button" id="prev" aria-label="Scroll videos left">←</button>
@@ -245,7 +244,7 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
   <div class="trim" aria-hidden="true"></div>
   <div class="wrap">
     <div class="contact-main">
-      <h2>Let's make your next ad</h2>
+      <h2>Let's make your next video</h2>
       <p>Tell me the product, how many videos you need and when you need them. I reply within a day.</p>
       <div class="mail">
         <small>Email me at</small>
@@ -260,8 +259,8 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
       <h3>How a project runs</h3>
       <ol>
         <li><span><b>Send the footage</b>Raw takes, B-roll, brand guide and a reference ad or two, in one Drive folder.</span></li>
-        <li><span><b>First cut in 48 hours</b>Hook, captions, B-roll and music, rendered at 1080×1920.</span></li>
-        <li><span><b>Two rounds of changes</b>Leave timestamped notes and I turn them around the same week.</span></li>
+        <li><span><b>First cut in 24 hours</b>Hook, captions, B-roll and music, rendered at 1080×1920.</span></li>
+        <li><span><b>2 revisions included</b></span></li>
         <li><span><b>Final files</b>Delivered ready to upload, plus hook variants if you're testing.</span></li>
       </ol>
     </div>
@@ -277,13 +276,8 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
       <p>Short-form editing that keeps viewers watching.</p>
     </div>
     <div>
-      <h4>Sections</h4>
-      <ul><li><a href="#intro">Intro</a></li><li><a href="#work">Work</a></li><li><a href="#contact">Contact</a></li></ul>
-    </div>
-    <div>
       <h4>Got footage?</h4>
-      <p>Send it over and get a first cut back in 48 hours.</p>
-      <p><a class="mailto" href="mailto:aryaworks181@gmail.com">aryaworks181@gmail.com</a></p>
+      <p>Send it over and get a first cut back in 24 hours.</p>
     </div>
   </div>
   <div class="wrap wordmark" aria-hidden="true"><div id="wordmark">ARYA</div></div>
