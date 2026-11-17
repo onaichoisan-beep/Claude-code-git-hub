@@ -249,6 +249,24 @@ if spec.get("FLASH") is not None:
                  f"fade=t=out:st={fl}:d=0.35:alpha=1[flash]")
     chain.append(f"[{last}][flash]overlay=0:0:enable='between(t,{fl-0.08},{fl+0.36})'[ofl]"); last = "ofl"
 
+# end card: "subscribe to @handle" pill under the caption, from t0 to the end
+if spec.get("END_CARD"):
+    et, e0 = spec["END_CARD"]
+    ef = ImageFont.truetype(os.path.join(W, "fonts", "Ubuntu-Medium.ttf"), 38)
+    tw = measure(et, ef); bw, bh = int(tw + 64), 76
+    im = Image.new("RGBA", (FW, 120), (0, 0, 0, 0)); x0 = (FW - bw) // 2
+    ImageDraw.Draw(im).rounded_rectangle((x0, 22, x0 + bw, 22 + bh), radius=38, fill=(204, 0, 0, 235))
+    xx = x0 + 32
+    for part, e in runs(et):
+        if e:
+            ei = emoji_img(part, 36); im.alpha_composite(ei, (int(xx), 22 + (bh - ei.height) // 2)); xx += ei.width + 8
+        else:
+            ImageDraw.Draw(im).text((xx, 22 + 16), part, font=ef, fill="white"); xx += ef.getlength(part)
+    ep = os.path.join(ovl, "endcard.png"); im.save(ep); inputs += ["-loop", "1", "-framerate", str(FPS), "-t", str(END), "-i", ep]; k += 1
+    chain.append(f"[{k}:v]format=rgba,fade=t=in:st={e0}:d=0.3:alpha=1[x{k}]")
+    yy = int(FH * (spec.get("MID_Y", 0.5) + 0.15)) if MID else int(FH * 0.80)
+    chain.append(f"[{last}][x{k}]overlay=0:{yy - 60}:enable='between(t,{e0},{END})'[o{k}]"); last = f"o{k}"
+
 # credibility tag: small line, e.g. ("MBBS student · NMCH Patna", t0, t1, ty)
 if spec.get("TAG"):
     tg, a0, a1, tyy = spec["TAG"]
