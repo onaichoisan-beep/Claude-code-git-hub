@@ -231,9 +231,8 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
     </div>
     <div class="filters" role="group" aria-label="Filter videos">
       <button class="chip" type="button" data-f="all" aria-pressed="true">All</button>
-      <button class="chip" type="button" data-f="AI Ad" aria-pressed="false">AI Ads</button>
-      <button class="chip" type="button" data-f="AI Avatar" aria-pressed="false">AI Avatars</button>
-      <button class="chip" type="button" data-f="AI Reel" aria-pressed="false">AI Reels</button>
+      <button class="chip" type="button" data-f="Brand Ad" aria-pressed="false">Brand Ads</button>
+      <button class="chip" type="button" data-f="Local Business" aria-pressed="false">Local Business</button>
     </div>
     <div class="strip" id="strip" tabindex="0" aria-label="Videos, scroll sideways"></div>
   </div>
@@ -300,12 +299,11 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
    type   : "UGC Ad" | "Reel" | "Talking Head"  (used by the filter buttons)
    ============================================================ */
 const VIDEOS = [
-  { title:"Product launch ad", client:"Skincare brand", type:"AI Ad", pattern:"pat-stripe", src:"", poster:"", desc:"Product shots generated from a single photo, cut into a 20-second launch ad." },
-  { title:"AI spokesperson", client:"SaaS startup", type:"AI Avatar", pattern:"pat-gingham", src:"", poster:"", desc:"Avatar presenter with a cloned voice, captions and screen inserts." },
-  { title:"Dream travel reel", client:"Travel page", type:"AI Reel", pattern:"pat-wave", src:"", poster:"", desc:"Text-to-video scenes stitched into a beat-synced travel reel." },
-  { title:"3 hook variants", client:"D2C brand", type:"AI Ad", pattern:"pat-dots", src:"", poster:"", desc:"One ad, three AI-generated opening hooks for testing." },
-  { title:"Explainer in 30s", client:"Fintech app", type:"AI Avatar", pattern:"pat-check", src:"", poster:"", desc:"Avatar explainer with motion graphics and on-screen steps." },
-  { title:"Mood film", client:"Fashion label", type:"AI Reel", pattern:"pat-flower", src:"", poster:"", desc:"Cinematic AI B-roll graded and cut to music." }
+  { title:"Under one roof", client:"Udaan Academy", type:"Local Business", pattern:"pat-gingham", src:"videos/udaan-academy.mp4", poster:"videos/posters/udaan-academy.jpg", desc:"School and cricket academy promo: AI classroom and stadium scenes with bold titles." },
+  { title:"Precision in every detail", client:"Welltron", type:"Brand Ad", pattern:"pat-stripe", src:"videos/welltron-tv.mp4", poster:"videos/posters/welltron-tv.jpg", desc:"Smart TV ad from factory to living room, ending on a clean product card." },
+  { title:"PM Surya Ghar Yojana", client:"Abhira Green Energy", type:"Brand Ad", pattern:"pat-wave", src:"videos/abhira-solar.mp4", poster:"videos/posters/abhira-solar.jpg", desc:"Hindi solar subsidy ad with glass-panel callouts over AI rooftop scenes." },
+  { title:"Special price offer", client:"Biryani Mahal", type:"Local Business", pattern:"pat-dots", src:"videos/biryani-mahal.mp4", poster:"videos/posters/biryani-mahal.jpg", desc:"Restaurant offer ad: date card, hero food shot and a street-level location reveal." },
+  { title:"Smart digital solutions", client:"Software company", type:"Brand Ad", pattern:"pat-check", src:"videos/software-solutions.mp4", poster:"videos/posters/software-solutions.jpg", desc:"Futuristic tech promo with glowing UI screens and data-city visuals." }
 ];
 
 const $ = s => document.querySelector(s);
