@@ -223,7 +223,13 @@ def text_png(t, path):
             else:
                 ImageDraw.Draw(sh).text((x + 3, y + 4), p, font=FONT, fill=(0, 0, 0, 200))
                 ImageDraw.Draw(img).text((x, y), p, font=FONT, fill="white"); x += FONT.getlength(p)
-    base = Image.new("RGBA", img.size, (0, 0, 0, 0)); base.alpha_composite(sh.filter(ImageFilter.GaussianBlur(6)))
+    base = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    if MID and spec.get("CAPTION_BOX", True):   # soft dark backing so captions read on bright/busy shots
+        bd = ImageDraw.Draw(base)
+        for k2, ln in enumerate(lines):
+            wl = measure(ln, FONT); x0 = (FW - wl) / 2 - 22; y0 = 30 + k2 * lh - 8
+            bd.rounded_rectangle((x0, y0, x0 + wl + 44, y0 + lh + 4), radius=18, fill=(0, 0, 0, 115))
+    base.alpha_composite(sh.filter(ImageFilter.GaussianBlur(6)))
     base.alpha_composite(img); base.save(path); return base.height
 
 ovl = os.path.join(W, f"{NAME}_ovl"); os.makedirs(ovl, exist_ok=True)
@@ -248,6 +254,16 @@ if spec.get("FLASH") is not None:
     chain.append(f"color=white:s={FW}x{FH}:r={FPS}:d={END},format=rgba,fade=t=in:st={fl-0.08}:d=0.08:alpha=1,"
                  f"fade=t=out:st={fl}:d=0.35:alpha=1[flash]")
     chain.append(f"[{last}][flash]overlay=0:0:enable='between(t,{fl-0.08},{fl+0.36})'[ofl]"); last = "ofl"
+
+# watermark: small handle for the whole video (e.g. WATERMARK = ("@hey.rishish", 0.79))
+if spec.get("WATERMARK"):
+    wt, wy = spec["WATERMARK"]
+    wf = ImageFont.truetype(os.path.join(W, "fonts", "Ubuntu-Medium.ttf"), 30)
+    im = Image.new("RGBA", (FW, 70), (0, 0, 0, 0)); sh = Image.new("RGBA", im.size, (0, 0, 0, 0)); x = (FW - wf.getlength(wt)) / 2
+    ImageDraw.Draw(sh).text((x + 2, 20), wt, font=wf, fill=(0, 0, 0, 170)); im.alpha_composite(sh.filter(ImageFilter.GaussianBlur(3)))
+    ImageDraw.Draw(im).text((x, 18), wt, font=wf, fill=(255, 255, 255, 190))
+    wp = os.path.join(ovl, "watermark.png"); im.save(wp); inputs += ["-loop", "1", "-framerate", str(FPS), "-t", str(END), "-i", wp]; k += 1
+    chain.append(f"[{last}][{k}:v]overlay=0:{int(FH*wy) - 35}[o{k}]"); last = f"o{k}"
 
 # end card: "subscribe to @handle" pill under the caption, from t0 to the end
 if spec.get("END_CARD"):
