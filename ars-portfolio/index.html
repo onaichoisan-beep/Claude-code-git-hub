@@ -300,12 +300,14 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
    type   : "UGC Ad" | "Reel" | "Talking Head"  (used by the filter buttons)
    ============================================================ */
 const VIDEOS = [
-  { title:"Glow serum: 3 hooks",  client:"Skincare brand", type:"UGC Ad",       pattern:"pat-stripe",  src:"", poster:"", desc:"Creator testimonial with three hook variants for testing." },
-  { title:"Morning routine",      client:"Coffee brand",   type:"Reel",         pattern:"pat-gingham", src:"", poster:"", desc:"Beat-synced routine reel with on-beat captions." },
-  { title:"Why I switched",       client:"Pet care brand", type:"Talking Head", pattern:"pat-wave",    src:"", poster:"", desc:"Long take tightened into a 45-second story, jump cuts covered with B-roll." },
-  { title:"Unboxing in 15s",      client:"Tech accessory", type:"UGC Ad",       pattern:"pat-dots",    src:"", poster:"", desc:"Fast unboxing with punch-ins and a product close-up end card." },
-  { title:"Studio day",           client:"Ceramics shop",  type:"Reel",         pattern:"pat-check",   src:"", poster:"", desc:"Behind-the-scenes reel with bold on-screen titles." },
-  { title:"Founder story",        client:"Wellness brand", type:"Talking Head", pattern:"pat-flower",  src:"", poster:"", desc:"Founder interview cut into a one-minute brand story." }
+  { title:"Sleep with your cat again", client:"Pacagen", type:"UGC Ad", pattern:"pat-stripe", src:"videos/pacagen-sleep.mp4", poster:"videos/posters/pacagen-sleep.jpg", desc:"Allergy-to-relief story with lifestyle B-roll and word-by-word captions." },
+  { title:"Baby hair story", client:"RebelKid", type:"Talking Head", pattern:"pat-gingham", src:"videos/rebelkid-baby-hair.mp4", poster:"videos/posters/rebelkid-baby-hair.jpg", desc:"Hinglish talking head with pop-up text, framed cutaways and a tight story arc." },
+  { title:"Paris luxury unboxing", client:"Lifestyle creator", type:"Reel", pattern:"pat-wave", src:"videos/paris-unboxing.mp4", poster:"videos/posters/paris-unboxing.jpg", desc:"Unboxing in front of the Eiffel Tower, with styled serif callouts on every reveal." },
+  { title:"Lip gloss swatch", client:"Beauty brand", type:"UGC Ad", pattern:"pat-dots", src:"videos/lipgloss-swatch.mp4", poster:"videos/posters/lipgloss-swatch.jpg", desc:"Close-up swatch ad with shade callouts and a framed product moment." },
+  { title:"Cat allergen spray", client:"Pet care brand", type:"UGC Ad", pattern:"pat-check", src:"videos/cat-allergen-spray.mp4", poster:"videos/posters/cat-allergen-spray.jpg", desc:"Problem-solution demo: cat B-roll covering every jump cut, clean captions throughout." },
+  { title:"October favourites", client:"Lifestyle creator", type:"Talking Head", pattern:"pat-flower", src:"videos/october-favourites.mp4", poster:"videos/posters/october-favourites.jpg", desc:"Monthly favourites list with numbered on-screen titles and product close-ups." },
+  { title:"Outfit switch", client:"Fashion creator", type:"Reel", pattern:"pat-stripe", src:"videos/outfit-switch.mp4", poster:"videos/posters/outfit-switch.jpg", desc:"Outfit transition reel with split-screen text and framed inserts." },
+  { title:"When the cat sheds", client:"Pet care brand", type:"UGC Ad", pattern:"pat-gingham", src:"videos/cat-shedding.mp4", poster:"videos/posters/cat-shedding.jpg", desc:"Talking-head ad cut with spraying demos and home B-roll." }
 ];
 
 const $ = s => document.querySelector(s);
@@ -323,6 +325,10 @@ if (matchMedia("(prefers-reduced-motion: reduce)").matches) anim.remove();
 
 /* video row */
 const strip = $("#strip");
+/* each video plays on its own, on loop, whenever it is on screen */
+const seen = new IntersectionObserver(es => es.forEach(e => {
+  if (e.isIntersecting) e.target.play().catch(() => {}); else e.target.pause();
+}), { threshold: 0.25 });
 function render(filter){
   strip.innerHTML = "";
   VIDEOS.filter(v => filter === "all" || v.type === filter).forEach(v => {
@@ -330,12 +336,12 @@ function render(filter){
     b.className = "reel"; b.type = "button";
     b.setAttribute("aria-label", "Watch " + v.title + " with sound");
     const media = v.src
-      ? `<video src="${esc(v.src)}" ${v.poster ? `poster="${esc(v.poster)}"` : ""} autoplay muted loop playsinline preload="auto"></video><span class="sound">🔊 tap</span>`
+      ? `<video src="${esc(v.src)}" ${v.poster ? `poster="${esc(v.poster)}"` : ""} muted loop playsinline preload="metadata"></video><span class="sound">🔊 tap</span>`
       : (v.poster ? `<img src="${esc(v.poster)}" alt="">` : "") + `<span class="soon">Video coming soon</span>`;
     b.innerHTML = `<div class="thumb ${v.pattern}">${media}<span class="tag">${esc(v.type)}</span></div>
       <h3>${esc(v.title)}</h3><div class="meta">${esc(v.client)}</div>`;
     const vid = b.querySelector("video");
-    if (vid) vid.play().catch(() => {});
+    if (vid) { vid.muted = true; seen.observe(vid); }
     b.addEventListener("click", () => openVideo(v));
     strip.appendChild(b);
   });
