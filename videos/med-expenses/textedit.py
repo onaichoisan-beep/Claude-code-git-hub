@@ -114,7 +114,7 @@ for i, s in enumerate(SHOTS):
             still(src, d, out, s.get("zoom", 0.08))
         else:
             sp = s.get("speed", 1.0); sin = s.get("in", 0.0)
-            vf = ([f"transpose={s['transpose']}"] if "transpose" in s else []) + (
+            vf = (["hqdn3d=6:5:8:6"] if s.get("denoise") else []) + ([f"transpose={s['transpose']}"] if "transpose" in s else []) + (
                 [f"scale=-2:{FH*1.12:.0f}", "deshake=rx=48:ry=48:edge=clamp"] if s.get("stabilize") else []) + [
                 f"scale={int(FW*s.get('vzoom',1))}:{int(FH*s.get('vzoom',1))}:force_original_aspect_ratio=increase",
                 f"crop={FW}:{FH}:(iw-{FW})*{s.get('cx', .5)}:(ih-{FH})*{s.get('cy', .5)}", f"setpts=PTS/{sp}", f"fps={FPS}", "setsar=1"] + (
