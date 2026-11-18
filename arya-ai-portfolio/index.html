@@ -195,7 +195,7 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
     <div class="hero-text">
       <span class="role">AI video editor · Short-form</span>
       <h1>Hi! I'm Arya.</h1>
-      <p class="lead">I create videos for brands, businesses and people, with AI as my creative crew. You bring the idea. I turn it into scenes, voices and visuals that never needed a camera, then edit it all into something people stop scrolling for.</p>
+      <p class="lead">I create videos for brands, businesses and people, with AI as my creative crew. You bring the idea. I turn it into scenes, voices, visuals and AI animation that never needed a camera, then edit it all into something people stop scrolling for.</p>
       <p class="tagline">Imagined with AI. Finished by hand.</p>
       <div class="ctas">
         <a class="pill solid" href="#work">See my work →</a>
@@ -233,6 +233,7 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
       <button class="chip" type="button" data-f="all" aria-pressed="true">All</button>
       <button class="chip" type="button" data-f="Brand Ad" aria-pressed="false">Brand Ads</button>
       <button class="chip" type="button" data-f="Local Business" aria-pressed="false">Local Business</button>
+      <button class="chip" type="button" data-f="AI Animation" aria-pressed="false">AI Animation</button>
     </div>
     <div class="strip" id="strip" tabindex="0" aria-label="Videos, scroll sideways"></div>
   </div>
@@ -271,7 +272,7 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
   <div class="trim" aria-hidden="true"></div>
   <div class="wrap cols">
     <div>
-      <p>Videos for brands, businesses and people, made with AI.</p>
+      <p>Videos and AI animation for brands, businesses and people.</p>
       <p>Imagined with AI. Finished by hand.</p>
     </div>
     <div>
@@ -310,7 +311,7 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 /* wavy ticker text */
-const TICK = ["AI ADS","AI AVATARS","TEXT TO VIDEO","AI B-ROLL","AI VOICEOVER","CAPTIONS","HOOKS"];
+const TICK = ["AI ADS","AI ANIMATION","TEXT TO VIDEO","AI B-ROLL","AI VOICEOVER","CAPTIONS","HOOKS"];
 const tp = $("#tp"), anim = tp.querySelector("animate");
 for (let r = 0; r < 4; r++) TICK.forEach(t => {
   const a = document.createElementNS("http://www.w3.org/2000/svg","tspan"); a.textContent = t + " ";
@@ -341,6 +342,7 @@ function render(filter){
     b.addEventListener("click", () => openVideo(v));
     strip.appendChild(b);
   });
+  if (!strip.children.length) strip.innerHTML = '<p style="margin:0;padding:40px 4px;opacity:.85">New videos for this category are coming soon.</p>';
   strip.scrollLeft = 0;
 }
 const step = () => (strip.querySelector(".reel")?.offsetWidth || 200) + 18;
