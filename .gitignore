@@ -1,0 +1,4 @@
+# Rendered videos (never commit video files)
+output/
+*.mp4
+*.mov
