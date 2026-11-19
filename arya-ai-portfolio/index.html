@@ -154,6 +154,15 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
 .wordmark{padding-block:10px 18px;text-align:center}
 .wordmark div{display:inline-block;font-family:var(--logo);color:var(--cobalt);white-space:nowrap;line-height:1.1;font-size:22vw;letter-spacing:.04em;padding-top:.04em}
 
+
+/* category rows */
+.shelf{margin-top:26px}
+.shelf:first-child{margin-top:18px}
+.shelf-h{display:flex;align-items:baseline;gap:10px;margin-bottom:2px}
+.shelf-h h3{font-size:24px;color:var(--butter)}
+.shelf-h small{font-weight:700;opacity:.75}
+.shelf .strip{padding-top:12px}
+
 @media (max-width:760px){
   .hero,.contact .wrap{grid-template-columns:1fr}
   .hero-text{justify-items:center;text-align:center}
@@ -224,18 +233,8 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
       <div>
         <h2>My Best Works</h2>
       </div>
-      <div class="arrows">
-        <button class="arrow" type="button" id="prev" aria-label="Scroll videos left">←</button>
-        <button class="arrow" type="button" id="next" aria-label="Scroll videos right">→</button>
-      </div>
     </div>
-    <div class="filters" role="group" aria-label="Filter videos">
-      <button class="chip" type="button" data-f="all" aria-pressed="true">All</button>
-      <button class="chip" type="button" data-f="Brand Ad" aria-pressed="false">Brand Ads</button>
-      <button class="chip" type="button" data-f="Local Business" aria-pressed="false">Local Business</button>
-      <button class="chip" type="button" data-f="AI Animation" aria-pressed="false">AI Animation</button>
-    </div>
-    <div class="strip" id="strip" tabindex="0" aria-label="Videos, scroll sideways"></div>
+    <div id="body"></div>
   </div>
 </section>
 
@@ -307,8 +306,8 @@ const VIDEOS = [
   { title:"Smart digital solutions", client:"Software company", type:"Brand Ad", pattern:"pat-check", src:"videos/software-solutions.mp4", poster:"videos/posters/software-solutions.jpg", desc:"Futuristic tech promo with glowing UI screens and data-city visuals." },
   { title:"Classroom friends", client:"3D animated story", type:"AI Animation", pattern:"pat-gingham", src:"videos/classroom-friends.mp4", poster:"videos/posters/classroom-friends.jpg", desc:"Pixar-style 3D characters, a classroom moment and a playful mascot reveal." },
   { title:"Candy and celebration", client:"3D animated story", type:"AI Animation", pattern:"pat-flower", src:"videos/candy-celebration.mp4", poster:"videos/posters/candy-celebration.jpg", desc:"3D character story that builds to a colourful festival celebration." },
-  { title:"Vaseline lip balm", client:"Product concept", type:"AI Animation", pattern:"pat-stripe", src:"videos/lip-balm.mp4", poster:"videos/posters/lip-balm.jpg", desc:"Realistic AI product close-ups: open, scoop, apply, in a soft desk setting." },
-  { title:"Dreaming of Paris shower gel", client:"Product concept", type:"AI Animation", pattern:"pat-dots", src:"videos/shower-gel.mp4", poster:"videos/posters/shower-gel.jpg", desc:"AI product shots of a shower gel pour and lather." },
+  { title:"Vaseline lip balm", client:"AI UGC concept", type:"AI UGC", pattern:"pat-stripe", src:"videos/lip-balm.mp4", poster:"videos/posters/lip-balm.jpg", desc:"Realistic AI product close-ups: open, scoop, apply, in a soft desk setting." },
+  { title:"Dreaming of Paris shower gel", client:"AI UGC concept", type:"AI UGC", pattern:"pat-dots", src:"videos/shower-gel.mp4", poster:"videos/posters/shower-gel.jpg", desc:"AI product shots of a shower gel pour and lather." },
   { title:"Barbershop walk-in", client:"Local business concept", type:"AI Animation", pattern:"pat-check", src:"videos/barbershop.mp4", poster:"videos/posters/barbershop.jpg", desc:"Cinematic AI barbershop scenes with a moody walk-in and chair reveal." }
 ];
 
@@ -316,7 +315,7 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 /* wavy ticker text */
-const TICK = ["AI ADS","AI ANIMATION","TEXT TO VIDEO","AI B-ROLL","AI VOICEOVER","CAPTIONS","HOOKS"];
+const TICK = ["AI ADS","AI UGC","AI ANIMATION","TEXT TO VIDEO","AI VOICEOVER","CAPTIONS","HOOKS"];
 const tp = $("#tp"), anim = tp.querySelector("animate");
 for (let r = 0; r < 4; r++) TICK.forEach(t => {
   const a = document.createElementNS("http://www.w3.org/2000/svg","tspan"); a.textContent = t + " ";
@@ -325,38 +324,33 @@ for (let r = 0; r < 4; r++) TICK.forEach(t => {
 });
 if (matchMedia("(prefers-reduced-motion: reduce)").matches) anim.remove();
 
-/* video row */
-const strip = $("#strip");
+/* ---------- videos: a row for each kind of work ---------- */
+const body = $("#body");
 /* each video plays on its own, on loop, whenever it is on screen */
 const seen = new IntersectionObserver(es => es.forEach(e => {
   if (e.isIntersecting) e.target.play().catch(() => {}); else e.target.pause();
 }), { threshold: 0.25 });
-function render(filter){
-  strip.innerHTML = "";
-  VIDEOS.filter(v => filter === "all" || v.type === filter).forEach(v => {
-    const b = document.createElement("button");
-    b.className = "reel"; b.type = "button";
-    b.setAttribute("aria-label", "Watch " + v.title + " with sound");
-    const media = v.src
-      ? `<video src="${esc(v.src)}" ${v.poster ? `poster="${esc(v.poster)}"` : ""} muted loop playsinline preload="metadata"></video><span class="sound">🔊 tap</span>`
-      : (v.poster ? `<img src="${esc(v.poster)}" alt="">` : "") + `<span class="soon">Video coming soon</span>`;
-    b.innerHTML = `<div class="thumb ${v.pattern}">${media}<span class="tag">${esc(v.type)}</span></div>
-      <h3>${esc(v.title)}</h3><div class="meta">${esc(v.client)}</div>`;
-    const vid = b.querySelector("video");
-    if (vid) { vid.muted = true; seen.observe(vid); }
-    b.addEventListener("click", () => openVideo(v));
-    strip.appendChild(b);
-  });
-  if (!strip.children.length) strip.innerHTML = '<p style="margin:0;padding:40px 4px;opacity:.85">New videos for this category are coming soon.</p>';
-  strip.scrollLeft = 0;
+function card(v){
+  const b = document.createElement("button");
+  b.className = "reel"; b.type = "button";
+  b.setAttribute("aria-label", "Watch " + v.title + " with sound");
+  b.innerHTML = `<div class="thumb ${v.pattern}"><video src="${esc(v.src)}" poster="${esc(v.poster)}" muted loop playsinline preload="metadata"></video><span class="sound">🔊 tap</span><span class="tag">${esc(v.type)}</span></div>
+    <h3>${esc(v.title)}</h3><div class="meta">${esc(v.client)}</div>`;
+  const vid = b.querySelector("video"); vid.muted = true; seen.observe(vid);
+  b.addEventListener("click", () => openVideo(v));
+  return b;
 }
-const step = () => (strip.querySelector(".reel")?.offsetWidth || 200) + 18;
-$("#prev").addEventListener("click", () => strip.scrollBy({left: -step() * 2, behavior: "smooth"}));
-$("#next").addEventListener("click", () => strip.scrollBy({left: step() * 2, behavior: "smooth"}));
-document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
-  document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c));
-  render(c.dataset.f);
-}));
+const ROWS = [["Brand Ad","Brand Ads"],["Local Business","Local Business"],["AI UGC","AI UGC Videos"],["AI Animation","AI Animation Videos"]];
+function render(){
+  body.innerHTML = "";
+  ROWS.forEach(([t, label]) => {
+    const vs = VIDEOS.filter(v => v.type === t); if (!vs.length) return;
+    const sec = document.createElement("div"); sec.className = "shelf";
+    sec.innerHTML = `<div class="shelf-h"><h3>${label}</h3><small>${vs.length} ${vs.length === 1 ? "video" : "videos"}</small></div><div class="strip" tabindex="0" aria-label="${label}, scroll sideways"></div>`;
+    const st = sec.querySelector(".strip"); vs.forEach(v => st.appendChild(card(v)));
+    body.appendChild(sec);
+  });
+}
 
 /* modal: watch with sound */
 const modal = $("#modal");
@@ -408,7 +402,7 @@ function fitWordmark(){
 window.addEventListener("resize", fitWordmark);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitWordmark);
 
-render("all");
+render();
 fitWordmark();
 setTab("intro");
 </script>
