@@ -21,7 +21,7 @@
   "start": 3.0,
   "dur": 1.1,
   "ai": false,
-  "note": "real: bowler run-up close"
+  "note": "real: bowler delivers, runs at camera"
  },
  {
   "id": "s03",
@@ -36,22 +36,22 @@
   "file": "assets/video/s04.mp4",
   "start": 5.9,
   "dur": 2.4,
-  "ai": true,
-  "note": "AI bat + ball close-up"
+  "ai": false,
+  "note": "real: kid batting in nets - sapna"
  },
  {
   "id": "s05",
   "file": "assets/video/s05.mp4",
   "start": 8.3,
-  "dur": 1.5,
+  "dur": 1.0,
   "ai": true,
-  "note": "AI kid, ball in the air"
+  "note": "AI ball in the sky (last 1s only)"
  },
  {
   "id": "s06",
   "file": "assets/video/s06.mp4",
-  "start": 9.8,
-  "dur": 1.6,
+  "start": 9.3,
+  "dur": 2.1,
   "ai": false,
   "note": "real: coach guiding bowling arm"
  },
@@ -77,7 +77,7 @@
   "start": 17.0,
   "dur": 1.7666666666666666,
   "ai": false,
-  "note": "real: academy rows shadow batting"
+  "note": "real: academy net cage wide"
  },
  {
   "id": "s10",
@@ -101,7 +101,7 @@
   "start": 24.0,
   "dur": 2.0,
   "ai": false,
-  "note": "real: coach demonstrating to group"
+  "note": "real: nets batting session"
  },
  {
   "id": "s13",
@@ -133,7 +133,7 @@
   "start": 30.3,
   "dur": 1.4,
   "ai": false,
-  "note": "real: need - batsman in nets"
+  "note": "real: need - batsman at stumps"
  },
  {
   "id": "s17",
@@ -157,7 +157,7 @@
   "start": 35.3,
   "dur": 1.3333333333333333,
   "ai": false,
-  "note": "real: coach demo to kids indoor"
+  "note": "real: coach with kid, others watch"
  },
  {
   "id": "s20",
@@ -197,7 +197,7 @@
   "start": 46.13333333333333,
   "dur": 1.8666666666666667,
   "ai": false,
-  "note": "real: team/coach with kids"
+  "note": "real: coaches with kids - team"
  },
  {
   "id": "s25",

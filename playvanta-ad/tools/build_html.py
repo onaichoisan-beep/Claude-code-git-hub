@@ -21,13 +21,9 @@ videos = "\n".join(
 moves_js = ",\n      ".join(
     f'["#w_{s["id"]}", {s["start"]:.4f}, {s["dur"]:.4f}, {MOVES[s["id"]][0]}, {MOVES[s["id"]][1]}]' for s in edl)
 
-SFX = [  # (id, file, t, vol)
-    ("x_w1", "whoosh", 1.84, 0.35), ("x_w2", "whoosh", 5.84, 0.3), ("x_w3", "whoosh", 15.34, 0.35),
-    ("x_w4", "whoosh_long", 18.6, 0.35), ("x_w5", "whoosh", 21.1, 0.3), ("x_w6", "whoosh", 23.94, 0.3),
-    ("x_w7", "whoosh", 27.94, 0.35), ("x_w8", "whoosh_long", 36.45, 0.3), ("x_w9", "whoosh", 43.47, 0.35),
-    ("x_p1", "pop", 0.12, 0.35), ("x_p2", "pop", 8.45, 0.35), ("x_p3", "pop", 25.0, 0.35),
-    ("x_p4", "pop", 28.05, 0.3), ("x_p5", "pop", 31.75, 0.3), ("x_p6", "pop", 33.8, 0.3),
-    ("x_p7", "pop", 45.56, 0.45), ("x_p8", "pop", 46.2, 0.35), ("x_p9", "pop", 21.2, 0.35),
+SFX = [  # (id, file, t, vol) - only where it matters
+    ("x_w1", "whoosh", 21.1, 0.28), ("x_w2", "whoosh", 43.47, 0.3),
+    ("x_p1", "pop", 21.2, 0.3), ("x_p2", "pop", 45.56, 0.4),
 ]
 SFX += [(f"x_t{k}", "tick", 22.2 + k * 0.08, 0.25) for k in range(10)]
 sfx_html = "\n".join(
@@ -38,7 +34,7 @@ PHONE_SVG = ('<svg viewBox="0 0 24 24" class="ico"><path fill="currentColor" d="
              '11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>')
 
 html = f"""<!doctype html>
-<html lang="hi" data-resolution="portrait" data-composition-variables='[{{"id":"phone","type":"string","label":"Contact number","default":"+91 XXXXX XXXXX"}}]'>
+<html lang="hi" data-resolution="portrait" data-composition-variables='[{{"id":"phone","type":"string","label":"Contact number","default":"6200985144"}}]'>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1080, height=1920" />
@@ -65,6 +61,13 @@ html = f"""<!doctype html>
       #corner {{ position: absolute; top: 56px; right: 44px; width: 170px; height: 170px; border-radius: 50%;
         box-shadow: 0 6px 22px rgba(0,0,0,.45); }}
       #corner img {{ width: 100%; height: 100%; display: block; }}
+      /* call banner - whole video */
+      #call {{ position: absolute; top: 240px; left: 44px; height: 116px; display: flex; align-items: center; gap: 18px;
+        padding: 0 34px 0 14px; border-radius: 60px; background: rgba(6,16,58,.86); border: 4px solid var(--orange);
+        box-shadow: 0 6px 22px rgba(0,0,0,.45); }}
+      #call .ic {{ width: 84px; height: 84px; border-radius: 50%; background: var(--orangeD); color: #fff; display: flex; align-items: center; justify-content: center; }}
+      #call .l1 {{ font-family: "Baloo2"; font-weight: 800; font-size: 34px; line-height: 1.05; color: var(--orange2); }}
+      #call .l2 {{ font-family: "Mont"; font-weight: 800; font-size: 50px; line-height: 1.05; color: #fff; letter-spacing: 1px; }}
       /* headline text */
       .hl {{ position: absolute; left: 110px; right: 150px; top: 930px; text-align: center; color: #fff; opacity: 0;
         font-family: "Anton", sans-serif; text-transform: uppercase; letter-spacing: 1px; line-height: 1.02;
@@ -133,19 +136,19 @@ html = f"""<!doctype html>
       #team .tx {{ font-family: "Anton"; font-size: 64px; line-height: 1.05; color: #fff; text-transform: uppercase; }}
       /* end card */
       #end {{ position: absolute; inset: 0; }}
-      #e-logo {{ position: absolute; left: 310px; top: 210px; width: 440px; height: 440px; opacity: 0; }}
+      #e-logo {{ position: absolute; left: 340px; top: 390px; width: 380px; height: 380px; opacity: 0; }}
       #e-logo img {{ width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 0 90px rgba(255,120,30,.5), 0 20px 60px rgba(0,0,0,.6); }}
-      #e-tag {{ position: absolute; left: 90px; right: 150px; top: 690px; text-align: center; font-family: "Baloo2"; font-weight: 800;
+      #e-tag {{ position: absolute; left: 90px; right: 150px; top: 790px; text-align: center; font-family: "Baloo2"; font-weight: 800;
         font-size: 66px; line-height: 1.25; color: #fff; opacity: 0; }}
       #e-tag .o {{ color: var(--orange2); }}
-      #e-cta {{ position: absolute; left: 110px; right: 160px; top: 900px; text-align: center; opacity: 0; padding: 30px 20px; border-radius: 30px;
+      #e-cta {{ position: absolute; left: 110px; right: 160px; top: 985px; text-align: center; opacity: 0; padding: 30px 20px; border-radius: 30px;
         background: var(--orangeD); font-family: "Anton"; font-size: 70px; color: #fff; line-height: 1.02;
         box-shadow: 0 16px 50px rgba(255,106,19,.5); }}
-      #e-hin {{ position: absolute; left: 90px; right: 150px; top: 1120px; text-align: center; font-family: "Baloo2"; font-weight: 800;
+      #e-hin {{ position: absolute; left: 90px; right: 150px; top: 1195px; text-align: center; font-family: "Baloo2"; font-weight: 800;
         font-size: 50px; color: #fff; opacity: 0; }}
-      #e-team {{ position: absolute; left: 90px; right: 150px; top: 1200px; text-align: center; font-family: "Mont"; font-weight: 600;
+      #e-team {{ position: absolute; left: 90px; right: 150px; top: 1268px; text-align: center; font-family: "Mont"; font-weight: 600;
         font-size: 40px; color: rgba(255,255,255,.92); opacity: 0; }}
-      #e-ph {{ position: absolute; left: 90px; right: 150px; top: 1275px; display: flex; justify-content: center; opacity: 0; }}
+      #e-ph {{ position: absolute; left: 90px; right: 150px; top: 1335px; display: flex; justify-content: center; opacity: 0; }}
       #e-ph .box {{ display: flex; align-items: center; gap: 22px; padding: 18px 40px; border-radius: 80px; border: 4px solid #fff;
         font-family: "Mont"; font-weight: 800; font-size: 48px; color: #fff; background: rgba(6,16,58,.6); }}
       #e-ph .ic {{ width: 62px; height: 62px; border-radius: 50%; background: var(--orangeD); color: #fff; display: flex; align-items: center; justify-content: center; }}
@@ -222,10 +225,11 @@ html = f"""<!doctype html>
         <div id="e-cta">BOOK YOUR COUNSELLING TODAY</div>
         <div id="e-hin">आज ही अपनी Counselling Book करें।</div>
         <div id="e-team">Our Team Will Connect With You.</div>
-        <div id="e-ph"><div class="box"><div class="ic">{PHONE_SVG}</div><span id="phone" data-var-text="phone">+91 XXXXX XXXXX</span></div></div>
+        <div id="e-ph"><div class="box"><div class="ic">{PHONE_SVG}</div><span><span style="font-family:Baloo2">आज ही कॉल करें: </span><span id="phone" data-var-text="phone">6200985144</span></span></div></div>
       </div>
 
       <div id="flash"></div>
+      <div id="call"><div class="ic" id="callic">{PHONE_SVG}</div><div><div class="l1">आज ही कॉल करें</div><div class="l2">6200985144</div></div></div>
       <div id="corner"><img src="assets/img/logo.png" alt="Playvanta" /></div>
 
       <audio id="vo" src="assets/audio/vo.wav" data-start="0" data-duration="{DUR}" data-volume="1" data-track-index="10"></audio>
@@ -326,6 +330,8 @@ html = f"""<!doctype html>
 
       // corner logo: settle in at frame 0 and stay
       tl.fromTo("#corner", {{ opacity: 0.0, scale: 0.8 }}, {{ opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }}, 0);
+      tl.fromTo("#call", {{ opacity: 0, x: -40 }}, {{ opacity: 1, x: 0, duration: 0.35, ease: "power3.out" }}, 0);
+      [6, 20, 34, 47, 56].forEach(t => tl.fromTo("#callic", {{ rotation: -14 }}, {{ rotation: 14, duration: 0.08, yoyo: true, repeat: 5, ease: "sine.inOut", immediateRender: false }}, t));
       window.__timelines["main"] = tl;
     </script>
   </body>
