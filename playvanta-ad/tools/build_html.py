@@ -62,14 +62,14 @@ html = f"""<!doctype html>
         box-shadow: 0 6px 22px rgba(0,0,0,.45); }}
       #corner img {{ width: 100%; height: 100%; display: block; }}
       /* call banner - whole video */
-      #call {{ position: absolute; top: 240px; left: 44px; height: 116px; display: flex; align-items: center; gap: 18px;
-        padding: 0 34px 0 14px; border-radius: 60px; background: rgba(6,16,58,.86); border: 4px solid var(--orange);
+      #call {{ position: absolute; top: 1104px; left: 50%; height: 140px; display: flex; align-items: center; gap: 22px;
+        padding: 0 44px 0 16px; white-space: nowrap; border-radius: 60px; background: rgba(6,16,58,.86); border: 4px solid var(--orange);
         box-shadow: 0 6px 22px rgba(0,0,0,.45); }}
-      #call .ic {{ width: 84px; height: 84px; border-radius: 50%; background: var(--orangeD); color: #fff; display: flex; align-items: center; justify-content: center; }}
-      #call .l1 {{ font-family: "Baloo2"; font-weight: 800; font-size: 34px; line-height: 1.05; color: var(--orange2); }}
-      #call .l2 {{ font-family: "Mont"; font-weight: 800; font-size: 50px; line-height: 1.05; color: #fff; letter-spacing: 1px; }}
+      #call .ic {{ width: 106px; height: 106px; border-radius: 50%; background: var(--orangeD); color: #fff; display: flex; align-items: center; justify-content: center; }}
+      #call .l1 {{ font-family: "Baloo2"; font-weight: 800; font-size: 42px; line-height: 1.05; color: var(--orange2); }}
+      #call .l2 {{ font-family: "Mont"; font-weight: 800; font-size: 64px; line-height: 1.05; color: #fff; letter-spacing: 1px; }}
       /* headline text */
-      .hl {{ position: absolute; left: 110px; right: 150px; top: 930px; text-align: center; color: #fff; opacity: 0;
+      .hl {{ position: absolute; left: 110px; right: 150px; top: 680px; text-align: center; color: #fff; opacity: 0;
         font-family: "Anton", sans-serif; text-transform: uppercase; letter-spacing: 1px; line-height: 1.02;
         text-shadow: 0 4px 18px rgba(0,0,0,.6); }}
       .hl, .hi {{ background: radial-gradient(ellipse 60% 55% at 50% 50%, rgba(0,0,0,.5), rgba(0,0,0,0) 100%); padding-top: 40px; padding-bottom: 40px; }}
@@ -93,18 +93,18 @@ html = f"""<!doctype html>
         border-radius: 50%; border: 10px solid var(--orange); opacity: 0; }}
       /* kadi graphic */
       #kadi {{ position: absolute; inset: 0; }}
-      .chip {{ position: absolute; top: 980px; width: 340px; padding: 26px 10px; border-radius: 22px; text-align: center; color: #fff;
+      .chip {{ position: absolute; top: 760px; width: 340px; padding: 26px 10px; border-radius: 22px; text-align: center; color: #fff;
         font-family: "Anton", sans-serif; font-size: 58px; line-height: 1.05; text-transform: uppercase; opacity: 0;
         background: rgba(6,16,58,.82); border: 4px solid var(--orange); box-shadow: 0 10px 30px rgba(0,0,0,.5); }}
       #chipA {{ left: 70px; }} #chipB {{ right: 150px; }}
-      #kline {{ position: absolute; top: 1058px; left: 410px; width: 180px; height: 8px; background: var(--orange); transform-origin: 0 50%; }}
-      #knode {{ position: absolute; top: 992px; left: 430px; width: 140px; height: 140px; border-radius: 50%; opacity: 0;
+      #kline {{ position: absolute; top: 838px; left: 410px; width: 180px; height: 8px; background: var(--orange); transform-origin: 0 50%; }}
+      #knode {{ position: absolute; top: 772px; left: 430px; width: 140px; height: 140px; border-radius: 50%; opacity: 0;
         box-shadow: 0 0 0 6px #fff, 0 0 40px rgba(255,120,30,.9); }}
       #knode img {{ width: 100%; height: 100%; border-radius: 50%; }}
-      #ktitle {{ position: absolute; left: 70px; right: 150px; top: 1200px; text-align: center; color: #fff; opacity: 0;
+      #ktitle {{ position: absolute; left: 70px; right: 150px; top: 960px; text-align: center; color: #fff; opacity: 0;
         font-family: "Anton", sans-serif; font-size: 70px; text-transform: uppercase; text-shadow: 0 4px 18px rgba(0,0,0,.7); }}
       /* stats */
-      #stats {{ position: absolute; left: 60px; right: 140px; top: 930px; display: flex; justify-content: center; align-items: flex-start; gap: 40px; }}
+      #stats {{ position: absolute; left: 60px; right: 140px; top: 690px; display: flex; justify-content: center; align-items: flex-start; gap: 40px; }}
       .stat {{ text-align: center; color: #fff; opacity: 0; }}
       .stat .num {{ font-family: "Anton", sans-serif; font-size: 170px; line-height: .95; color: #fff;
         text-shadow: 0 0 40px rgba(255,120,30,.6), 0 6px 20px rgba(0,0,0,.6); }}
@@ -113,22 +113,22 @@ html = f"""<!doctype html>
       #dots {{ display: flex; gap: 22px; justify-content: center; margin-top: 18px; }}
       #dots b {{ width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,.25); display: block; }}
       /* lower third */
-      #l3 {{ position: absolute; left: 70px; right: 150px; top: 960px; opacity: 0; }}
+      #l3 {{ position: absolute; left: 70px; right: 150px; top: 720px; opacity: 0; }}
       #l3 .card {{ background: rgba(6,16,58,.9); border-left: 16px solid var(--orange); border-radius: 18px; padding: 34px 40px 38px;
         box-shadow: 0 16px 40px rgba(0,0,0,.5); }}
       #l3 .k {{ font-family: "Mont"; font-weight: 800; font-size: 40px; letter-spacing: 8px; color: var(--orange2); }}
       #l3 .t {{ font-family: "Anton"; font-size: 80px; line-height: 1.05; color: #fff; text-transform: uppercase; }}
       /* chips: talent / age / need */
-      #tags {{ position: absolute; left: 70px; right: 150px; top: 1150px; display: flex; justify-content: center; gap: 22px; }}
+      #tags {{ position: absolute; left: 70px; right: 150px; top: 920px; display: flex; justify-content: center; gap: 22px; }}
       .tag {{ font-family: "Mont"; font-weight: 800; font-size: 44px; color: #fff; padding: 14px 30px; border-radius: 60px;
         background: rgba(255,255,255,.14); border: 3px solid rgba(255,255,255,.5); opacity: 0; }}
       /* CTA */
-      #cta {{ position: absolute; left: 60px; right: 140px; top: 880px; text-align: center; opacity: 0; }}
+      #cta {{ position: absolute; left: 60px; right: 140px; top: 660px; text-align: center; opacity: 0; }}
       #cta .t1 {{ font-family: "Anton"; font-size: 110px; color: #fff; line-height: 1; text-shadow: 0 6px 22px rgba(0,0,0,.6); }}
       #cta .pill {{ display: inline-block; margin-top: 22px; padding: 24px 46px; border-radius: 90px; background: var(--orangeD);
         font-family: "Anton"; font-size: 84px; color: #fff; line-height: 1; box-shadow: 0 14px 40px rgba(255,106,19,.55); }}
       #cta .hin {{ margin-top: 30px; font-family: "Baloo2"; font-weight: 800; font-size: 60px; color: #fff; text-shadow: 0 4px 16px rgba(0,0,0,.7); }}
-      #team {{ position: absolute; left: 70px; right: 150px; top: 1000px; display: flex; align-items: center; gap: 34px; opacity: 0;
+      #team {{ position: absolute; left: 70px; right: 150px; top: 790px; display: flex; align-items: center; gap: 34px; opacity: 0;
         background: rgba(6,16,58,.88); border-radius: 26px; padding: 34px 40px; border: 4px solid var(--orange); }}
       #team .ring {{ flex: none; width: 130px; height: 130px; border-radius: 50%; background: var(--orangeD); color: #fff;
         display: flex; align-items: center; justify-content: center; }}
@@ -136,17 +136,17 @@ html = f"""<!doctype html>
       #team .tx {{ font-family: "Anton"; font-size: 64px; line-height: 1.05; color: #fff; text-transform: uppercase; }}
       /* end card */
       #end {{ position: absolute; inset: 0; }}
-      #e-logo {{ position: absolute; left: 340px; top: 390px; width: 380px; height: 380px; opacity: 0; }}
+      #e-logo {{ position: absolute; left: 375px; top: 290px; width: 310px; height: 310px; opacity: 0; }}
       #e-logo img {{ width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 0 90px rgba(255,120,30,.5), 0 20px 60px rgba(0,0,0,.6); }}
-      #e-tag {{ position: absolute; left: 90px; right: 150px; top: 790px; text-align: center; font-family: "Baloo2"; font-weight: 800;
+      #e-tag {{ position: absolute; left: 90px; right: 150px; top: 615px; text-align: center; font-family: "Baloo2"; font-weight: 800;
         font-size: 66px; line-height: 1.25; color: #fff; opacity: 0; }}
       #e-tag .o {{ color: var(--orange2); }}
-      #e-cta {{ position: absolute; left: 110px; right: 160px; top: 985px; text-align: center; opacity: 0; padding: 30px 20px; border-radius: 30px;
-        background: var(--orangeD); font-family: "Anton"; font-size: 70px; color: #fff; line-height: 1.02;
+      #e-cta {{ position: absolute; left: 80px; right: 140px; top: 800px; white-space: nowrap; text-align: center; opacity: 0; padding: 30px 20px; border-radius: 30px;
+        background: var(--orangeD); font-family: "Anton"; font-size: 58px; color: #fff; line-height: 1.02;
         box-shadow: 0 16px 50px rgba(255,106,19,.5); }}
-      #e-hin {{ position: absolute; left: 90px; right: 150px; top: 1195px; text-align: center; font-family: "Baloo2"; font-weight: 800;
+      #e-hin {{ position: absolute; left: 90px; right: 150px; top: 945px; text-align: center; font-family: "Baloo2"; font-weight: 800;
         font-size: 50px; color: #fff; opacity: 0; }}
-      #e-team {{ position: absolute; left: 90px; right: 150px; top: 1268px; text-align: center; font-family: "Mont"; font-weight: 600;
+      #e-team {{ position: absolute; left: 90px; right: 150px; top: 1025px; text-align: center; font-family: "Mont"; font-weight: 600;
         font-size: 40px; color: rgba(255,255,255,.92); opacity: 0; }}
       #e-ph {{ position: absolute; left: 90px; right: 150px; top: 1335px; display: flex; justify-content: center; opacity: 0; }}
       #e-ph .box {{ display: flex; align-items: center; gap: 22px; padding: 18px 40px; border-radius: 80px; border: 4px solid #fff;
@@ -191,7 +191,7 @@ html = f"""<!doctype html>
       </div>
 
       <!-- SCENE 3 -->
-      <div id="t_every" class="hl clip" data-start="28.0" data-duration="3.69" data-track-index="5" style="font-size:104px; top:900px">
+      <div id="t_every" class="hl clip" data-start="28.0" data-duration="3.69" data-track-index="5" style="font-size:104px; top:640px">
         <span class="ln"><span class="in">Every child</span></span><span class="ln"><span class="in o">is different.</span></span>
       </div>
       <div id="tags" class="clip" data-start="28.0" data-duration="3.69" data-track-index="7">
@@ -205,7 +205,7 @@ html = f"""<!doctype html>
       </div>
 
       <!-- SCENE 4 -->
-      <div id="h_dream" class="hi clip" data-start="41.03" data-duration="2.5" data-track-index="5" style="top:1000px; font-size:70px">
+      <div id="h_dream" class="hi clip" data-start="41.03" data-duration="2.5" data-track-index="5" style="top:760px; font-size:70px">
         <span class="ln">सपने को सिर्फ <span class="o">सपना</span></span><span class="ln">मत रहने दीजिए</span>
       </div>
       <div id="cta" class="clip" data-start="43.53" data-duration="2.6" data-track-index="6">
@@ -214,7 +214,7 @@ html = f"""<!doctype html>
       <div id="team" class="clip" data-start="46.13" data-duration="2.47" data-track-index="6">
         <div class="ring" id="tring">{PHONE_SVG}</div><div class="tx">Our team will<br />connect with you</div>
       </div>
-      <div id="h_step" class="hi clip" data-start="51.7" data-duration="3.27" data-track-index="5" style="top:1000px; font-size:70px">
+      <div id="h_step" class="hi clip" data-start="51.7" data-duration="3.27" data-track-index="5" style="top:760px; font-size:70px">
         <span class="ln">हर बड़े सपने की शुरुआत</span><span class="ln"><span class="o">एक सही कदम</span> से</span>
       </div>
 
@@ -225,11 +225,10 @@ html = f"""<!doctype html>
         <div id="e-cta">BOOK YOUR COUNSELLING TODAY</div>
         <div id="e-hin">आज ही अपनी Counselling Book करें।</div>
         <div id="e-team">Our Team Will Connect With You.</div>
-        <div id="e-ph"><div class="box"><div class="ic">{PHONE_SVG}</div><span><span style="font-family:Baloo2">आज ही कॉल करें: </span><span id="phone" data-var-text="phone">6200985144</span></span></div></div>
       </div>
 
       <div id="flash"></div>
-      <div id="call"><div class="ic" id="callic">{PHONE_SVG}</div><div><div class="l1">आज ही कॉल करें</div><div class="l2">6200985144</div></div></div>
+      <div id="call"><div class="ic" id="callic">{PHONE_SVG}</div><div><div class="l1">आज ही कॉल करें</div><div class="l2" data-var-text="phone">6200985144</div></div></div>
       <div id="corner"><img src="assets/img/logo.png" alt="Playvanta" /></div>
 
       <audio id="vo" src="assets/audio/vo.wav" data-start="0" data-duration="{DUR}" data-volume="1" data-track-index="10"></audio>
@@ -325,12 +324,11 @@ html = f"""<!doctype html>
       tl.fromTo("#e-cta", {{ opacity: 0, scale: 0.85 }}, {{ opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }}, 56.2);
       tl.fromTo("#e-hin", {{ opacity: 0, y: 20 }}, {{ opacity: 1, y: 0, duration: 0.35 }}, 56.6);
       tl.fromTo("#e-team", {{ opacity: 0, y: 20 }}, {{ opacity: 1, y: 0, duration: 0.35 }}, 56.85);
-      tl.fromTo("#e-ph", {{ opacity: 0, y: 20 }}, {{ opacity: 1, y: 0, duration: 0.35 }}, 57.1);
       tl.to("#e-cta", {{ scale: 1.04, duration: 0.5, yoyo: true, repeat: 3, ease: "sine.inOut" }}, 57.0);
 
       // corner logo: settle in at frame 0 and stay
       tl.fromTo("#corner", {{ opacity: 0.0, scale: 0.8 }}, {{ opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }}, 0);
-      tl.fromTo("#call", {{ opacity: 0, x: -40 }}, {{ opacity: 1, x: 0, duration: 0.35, ease: "power3.out" }}, 0);
+      tl.fromTo("#call", {{ opacity: 0, xPercent: -50, y: 40 }}, {{ opacity: 1, xPercent: -50, y: 0, duration: 0.35, ease: "power3.out" }}, 0);
       [6, 20, 34, 47, 56].forEach(t => tl.fromTo("#callic", {{ rotation: -14 }}, {{ rotation: 14, duration: 0.08, yoyo: true, repeat: 5, ease: "sine.inOut", immediateRender: false }}, t));
       window.__timelines["main"] = tl;
     </script>
