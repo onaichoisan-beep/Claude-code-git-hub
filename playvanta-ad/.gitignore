@@ -1,0 +1,7 @@
+assets/video/
+assets/audio/
+renders/
+node_modules/
+snaps/
+snaps2/
+.hyperframes/

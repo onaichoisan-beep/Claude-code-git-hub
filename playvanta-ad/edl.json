@@ -1,0 +1,234 @@
+[
+ {
+  "id": "s00",
+  "file": "assets/video/s00.mp4",
+  "start": 0.0,
+  "dur": 1.9,
+  "ai": true,
+  "note": "AI kid batting, ground-level, swing"
+ },
+ {
+  "id": "s01",
+  "file": "assets/video/s01.mp4",
+  "start": 1.9,
+  "dur": 1.1,
+  "ai": false,
+  "note": "real: young bowler drill"
+ },
+ {
+  "id": "s02",
+  "file": "assets/video/s02.mp4",
+  "start": 3.0,
+  "dur": 1.1,
+  "ai": false,
+  "note": "real: bowler run-up close"
+ },
+ {
+  "id": "s03",
+  "file": "assets/video/s03.mp4",
+  "start": 4.1,
+  "dur": 1.8,
+  "ai": true,
+  "note": "AI father, push-in to hopeful face"
+ },
+ {
+  "id": "s04",
+  "file": "assets/video/s04.mp4",
+  "start": 5.9,
+  "dur": 2.4,
+  "ai": true,
+  "note": "AI bat + ball close-up"
+ },
+ {
+  "id": "s05",
+  "file": "assets/video/s05.mp4",
+  "start": 8.3,
+  "dur": 1.5,
+  "ai": true,
+  "note": "AI kid, ball in the air"
+ },
+ {
+  "id": "s06",
+  "file": "assets/video/s06.mp4",
+  "start": 9.8,
+  "dur": 1.6,
+  "ai": false,
+  "note": "real: coach guiding bowling arm"
+ },
+ {
+  "id": "s07",
+  "file": "assets/video/s07.mp4",
+  "start": 11.4,
+  "dur": 4.0,
+  "ai": true,
+  "note": "AI navy/orange flare bg - logo reveal"
+ },
+ {
+  "id": "s08",
+  "file": "assets/video/s08.mp4",
+  "start": 15.4,
+  "dur": 1.6,
+  "ai": false,
+  "note": "real: kid batting indoor nets"
+ },
+ {
+  "id": "s09",
+  "file": "assets/video/s09.mp4",
+  "start": 17.0,
+  "dur": 1.7666666666666666,
+  "ai": false,
+  "note": "real: academy rows shadow batting"
+ },
+ {
+  "id": "s10",
+  "file": "assets/video/s10.mp4",
+  "start": 18.766666666666666,
+  "dur": 2.4,
+  "ai": true,
+  "note": "AI network lines - kadi"
+ },
+ {
+  "id": "s11",
+  "file": "assets/video/s11.mp4",
+  "start": 21.166666666666668,
+  "dur": 2.8333333333333335,
+  "ai": true,
+  "note": "AI India map - 5 cities / 20 branches"
+ },
+ {
+  "id": "s12",
+  "file": "assets/video/s12.mp4",
+  "start": 24.0,
+  "dur": 2.0,
+  "ai": false,
+  "note": "real: coach demonstrating to group"
+ },
+ {
+  "id": "s13",
+  "file": "assets/video/s13.mp4",
+  "start": 26.0,
+  "dur": 2.0,
+  "ai": false,
+  "note": "real: coaches with kids indoor"
+ },
+ {
+  "id": "s14",
+  "file": "assets/video/s14.mp4",
+  "start": 28.0,
+  "dur": 1.1,
+  "ai": false,
+  "note": "real: talent - batting indoor"
+ },
+ {
+  "id": "s15",
+  "file": "assets/video/s15.mp4",
+  "start": 29.1,
+  "dur": 1.2,
+  "ai": false,
+  "note": "real: age - young bowler"
+ },
+ {
+  "id": "s16",
+  "file": "assets/video/s16.mp4",
+  "start": 30.3,
+  "dur": 1.4,
+  "ai": false,
+  "note": "real: need - batsman in nets"
+ },
+ {
+  "id": "s17",
+  "file": "assets/video/s17.mp4",
+  "start": 31.7,
+  "dur": 2.033333333333333,
+  "ai": false,
+  "note": "real: coach adjusting stance"
+ },
+ {
+  "id": "s18",
+  "file": "assets/video/s18.mp4",
+  "start": 33.733333333333334,
+  "dur": 1.5666666666666667,
+  "ai": false,
+  "note": "real: coach shaping action"
+ },
+ {
+  "id": "s19",
+  "file": "assets/video/s19.mp4",
+  "start": 35.3,
+  "dur": 1.3333333333333333,
+  "ai": false,
+  "note": "real: coach demo to kids indoor"
+ },
+ {
+  "id": "s20",
+  "file": "assets/video/s20.mp4",
+  "start": 36.63333333333333,
+  "dur": 1.8666666666666667,
+  "ai": true,
+  "note": "AI father watching son play"
+ },
+ {
+  "id": "s21",
+  "file": "assets/video/s21.mp4",
+  "start": 38.5,
+  "dur": 2.533333333333333,
+  "ai": false,
+  "note": "real: kid honoured, team clapping - pehchaan"
+ },
+ {
+  "id": "s22",
+  "file": "assets/video/s22.mp4",
+  "start": 41.03333333333333,
+  "dur": 2.5,
+  "ai": true,
+  "note": "AI kid takes stance, slow-mo"
+ },
+ {
+  "id": "s23",
+  "file": "assets/video/s23.mp4",
+  "start": 43.53333333333333,
+  "dur": 2.6,
+  "ai": false,
+  "note": "real: batsman in cage (CTA bg)"
+ },
+ {
+  "id": "s24",
+  "file": "assets/video/s24.mp4",
+  "start": 46.13333333333333,
+  "dur": 1.8666666666666667,
+  "ai": false,
+  "note": "real: team/coach with kids"
+ },
+ {
+  "id": "s25",
+  "file": "assets/video/s25.mp4",
+  "start": 48.0,
+  "dur": 1.9,
+  "ai": false,
+  "note": "real: coach guiding"
+ },
+ {
+  "id": "s26",
+  "file": "assets/video/s26.mp4",
+  "start": 49.9,
+  "dur": 1.8,
+  "ai": false,
+  "note": "real: bowler run-up - shuruaat"
+ },
+ {
+  "id": "s27",
+  "file": "assets/video/s27.mp4",
+  "start": 51.7,
+  "dur": 3.2666666666666666,
+  "ai": false,
+  "note": "real: rows of kids marching - kadam"
+ },
+ {
+  "id": "s28",
+  "file": "assets/video/s28.mp4",
+  "start": 54.96666666666667,
+  "dur": 5.033333333333333,
+  "ai": true,
+  "note": "AI bg - end card"
+ }
+]
