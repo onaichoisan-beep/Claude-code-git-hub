@@ -12,27 +12,27 @@ SFX = [("Lit_heartbeat1", 0.8, -13), ("Quick_whoosh", {turn}, -13)]
 '''
 V = {
  "01_one_year_from_now": [
-   ("IMG_6263", 0.2, 2.2, "NEET aspirant, one year from now…", {"smooth": True}),
+   ("IMG_8965", 3.9, 2.2, "NEET aspirant, one year from now…", {"vzoom": 1.22, "cy": 1.0}),
    ("IMG_9242", 1.83, 2.0, "you could be walking here", {}),
    ("IMG_0752", 1.4, 2.0, "sitting in medical conferences", {"fit": True}),
    ("MeinLAB", 9.0, 2.0, "wearing the coat you dreamed of", {}),
    ("IMG_8307", 14.43, 2.2, "it's closer than you think 🤍", {"smooth": True})],
  "02_what_rank_unlocks": [
-   ("IMG_6261", 0.0, 2.0, "NEET aspirant, this is what your rank unlocks", {"smooth": True}),
-   ("IMG_6262", 0.0, 1.8, "a campus you'll call home", {"smooth": True}),
+   ("IMG_6262", 0.0, 2.0, "NEET aspirant, this is what your rank unlocks", {"smooth": True}),
+   ("E56BD187", 0.75, 1.15, "a campus you'll call home", {"denoise": True}),
    ("IMG_4318", 1.5, 1.8, "friends for the next 6 years", {}),
    ("IMG_9858", 9.1, 1.8, "a stage to share what you learn", {"fit": True}),
    ("bc1a3ac4", 20.33, 2.2, "so give it everything 🔥", {"smooth": True})],
  "03_call_home": [
    ("F1D19DE4", 4.5, 2.2, "NEET aspirant, think about the call home", {"smooth": True}),
    ("IMG_8965", 8.7, 1.8, "the day you say \"mumma, ho gaya\"", {}),
-   ("IMG_6261", 0.2, 1.8, "the day this college becomes yours", {"smooth": True}),
+   ("IMG_6261", 0.0, 1.0, "the day this college becomes yours", {"smooth": True}),
    ("IMG_8785", 1.33, 2.0, "the day they see you in the coat", {"transpose": 1, "fit": True, "smooth": True}),
    ("IMG_9323", 0.55, 2.2, "study for that day 🤍", {"smooth": True})],
  "04_low_mock_score": [
    ("IMG_0959", 5.3, 2.2, "NEET aspirant, low mock score today?", {}),
    ("IMG_1479", 4.9, 1.8, "it's a test, not your result", {}),
-   ("IMG_6263", 0.5, 1.8, "your final score decides this seat", {"smooth": True}),
+   ("IMG_0752", 11.0, 1.8, "your final score decides this seat", {"fit": True}),
    ("MeinLAB", 3.5, 1.8, "not today's number", {}),
    ("IMG_2515", 0.3, 2.2, "fix the mistakes. move on. keep going 🤍", {"fit": True, "smooth": True})],
  "05_months_decide": [
@@ -40,7 +40,7 @@ V = {
    ("IMG_1480", 4.77, 1.8, "every chapter you finish now", {}),
    ("IMG_1364", 2.27, 1.6, "every question you solve tonight", {}),
    ("bc1a3ac4", 16.83, 1.8, "is a step closer to this", {"smooth": True}),
-   ("IMG_8307", 18.6, 2.2, "make them count 🔥", {"smooth": True})],
+   ("MeinLAB", 16.6, 2.2, "make them count 🔥", {})],
  "06_every_doctor_started": [
    ("studyclip", 0.5, 2.2, "NEET aspirant, every doctor started at a desk like this", {}),
    ("IMG_0959", 8.7, 1.8, "same doubts. same late nights.", {}),
@@ -52,7 +52,7 @@ V = {
    ("IMG_1480", 5.7, 1.8, "the notes. the revisions. the doubts.", {}),
    ("bc1a3ac4", 12.8, 1.8, "but one day everyone sees this", {"smooth": True}),
    ("IMG_9858", 5.0, 1.8, "your name on the slide", {"fit": True}),
-   ("Goodclip", 1.8, 2.2, "trust the process 🤍", {"smooth": True})],
+   ("IMG_9323", 1.38, 2.2, "trust the process 🤍", {"smooth": True})],
  "08_imagine_first_day": [
    ("IMG_6262", 0.3, 2.2, "NEET aspirant, imagine your first day", {"smooth": True}),
    ("IMG_6273", 0.0, 1.1, "practical rooms with your name on the list", {}),
@@ -64,7 +64,7 @@ V = {
    ("IMG_8965", 0.4, 2.2, "NEET aspirant, remember why you started", {"smooth": True}),
    ("2A473245", 4.4, 1.8, "for the version of you that made it", {"smooth": True}),
    ("IMG_9200", 4.8, 1.8, "riding to medical college every morning", {"transpose": 1, "fit": True, "smooth": True}),
-   ("IMG_6261", 0.0, 1.6, "this name on your ID card", {"smooth": True}),
+   ("IMG_6261", 0.0, 1.0, "this name on your ID card", {"smooth": True}),
    ("IMG_8785", 2.2, 2.2, "that's why 🤍", {"transpose": 1, "fit": True, "smooth": True})],
  "10_your_sign": [
    ("F1D19DE4", 0.0, 2.2, "NEET aspirant, this is your sign to open the book again", {"smooth": True}),
