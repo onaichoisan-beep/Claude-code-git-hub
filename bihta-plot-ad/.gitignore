@@ -1,0 +1,8 @@
+assets/clips/
+assets/audio/
+renders/
+.hyperframes/
+.snap*/
+*.mp4
+*.wav
+*.mp3

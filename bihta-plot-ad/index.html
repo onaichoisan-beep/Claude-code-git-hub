@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="hi" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Bihta Plot Ad</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Baloo2"; src: url("assets/fonts/baloo-2-devanagari-800-normal.woff2") format("woff2"); font-weight: 800; unicode-range: U+0900-097F, U+1CD0-1CF9, U+200C-200D, U+20A8, U+20B9, U+25CC, U+A830-A839, U+A8E0-A8FF; }
+      @font-face { font-family: "Baloo2"; src: url("assets/fonts/baloo-2-latin-800-normal.woff2") format("woff2"); font-weight: 800; unicode-range: U+0000-00FF, U+2013, U+2014, U+2192, U+20B9; }
+      @font-face { font-family: "Baloo2"; src: url("assets/fonts/baloo-2-devanagari-700-normal.woff2") format("woff2"); font-weight: 700; unicode-range: U+0900-097F, U+1CD0-1CF9, U+200C-200D, U+20A8, U+20B9, U+25CC, U+A830-A839, U+A8E0-A8FF; }
+      @font-face { font-family: "Baloo2"; src: url("assets/fonts/baloo-2-latin-700-normal.woff2") format("woff2"); font-weight: 700; unicode-range: U+0000-00FF, U+2013, U+2014, U+2192, U+20B9; }
+      :root { --navy: #0b1f3a; --navy2: #14335e; --gold: #f7b928; --gold2: #ffd76a; --green: #19a974; --white: #ffffff; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; font-family: "Baloo2", sans-serif; font-weight: 800; color: var(--white); }
+      .vw { position: absolute; inset: 0; overflow: hidden; transform-origin: 50% 40%; }
+      .vw video { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; }
+      .shade { position: absolute; left: 0; right: 0; bottom: 0; height: 900px; background: linear-gradient(to top, rgba(4,12,26,.72), rgba(4,12,26,0)); pointer-events: none; }
+      .shadeTop { position: absolute; left: 0; right: 0; top: 0; height: 520px; background: linear-gradient(to bottom, rgba(4,12,26,.55), rgba(4,12,26,0)); }
+      .g { position: absolute; opacity: 0; }
+      svg { display: block; }
+      /* pills / kickers */
+      .kicker { left: 120px; padding: 10px 34px 6px; border-radius: 14px; background: var(--gold); color: var(--navy); font-size: 52px; line-height: 1.2; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+      .ribbon { left: 50%; top: 300px; transform: translateX(-50%); white-space: nowrap; display: flex; align-items: center; gap: 18px; padding: 14px 40px 10px 22px; border-radius: 80px; background: var(--navy); border: 4px solid var(--gold); font-size: 48px; color: var(--gold2); box-shadow: 0 14px 40px rgba(0,0,0,.4); }
+      .ribbon .dot { width: 66px; height: 66px; border-radius: 50%; background: var(--gold); display: grid; place-items: center; }
+      /* distance cards */
+      .card { left: 120px; width: 840px; height: 136px; display: flex; align-items: center; gap: 26px; padding: 0 26px; border-radius: 30px; background: rgba(255,255,255,.97); color: var(--navy); box-shadow: 0 18px 40px rgba(0,0,0,.35); }
+      .card .ic { flex: none; width: 92px; height: 92px; border-radius: 50%; background: var(--navy); display: grid; place-items: center; }
+      .card .nm { flex: 1; font-size: 46px; line-height: 1.0; }
+      .card .nm small { display: block; font-size: 28px; font-weight: 700; color: #5a6b85; }
+      .card .tm { flex: none; display: flex; align-items: center; gap: 10px; padding: 8px 22px 4px; border-radius: 60px; background: var(--gold); font-size: 44px; color: var(--navy); }
+      /* chips */
+      .chip { left: 120px; display: flex; align-items: center; gap: 22px; padding: 16px 40px 12px 18px; border-radius: 90px; background: rgba(11,31,58,.88); border: 3px solid rgba(255,255,255,.25); font-size: 52px; box-shadow: 0 14px 34px rgba(0,0,0,.35); }
+      .chip .ic { width: 86px; height: 86px; border-radius: 50%; background: var(--gold); display: grid; place-items: center; }
+      /* hero price */
+      .price { left: 0; width: 1080px; text-align: center; }
+      .price .big { font-size: 230px; line-height: .95; color: var(--gold2); text-shadow: 0 8px 0 #a86c00, 0 20px 50px rgba(0,0,0,.55); position: relative; display: inline-block; overflow: hidden; }
+      .price .sub { font-size: 84px; line-height: 1.1; text-shadow: 0 6px 24px rgba(0,0,0,.7); }
+      .shine { position: absolute; top: 0; bottom: 0; width: 120px; left: 0; background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.85), rgba(255,255,255,0)); transform: skewX(-20deg); mix-blend-mode: overlay; }
+      /* highway signs */
+      .sign { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 34px 10px; border-radius: 18px; background: #0c7a43; border: 6px solid #fff; box-shadow: 0 0 0 4px #0c7a43, 0 16px 40px rgba(0,0,0,.45); font-size: 64px; line-height: 1; }
+      .sign small { font-size: 28px; font-weight: 700; opacity: .9; margin-bottom: 6px; letter-spacing: 2px; }
+      .dest { left: 120px; display: flex; align-items: center; gap: 22px; font-size: 62px; padding: 12px 40px 8px 26px; border-radius: 20px; background: #0c7a43; border: 5px solid #fff; box-shadow: 0 14px 34px rgba(0,0,0,.4); }
+      /* 200m */
+      .meter { left: 0; width: 1080px; text-align: center; }
+      .meter .num { font-size: 230px; line-height: .9; color: var(--gold2); text-shadow: 0 8px 0 #a86c00, 0 20px 50px rgba(0,0,0,.6); }
+      .meter .lbl { display: inline-block; font-size: 54px; padding: 10px 36px 6px; border-radius: 16px; background: var(--navy); border: 3px solid var(--gold); }
+      .pin { left: 470px; top: 1060px; width: 140px; height: 190px; }
+      .ring { left: 540px; top: 1240px; width: 40px; height: 16px; margin-left: -20px; border: 5px solid var(--gold); border-radius: 50%; }
+      /* invest graph */
+      .inv { left: 120px; width: 840px; height: 320px; border-radius: 34px; background: rgba(11,31,58,.9); border: 3px solid rgba(255,255,255,.2); box-shadow: 0 18px 40px rgba(0,0,0,.4); }
+      .inv .a, .inv .b { position: absolute; font-size: 50px; line-height: 1.05; }
+      .inv .a { left: 40px; bottom: 40px; }
+      .inv .b { right: 40px; top: 22px; text-align: right; color: var(--gold2); }
+      .inv small { display: block; font-size: 32px; color: #c9d4e6; font-weight: 700; }
+      .callbtn { left: 50%; top: 1110px; transform: translateX(-50%); display: flex; align-items: center; gap: 20px; padding: 18px 56px 12px 24px; border-radius: 90px; background: var(--green); font-size: 66px; box-shadow: 0 16px 40px rgba(0,0,0,.4); white-space: nowrap; }
+      .callbtn .ic { width: 90px; height: 90px; border-radius: 50%; background: #fff; display: grid; place-items: center; }
+      /* end card */
+      .endcard { left: 90px; top: 420px; width: 900px; padding: 56px 40px 50px; border-radius: 44px; background: rgba(11,31,58,.92); border: 4px solid var(--gold); text-align: center; box-shadow: 0 30px 80px rgba(0,0,0,.55); }
+      .endcard .phic { width: 170px; height: 170px; border-radius: 50%; background: var(--green); margin: 0 auto 26px; display: grid; place-items: center; box-shadow: 0 0 0 14px rgba(25,169,116,.3); }
+      .endcard .t1 { font-size: 74px; color: var(--gold2); line-height: 1.1; }
+      .endcard .ph { font-size: 96px; line-height: 1.1; margin-top: 18px; letter-spacing: 2px; white-space: nowrap; }
+      .endcard .ph span { opacity: 0; display: inline-block; }
+      .endcard .t2 { margin-top: 24px; display: inline-block; font-size: 50px; padding: 10px 34px 6px; border-radius: 16px; background: var(--gold); color: var(--navy); }
+      .flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+      .glow { position: absolute; left: 40px; right: 40px; top: 560px; height: 760px; background: radial-gradient(closest-side, rgba(4,12,26,.62), rgba(4,12,26,0)); opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="56.94">
+      <!-- ===== VIDEO TRACK (cut list from timeline.json; talking clips trimmed so lips match the synced VO) ===== -->
+      <div class="vw" id="w1"><video id="v1" src="assets/clips/c6.mp4" muted playsinline data-start="0" data-duration="3.48" data-media-start="0.2" data-track-index="0"></video></div>
+      <div class="vw" id="w2"><video id="v2" src="assets/clips/c7.mp4" muted playsinline data-start="3.48" data-duration="6.59" data-media-start="1.27" data-track-index="0"></video></div>
+      <div class="vw" id="w3"><video id="v3" src="assets/clips/c5.mp4" muted playsinline data-start="10.07" data-duration="5.79" data-media-start="2.04" data-track-index="0"></video></div>
+      <div class="vw" id="w4"><video id="v4" src="assets/clips/c3.mp4" muted playsinline data-start="15.86" data-duration="6.3" data-media-start="1.22" data-track-index="0"></video></div>
+      <div class="vw" id="w5"><video id="v5" src="assets/clips/c2.mp4" muted playsinline data-start="22.16" data-duration="5.16" data-media-start="1.5" data-track-index="0"></video></div>
+      <div class="vw" id="w6"><video id="v6" src="assets/clips/c8.mp4" muted playsinline data-start="27.32" data-duration="6.17" data-media-start="1.12" data-track-index="0"></video></div>
+      <div class="vw" id="w7"><video id="v7" src="assets/clips/c1.mp4" muted playsinline data-start="33.49" data-duration="4.61" data-media-start="0.6" data-track-index="0"></video></div>
+      <div class="vw" id="w8"><video id="v8" src="assets/clips/c6.mp4" muted playsinline data-start="38.1" data-duration="3.55" data-media-start="4.2" data-track-index="0"></video></div>
+      <div class="vw" id="w9"><video id="v9" src="assets/clips/c4.mp4" muted playsinline data-start="41.65" data-duration="4.03" data-media-start="2.2" data-track-index="0"></video></div>
+      <div class="vw" id="w10"><video id="v10" src="assets/clips/c9.mp4" muted playsinline data-start="45.68" data-duration="7.92" data-media-start="1.96" data-track-index="0"></video></div>
+      <div class="vw" id="w11"><video id="v11" src="assets/clips/c4.mp4" muted playsinline data-start="53.2" data-duration="3.74" data-media-start="6.2" data-track-index="1"></video></div>
+
+      <div class="shadeTop"></div>
+      <div class="shade"></div>
+      <div class="flash" id="flash"></div>
+
+      <!-- ===== G1 HOOK ===== -->
+      <div class="g ribbon" id="locTag">
+        <div class="dot"><svg width="40" height="40" viewBox="0 0 24 24"><path fill="#0b1f3a" d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg></div>
+        Bihta, Patna
+      </div>
+      <div class="glow" id="glow1"></div>
+      <div class="g price" id="hook" style="top:640px">
+        <div class="big" id="hookBig">₹<span id="hookNum">6</span> लाख<div class="shine" id="hookShine"></div></div>
+        <div class="sub" id="hookSub1">से शुरू!</div>
+      </div>
+      <div class="g chip" id="hookDream" style="top:1100px; left:50%; transform:translateX(-50%); white-space:nowrap">
+        <div class="ic"><svg width="52" height="52" viewBox="0 0 24 24"><path fill="#0b1f3a" d="M12 3 2 11h3v9h5v-6h4v6h5v-9h3z"/></svg></div>
+        आपका Dream Plot
+      </div>
+
+      <!-- ===== G2 PEACEFUL / INVESTMENT ===== -->
+      <div class="g chip" id="chip1" style="top:960px">
+        <div class="ic"><svg width="50" height="50" viewBox="0 0 24 24"><path fill="#0b1f3a" d="M17 8C8 10 5.9 16.2 3.8 21.3l1.9.7.9-2.3c.5.2 1 .3 1.4.3C19 20 22 3 22 3c-1 2-8 2.3-13 3.3S2 11.5 2 13.5 3.8 17.3 3.8 17.3C7 8 17 8 17 8z"/></svg></div>
+        Peaceful Environment
+      </div>
+      <div class="g chip" id="chip2" style="top:1100px">
+        <div class="ic"><svg width="50" height="50" viewBox="0 0 24 24"><path fill="none" stroke="#0b1f3a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg></div>
+        Strong Investment
+      </div>
+      <div class="g kicker" id="chip3" style="top:300px">ये Opportunity आपके लिए!</div>
+
+      <!-- ===== G3-G5 CONNECTIVITY ===== -->
+      <div class="g ribbon" id="connRib">
+        <div class="dot"><svg width="40" height="40" viewBox="0 0 24 24"><path fill="#0b1f3a" d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg></div>
+        शानदार Connectivity
+      </div>
+      <div class="g card" id="cIIT" style="top:950px">
+        <div class="ic"><svg width="58" height="58" viewBox="0 0 24 24"><path fill="#f7b928" d="M12 3 1 9l11 6 9-4.9V17h2V9zM5 13.2v4L12 21l7-3.8v-4L12 17z"/></svg></div>
+        <div class="nm">IIT Bihta</div>
+        <div class="tm"><svg width="40" height="40" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#0b1f3a" stroke-width="2.6"/><path d="M12 7v5l3 2" fill="none" stroke="#0b1f3a" stroke-width="2.6" stroke-linecap="round"/></svg>10 मिनट</div>
+      </div>
+      <div class="g card" id="cNSM" style="top:1104px">
+        <div class="ic"><svg width="58" height="58" viewBox="0 0 24 24"><path fill="#f7b928" d="M9 2h6v7h7v6h-7v7H9v-7H2V9h7z"/></svg></div>
+        <div class="nm">NSMCH<small>Medical College</small></div>
+        <div class="tm"><svg width="40" height="40" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#0b1f3a" stroke-width="2.6"/><path d="M12 7v5l3 2" fill="none" stroke="#0b1f3a" stroke-width="2.6" stroke-linecap="round"/></svg>12 मिनट</div>
+      </div>
+      <div class="g card" id="cRail" style="top:950px">
+        <div class="ic"><svg width="58" height="58" viewBox="0 0 24 24"><path fill="#f7b928" d="M12 2C8 2 4 2.5 4 6v9.5A3.5 3.5 0 0 0 7.5 19L6 20.5v.5h2.2l2-2h3.6l2 2H18v-.5L16.5 19a3.5 3.5 0 0 0 3.5-3.5V6c0-3.5-4-4-8-4zM7.5 17a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3.5-7H6V6h5zm5.5 7a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm1.5-7h-5V6h5z"/></svg></div>
+        <div class="nm">Bihta Railway Station</div>
+        <div class="tm"><svg width="40" height="40" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#0b1f3a" stroke-width="2.6"/><path d="M12 7v5l3 2" fill="none" stroke="#0b1f3a" stroke-width="2.6" stroke-linecap="round"/></svg>15 मिनट</div>
+      </div>
+      <div class="g card" id="cAir" style="top:1104px">
+        <div class="ic"><svg width="58" height="58" viewBox="0 0 24 24"><path fill="#f7b928" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></div>
+        <div class="nm">Bihta Int’l Airport</div>
+        <div class="tm"><svg width="40" height="40" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#0b1f3a" stroke-width="2.6"/><path d="M12 7v5l3 2" fill="none" stroke="#0b1f3a" stroke-width="2.6" stroke-linecap="round"/></svg>~20 मिनट</div>
+      </div>
+      <!-- route map over highway drone -->
+      <svg class="g" id="route" style="left:120px;top:640px" width="80" height="600" viewBox="0 0 80 600">
+        <line x1="40" y1="20" x2="40" y2="590" stroke="#fff" stroke-width="8" stroke-dasharray="18 14" stroke-linecap="round" opacity=".9"/>
+        <circle cx="40" cy="30" r="26" fill="#f7b928" stroke="#0b1f3a" stroke-width="6"/>
+      </svg>
+      <div class="g kicker" id="yourPlot" style="left:180px;top:638px">आपका Plot</div>
+      <div class="g card" id="cAiims" style="left:200px;width:780px;top:860px">
+        <div class="ic"><svg width="58" height="58" viewBox="0 0 24 24"><path fill="#f7b928" d="M9 2h6v7h7v6h-7v7H9v-7H2V9h7z"/></svg></div>
+        <div class="nm">AIIMS Patna</div>
+        <div class="tm">~25 मिनट</div>
+      </div>
+      <div class="g card" id="cNit" style="left:200px;width:780px;top:1060px">
+        <div class="ic"><svg width="58" height="58" viewBox="0 0 24 24"><path fill="#f7b928" d="M12 3 1 9l11 6 9-4.9V17h2V9zM5 13.2v4L12 21l7-3.8v-4L12 17z"/></svg></div>
+        <div class="nm">NIT Patna</div>
+        <div class="tm">20–22 मिनट</div>
+      </div>
+
+      <!-- ===== G6 200 METER ===== -->
+      <div class="g kicker" id="bigBaat" style="top:300px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:60px">सबसे बड़ी बात!</div>
+      <div class="g meter" id="meter" style="top:900px">
+        <div class="lbl" id="meterLbl">Kampa Golambar से सिर्फ</div>
+        <div class="num"><span id="mNum">0</span> मीटर</div>
+      </div>
+
+      <!-- ===== G7 ROADS ===== -->
+      <div class="g sign" id="sNH" style="left:120px;top:900px"><small>NATIONAL HWY</small>NH-139</div>
+      <div class="g sign" id="sSH" style="left:480px;top:900px"><small>STATE HWY</small>SH-78</div>
+      <div class="g sign" id="sBK" style="left:120px;top:1100px;flex-direction:row;gap:16px"><svg width="56" height="56" viewBox="0 0 24 24"><path fill="#fff" d="M11 2h2v4h-2zM11 9h2v5h-2zM11 17h2v5h-2zM4 2h2l-3 20H1zM18 2h2l3 20h-2z"/></svg>Bihta–Kampa Road</div>
+      <div class="g dest" id="dPatna" style="top:920px"><svg width="70" height="70" viewBox="0 0 24 24"><path fill="#fff" d="M4 11h11.2l-4.6-4.6L12 5l7 7-7 7-1.4-1.4 4.6-4.6H4z"/></svg>PATNA</div>
+      <div class="g dest" id="dAur" style="top:1080px"><svg width="70" height="70" viewBox="0 0 24 24"><path fill="#fff" d="M4 11h11.2l-4.6-4.6L12 5l7 7-7 7-1.4-1.4 4.6-4.6H4z"/></svg>AURANGABAD</div>
+      <div class="g kicker" id="excel" style="top:300px">Excellent Connectivity ✓</div>
+
+      <!-- ===== G8 PRICE SLAM ===== -->
+      <div class="g kicker" id="khaas" style="top:300px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:60px">और सबसे खास…</div>
+      <div class="g price" id="price2" style="top:640px">
+        <div class="sub" id="p2sub">Plot की शुरुआत सिर्फ</div>
+        <div class="big" id="p2big">₹6 लाख<div class="shine" id="p2shine"></div></div>
+      </div>
+
+      <!-- ===== G9 INVESTMENT + CALL ===== -->
+      <div class="g inv" id="inv" style="top:910px">
+        <svg style="position:absolute;left:0;top:0" width="840" height="320" viewBox="0 0 960 330" preserveAspectRatio="none">
+          <path id="invLine" d="M440 285 L520 250 L590 262 L680 210 L760 200 L880 160" fill="none" stroke="#f7b928" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+          <path id="invHead" d="M840 140 L885 158 L860 200" fill="none" stroke="#f7b928" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity="0"/>
+        </svg>
+        <div class="a" id="invA"><small>आज</small>₹6 लाख का Plot</div>
+        <div class="b" id="invB"><small>कल</small>Smart Investment</div>
+      </div>
+      <div class="g callbtn" id="callBtn">
+        <div class="ic"><svg width="54" height="54" viewBox="0 0 24 24"><path fill="#19a974" d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg></div>
+        CALL NOW
+      </div>
+
+      <!-- ===== G10 END CARD ===== -->
+      <div class="g endcard" id="end">
+        <div class="phic" id="endIc"><svg width="96" height="96" viewBox="0 0 24 24"><path fill="#fff" d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg></div>
+        <div class="t1">Call Now</div>
+        <div class="ph"><span id="ph1">+91&nbsp;</span><span id="ph2">88774&nbsp;</span><span id="ph3">88815</span></div>
+        <div class="t2">₹6 लाख से शुरू • Bihta</div>
+      </div>
+
+      <audio id="vo" src="assets/audio/vo_synced.wav" data-start="0" data-duration="56.94" data-track-index="5" data-volume="1"></audio>
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="56.94" data-track-index="6" data-volume="0.8"></audio>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const IN = (sel, t, from = { y: 60 }, d = 0.4) => tl.fromTo(sel, { opacity: 0, ...from }, { opacity: 1, x: 0, y: 0, scale: 1, duration: d, ease: "back.out(1.6)" }, t);
+      const OUT = (sel, t, d = 0.25) => tl.to(sel, { opacity: 0, duration: d, ease: "power2.in" }, t);
+      const POP = (sel, t) => IN(sel, t, { scale: 0.6, y: 30 }, 0.45);
+      const xSet = (sel) => tl.set(sel, { xPercent: -50 }, 0); // centered elements keep translateX via xPercent
+      ["#locTag", "#connRib", "#hookDream", "#bigBaat", "#khaas", "#callBtn"].forEach((s) => { document.querySelector(s).style.transform = "none"; document.querySelector(s).style.left = "50%"; xSet(s); });
+      const punch = (w, t, s) => tl.set(w, { scale: s }, t);
+      const drift = (w, t0, t1, a, b) => tl.fromTo(w, { scale: a }, { scale: b, duration: t1 - t0, ease: "none" }, t0);
+
+      // ---- camera: drone drifts + talking-head punch-ins (reference style) ----
+      drift("#w1", 0, 3.48, 1.22, 1.0);
+      punch("#w2", 3.48, 1.0); punch("#w2", 8.05, 1.14);
+      punch("#w3", 10.07, 1.0); punch("#w3", 12.55, 1.14);
+      punch("#w4", 15.86, 1.0); punch("#w4", 18.75, 1.12);
+      drift("#w5", 22.16, 27.32, 1.0, 1.12);
+      punch("#w6", 27.32, 1.0); punch("#w6", 29.5, 1.15);
+      drift("#w7", 33.49, 38.1, 1.08, 1.0);
+      drift("#w8", 38.1, 41.65, 1.0, 1.1);
+      drift("#w9", 41.65, 45.68, 1.15, 1.0);
+      punch("#w10", 45.68, 1.0); punch("#w10", 49.25, 1.14);
+      drift("#w11", 53.2, 56.94, 1.0, 1.1);
+      tl.fromTo("#w11", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "none" }, 53.2);
+      // white flash hits on drone entries
+      tl.set("#flash", { opacity: 0 }, 0);
+      [22.16, 33.49, 41.65].forEach((t) => { tl.set("#flash", { opacity: 0.75 }, t); tl.to("#flash", { opacity: 0, duration: 0.22, ease: "power2.out" }, t); });
+
+      // ---- G1 hook 0 - 3.48 ----
+      tl.fromTo("#locTag", { opacity: 1, y: -30 }, { opacity: 1, y: 0, duration: 0.3 }, 0);
+      tl.fromTo("#hook", { opacity: 1, scale: 1.35 }, { opacity: 1, scale: 1, duration: 0.35, ease: "power3.out" }, 0.0);
+      tl.fromTo("#glow1", { opacity: 1 }, { opacity: 1, duration: 3.3 }, 0); tl.to("#glow1", { opacity: 0, duration: 0.25 }, 3.3);
+      tl.set("#glow1", { opacity: 1 }, 43.0); tl.to("#glow1", { opacity: 0, duration: 0.2 }, 45.5);
+      tl.fromTo("#hookSub1", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3 }, 1.0);
+      tl.fromTo("#hookShine", { x: -200 }, { x: 1000, duration: 0.7, ease: "power2.inOut" }, 0.7);
+      IN("#hookDream", 2.0, { scale: 0.6 });
+      OUT(["#hook", "#hookDream", "#locTag"], 3.3);
+
+      // ---- G2 3.48 - 10.07 ----
+      IN("#chip1", 4.55, { x: -500, y: 0 });
+      IN("#chip2", 6.75, { x: -500, y: 0 });
+      POP("#chip3", 8.3);
+      OUT(["#chip1", "#chip2", "#chip3"], 9.85);
+
+      // ---- G3-G5 connectivity 10.07 - 27.32 ----
+      IN("#connRib", 10.3, { y: -60 });
+      IN("#cIIT", 12.55, { x: 600, y: 0 });
+      IN("#cNSM", 14.45, { x: 600, y: 0 });
+      OUT(["#cIIT", "#cNSM"], 15.7, 0.2);
+      IN("#cRail", 16.3, { x: 600, y: 0 });
+      IN("#cAir", 18.75, { x: 600, y: 0 });
+      OUT(["#cRail", "#cAir"], 22.0, 0.2);
+      tl.fromTo("#route", { opacity: 0, clipPath: "inset(0 0 100% 0)" }, { opacity: 1, clipPath: "inset(0 0 0% 0)", duration: 0.9, ease: "power2.out" }, 22.3);
+      IN("#yourPlot", 22.3, { x: -60, y: 0 });
+      IN("#cAiims", 22.7, { x: 600, y: 0 });
+      IN("#cNit", 24.6, { x: 600, y: 0 });
+      OUT(["#route", "#yourPlot", "#cAiims", "#cNit", "#connRib"], 27.1, 0.2);
+
+      // ---- G6 200 m 27.32 - 33.49 ----
+      POP("#bigBaat", 27.45);
+      tl.fromTo("#meter", { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.6)" }, 29.5);
+      const c2 = { v: 0 };
+      tl.to(c2, { v: 200, duration: 0.7, ease: "power3.out", onUpdate: () => (document.getElementById("mNum").textContent = Math.round(c2.v)) }, 31.6);
+      tl.fromTo("#mNum", { scale: 1.5 }, { scale: 1, duration: 0.4, ease: "back.out(2)" }, 31.6);
+      OUT(["#bigBaat", "#meter"], 33.3, 0.2);
+
+      // ---- G7 roads 33.49 - 41.65 ----
+      POP("#sNH", 34.0);
+      POP("#sSH", 35.4);
+      POP("#sBK", 36.7);
+      OUT(["#sNH", "#sSH", "#sBK"], 37.95, 0.2);
+      IN("#dPatna", 38.18, { x: -600, y: 0 });
+      IN("#dAur", 39.04, { x: -600, y: 0 });
+      POP("#excel", 40.4);
+      OUT(["#dPatna", "#dAur", "#excel"], 41.45, 0.2);
+
+      // ---- G8 price slam 41.65 - 45.68 ----
+      POP("#khaas", 41.75);
+      tl.fromTo("#p2sub", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.35 }, 42.9);
+      tl.set("#price2", { opacity: 1 }, 42.9);
+      tl.fromTo("#p2big", { opacity: 0, scale: 2.2 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power4.in" }, 44.1);
+      tl.fromTo("#p2shine", { x: -200 }, { x: 1000, duration: 0.7, ease: "power2.inOut" }, 44.6);
+      OUT(["#khaas", "#price2"], 45.6, 0.2);
+
+      // ---- G9 investment 45.68 - 52 ----
+      tl.fromTo("#inv", { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.4)" }, 45.95);
+      tl.fromTo("#invA", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.3 }, 46.0);
+      const L = document.getElementById("invLine"); const len = L.getTotalLength();
+      tl.fromTo(L, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 1.6, ease: "power1.inOut" }, 47.5);
+      tl.set("#invHead", { opacity: 1 }, 49.1);
+      tl.fromTo("#invB", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 49.25);
+      OUT("#inv", 50.9, 0.2);
+      POP("#callBtn", 51.1);
+      tl.to("#callBtn", { scale: 1.08, duration: 0.25, yoyo: true, repeat: 3, ease: "sine.inOut" }, 51.55);
+      OUT("#callBtn", 52.0, 0.15);
+
+      // ---- G10 end card 52 - 56.94 ----
+      tl.fromTo("#end", { opacity: 0, y: 200 }, { opacity: 1, y: 0, duration: 0.45, ease: "back.out(1.3)" }, 52.0);
+      tl.to("#endIc", { rotation: 14, duration: 0.07, yoyo: true, repeat: 9, ease: "none" }, 52.4);
+      tl.to("#endIc", { rotation: 0, duration: 0.07 }, 53.1);
+      tl.fromTo("#ph1", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.25 }, 52.07);
+      tl.fromTo("#ph2", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.25 }, 53.05);
+      tl.fromTo("#ph3", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.25 }, 54.49);
+      tl.to("#endIc", { scale: 1.1, duration: 0.4, yoyo: true, repeat: 3, ease: "sine.inOut" }, 55.2);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
