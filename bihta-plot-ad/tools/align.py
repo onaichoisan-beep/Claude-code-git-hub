@@ -58,6 +58,6 @@ for name,v0,v1,clip,c0,c1 in LINES:
     y=np.concatenate(pieces)
     sf.write(f"sync_{name}.wav",y,SR)
     ratios=[round((tgt[i+1]-tgt[i])/(anc[i+1]-anc[i]),2) for i in range(len(anc)-1)]
-    out[name]=dict(clip=clip,vo=[v0,v1],clip_speech=[round(cs,3),round(ce,3)],ratios=ratios)
+    out[name]=dict(clip=clip,vo=[v0,v1],clip_speech=[round(cs,3),round(ce,3)],ratios=ratios,anc=[round(a,3) for a in anc],tgt=[round(t,3) for t in tgt])
     print(name,clip,f"clip speech {cs:.2f}-{ce:.2f} ({ce-cs:.2f}s) vs VO {v1-v0:.2f}s",ratios)
 json.dump(out,open("sync.json","w"),indent=1)
