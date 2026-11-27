@@ -1,0 +1,11 @@
+assets/real/
+assets/img/*.jpg
+assets/ai/
+assets/audio/
+renders/
+.hyperframes/
+.snap*/
+*.mp4
+*.wav
+*.mp3
+assets/img/storefront.png

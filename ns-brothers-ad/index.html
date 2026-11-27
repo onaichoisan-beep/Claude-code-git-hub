@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="hi" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>NS Brothers Winter Uniform</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Baloo2"; src: url("assets/fonts/baloo-2-devanagari-800-normal.woff2") format("woff2"); font-weight: 800; unicode-range: U+0900-097F, U+1CD0-1CF9, U+200C-200D, U+20A8, U+20B9, U+25CC, U+A830-A839, U+A8E0-A8FF; }
+      @font-face { font-family: "Baloo2"; src: url("assets/fonts/baloo-2-latin-800-normal.woff2") format("woff2"); font-weight: 800; unicode-range: U+0000-00FF, U+2013, U+2014, U+2022, U+2192, U+2713; }
+      @font-face { font-family: "Baloo2"; src: url("assets/fonts/baloo-2-devanagari-700-normal.woff2") format("woff2"); font-weight: 700; unicode-range: U+0900-097F, U+1CD0-1CF9, U+200C-200D, U+20A8, U+20B9, U+25CC, U+A830-A839, U+A8E0-A8FF; }
+      @font-face { font-family: "Baloo2"; src: url("assets/fonts/baloo-2-latin-700-normal.woff2") format("woff2"); font-weight: 700; unicode-range: U+0000-00FF, U+2013, U+2014, U+2022, U+2192, U+2713; }
+      :root { --red: #e30613; --red2: #b80010; --yel: #ffd400; --ink: #111111; --white: #ffffff; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; font-family: "Baloo2", sans-serif; font-weight: 800; color: var(--white); }
+      .vw { position: absolute; inset: 0; overflow: hidden; transform-origin: 50% 45%; }
+      .vw.crop { transform-origin: 100% 35%; }
+      .vw video, .vw img { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; }
+      .shadeTop { position: absolute; left: 0; right: 0; top: 0; height: 460px; background: linear-gradient(to bottom, rgba(0,0,0,.5), rgba(0,0,0,0)); }
+      .shadeBot { position: absolute; left: 0; right: 0; bottom: 0; height: 820px; background: linear-gradient(to top, rgba(0,0,0,.6), rgba(0,0,0,0)); }
+      .g { position: absolute; opacity: 0; }
+      /* logo: whole video, top-right */
+      #logo { position: absolute; top: 34px; right: 30px; width: 230px; filter: drop-shadow(0 6px 14px rgba(0,0,0,.55)); }
+      /* sticker-style kicker (matches the logo) */
+      .kick { left: 0; width: 1080px; text-align: center; }
+      .kick span { display: inline-block; padding: 12px 40px 6px; border-radius: 18px; background: var(--red); border: 6px solid #fff; box-shadow: 0 0 0 5px var(--ink), 0 16px 34px rgba(0,0,0,.45); font-size: 64px; line-height: 1.15; white-space: nowrap; }
+      .kick.y span { background: var(--yel); color: var(--ink); }
+      .kick .sub { display: block; width: max-content; margin: 18px auto 0; font-size: 46px; padding: 8px 30px 4px; background: var(--ink); color: var(--yel); border: 4px solid #fff; box-shadow: 0 12px 26px rgba(0,0,0,.4); border-radius: 14px; }
+      /* product tags */
+      .tag { left: 90px; top: 1040px; display: flex; align-items: center; gap: 0; filter: drop-shadow(0 14px 26px rgba(0,0,0,.5)); }
+      .tag b { display: block; padding: 14px 26px 8px; background: var(--red); font-size: 40px; border-radius: 16px 0 0 16px; border: 5px solid #fff; border-right: 0; }
+      .tag i { font-style: normal; display: block; padding: 14px 34px 8px; background: var(--ink); color: var(--yel); font-size: 62px; line-height: 1.05; border-radius: 0 16px 16px 0; border: 5px solid #fff; border-left: 0; white-space: nowrap; }
+      /* checklist */
+      .check { left: 90px; width: 900px; }
+      .check .row { display: flex; align-items: center; gap: 22px; margin-bottom: 20px; opacity: 0; }
+      .check .bx { width: 92px; height: 92px; border-radius: 22px; background: var(--yel); border: 5px solid #fff; display: grid; place-items: center; box-shadow: 0 10px 22px rgba(0,0,0,.4); }
+      .check .tx { font-size: 66px; text-shadow: 0 5px 18px rgba(0,0,0,.8), 0 0 2px #000; }
+      /* collage */
+      #collage { position: absolute; inset: 0; background: radial-gradient(110% 80% at 50% 40%, #ff2a2a, #b80010 60%, #6a0008); opacity: 0; }
+      #collage .ph { position: absolute; width: 440px; height: 590px; border-radius: 24px; border: 8px solid #fff; overflow: hidden; box-shadow: 0 24px 50px rgba(0,0,0,.45); }
+      #collage .ph img { width: 100%; height: 100%; object-fit: cover; }
+      #collage .ttl { position: absolute; left: 0; width: 1080px; text-align: center; top: 300px; font-size: 70px; line-height: 1.1; text-shadow: 0 6px 20px rgba(0,0,0,.4); }
+      #collage .ttl span { color: var(--yel); }
+      /* address card */
+      .addr { left: 70px; top: 300px; width: 940px; padding: 34px 36px 22px; border-radius: 34px; background: rgba(17,17,17,.88); border: 5px solid var(--yel); box-shadow: 0 24px 50px rgba(0,0,0,.5); }
+      .addr .hd { display: flex; align-items: center; gap: 18px; font-size: 54px; color: var(--yel); margin-bottom: 14px; }
+      .addr .ln { display: flex; align-items: center; gap: 18px; font-size: 48px; line-height: 1.1; padding: 12px 0 8px; border-top: 2px dashed rgba(255,255,255,.25); opacity: 0; }
+      .addr .dot { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--red); border: 4px solid #fff; }
+      /* area map */
+      #map { left: 40px; top: 300px; width: 1000px; height: 880px; }
+      .chip { position: absolute; padding: 12px 30px 6px; border-radius: 60px; background: #fff; color: var(--ink); font-size: 50px; border: 5px solid var(--ink); box-shadow: 0 12px 26px rgba(0,0,0,.45); white-space: nowrap; opacity: 0; }
+      .hub { position: absolute; left: 500px; top: 440px; transform: translate(-50%, -50%); text-align: center; }
+      .hub .pin { width: 140px; margin: 0 auto; }
+      .hub .nm { display: inline-block; margin-top: 6px; padding: 8px 26px 4px; background: var(--red); border: 5px solid #fff; border-radius: 14px; font-size: 46px; white-space: nowrap; box-shadow: 0 0 0 4px var(--ink); }
+      .ring { position: absolute; left: 500px; top: 520px; width: 60px; height: 24px; margin: -12px 0 0 -30px; border: 6px solid var(--yel); border-radius: 50%; opacity: 0; }
+      /* phone card */
+      #dim { position: absolute; inset: 0; background: rgba(0,0,0,.55); opacity: 0; }
+      .phone { left: 70px; top: 520px; width: 940px; padding: 44px 30px 40px; border-radius: 40px; background: rgba(17,17,17,.9); border: 6px solid var(--yel); text-align: center; box-shadow: 0 30px 70px rgba(0,0,0,.6); }
+      .phone .ic { width: 150px; height: 150px; margin: 0 auto 18px; border-radius: 50%; background: #18a957; display: grid; place-items: center; box-shadow: 0 0 0 14px rgba(24,169,87,.3); }
+      .phone .t1 { font-size: 66px; color: var(--yel); }
+      .phone .num { font-size: 104px; line-height: 1.12; letter-spacing: 3px; white-space: nowrap; }
+      .phone .num span { display: inline-block; opacity: 0; }
+      .phone .sep { width: 70%; height: 3px; margin: 10px auto; background: rgba(255,255,255,.2); }
+      /* trust words */
+      .trust { left: 0; width: 1080px; top: 1020px; text-align: center; }
+      .trust span { display: inline-block; margin: 0 8px; padding: 10px 26px 4px; font-size: 64px; background: var(--ink); color: var(--yel); border: 5px solid #fff; border-radius: 16px; opacity: 0; box-shadow: 0 12px 26px rgba(0,0,0,.45); }
+      .trust span:nth-child(2) { background: var(--red); color: #fff; }
+      /* outro */
+      #outro { position: absolute; inset: 0; background: radial-gradient(90% 60% at 50% 45%, #3a3a3a, #111 70%, #000); opacity: 0; }
+      #outro img { position: absolute; left: 165px; top: 520px; width: 750px; }
+      #outro .tag2 { position: absolute; left: 0; width: 1080px; top: 1180px; text-align: center; font-size: 66px; color: var(--yel); }
+      /* snow */
+      #snow { position: absolute; inset: 0; pointer-events: none; }
+      #snow i { position: absolute; top: -40px; border-radius: 50%; background: #fff; }
+      /* film burn + flash */
+      #burn { position: absolute; inset: -20%; opacity: 0; mix-blend-mode: screen; pointer-events: none; }
+      #burn .l { position: absolute; inset: 0; }
+      #burn .b1 { background: radial-gradient(ellipse 45% 70% at 20% 50%, rgba(255,240,190,.95), rgba(255,120,30,.85) 35%, transparent 70%); filter: blur(30px); }
+      #burn .b2 { background: radial-gradient(ellipse 50% 60% at 80% 30%, rgba(255,60,20,.9), rgba(200,0,40,.5) 45%, transparent 75%); filter: blur(40px); }
+      #burn .b3 { background: linear-gradient(100deg, transparent 25%, rgba(255,170,60,.5) 42%, rgba(255,250,220,.95) 52%, rgba(255,110,30,.4) 62%, transparent 78%); filter: blur(18px); }
+      #flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="72.0">
+      <div class="vw" id="w1"><video id="m1" src="assets/ai/a6.mp4" muted playsinline data-start="0.0" data-duration="2.0" data-media-start="0.05" data-track-index="0"></video></div>
+      <div class="vw" id="w2"><video id="m2" src="assets/ai/a2.mp4" muted playsinline data-start="2.0" data-duration="2.15" data-media-start="0.15" data-track-index="0"></video></div>
+      <div class="vw" id="w3"><video id="m3" src="assets/ai/a6.mp4" muted playsinline data-start="4.15" data-duration="1.15" data-media-start="3.13" data-track-index="0"></video></div>
+      <div class="vw" id="w4"><video id="m4" src="assets/ai/a6.mp4" muted playsinline data-start="5.3" data-duration="1.23" data-media-start="5.17" data-track-index="0"></video></div>
+      <div class="vw" id="w5"><video id="m5" src="assets/ai/a6.mp4" muted playsinline data-start="6.53" data-duration="1.62" data-media-start="6.42" data-track-index="0"></video></div>
+      <div class="vw" id="w6"><video id="m6" src="assets/real/store.mp4" muted playsinline data-start="8.15" data-duration="0.43" data-media-start="5.6" data-track-index="0"></video></div>
+      <div class="vw" id="w7"><video id="m7" src="assets/real/store.mp4" muted playsinline data-start="8.58" data-duration="1.67" data-media-start="6.0" data-track-index="0"></video></div>
+      <div class="vw" id="w8"><video id="m8" src="assets/ai/a4.mp4" muted playsinline data-start="10.25" data-duration="2.5" data-media-start="1.6" data-track-index="0"></video></div>
+      <div class="vw" id="w10"><video id="m10" src="assets/real/blazer.mp4" muted playsinline data-start="15.15" data-duration="1.2" data-media-start="1.2" data-track-index="0"></video></div>
+      <div class="vw" id="w11"><video id="m11" src="assets/real/fleece.mp4" muted playsinline data-start="16.35" data-duration="1.27" data-media-start="2.6" data-track-index="0"></video></div>
+      <div class="vw" id="w12"><video id="m12" src="assets/real/jacket.mp4" muted playsinline data-start="17.62" data-duration="0.88" data-media-start="0.0" data-track-index="0"></video></div>
+      <div class="vw" id="w13"><video id="m13" src="assets/ai/a6.mp4" muted playsinline data-start="18.5" data-duration="0.95" data-media-start="2.13" data-track-index="0"></video></div>
+      <div class="vw crop" id="w14"><video id="m14" src="assets/real/reel.mp4" muted playsinline data-start="19.45" data-duration="1.1" data-media-start="20.4" data-track-index="0"></video></div>
+      <div class="vw" id="w15"><video id="m15" src="assets/real/jacket.mp4" muted playsinline data-start="20.55" data-duration="2.3" data-media-start="5.3" data-track-index="0"></video></div>
+      <div class="vw" id="w16"><video id="m16" src="assets/real/blazer.mp4" muted playsinline data-start="22.85" data-duration="1.5" data-media-start="3.0" data-track-index="0"></video></div>
+      <div class="vw crop" id="w17"><video id="m17" src="assets/real/reel.mp4" muted playsinline data-start="24.35" data-duration="1.85" data-media-start="29.72" data-track-index="0"></video></div>
+      <div class="vw" id="w18"><img id="m18" src="assets/img/blazer.jpg" alt="" data-start="26.2" data-duration="1.3" data-track-index="0" /></div>
+      <div class="vw" id="w19"><img id="m19" src="assets/img/fleece.jpg" alt="" data-start="27.5" data-duration="1.25" data-track-index="0" /></div>
+      <div class="vw" id="w20"><video id="m20" src="assets/real/blazer.mp4" muted playsinline data-start="28.75" data-duration="1.45" data-media-start="5.0" data-track-index="0"></video></div>
+      <div class="vw" id="w21"><video id="m21" src="assets/ai/a3.mp4" muted playsinline data-start="30.2" data-duration="3.75" data-media-start="4.0" data-track-index="0"></video></div>
+      <div class="vw" id="w22"><img id="m22" src="assets/img/storefront.png" alt="" data-start="33.95" data-duration="2.45" data-track-index="0" /></div>
+      <div class="vw" id="w23"><video id="m23" src="assets/ai/a3.mp4" muted playsinline data-start="36.4" data-duration="2.2" data-media-start="0.0" data-track-index="0"></video></div>
+      <div class="vw crop" id="w24"><video id="m24" src="assets/real/reel.mp4" muted playsinline data-start="38.6" data-duration="1.15" data-media-start="14.2" data-track-index="0"></video></div>
+      <div class="vw crop" id="w25"><video id="m25" src="assets/real/reel.mp4" muted playsinline data-start="39.75" data-duration="1.2" data-media-start="15.35" data-track-index="0"></video></div>
+      <div class="vw" id="w26"><video id="m26" src="assets/ai/a1.mp4" muted playsinline data-start="40.95" data-duration="6.15" data-media-start="0.0" data-track-index="0"></video></div>
+      <div class="vw crop" id="w27"><video id="m27" src="assets/real/reel.mp4" muted playsinline data-start="47.1" data-duration="3.3" data-media-start="39.3" data-track-index="0"></video></div>
+      <div class="vw crop" id="w28"><video id="m28" src="assets/real/reel.mp4" muted playsinline data-start="50.4" data-duration="1.1" data-media-start="25.27" data-track-index="0"></video></div>
+      <div class="vw crop" id="w29"><video id="m29" src="assets/real/reel.mp4" muted playsinline data-start="51.5" data-duration="1.1" data-media-start="21.56" data-track-index="0"></video></div>
+      <div class="vw" id="w30"><video id="m30" src="assets/real/store.mp4" muted playsinline data-start="52.6" data-duration="2.4" data-media-start="7.65" data-track-index="0"></video></div>
+      <div class="vw" id="w31"><img id="m31" src="assets/img/storefront.png" alt="" data-start="55.0" data-duration="2.75" data-track-index="0" /></div>
+      <div class="vw" id="w32"><video id="m32" src="assets/real/fleece.mp4" muted playsinline data-start="57.75" data-duration="3.95" data-media-start="0.0" data-track-index="0"></video></div>
+      <div class="vw" id="w33"><video id="m33" src="assets/real/jacket.mp4" muted playsinline data-start="61.7" data-duration="3.9" data-media-start="1.4" data-track-index="0"></video></div>
+      <div class="vw" id="w34"><video id="m34" src="assets/ai/a5.mp4" muted playsinline data-start="65.6" data-duration="3.6" data-media-start="0.0" data-track-index="0"></video></div>
+      <div class="shadeTop"></div>
+      <div class="shadeBot"></div>
+      <div id="snow"></div>
+
+      <!-- collage (12.75 - 15.15) -->
+      <div id="collage">
+        <div class="ttl">बच्चों के लिए <span>गर्म</span> और <span>Stylish</span></div>
+        <div class="ph" id="ph1" style="left:80px;top:500px;transform:rotate(-4deg)"><img src="assets/img/blazer.jpg" alt="" /></div>
+        <div class="ph" id="ph2" style="left:560px;top:470px;transform:rotate(3deg)"><img src="assets/img/fleece.jpg" alt="" /></div>
+        <div class="ph" id="ph3" style="left:90px;top:1120px;transform:rotate(3deg)"><img src="assets/img/jacket_front.jpg" alt="" /></div>
+        <div class="ph" id="ph4" style="left:560px;top:1090px;transform:rotate(-3deg)"><img src="assets/img/jacket_back.jpg" alt="" /></div>
+      </div>
+
+      <!-- kickers -->
+      <div class="g kick" id="k1" style="top:300px"><span>सर्दियाँ आ गई हैं!</span><div class="sub">School Shopping की तैयारी</div></div>
+      <div class="g kick y" id="k2" style="top:300px"><span>Winter Uniform?</span><div class="sub">इधर-उधर भटकना बंद!</div></div>
+      <div class="g" id="bigLogo" style="left:240px;top:560px;width:600px"><img src="assets/brand/logo.png" alt="" style="width:600px;filter:drop-shadow(0 20px 40px rgba(0,0,0,.6))" /></div>
+      <div class="g kick" id="k3" style="top:1060px"><span>School Uniform Collection</span></div>
+      <div class="g tag" id="t1"><b>01</b><i>BLAZERS</i></div>
+      <div class="g tag" id="t2"><b>02</b><i>FLEECE TRACKSUITS</i></div>
+      <div class="g tag" id="t3"><b>03</b><i>SWEATERS</i></div>
+      <div class="g tag" id="t4"><b>04</b><i>WINTER CAPS</i></div>
+      <div class="g kick y" id="k4" style="top:300px"><span>बेहतरीन कलेक्शन</span></div>
+      <div class="g kick" id="k5" style="top:300px"><span>DAV School हो या अन्य</span></div>
+      <div class="g kick y" id="k6" style="top:300px"><span>सब कुछ एक ही जगह!</span></div>
+      <div class="g check" id="chk" style="top:860px">
+        <div class="row" id="c1"><div class="bx"><svg width="56" height="56" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="#111" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tx">बेहतरीन Quality</div></div>
+        <div class="row" id="c2"><div class="bx"><svg width="56" height="56" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="#111" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tx">Comfortable Fabric</div></div>
+        <div class="row" id="c3"><div class="bx"><svg width="56" height="56" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="#111" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tx">Smart Look</div></div>
+      </div>
+      <div class="g kick y" id="k7" style="top:300px"><span>Location बिल्कुल आसान!</span></div>
+      <div class="g addr" id="addr">
+        <div class="hd"><svg width="58" height="58" viewBox="0 0 24 24"><path fill="#e30613" stroke="#fff" stroke-width="1.2" d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.6" fill="#fff"/></svg>NS Brothers, Gaya</div>
+        <div class="ln" id="a1"><div class="dot"></div>Chandauti More, Gaya</div>
+        <div class="ln" id="a2"><div class="dot"></div>Military Hospital Gate के सामने</div>
+        <div class="ln" id="a3"><div class="dot"></div>Medical College Road</div>
+        <div class="ln" id="a4"><div class="dot"></div>Sikaria More के पास</div>
+      </div>
+      <div class="g" id="map">
+        <svg width="1000" height="880" viewBox="0 0 1000 880" style="position:absolute;left:0;top:0">
+          <g stroke="#ffd400" stroke-width="7" stroke-dasharray="16 12" stroke-linecap="round" fill="none">
+            <path id="r1" d="M500 440 L210 150" /><path id="r2" d="M500 440 L800 150" /><path id="r3" d="M500 440 L870 470" /><path id="r4" d="M500 440 L760 760" /><path id="r5" d="M500 440 L200 730" />
+          </g>
+        </svg>
+        <div class="ring" id="ring"></div>
+        <div class="hub" id="hub"><svg class="pin" width="140" height="140" viewBox="0 0 24 24"><path fill="#e30613" stroke="#fff" stroke-width="1" d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.6" fill="#fff"/></svg><br /><div class="nm">NS Brothers</div></div>
+        <div class="chip" id="p1" style="left:70px;top:90px">Bodh Gaya</div>
+        <div class="chip" id="p2" style="left:690px;top:90px">Cherki</div>
+        <div class="chip" id="p3" style="left:700px;top:500px">Karimganj</div>
+        <div class="chip" id="p4" style="left:660px;top:770px">Delha</div>
+        <div class="chip" id="p5" style="left:60px;top:740px">A.P. Colony</div>
+      </div>
+      <div class="g kick y" id="k8" style="top:1140px"><span>आसानी से पहुँचें!</span></div>
+      <div class="g kick" id="k9" style="top:300px"><span>School Shopping बनाइए आसान</span></div>
+      <div class="g kick y" id="k10" style="top:300px"><span>आज ही Visit करें!</span></div>
+      <div class="g addr" id="addr2" style="top:300px">
+        <div class="hd"><svg width="58" height="58" viewBox="0 0 24 24"><path fill="#e30613" stroke="#fff" stroke-width="1.2" d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.6" fill="#fff"/></svg>NS Brothers</div>
+        <div class="ln" id="b1"><div class="dot"></div>Near Punjab National Bank</div>
+        <div class="ln" id="b2"><div class="dot"></div>Chandauti More, Gaya</div>
+      </div>
+      <div id="dim"></div>
+      <div class="g phone" id="phone">
+        <div class="ic" id="phIc"><svg width="84" height="84" viewBox="0 0 24 24"><path fill="#fff" d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg></div>
+        <div class="t1">Call Now</div>
+        <div class="num"><span id="n1">94708</span> <span id="n2">54055</span></div>
+        <div class="sep"></div>
+        <div class="num"><span id="n3">75418</span> <span id="n4">54737</span></div>
+      </div>
+      <div class="g trust" id="trust"><span id="q1">QUALITY</span><span id="q2">STYLE</span><span id="q3">TRUST</span></div>
+      <div id="outro">
+        <img id="oLogo" src="assets/brand/logo.png" alt="" />
+        <div class="tag2" id="oTag">Fashion for Every Generation!</div>
+      </div>
+
+      <img id="logo" src="assets/brand/logo.png" alt="NS Brothers" />
+      <div id="burn"><div class="l b1"></div><div class="l b2"></div><div class="l b3"></div></div>
+      <div id="flash"></div>
+
+      <audio id="vo" src="assets/audio/vo.mp3" data-start="0" data-duration="71.39" data-track-index="5" data-volume="1"></audio>
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="72.0" data-track-index="6" data-volume="1"></audio>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const IN = (sel, t, from = { y: 60 }, d = 0.4) => tl.fromTo(sel, { opacity: 0, ...from }, { opacity: 1, x: 0, y: 0, scale: 1, duration: d, ease: "back.out(1.7)" }, t);
+      const OUT = (sel, t, d = 0.2) => tl.to(sel, { opacity: 0, duration: d, ease: "power2.in" }, t);
+      const POP = (sel, t) => IN(sel, t, { scale: 0.55, y: 20 }, 0.42);
+
+      // ---- camera moves (generated) ----
+      tl.fromTo("#w1", { scale: 1.0 }, { scale: 1.12, duration: 2.0, ease: "none" }, 0.0);
+      tl.fromTo("#w2", { scale: 1.0 }, { scale: 1.12, duration: 2.15, ease: "none" }, 2.0);
+      tl.fromTo("#w3", { scale: 1.14 }, { scale: 1.0, duration: 1.15, ease: "none" }, 4.15);
+      tl.fromTo("#w4", { scale: 1.0 }, { scale: 1.12, duration: 1.23, ease: "none" }, 5.3);
+      tl.fromTo("#w5", { scale: 1.0 }, { scale: 1.12, duration: 1.62, ease: "none" }, 6.53);
+      tl.fromTo("#w6", { scale: 1.0 }, { scale: 1.05, duration: 0.43, ease: "none" }, 8.15);
+      tl.fromTo("#w7", { scale: 1.0 }, { scale: 1.05, duration: 1.67, ease: "none" }, 8.58);
+      tl.fromTo("#w8", { scale: 1.0 }, { scale: 1.12, duration: 2.5, ease: "none" }, 10.25);
+      tl.fromTo("#w10", { scale: 1.0 }, { scale: 1.05, duration: 1.2, ease: "none" }, 15.15);
+      tl.fromTo("#w11", { scale: 1.0 }, { scale: 1.05, duration: 1.27, ease: "none" }, 16.35);
+      tl.fromTo("#w12", { scale: 1.0 }, { scale: 1.05, duration: 0.88, ease: "none" }, 17.62);
+      tl.fromTo("#w13", { scale: 1.0 }, { scale: 1.12, duration: 0.95, ease: "none" }, 18.5);
+      tl.fromTo("#w14", { scale: 1.6 }, { scale: 1.7, duration: 1.1, ease: "none" }, 19.45);
+      tl.fromTo("#w15", { scale: 1.0 }, { scale: 1.05, duration: 2.3, ease: "none" }, 20.55);
+      tl.fromTo("#w16", { scale: 1.0 }, { scale: 1.05, duration: 1.5, ease: "none" }, 22.85);
+      tl.fromTo("#w17", { scale: 1.6 }, { scale: 1.7, duration: 1.85, ease: "none" }, 24.35);
+      tl.fromTo("#w18", { scale: 1.0 }, { scale: 1.12, duration: 1.3, ease: "none" }, 26.2);
+      tl.fromTo("#w19", { scale: 1.14 }, { scale: 1.0, duration: 1.25, ease: "none" }, 27.5);
+      tl.fromTo("#w20", { scale: 1.0 }, { scale: 1.05, duration: 1.45, ease: "none" }, 28.75);
+      tl.fromTo("#w21", { scale: 1.0 }, { scale: 1.05, duration: 3.75, ease: "none" }, 30.2);
+      tl.fromTo("#w22", { scale: 1.14 }, { scale: 1.0, duration: 2.45, ease: "none" }, 33.95);
+      tl.fromTo("#w23", { scale: 1.0 }, { scale: 1.12, duration: 2.2, ease: "none" }, 36.4);
+      tl.fromTo("#w24", { scale: 1.6 }, { scale: 1.7, duration: 1.15, ease: "none" }, 38.6);
+      tl.fromTo("#w25", { scale: 1.6 }, { scale: 1.7, duration: 1.2, ease: "none" }, 39.75);
+      tl.fromTo("#w26", { scale: 1.0 }, { scale: 1.05, duration: 6.15, ease: "none" }, 40.95);
+      tl.fromTo("#w27", { scale: 1.6 }, { scale: 1.7, duration: 3.3, ease: "none" }, 47.1);
+      tl.fromTo("#w28", { scale: 1.6 }, { scale: 1.7, duration: 1.1, ease: "none" }, 50.4);
+      tl.fromTo("#w29", { scale: 1.6 }, { scale: 1.7, duration: 1.1, ease: "none" }, 51.5);
+      tl.fromTo("#w30", { scale: 1.0 }, { scale: 1.05, duration: 2.4, ease: "none" }, 52.6);
+      tl.fromTo("#w31", { scale: 1.0 }, { scale: 1.12, duration: 2.75, ease: "none" }, 55.0);
+      tl.fromTo("#w32", { scale: 1.08 }, { scale: 1.16, duration: 3.95, ease: "none" }, 57.75);
+      tl.fromTo("#w33", { scale: 1.08 }, { scale: 1.16, duration: 3.9, ease: "none" }, 61.7);
+      tl.fromTo("#w34", { scale: 1.0 }, { scale: 1.05, duration: 3.6, ease: "none" }, 65.6);
+
+      // ---- snow (winter opener, 0 - 8.6s) ----
+      const snow = document.getElementById("snow");
+      let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+      for (let i = 0; i < 70; i++) {
+        const f = document.createElement("i"); const s = 6 + rnd() * 12;
+        f.style.left = rnd() * 1080 + "px"; f.style.width = f.style.height = s + "px"; f.style.opacity = 0.45 + rnd() * 0.5;
+        f.style.filter = s > 13 ? "blur(2px)" : "none"; snow.appendChild(f);
+        const y0 = rnd() * 3400 - 1500, fall = 230 + rnd() * 220;
+        tl.fromTo(f, { y: y0, x: 0 }, { y: y0 + fall * 8.6, x: (rnd() - 0.5) * 220, duration: 8.6, ease: "none" }, 0);
+      }
+      tl.set("#snow", { opacity: 1 }, 0); tl.to("#snow", { opacity: 0, duration: 0.3 }, 8.3);
+
+      // ---- film burns + white flash (4 transitions) ----
+      tl.set(["#burn", "#flash"], { opacity: 0 }, 0);
+      [8.58, 30.2, 47.1, 65.6].forEach((t) => {
+        tl.to("#burn", { opacity: 1, duration: 0.4, ease: "power1.in" }, t - 0.5);
+        tl.set("#burn .b1", { xPercent: -30, scale: 0.9 }, t - 0.55); tl.to("#burn .b1", { xPercent: 25, scale: 1.15, duration: 1.2, ease: "sine.inOut" }, t - 0.55);
+        tl.set("#burn .b2", { xPercent: 25, yPercent: -10 }, t - 0.55); tl.to("#burn .b2", { xPercent: -20, yPercent: 10, duration: 1.2, ease: "sine.inOut" }, t - 0.55);
+        tl.set("#burn .b3", { xPercent: -45 }, t - 0.5); tl.to("#burn .b3", { xPercent: 40, duration: 1.0, ease: "power1.inOut" }, t - 0.5);
+        tl.set("#flash", { opacity: 0.95 }, t - 0.04);
+        tl.to("#flash", { opacity: 0, duration: 0.32, ease: "power2.out" }, t);
+        tl.to("#burn", { opacity: 0, duration: 0.45, ease: "power2.out" }, t + 0.25);
+      });
+
+      // ---- logo: whole video, top-right (hidden only during the big-logo outro) ----
+      tl.fromTo("#logo", { opacity: 1, scale: 1 }, { opacity: 1, scale: 1, duration: 0.01 }, 0);
+      tl.to("#logo", { opacity: 0, duration: 0.25 }, 69.2);
+
+      // ---- P1 / P2 winter opener ----
+      tl.fromTo("#k1", { opacity: 1, scale: 1.25 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.8)" }, 0);
+      tl.fromTo("#k1 .sub", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3 }, 2.0);
+      OUT("#k1", 4.0);
+      POP("#k2", 5.5);
+      tl.fromTo("#k2 .sub", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3 }, 6.7);
+      OUT("#k2", 8.4, 0.15);
+
+      // ---- P3 NS Brothers ----
+      tl.fromTo("#bigLogo", { opacity: 0, scale: 2.2 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power4.in" }, 8.72);
+      tl.to("#bigLogo", { scale: 1.06, duration: 0.9, ease: "none" }, 9.02);
+      OUT("#bigLogo", 10.05, 0.2);
+      POP("#k3", 11.3);
+      OUT("#k3", 12.6, 0.15);
+
+      // ---- P4 collage + products ----
+      tl.set("#collage", { opacity: 1 }, 12.75); tl.set("#collage", { opacity: 0 }, 15.15);
+      tl.fromTo("#collage .ttl", { opacity: 0, y: -40 }, { opacity: 1, y: 0, duration: 0.35 }, 12.8);
+      ["#ph1", "#ph2", "#ph3", "#ph4"].forEach((s, i) => tl.fromTo(s, { opacity: 0, scale: 0.4, y: 120 }, { opacity: 1, scale: 1, y: 0, duration: 0.4, ease: "back.out(1.6)" }, 13.0 + i * 0.28));
+      tl.to("#collage .ph", { scale: 1.05, duration: 1.1, ease: "none" }, 14.05);
+      [["#t1", 15.18], ["#t2", 16.38], ["#t3", 17.66], ["#t4", 18.52]].forEach(([s, t]) => { IN(s, t - 0.02, { x: -500, y: 0 }, 0.32); });
+      OUT("#t1", 16.25, 0.1); OUT("#t2", 17.52, 0.1); OUT("#t3", 18.4, 0.1); OUT("#t4", 19.35, 0.1);
+      POP("#k4", 19.4); OUT("#k4", 20.45, 0.12);
+
+      // ---- P5 DAV / one place / checklist ----
+      POP("#k5", 20.6); OUT("#k5", 22.75, 0.12);
+      POP("#k6", 24.4); OUT("#k6", 26.1, 0.12);
+      tl.set("#chk", { opacity: 1 }, 26.2);
+      [["#c1", 26.75], ["#c2", 27.58], ["#c3", 28.84]].forEach(([s, t]) => tl.fromTo(s, { opacity: 0, x: -300 }, { opacity: 1, x: 0, duration: 0.35, ease: "back.out(1.6)" }, t - 0.05));
+      OUT("#chk", 30.0, 0.15);
+
+      // ---- P6 location intro ----
+      POP("#k7", 30.6); OUT("#k7", 33.8, 0.15);
+
+      // ---- P7 address ----
+      IN("#addr", 34.1, { y: 120 }, 0.45);
+      [["#a1", 34.7], ["#a2", 35.98], ["#a3", 37.74], ["#a4", 39.54]].forEach(([s, t]) => tl.fromTo(s, { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, t));
+      OUT("#addr", 40.8, 0.15);
+
+      // ---- P8 area map ----
+      tl.set("#map", { opacity: 1 }, 40.95);
+      tl.fromTo("#hub", { opacity: 0, y: -160 }, { opacity: 1, y: 0, duration: 0.4, ease: "bounce.out" }, 40.95);
+      tl.fromTo("#ring", { opacity: 0.9, scale: 0.5 }, { opacity: 0, scale: 4, duration: 0.9, repeat: 4, ease: "power1.out" }, 41.3);
+      [["#r1", "#p1", 40.95], ["#r2", "#p2", 42.0], ["#r3", "#p3", 42.68], ["#r4", "#p4", 43.38], ["#r5", "#p5", 44.14]].forEach(([r, p, t]) => {
+        tl.fromTo(r, { opacity: 0 }, { opacity: 1, duration: 0.25 }, t);
+        tl.fromTo(p, { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2)" }, t + 0.1);
+      });
+      POP("#k8", 45.45);
+      OUT(["#map", "#k8"], 46.95, 0.15);
+
+      // ---- P9 / P10 visit ----
+      POP("#k9", 47.4); OUT("#k9", 50.25, 0.15);
+      POP("#k10", 50.75); OUT("#k10", 53.7, 0.15);
+      IN("#addr2", 53.9, { y: 120 }, 0.45);
+      tl.fromTo("#b1", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.3 }, 54.1);
+      tl.fromTo("#b2", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.3 }, 56.0);
+      OUT("#addr2", 57.6, 0.15);
+
+      // ---- P11 phone numbers ----
+      tl.fromTo("#dim", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 57.7);
+      tl.to("#dim", { opacity: 0, duration: 0.25 }, 65.5);
+      IN("#phone", 57.7, { y: 200 }, 0.45);
+      [["#n1", 57.66], ["#n2", 59.7], ["#n3", 61.2], ["#n4", 63.72]].forEach(([s, t]) => tl.fromTo(s, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.25 }, t));
+      tl.to("#phIc", { rotation: 12, duration: 0.07, yoyo: true, repeat: 7, ease: "none" }, 58.2);
+      tl.to("#phIc", { rotation: 12, duration: 0.07, yoyo: true, repeat: 7, ease: "none" }, 62.0);
+      OUT("#phone", 65.4, 0.15);
+
+      // ---- P12 trust + outro ----
+      tl.set("#trust", { opacity: 1 }, 66.7);
+      [["#q1", 66.86], ["#q2", 67.64], ["#q3", 68.5]].forEach(([s, t]) => tl.fromTo(s, { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2.2)" }, t - 0.05));
+      OUT("#trust", 69.05, 0.15);
+      tl.fromTo("#outro", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 69.15);
+      tl.fromTo("#oLogo", { scale: 1.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: "power4.in" }, 69.2);
+      tl.to("#oLogo", { scale: 1.06, duration: 2.4, ease: "none" }, 69.55);
+      tl.fromTo("#oTag", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.6)" }, 69.4);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
