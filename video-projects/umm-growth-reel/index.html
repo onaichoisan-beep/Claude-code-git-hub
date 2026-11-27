@@ -42,16 +42,20 @@
       .cap .s, .cap .b { text-shadow: 0 3px 10px rgba(0,0,0,0.55), 0 0 28px rgba(0,0,0,0.35); }
 
       /* ---------- Interstitial: black kinetic type ---------- */
-      #inter { position: absolute; inset: 0; z-index: 9; background: #000; }
-      #inter .l1 { position: absolute; left: 0; width: 100%; top: 720px; text-align: center; color: #fff; font-weight: 800; font-style: italic; font-size: 110px; letter-spacing: -0.04em; }
-      #inter .l2 { position: absolute; left: 0; width: 100%; top: 845px; text-align: center; color: #fff; font-weight: 800; font-size: 210px; letter-spacing: -0.06em; line-height: 1; }
+      #inter { position: absolute; inset: 0; z-index: 10; }
+      #inter .l1 { position: absolute; left: 0; width: 100%; top: 330px; text-shadow: 0 4px 24px rgba(0,0,0,0.7); text-align: center; color: #fff; font-weight: 800; font-style: italic; font-size: 110px; letter-spacing: -0.04em; }
+      #inter .l2 { position: absolute; left: 0; width: 100%; top: 1280px; text-shadow: 0 6px 30px rgba(0,0,0,0.75); text-align: center; color: #fff; font-weight: 800; font-size: 210px; letter-spacing: -0.06em; line-height: 1; }
       #inter .rule { position: absolute; left: 340px; top: 1090px; width: 400px; height: 6px; background: #fff; transform-origin: left center; }
 
+      .behind .word.neon { color: #ffe680; text-shadow: 0 0 6px #fff7cf, 0 0 16px #ffdc55, 0 0 34px #ffc400, 0 0 64px #ffab00, 0 0 110px rgba(255,160,0,0.6); }
+      #goal-bg { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 9; }
+      .burn { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 15; mix-blend-mode: screen; opacity: 0; }
+      #endcard { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 12; }
       #fade { position: absolute; inset: 0; z-index: 20; background: #000; opacity: 0; pointer-events: none; }
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="28.5" data-width="1080" data-height="1920">
+    <div id="root" data-composition-id="main" data-start="0" data-duration="32.0" data-width="1080" data-height="1920">
       <audio id="voice" data-start="0" data-duration="28.5" data-track-index="0" src="assets/media/voice.m4a" data-volume="1"></audio>
 
       <!-- ===== PART 1 (0 - 11.7s): close-up in a rounded card on black ===== -->
@@ -64,8 +68,8 @@
         </div>
         <!-- text behind head: UMM GROWTH -->
         <div id="bh-umm" class="clip layer behind" data-start="5.533" data-duration="1.4" data-track-index="2">
-          <div class="word w1" style="top:-6px;font-size:120px">UMM</div>
-          <div class="word w2" style="top:88px;font-size:150px">GROWTH</div>
+          <div class="word w1 neon" style="top:58px;font-size:118px">UMM</div>
+          <div class="word w2 neon" style="top:136px;font-size:176px">GROWTH</div>
         </div>
         <video id="cut-aus" class="cutout" data-start="1.4" data-duration="1.2" data-media-start="1.4" data-track-index="3" src="assets/media/card-cut.webm" muted playsinline></video>
         <video id="cut-umm" class="cutout" data-start="5.533" data-duration="1.4" data-media-start="5.533" data-track-index="3" src="assets/media/card-cut.webm" muted playsinline></video>
@@ -75,11 +79,11 @@
         <div class="bwrap" id="w-b2"><video id="b2" data-start="9.2" data-duration="2.5" data-track-index="4" src="assets/media/b2-editing.mp4" muted playsinline></video></div>
       </div>
 
-      <!-- ===== Interstitial (11.7 - 13.0s) ===== -->
+      <!-- ===== Interstitial (11.7 - 13.0s): dartboard + kinetic type ===== -->
+      <video id="goal-bg" data-start="11.7" data-duration="1.3" data-track-index="8" src="assets/media/goal-bg.mp4" muted playsinline></video>
       <div id="inter" class="clip" data-start="11.7" data-duration="1.3" data-track-index="9">
         <div class="l1">Our goal</div>
         <div class="l2">is simple.</div>
-        <div class="rule"></div>
       </div>
 
       <!-- ===== PART 2 (13.0 - 28.5s): full frame ===== -->
@@ -115,6 +119,15 @@
       <div id="c16" class="clip cap full-mode" data-start="24.86" data-duration="1.38" data-track-index="5"><div class="in"><span class="s">and let's</span><span class="b i" style="font-size:150px">grow</span></div></div>
       <div id="c17" class="clip cap full-mode" data-start="26.24" data-duration="2.26" data-track-index="5"><div class="in"><span class="s">your brand</span><span class="b i">together.</span></div></div>
 
+      <!-- ===== End card (from reference) ===== -->
+      <video id="endcard" data-start="28.5" data-duration="3.5" data-track-index="10" src="assets/media/endcard.mp4" muted playsinline></video>
+
+      <!-- ===== Film burns + light whoosh ===== -->
+      <video id="burn1" class="burn" data-start="11.25" data-duration="0.9" data-track-index="11" src="assets/media/burn1.mp4" muted playsinline></video>
+      <video id="burn2" class="burn" data-start="28.05" data-duration="0.9" data-track-index="11" src="assets/media/burn2.mp4" muted playsinline></video>
+      <audio id="whoosh1" data-start="11.25" data-duration="1.6" data-track-index="12" src="assets/media/whoosh.m4a" data-volume="0.55"></audio>
+      <audio id="whoosh2" data-start="28.05" data-duration="1.6" data-track-index="12" src="assets/media/whoosh.m4a" data-volume="0.55"></audio>
+
       <div id="fade"></div>
     </div>
 
@@ -135,10 +148,13 @@
       // Text behind head: rise in, then slow drift (movement behind the head)
       tl.fromTo("#bh-aus .word", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, 1.4);
       tl.fromTo("#bh-aus .word", { x: 60 }, { x: -60, duration: 1.2, ease: "none" }, 1.4);
-      tl.fromTo("#bh-umm .w1", { x: -140, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 5.533);
-      tl.fromTo("#bh-umm .w2", { x: 140, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 5.6);
-      tl.to("#bh-umm .w1", { x: 40, duration: 1.05, ease: "none" }, 5.9);
-      tl.to("#bh-umm .w2", { x: -40, duration: 1.05, ease: "none" }, 5.95);
+      // neon flicker-on
+      [[0,0],[0.04,1],[0.09,0.15],[0.14,1],[0.2,0.35],[0.25,1]].forEach(([dt,o]) => {
+        tl.set("#bh-umm .w1", { opacity: o }, 5.533 + dt);
+        tl.set("#bh-umm .w2", { opacity: o }, 5.583 + dt);
+      });
+      tl.to("#bh-umm .w1", { x: 30, duration: 1.1, ease: "none" }, 5.83);
+      tl.to("#bh-umm .w2", { x: -30, duration: 1.1, ease: "none" }, 5.83);
       tl.fromTo("#bh-url .word", { y: 70, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out", stagger: 0.08 }, 23.1);
       tl.fromTo("#bh-url .word", { scale: 1 }, { scale: 1.02, duration: 1.76, ease: "none" }, 23.1);
 
@@ -150,10 +166,14 @@
       // Interstitial kinetic type
       tl.fromTo("#inter .l1", { y: 40, opacity: 0, filter: "blur(10px)" }, { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 11.75);
       tl.fromTo("#inter .l2", { y: 60, opacity: 0, filter: "blur(14px)" }, { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.32, ease: "power3.out" }, 12.15);
-      tl.fromTo("#inter .rule", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power2.inOut" }, 12.4);
+      tl.fromTo("#goal-bg", { scale: 1.12 }, { scale: 1.0, duration: 1.3, ease: "power2.out" }, 11.7);
+      // film burns: rise, peak on the cut, fall
+      [["#burn1", 11.25], ["#burn2", 28.05]].forEach(([id, t]) => {
+        tl.fromTo(id, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.in" }, t);
+        tl.to(id, { opacity: 0, duration: 0.45, ease: "power2.out" }, t + 0.45);
+      });
 
       // Gentle fade out at the very end
-      tl.to("#fade", { opacity: 1, duration: 0.35, ease: "power1.in" }, 28.15);
 
       window.__timelines["main"] = tl;
       tl.seek(0);
