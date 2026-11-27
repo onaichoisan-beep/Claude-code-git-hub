@@ -1,0 +1,2 @@
+# Rendered videos are delivered directly, never committed
+deliverables/*.mp4
