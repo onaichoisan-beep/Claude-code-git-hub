@@ -1,0 +1,41 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Songs carousel</title>
+<style>
+@font-face { font-family: "Inter Tight"; src: url("../assets/fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; }
+@font-face { font-family: "Inter Tight"; src: url("../assets/fonts/inter-tight-latin-700-normal.woff2") format("woff2"); font-weight: 700; }
+@font-face { font-family: "Inter Tight"; src: url("../assets/fonts/inter-tight-latin-500-normal.woff2") format("woff2"); font-weight: 500; }
+:root { --butter:#F7EFA0; --blue:#2F5FD0; --navy:#1D3E96; --cream:#FFFDF0; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#ddd; font-family:"Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif; }
+.slide { position:relative; width:1080px; height:1350px; overflow:hidden; margin:0 0 20px; background:#F8EFB8; }
+.bg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.head { position:absolute; left:200px; right:200px; top:90px; display:flex; flex-direction:column; align-items:center; gap:14px; }
+.no { padding:8px 26px; border-radius:999px; background:var(--blue); color:var(--butter); font-weight:700; font-size:30px; letter-spacing:.08em; text-transform:uppercase; }
+.title { text-align:center; font-weight:800; font-size:66px; line-height:1.04; letter-spacing:-.02em; color:var(--blue);
+  paint-order:stroke fill; -webkit-text-stroke:8px var(--cream); text-wrap:balance; }
+.title.big { position:absolute; left:110px; right:110px; top:120px; font-size:84px; }
+.title .y { color:var(--butter); -webkit-text-stroke:4px var(--navy); text-shadow:0 5px 0 var(--navy); }
+.eyebrow { position:absolute; left:0; right:0; top:70px; text-align:center; font-weight:700; font-size:26px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--navy); }
+.artist { text-align:center; font-weight:700; font-size:32px; color:var(--navy); }
+.title:not(.big) + .artist { }
+.pic { position:absolute; background:#fff; padding:12px; border-radius:6px; box-shadow:0 16px 36px rgba(29,62,150,.25); }
+.pic img { display:block; width:100%; height:100%; object-fit:cover; }
+.face { position:absolute; border:16px solid #fff; border-radius:44px; overflow:hidden; box-shadow:0 26px 50px rgba(29,62,150,.28); }
+.face img { width:100%; height:100%; object-fit:cover; object-position:50% 20%; display:block; }
+.stk { position:absolute; filter:drop-shadow(0 10px 14px rgba(29,62,150,.3)); }
+.line { position:absolute; left:270px; right:270px; top:1105px; text-align:center; font-weight:800; font-size:38px; line-height:1.18;
+  color:var(--navy); text-wrap:balance; }
+.pill { position:absolute; left:50%; transform:translateX(-50%); padding:14px 34px; border-radius:999px; background:var(--blue); color:var(--butter);
+  font-weight:800; font-size:34px; white-space:nowrap; box-shadow:0 10px 24px rgba(29,62,150,.3); }
+.swipe { top:1225px; }
+.follow { top:1235px; font-size:28px; padding:10px 28px; }
+.count { position:absolute; right:40px; top:40px; font-weight:700; font-size:22px; color:var(--navy); opacity:.7; }
+</style></head><body>
+<section class="slide" id="s1"><img class="bg" src="../assets/img/bg-45.jpg" alt=""><div class="eyebrow">study playlist</div><h1 class="title big"><span class="b">my top 5 songs</span><br><span class="y">to study to</span></h1><div class="face" style="left:305px;top:400px;width:470px;height:776px"><img src="../assets/img/cover-still.jpg" alt=""></div><img class="stk " src="../assets/st/st-headphones.png" style="left:70px;top:470px;width:200px" alt=""><img class="stk " src="../assets/st/st-cat-sing.png" style="left:820px;top:880px;width:190px" alt=""><img class="stk " src="../assets/st/st-star.png" style="left:95px;top:1010px;width:150px" alt=""><div class="pill swipe">swipe for the list →</div><div class="count">1/6</div></section>
+<section class="slide" id="s2"><img class="bg" src="../assets/img/bg-45.jpg" alt=""><header class="head"><div class="no">No. 1</div><h2 class="title">Dreams, Books, Power and Walls</h2><div class="artist">Jannabi</div></header><div class="pic" style="left:247px;top:369px;width:278px;height:395px"><img src="../assets/img/BPW-7334.jpg" alt=""></div><div class="pic" style="left:555px;top:369px;width:278px;height:167px"><img src="../assets/img/BPW-7335.jpg" alt=""></div><div class="pic" style="left:401px;top:794px;width:278px;height:272px"><img src="../assets/img/BPW-7336.jpg" alt=""></div><div class="line">very soothing, and the last part kills it</div><img class="stk " src="../assets/st/st-star.png" style="left:60px;top:1085px;width:190px" alt=""><div class="count">2/6</div></section>
+<section class="slide" id="s3"><img class="bg" src="../assets/img/bg-45.jpg" alt=""><header class="head"><div class="no">No. 2</div><h2 class="title">Vodka Cranberry</h2><div class="artist">Conan Gray</div></header><div class="pic" style="left:239px;top:303px;width:286px;height:387px"><img src="../assets/img/VC-7328.jpg" alt=""></div><div class="pic" style="left:555px;top:303px;width:286px;height:284px"><img src="../assets/img/VC-7329.jpg" alt=""></div><div class="pic" style="left:397px;top:720px;width:286px;height:352px"><img src="../assets/img/VC-7330.jpg" alt=""></div><img class="stk " src="../assets/st/st-crying.png" style="left:60px;top:1085px;width:190px" alt=""><div class="count">3/6</div></section>
+<section class="slide" id="s4"><img class="bg" src="../assets/img/bg-45.jpg" alt=""><header class="head"><div class="no">No. 3</div><h2 class="title">TV</h2><div class="artist">Billie Eilish</div></header><div class="pic" style="left:255px;top:307px;width:270px;height:462px"><img src="../assets/img/TV-7331.jpg" alt=""></div><div class="pic" style="left:555px;top:307px;width:270px;height:271px"><img src="../assets/img/TV-7332.jpg" alt=""></div><div class="pic" style="left:405px;top:798px;width:270px;height:270px"><img src="../assets/img/TV-7333.jpg" alt=""></div><img class="stk " src="../assets/st/st-kitten-earphones.png" style="left:60px;top:1085px;width:190px" alt=""><div class="count">4/6</div></section>
+<section class="slide" id="s5"><img class="bg" src="../assets/img/bg-45.jpg" alt=""><header class="head"><div class="no">No. 4</div><h2 class="title">All Too Well</h2><div class="artist">Taylor Swift · 10 minute version</div></header><div class="pic" style="left:199px;top:308px;width:326px;height:326px"><img src="../assets/img/ATW-7337.jpg" alt=""></div><div class="pic" style="left:555px;top:308px;width:326px;height:155px"><img src="../assets/img/ATW-7339.jpg" alt=""></div><div class="pic" style="left:377px;top:664px;width:326px;height:404px"><img src="../assets/img/ATW-7338.jpg" alt=""></div><div class="line">our favourite. bonus: So Long, London</div><img class="stk " src="../assets/st/st-dancers.png" style="left:60px;top:1085px;width:190px" alt=""><div class="count">5/6</div></section>
+<section class="slide" id="s6"><img class="bg" src="../assets/img/bg-45.jpg" alt=""><header class="head"><div class="no">No. 5</div><h2 class="title">Glimpse of Us</h2><div class="artist">Joji</div></header><div class="pic" style="left:167px;top:302px;width:358px;height:383px"><img src="../assets/img/GOU-7342.jpg" alt=""></div><div class="pic" style="left:555px;top:302px;width:358px;height:358px"><img src="../assets/img/GOU-7343.jpg" alt=""></div><div class="pic" style="left:361px;top:715px;width:358px;height:358px"><img src="../assets/img/GOU-7344.jpg" alt=""></div><div class="line">my personal favourite, and my sister&#x27;s too</div><img class="stk " src="../assets/st/st-cat-ipod.png" style="left:60px;top:1085px;width:190px" alt=""><img class="stk " src="../assets/st/st-headphones.png" style="left:830px;top:1085px;width:190px" alt=""><div class="pill follow">follow for more</div><div class="count">6/6</div></section>
+</body></html>

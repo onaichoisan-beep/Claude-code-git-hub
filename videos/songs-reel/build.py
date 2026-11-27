@@ -1,6 +1,12 @@
 """Generate index.html from beats.json (the beats approved in the Reel Builder).
 
 Run:  python3 build.py
+
+Layout rules (from feedback):
+- Straight, bold sans text (Inter Tight, Helvetica-style). No italics, no handwriting.
+- Nothing tilted: pictures and stickers rest straight (stickers still wiggle).
+- No sticker overlaps another sticker or a picture.
+- Everything sits inside the area the app leaves clear (no captions/buttons over it).
 """
 import html
 import json
@@ -21,31 +27,69 @@ SFX = {
     "Record scratch": ("scratch.mp3", 0.4, 0.4),
     "Camera shutter": ("click.mp3", 0.05, 0.5),
 }
-SONG_NO = {"b02": "No. 1", "b04": "No. 2", "b05": "No. 3", "b07": "No. 4", "b09": "bonus", "b12": "No. 5"}
-FRAMED = 0.74
+SONG_NO = {"b02": "No. 1", "b04": "No. 2", "b05": "No. 3", "b07": "No. 4", "b09": "Bonus", "b12": "No. 5"}
 
-# Picture-card spots per count for the "pictures" layout: (left, top, width, rotation)
-PIC_SPOTS = {
-    1: [(180, 560, 720, -2)],
-    2: [(60, 520, 560, -5), (460, 900, 560, 4)],
-    3: [(50, 520, 520, -6), (510, 620, 500, 5), (200, 1010, 580, -2)],
+# The framed talking head: a card fully inside the clear area.
+FR_S = 0.56
+FR_W, FR_H = round(W * FR_S), round(H * FR_S)          # 605 x 1075
+FR_X, FR_Y = (W - FR_W) // 2, 430                      # 237..842, 430..1505
+FR_DY = FR_Y + FR_H / 2 - H / 2                         # translate from centre
+
+CAP_TOP = {"framed": 300, "pictures": 300, "full": 980}
+PIC_BAND = (450, 1470)        # pictures layout band (top, bottom)
+PIC_BAND_STK = (450, 1270)    # leave a strip for stickers
+PIC_X = (130, 900)
+
+# Candidate sticker spots (left, top, width), first free one wins.
+STK_CAND = {
+    "framed": [(40, 470, 220), (690, 880, 190), (40, 1150, 220), (690, 1240, 190), (40, 820, 200)],
+    "full": [(130, 1180, 200), (700, 1200, 190), (430, 1210, 180), (700, 330, 160)],
+    "pictures": [(150, 1290, 170), (560, 1290, 170), (360, 1290, 170), (740, 1290, 150)],
 }
-# One picture shown on top of the talking head (framed / full layouts)
-PIC_OVER = {"framed": (30, 1120, 360, -5), "full": (650, 1420, 340, 5)}
-# Sticker spots at the edges, away from the face: (left, top, width, rotation)
-STK_SPOTS = [(-10, 960, 290, -8), (800, 800, 280, 7), (30, 1320, 270, 6), (770, 1290, 290, -6)]
-STK_SPOTS_FULL = [(10, 1400, 280, -8), (790, 1150, 260, 7), (380, 1560, 260, 6), (60, 650, 240, -6)]
-CAP_TOP = {"framed": 330, "pictures": 300, "full": 960}
+PIC_OVER = {"framed": (70, 1110, 250), "full": (620, 1170, 250)}
 
 
-def img_h(path, w):
-    iw, ih = Image.open(path).size
-    return round(w * ih / iw)
+def size(path):
+    return Image.open(path).size
 
 
-out = []
-js = []
-audio = []
+def inter(a, b, m=12):
+    ax, ay, aw, ah = a
+    bx, by, bw, bh = b
+    return not (ax + aw + m <= bx or bx + bw + m <= ax or ay + ah + m <= by or by + bh + m <= ay)
+
+
+def pack_pictures(ids, band):
+    """Rows of straight cards (1 / 2 / 2+1), scaled to fit the band, centred."""
+    top, bot = band
+    rows = [[0]] if len(ids) == 1 else [[0, 1]] if len(ids) == 2 else [[0, 1], [2]]
+    gap, pad = 34, 12
+    base_w = 600 if len(ids) == 1 else 360
+    dims = [size(f"assets/img/{i}.jpg") for i in ids]
+
+    def layout(scale):
+        w = base_w * scale
+        out, y = [], 0
+        for r in rows:
+            hs = [w * dims[k][1] / dims[k][0] + 2 * pad for k in r]
+            rw = len(r) * (w + 2 * pad) + (len(r) - 1) * gap
+            x0 = (PIC_X[0] + PIC_X[1]) / 2 - rw / 2
+            for n, k in enumerate(r):
+                out.append((k, x0 + n * (w + 2 * pad + gap), y, w + 2 * pad, hs[n]))
+            y += max(hs) + gap
+        return out, y - gap
+
+    scale = 1.0
+    while True:
+        cards, total = layout(scale)
+        if total <= bot - top or scale < 0.4:
+            break
+        scale *= 0.95
+    y0 = top + ((bot - top) - total) / 2
+    return [(ids[k], round(x), round(y0 + y), round(w), round(h)) for k, x, y, w, h in cards]
+
+
+out, js, audio = [], [], []
 aid = 0
 
 
@@ -63,7 +107,6 @@ def add_sfx(name, t):
     )
 
 
-prev_layout = None
 for i, b in enumerate(beats):
     bid, s, e, lay = b["id"], b["start"], b["end"], b.get("layout", "full")
     last = i == len(beats) - 1
@@ -75,88 +118,105 @@ for i, b in enumerate(beats):
     if lay == "full":
         state = "{scale:1, y:0, opacity:1, borderWidth:0, borderRadius:0}"
     elif lay == "framed":
-        state = f"{{scale:{FRAMED}, y:150, opacity:1, borderWidth:14, borderRadius:44}}"
+        state = f"{{scale:{FR_S}, y:{FR_DY:.0f}, opacity:1, borderWidth:18, borderRadius:56}}"
     else:
-        state = f"{{scale:{FRAMED * 0.9}, y:150, opacity:0, borderWidth:14, borderRadius:44}}"
+        state = f"{{scale:{FR_S * 0.9:.3f}, y:{FR_DY:.0f}, opacity:0, borderWidth:18, borderRadius:56}}"
     dur = 0.9 if i == 0 else 0.45
     js.append(f'tl.to("#face", Object.assign({state}, {{duration:{dur}, ease:"power3.out"}}), {s});')
     if lay == "framed":  # slow drift so a framed shot never sits still
-        js.append(f'tl.to("#face", {{scale:{FRAMED - 0.025}, duration:{round(e - s - dur, 2)}, ease:"none"}}, {s + dur});')
+        js.append(f'tl.to("#face", {{scale:{FR_S - 0.015}, duration:{round(e - s - dur, 2)}, ease:"none"}}, {s + dur});')
     if last:  # ending card: shrink the clip away, text and stickers stay
-        js.append(f'tl.to("#face", {{scale:0.6, opacity:0, borderWidth:14, borderRadius:44, duration:0.5, ease:"power2.in"}}, {VID - 0.45});')
+        js.append(f'tl.to("#face", {{scale:0.45, opacity:0, borderWidth:18, borderRadius:56, duration:0.5, ease:"power2.in"}}, {VID - 0.45});')
     if lay == "full":  # gentle punch-in for emphasis
-        js.append(f'tl.to("#face-in", {{scale:1.1, duration:{round(e - s, 2)}, ease:"power1.inOut"}}, {s});')
-        js.append(f'tl.set("#face-in", {{scale:1}}, {e});')
+        js.append(f'tl.to("#face-in", {{scale:1.08, duration:{round(min(e, VID) - s, 2)}, ease:"power1.inOut"}}, {s});')
+        js.append(f'tl.set("#face-in", {{scale:1}}, {min(e, VID)});')
 
-    events = []  # moments for pops
+    events, taken = [], []
 
-    # ---- pictures
+    # ---- pictures (straight cards)
     pics = b.get("pictures", [])
-    if lay == "pictures":
-        spots = PIC_SPOTS[min(3, max(1, len(pics)))] if pics else []
-    else:
-        spots = [PIC_OVER["framed" if lay == "framed" else "full"]] if pics else []
-        pics = pics[:1]
-    for j, (pid, sp) in enumerate(zip(pics, spots)):
-        x, y, w, r = sp
-        h = img_h(f"assets/img/{pid}.jpg", w - 24)
+    stickers = b.get("stickers", [])[:4]
+    cards = []
+    if pics and lay == "pictures":
+        cards = pack_pictures(pics[:3], PIC_BAND_STK if stickers else PIC_BAND)
+    elif pics:
+        x, y, w = PIC_OVER["framed" if lay == "framed" else "full"]
+        iw, ih = size(f"assets/img/{pics[0]}.jpg")
+        cards = [(pics[0], x, y, w, round((w - 24) * ih / iw + 24))]
+    for j, (pid, x, y, w, h) in enumerate(cards):
         eid = f"{bid}-pic{j}"
+        taken.append((x, y, w, h))
         out.append(
-            f'<div id="{eid}" class="pic" style="left:{x}px;top:{y}px;width:{w}px">'
-            f'<img src="assets/img/{pid}.jpg" style="height:{h}px" alt=""></div>'
+            f'<div id="{eid}" class="pic" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">'
+            f'<img src="assets/img/{pid}.jpg" alt=""></div>'
         )
-        t = s + 0.15 + j * 0.35
+        t = s + 0.15 + j * 0.3
         events.append(t)
-        js.append(f'tl.fromTo("#{eid}", {{opacity:0, scale:0.4, rotation:{r - 14}}}, {{opacity:1, scale:1, rotation:{r}, duration:0.42, ease:"back.out(1.8)"}}, {round(t, 3)});')
-        js.append(f'tl.to("#{eid}", {{y:-14, duration:{round(e - t - 0.6, 2)}, ease:"sine.inOut"}}, {round(t + 0.42, 3)});')
+        js.append(f'tl.fromTo("#{eid}", {{opacity:0, scale:0.6, y:30}}, {{opacity:1, scale:1, y:0, duration:0.4, ease:"back.out(1.7)"}}, {round(t, 3)});')
+        js.append(f'tl.to("#{eid}", {{y:-10, duration:{round(e - t - 0.6, 2)}, ease:"sine.inOut"}}, {round(t + 0.4, 3)});')
         if not last:
-            js.append(f'tl.to("#{eid}", {{opacity:0, scale:0.85, duration:0.18, ease:"power2.in"}}, {round(exit_t, 3)});')
+            js.append(f'tl.to("#{eid}", {{opacity:0, scale:0.9, duration:0.18, ease:"power2.in"}}, {round(exit_t, 3)});')
 
-    # ---- stickers (pop in, then wiggle)
-    for j, sid in enumerate(b.get("stickers", [])[:4]):
-        x, y, w, r = (STK_SPOTS_FULL if lay == "full" else STK_SPOTS)[j]
+    # ---- stickers: first free spot, never over another sticker or a picture
+    placed = 0
+    for sid in stickers:
+        iw, ih = size(f"assets/st/{sid}.png")
+        spot = None
+        for (x, y, w) in STK_CAND[lay]:
+            h = round(w * ih / iw)
+            box = (x - 14, y - 14, w + 28, h + 28)  # room for the wiggle
+            if not any(inter(box, t) for t in taken):
+                spot = (x, y, w, h)
+                taken.append(box)
+                break
+        if not spot:
+            print(f"  {bid}: no free spot for {sid}, skipped")
+            continue
+        x, y, w, h = spot
+        j = placed
+        placed += 1
         eid = f"{bid}-st{j}"
         out.append(f'<div id="{eid}" class="stk" style="left:{x}px;top:{y}px;width:{w}px"><img id="{eid}-i" src="assets/st/{sid}.png" alt=""></div>')
         t = s + 0.3 + j * 0.22
         events.append(t)
-        js.append(f'tl.fromTo("#{eid}", {{opacity:0, scale:0, rotation:{r - 20}}}, {{opacity:1, scale:1, rotation:{r}, duration:0.4, ease:"back.out(2.6)"}}, {round(t, 3)});')
+        js.append(f'tl.fromTo("#{eid}", {{opacity:0, scale:0}}, {{opacity:1, scale:1, duration:0.4, ease:"back.out(2.6)"}}, {round(t, 3)});')
         period = 0.55 + 0.07 * j
         reps = max(1, int((e - t - 0.4) / period))
         sign = 1 if j % 2 == 0 else -1
         js.append(
-            f'tl.fromTo("#{eid}-i", {{rotation:{-6 * sign}, y:0, scale:1}}, {{rotation:{6 * sign}, y:-8, scale:1.05, duration:{period:.2f}, '
+            f'tl.fromTo("#{eid}-i", {{rotation:{-5 * sign}, y:0, scale:1}}, {{rotation:{5 * sign}, y:-8, scale:1.05, duration:{period:.2f}, '
             f'ease:"sine.inOut", yoyo:true, repeat:{reps}}}, {round(t + 0.4, 3)});'
         )
         if not last:
             js.append(f'tl.to("#{eid}", {{opacity:0, scale:0.3, duration:0.16, ease:"power2.in"}}, {round(exit_t, 3)});')
 
-    # ---- caption (word by word)
+    # ---- caption (straight bold sans, word by word)
     cap = (b.get("caption") or "").strip()
     cap_t = s + 0.08
     if cap:
         color = b.get("color", "butter")
-        hand = " hand" if b.get("hand") else ""
-        size = 88 if len(cap) <= 18 else (76 if len(cap) <= 26 else 66)
+        n = len(cap)
+        fsize = 72 if n <= 18 else (62 if n <= 26 else 56)
         if lay == "full":
-            size = min(size, 74)
-        if hand:
-            size = int(size * 1.15)
+            fsize = min(fsize, 58)
         words = "".join(f'<span class="w">{html.escape(wd)}</span> ' for wd in cap.split())
         label = SONG_NO.get(bid)
         lab = f'<div class="no" id="{bid}-no">{label}</div>' if label else ""
+        low = " low" if lay == "full" else ""
+        top = CAP_TOP[lay] + (0 if label or lay == "full" else 24)
         out.append(
-            f'<div id="{bid}-cap" class="cap {color}{hand}{' low' if lay == 'full' else ''}" style="top:{CAP_TOP[lay]}px;font-size:{size}px">{lab}<div class="txt">{words.strip()}</div></div>'
+            f'<div id="{bid}-cap" class="cap {color}{low}" style="top:{top}px;font-size:{fsize}px">{lab}<div class="txt">{words.strip()}</div></div>'
         )
         if label:
             js.append(f'tl.fromTo("#{bid}-no", {{opacity:0, y:20}}, {{opacity:1, y:0, duration:0.3, ease:"power2.out"}}, {round(cap_t, 3)});')
         js.append(
-            f'tl.fromTo("#{bid}-cap .w", {{opacity:0, y:36, scale:0.8}}, {{opacity:1, y:0, scale:1, duration:0.32, '
-            f'ease:"back.out(2.2)", stagger:0.07}}, {round(cap_t + 0.05, 3)});'
+            f'tl.fromTo("#{bid}-cap .w", {{opacity:0, y:30}}, {{opacity:1, y:0, duration:0.3, '
+            f'ease:"back.out(2)", stagger:0.07}}, {round(cap_t + 0.05, 3)});'
         )
         if not last:
             js.append(f'tl.to("#{bid}-cap", {{opacity:0, y:-18, duration:0.16, ease:"power2.in"}}, {round(exit_t, 3)});')
         else:  # ending card: lift the last line to the middle and enlarge it
-            js.append(f'tl.to("#{bid}-cap", {{y:-260, scale:1.35, duration:0.6, ease:"back.out(1.6)"}}, {VID - 0.2});')
+            js.append(f'tl.to("#{bid}-cap", {{x:90, y:-240, scale:1.3, duration:0.6, ease:"back.out(1.6)"}}, {VID - 0.2});')
 
     # ---- sound effects, timed to what happens on screen
     for name in b.get("sfx", []):
@@ -173,7 +233,6 @@ for i, b in enumerate(beats):
             add_sfx(name, cap_t + 0.25)
         elif name == "Record scratch":
             add_sfx(name, s + 0.35)
-    prev_layout = lay
 
 page = f"""<!doctype html>
 <html lang="en" data-resolution="portrait">
@@ -182,9 +241,8 @@ page = f"""<!doctype html>
     <meta name="viewport" content="width=1080, height=1920" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
     <style>
-      @font-face {{ font-family: "Instrument Serif"; src: url("assets/fonts/instrument-serif-latin-400-normal.woff2") format("woff2"); font-weight: 400; }}
-      @font-face {{ font-family: "Caveat"; src: url("assets/fonts/caveat-latin-700-normal.woff2") format("woff2"); font-weight: 700; }}
-      @font-face {{ font-family: "DM Sans"; src: url("assets/fonts/dm-sans-latin-700-normal.woff2") format("woff2"); font-weight: 700; }}
+      @font-face {{ font-family: "Inter Tight"; src: url("assets/fonts/inter-tight-latin-800-normal.woff2") format("woff2"); font-weight: 800; }}
+      @font-face {{ font-family: "Inter Tight"; src: url("assets/fonts/inter-tight-latin-700-normal.woff2") format("woff2"); font-weight: 700; }}
       :root {{
         --butter: #F7EFA0;
         --blue: #2F5FD0;
@@ -199,19 +257,19 @@ page = f"""<!doctype html>
       #face {{ position: absolute; inset: 0; overflow: hidden; border: 0 solid #fff; box-shadow: 0 30px 60px rgba(29, 62, 150, 0.28); transform-origin: 50% 50%; }}
       #face-in {{ position: absolute; inset: 0; transform-origin: 50% 30%; }}
       #rf {{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }}
-      .pic {{ position: absolute; background: #fff; padding: 12px; box-shadow: 0 18px 40px rgba(29, 62, 150, 0.3); opacity: 0; }}
-      .pic img {{ display: block; width: 100%; object-fit: cover; }}
+      .pic {{ position: absolute; background: #fff; padding: 12px; border-radius: 6px; box-shadow: 0 16px 36px rgba(29, 62, 150, 0.28); opacity: 0; }}
+      .pic img {{ display: block; width: 100%; height: 100%; object-fit: cover; }}
       .stk {{ position: absolute; opacity: 0; }}
       .stk img {{ display: block; width: 100%; filter: drop-shadow(0 10px 14px rgba(29, 62, 150, 0.3)); }}
-      .cap {{ position: absolute; left: 120px; right: 192px; text-align: center; font-family: "Instrument Serif", serif; line-height: 1.02; }}
-      .cap .txt {{ text-wrap: balance; }}
+      .cap {{ position: absolute; left: 120px; right: 192px; text-align: center; font-family: "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-weight: 800; font-style: normal; letter-spacing: -0.02em; line-height: 1.08; }}
       .cap.low {{ right: 300px; }}
+      .cap .txt {{ text-wrap: balance; }}
       .cap .w {{ display: inline-block; paint-order: stroke fill; }}
-      .cap.butter .w {{ color: var(--butter); -webkit-text-stroke: 7px var(--navy); text-shadow: 0 5px 0 var(--navy), 0 10px 24px rgba(29, 62, 150, 0.45); }}
-      .cap.blue .w {{ color: var(--blue); -webkit-text-stroke: 9px var(--cream); text-shadow: 0 8px 22px rgba(29, 62, 150, 0.25); }}
-      .cap.hand {{ font-family: "Caveat", cursive; font-weight: 700; line-height: 0.95; }}
-      .cap .no {{ display: inline-block; margin-bottom: 14px; padding: 8px 26px; border-radius: 999px; background: var(--blue); color: var(--butter);
-        font-family: "DM Sans", sans-serif; font-weight: 700; font-size: 34px; letter-spacing: 0.06em; text-transform: uppercase; }}
+      .cap.butter .w {{ color: var(--butter); -webkit-text-stroke: 5px var(--navy); text-shadow: 0 5px 0 var(--navy), 0 10px 22px rgba(29, 62, 150, 0.4); }}
+      .cap.blue .w {{ color: var(--blue); -webkit-text-stroke: 7px var(--cream); text-shadow: 0 8px 20px rgba(29, 62, 150, 0.22); }}
+      .cap .no {{ display: inline-block; margin-bottom: 12px; padding: 7px 24px; border-radius: 999px; background: var(--blue); color: var(--butter);
+        font-family: "Inter Tight", Helvetica, Arial, sans-serif; font-weight: 700; font-size: 30px; letter-spacing: 0.08em; text-transform: uppercase; }}
     </style>
   </head>
   <body>
