@@ -1,0 +1,273 @@
+[
+ {
+  "caption": "my top 5 study songs",
+  "color": "blue",
+  "end": 2.7,
+  "hand": true,
+  "layout": "framed",
+  "name": "Hook",
+  "notes": "",
+  "pictures": [],
+  "said": "My top five songs to listen to while studying",
+  "sfx": [
+   "Sparkle",
+   "Pop",
+   "Whoosh",
+   "Click"
+  ],
+  "start": 0,
+  "stickers": [
+   "st-cat-sing",
+   "st-star",
+   "st-fish",
+   "st-dancers"
+  ],
+  "id": "b01"
+ },
+ {
+  "caption": "Dreams, Books, Power and Walls",
+  "color": "butter",
+  "end": 5.8,
+  "layout": "framed",
+  "name": "Song 1: Dreams, Books, Power and Walls",
+  "notes": "",
+  "pictures": [
+   "BPW-7334"
+  ],
+  "said": "Dreams, Books, Power and Walls by Jannabi",
+  "sfx": [
+   "Whoosh",
+   "Click"
+  ],
+  "start": 2.7,
+  "stickers": [
+   "st-star"
+  ],
+  "id": "b02"
+ },
+ {
+  "caption": "the last part kills it",
+  "color": "butter",
+  "end": 10.3,
+  "layout": "framed",
+  "name": "Why song 1",
+  "notes": "",
+  "pictures": [
+   "BPW-7336"
+  ],
+  "said": "This is a K-pop song. This is very soothing, and the last part definitely kills it",
+  "sfx": [
+   "Pop",
+   "Ding"
+  ],
+  "start": 5.8,
+  "stickers": [
+   "st-chill-guy"
+  ],
+  "id": "b03"
+ },
+ {
+  "caption": "Vodka Cranberry",
+  "color": "blue",
+  "end": 12.9,
+  "layout": "pictures",
+  "name": "Song 2: Vodka Cranberry",
+  "notes": "",
+  "pictures": [
+   "VC-7328",
+   "VC-7329",
+   "VC-7330"
+  ],
+  "said": "Vodka Cranberry by Conan Gray",
+  "sfx": [
+   "Whoosh",
+   "Pop"
+  ],
+  "start": 10.3,
+  "stickers": [],
+  "id": "b04"
+ },
+ {
+  "caption": "TV",
+  "color": "blue",
+  "end": 14.9,
+  "layout": "pictures",
+  "name": "Song 3: TV",
+  "notes": "",
+  "pictures": [
+   "TV-7331",
+   "TV-7332",
+   "TV-7333"
+  ],
+  "said": "TV by Billie Eilish",
+  "sfx": [
+   "Swish",
+   "Pop"
+  ],
+  "start": 12.9,
+  "stickers": [
+   "st-fish"
+  ],
+  "id": "b05"
+ },
+ {
+  "caption": "our favourite… Taylor Swift",
+  "color": "butter",
+  "end": 17.6,
+  "layout": "full",
+  "name": "Setting up Taylor",
+  "notes": "",
+  "pictures": [
+   "ATW-7337"
+  ],
+  "said": "…one is obviously our favourite, Taylor Swift",
+  "sfx": [
+   "Ding"
+  ],
+  "start": 14.9,
+  "stickers": [
+   "st-dancers"
+  ],
+  "id": "b06"
+ },
+ {
+  "caption": "All Too Well (10 min version)",
+  "color": "blue",
+  "end": 21.1,
+  "layout": "pictures",
+  "name": "Song 4: All Too Well",
+  "notes": "",
+  "pictures": [
+   "ATW-7339",
+   "ATW-7338",
+   "ATW-7340"
+  ],
+  "said": "That is All Too Well, and it's the 10 minute version",
+  "sfx": [
+   "Whoosh",
+   "Record scratch"
+  ],
+  "start": 17.6,
+  "stickers": [
+   "st-cat-sing"
+  ],
+  "id": "b07"
+ },
+ {
+  "caption": "also by Taylor…",
+  "color": "butter",
+  "end": 24.7,
+  "layout": "framed",
+  "name": "A similar Taylor song",
+  "notes": "",
+  "pictures": [],
+  "said": "And one of the songs is also very similar, by herself…",
+  "sfx": [
+   "Pop"
+  ],
+  "start": 21.1,
+  "stickers": [
+   "st-chill-guy"
+  ],
+  "id": "b08"
+ },
+ {
+  "caption": "So Long, London",
+  "color": "blue",
+  "end": 26.9,
+  "layout": "pictures",
+  "name": "Bonus: So Long, London",
+  "notes": "",
+  "pictures": [
+   "ATW-7340",
+   "ATW-7341"
+  ],
+  "said": "So Long, London",
+  "sfx": [
+   "Swish"
+  ],
+  "start": 24.7,
+  "stickers": [],
+  "id": "b09"
+ },
+ {
+  "caption": "and the fifth one…",
+  "color": "butter",
+  "end": 29.1,
+  "layout": "full",
+  "name": "Lead-in to song 5",
+  "notes": "",
+  "pictures": [],
+  "said": "I also like to listen to it on… fifth one",
+  "sfx": [
+   "Pop"
+  ],
+  "start": 26.9,
+  "stickers": [
+   "st-snoopy"
+  ],
+  "id": "b10"
+ },
+ {
+  "caption": "my personal favourite ♡",
+  "color": "butter",
+  "end": 33.3,
+  "layout": "framed",
+  "name": "Personal favourite",
+  "notes": "",
+  "pictures": [],
+  "said": "My personal favourite, and also my sister's favourite",
+  "sfx": [
+   "Sparkle"
+  ],
+  "start": 29.1,
+  "stickers": [
+   "st-cat-ipod",
+   "st-dancers"
+  ],
+  "id": "b11"
+ },
+ {
+  "caption": "Glimpse of Us",
+  "color": "blue",
+  "end": 35.9,
+  "layout": "pictures",
+  "name": "Song 5: Glimpse of Us",
+  "notes": "",
+  "pictures": [
+   "GOU-7342",
+   "GOU-7343",
+   "GOU-7344"
+  ],
+  "said": "Glimpse of Us by Joji",
+  "sfx": [
+   "Whoosh",
+   "Ding"
+  ],
+  "start": 33.3,
+  "stickers": [],
+  "id": "b12"
+ },
+ {
+  "caption": "follow for more",
+  "color": "butter",
+  "end": 37.6,
+  "hand": true,
+  "layout": "full",
+  "name": "Ending",
+  "notes": "",
+  "pictures": [],
+  "said": "Follow for more",
+  "sfx": [
+   "Pop",
+   "Ding"
+  ],
+  "start": 35.9,
+  "stickers": [
+   "st-fish",
+   "st-star",
+   "st-headphones"
+  ],
+  "id": "b13"
+ }
+]
