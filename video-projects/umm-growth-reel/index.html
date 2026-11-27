@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="assets/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Poppins"; font-weight: 600; font-style: normal; src: url("assets/fonts/poppins-latin-600-normal.woff2") format("woff2"); }
+      @font-face { font-family: "Poppins"; font-weight: 800; font-style: normal; src: url("assets/fonts/poppins-latin-800-normal.woff2") format("woff2"); }
+      @font-face { font-family: "Poppins"; font-weight: 800; font-style: italic; src: url("assets/fonts/poppins-latin-800-italic.woff2") format("woff2"); }
+      :root { --ground: #000; --ink: #fff; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: var(--ground); }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--ground); font-family: "Poppins", sans-serif; }
+
+      /* ---------- Part 1: rounded card on black (reference look) ---------- */
+      #card { position: absolute; left: 40px; top: 302px; width: 1000px; height: 1316px; border-radius: 58px; overflow: hidden; background: #000; }
+      #card video, #card .layer { position: absolute; left: 0; top: 0; width: 1000px; height: 1316px; object-fit: cover; }
+      #card-head { z-index: 1; }
+      #card .behind { z-index: 2; }
+      #card .cutout { z-index: 3; }
+      #card .bwrap { position: absolute; inset: 0; z-index: 4; overflow: hidden; }
+
+      /* ---------- Part 2: full frame ---------- */
+      #full-head { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 1; }
+      #full .behind { position: absolute; inset: 0; z-index: 2; }
+      #cta-cut { position: absolute; inset: 0; width: 1080px; height: 1920px; z-index: 3; }
+      .fwrap { position: absolute; inset: 0; z-index: 4; overflow: hidden; }
+      .fwrap video { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; }
+
+      /* ---------- Text behind head ---------- */
+      .behind .word { position: absolute; left: 0; width: 100%; text-align: center; color: #fff; font-weight: 800; letter-spacing: -0.055em; line-height: 0.86; white-space: nowrap; text-shadow: 0 6px 30px rgba(0,0,0,0.35); }
+
+      /* ---------- Captions: bold, stacked, minimal ---------- */
+      .cap { position: absolute; left: 40px; width: 1000px; z-index: 8; text-align: center; color: #fff; }
+      .cap.card-mode { top: 1060px; }
+      .cap.full-mode { top: 1060px; }
+      .cap .in { display: flex; flex-direction: column; align-items: center; }
+      .cap .s { display: block; font-weight: 800; font-size: 62px; line-height: 0.95; letter-spacing: -0.045em; white-space: nowrap; }
+      .cap .b { display: block; font-weight: 800; font-size: 116px; line-height: 0.92; letter-spacing: -0.055em; white-space: nowrap; }
+      .cap .i { font-style: italic; letter-spacing: -0.04em; }
+      .cap .s, .cap .b { text-shadow: 0 3px 10px rgba(0,0,0,0.55), 0 0 28px rgba(0,0,0,0.35); }
+
+      /* ---------- Interstitial: black kinetic type ---------- */
+      #inter { position: absolute; inset: 0; z-index: 9; background: #000; }
+      #inter .l1 { position: absolute; left: 0; width: 100%; top: 720px; text-align: center; color: #fff; font-weight: 800; font-style: italic; font-size: 110px; letter-spacing: -0.04em; }
+      #inter .l2 { position: absolute; left: 0; width: 100%; top: 845px; text-align: center; color: #fff; font-weight: 800; font-size: 210px; letter-spacing: -0.06em; line-height: 1; }
+      #inter .rule { position: absolute; left: 340px; top: 1090px; width: 400px; height: 6px; background: #fff; transform-origin: left center; }
+
+      #fade { position: absolute; inset: 0; z-index: 20; background: #000; opacity: 0; pointer-events: none; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="28.5" data-width="1080" data-height="1920">
+      <audio id="voice" data-start="0" data-duration="28.5" data-track-index="0" src="assets/media/voice.m4a" data-volume="1"></audio>
+
+      <!-- ===== PART 1 (0 - 11.7s): close-up in a rounded card on black ===== -->
+      <div id="card">
+        <video id="card-head" data-start="0" data-duration="11.7" data-track-index="1" src="assets/media/card-head.mp4" muted playsinline></video>
+
+        <!-- text behind head: AUSTRALIA -->
+        <div id="bh-aus" class="clip layer behind" data-start="1.4" data-duration="1.2" data-track-index="2">
+          <div class="word" style="top:78px;font-size:178px">AUSTRALIA</div>
+        </div>
+        <!-- text behind head: UMM GROWTH -->
+        <div id="bh-umm" class="clip layer behind" data-start="5.533" data-duration="1.4" data-track-index="2">
+          <div class="word w1" style="top:-6px;font-size:120px">UMM</div>
+          <div class="word w2" style="top:88px;font-size:150px">GROWTH</div>
+        </div>
+        <video id="cut-aus" class="cutout" data-start="1.4" data-duration="1.2" data-media-start="1.4" data-track-index="3" src="assets/media/card-cut.webm" muted playsinline></video>
+        <video id="cut-umm" class="cutout" data-start="5.533" data-duration="1.4" data-media-start="5.533" data-track-index="3" src="assets/media/card-cut.webm" muted playsinline></video>
+
+        <!-- B-roll inside the card -->
+        <div class="bwrap" id="w-b1"><video id="b1" data-start="2.6" data-duration="2.933" data-track-index="4" src="assets/media/b1-struggle.mp4" muted playsinline></video></div>
+        <div class="bwrap" id="w-b2"><video id="b2" data-start="9.2" data-duration="2.5" data-track-index="4" src="assets/media/b2-editing.mp4" muted playsinline></video></div>
+      </div>
+
+      <!-- ===== Interstitial (11.7 - 13.0s) ===== -->
+      <div id="inter" class="clip" data-start="11.7" data-duration="1.3" data-track-index="9">
+        <div class="l1">Our goal</div>
+        <div class="l2">is simple.</div>
+        <div class="rule"></div>
+      </div>
+
+      <!-- ===== PART 2 (13.0 - 28.5s): full frame ===== -->
+      <div id="full">
+        <video id="full-head" data-start="13.0" data-duration="15.5" data-media-start="1.3" data-track-index="1" src="assets/media/full-head-close.mp4" muted playsinline></video>
+        <div id="bh-url" class="clip behind" data-start="23.1" data-duration="1.76" data-track-index="2">
+          <div class="word" style="top:372px;font-size:138px">UMMGROWTH</div>
+          <div class="word w2" style="top:292px;font-size:84px;font-style:italic;letter-spacing:-0.03em">visit</div>
+        </div>
+        <video id="cta-cut" data-start="23.1" data-duration="1.76" data-media-start="0.367" data-track-index="3" src="assets/media/cta-cut.webm" muted playsinline></video>
+        <div class="fwrap" id="w-b3"><video id="b3" data-start="15.567" data-duration="1.533" data-track-index="4" src="assets/media/b3-attention.mp4" muted playsinline></video></div>
+        <div class="fwrap" id="w-b4"><video id="b4" data-start="17.1" data-duration="1.7" data-track-index="4" src="assets/media/b4-connect.mp4" muted playsinline></video></div>
+        <div class="fwrap" id="w-b5"><video id="b5" data-start="21.0" data-duration="1.733" data-track-index="4" src="assets/media/b5-camera.mp4" muted playsinline></video></div>
+      </div>
+
+      <!-- ===== Captions ===== -->
+      <div id="c01" class="clip cap card-mode" data-start="0" data-duration="1.4" data-track-index="5"><div class="in"><span class="s">Are you a</span><span class="b" style="font-size:104px">business owner</span></div></div>
+      <div id="c02" class="clip cap card-mode" data-start="2.6" data-duration="0.74" data-track-index="5"><div class="in"><span class="b i" style="font-size:132px">struggling</span></div></div>
+      <div id="c03" class="clip cap card-mode" data-start="3.34" data-duration="0.88" data-track-index="5"><div class="in"><span class="s">to create</span><span class="b">content</span></div></div>
+      <div id="c04" class="clip cap card-mode" data-start="4.22" data-duration="1.313" data-track-index="5"><div class="in"><span class="s">for your</span><span class="b" style="font-size:112px">social media?</span></div></div>
+      <div id="c05" class="clip cap card-mode" data-start="6.933" data-duration="1.067" data-track-index="5"><div class="in"><span class="s">we help</span><span class="b">businesses</span></div></div>
+      <div id="c06" class="clip cap card-mode" data-start="8.0" data-duration="0.78" data-track-index="5"><div class="in"><span class="b i" style="font-size:136px">stand out</span></div></div>
+      <div id="c07" class="clip cap card-mode" data-start="8.78" data-duration="1.1" data-track-index="5"><div class="in"><span class="s">with our</span><span class="b" style="font-size:112px">professional</span></div></div>
+      <div id="c08" class="clip cap card-mode" data-start="9.88" data-duration="1.82" data-track-index="5"><div class="in"><span class="s">video editing</span><span class="b">services.</span></div></div>
+
+      <div id="c09" class="clip cap full-mode" data-start="13.0" data-duration="1.2" data-track-index="5"><div class="in"><span class="s">to make</span><span class="b">your brand</span></div></div>
+      <div id="c10" class="clip cap full-mode" data-start="14.2" data-duration="1.367" data-track-index="5"><div class="in"><span class="s">look</span><span class="b i" style="font-size:112px">professional,</span></div></div>
+      <div id="c11" class="clip cap full-mode" data-start="15.567" data-duration="1.533" data-track-index="5"><div class="in"><span class="s">capture</span><span class="b">attention,</span></div></div>
+      <div id="c12" class="clip cap full-mode" data-start="17.1" data-duration="1.7" data-track-index="5"><div class="in"><span class="s">and connect with</span><span class="b" style="font-size:108px">your customer.</span></div></div>
+      <div id="c13" class="clip cap full-mode" data-start="18.8" data-duration="2.2" data-track-index="5"><div class="in"><span class="s">You focus on</span><span class="b" style="font-size:108px">your business,</span></div></div>
+      <div id="c14" class="clip cap full-mode" data-start="21.0" data-duration="1.733" data-track-index="5"><div class="in"><span class="s">let us handle</span><span class="b">the content.</span></div></div>
+      <div id="c15" class="clip cap full-mode" data-start="22.733" data-duration="2.127" data-track-index="5"><div class="in"><span class="s" style="font-size:76px">UMMGrowth.com</span></div></div>
+      <div id="c16" class="clip cap full-mode" data-start="24.86" data-duration="1.38" data-track-index="5"><div class="in"><span class="s">and let's</span><span class="b i" style="font-size:150px">grow</span></div></div>
+      <div id="c17" class="clip cap full-mode" data-start="26.24" data-duration="2.26" data-track-index="5"><div class="in"><span class="s">your brand</span><span class="b i">together.</span></div></div>
+
+      <div id="fade"></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Card entrance
+      tl.fromTo("#card", { y: 40, scale: 0.97, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.45, ease: "power3.out" }, 0);
+
+      // Caption pop-ins (bold, quick, premium)
+      document.querySelectorAll(".cap").forEach((el) => {
+        const t = parseFloat(el.dataset.start);
+        const lines = el.querySelectorAll(".s, .b");
+        tl.fromTo(lines, { y: 34, opacity: 0, scale: 0.92 }, { y: 0, opacity: 1, scale: 1, duration: 0.22, ease: "power3.out", stagger: 0.06 }, t);
+      });
+
+      // Text behind head: rise in, then slow drift (movement behind the head)
+      tl.fromTo("#bh-aus .word", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, 1.4);
+      tl.fromTo("#bh-aus .word", { x: 60 }, { x: -60, duration: 1.2, ease: "none" }, 1.4);
+      tl.fromTo("#bh-umm .w1", { x: -140, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 5.533);
+      tl.fromTo("#bh-umm .w2", { x: 140, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 5.6);
+      tl.to("#bh-umm .w1", { x: 40, duration: 1.05, ease: "none" }, 5.9);
+      tl.to("#bh-umm .w2", { x: -40, duration: 1.05, ease: "none" }, 5.95);
+      tl.fromTo("#bh-url .word", { y: 70, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out", stagger: 0.08 }, 23.1);
+      tl.fromTo("#bh-url .word", { scale: 1 }, { scale: 1.02, duration: 1.76, ease: "none" }, 23.1);
+
+      // B-roll: slow push-in for movement
+      [["#b1", 2.6, 2.933], ["#b2", 9.2, 2.5], ["#b3", 15.567, 1.533], ["#b4", 17.1, 1.7], ["#b5", 21.0, 1.733]].forEach(([id, t, d]) => {
+        tl.fromTo(id, { scale: 1.08 }, { scale: 1.0, duration: d, ease: "none" }, t);
+      });
+
+      // Interstitial kinetic type
+      tl.fromTo("#inter .l1", { y: 40, opacity: 0, filter: "blur(10px)" }, { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 11.75);
+      tl.fromTo("#inter .l2", { y: 60, opacity: 0, filter: "blur(14px)" }, { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.32, ease: "power3.out" }, 12.15);
+      tl.fromTo("#inter .rule", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power2.inOut" }, 12.4);
+
+      // Gentle fade out at the very end
+      tl.to("#fade", { opacity: 1, duration: 0.35, ease: "power1.in" }, 28.15);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
