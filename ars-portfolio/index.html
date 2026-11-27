@@ -182,7 +182,6 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
     <a class="logo" href="#intro" aria-label="Arya, back to top"><b>ARYA</b><small>EDITOR</small></a>
     <ul>
       <li><a class="tab" href="#intro" data-s="intro">Intro</a></li>
-      <li><a class="tab" href="#work" data-s="work">Work</a></li>
       <li><a class="tab" href="#contact" data-s="contact">Contact</a></li>
     </ul>
   </nav>
@@ -198,8 +197,7 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
       <p class="lead">I turn raw footage into high-retention UGC, Reels &amp; talking-head content with sharp cuts, clean captions, strong hooks, and purposeful B-roll.</p>
       <p class="tagline">Short-form editing that keeps viewers watching.</p>
       <div class="ctas">
-        <a class="pill solid" href="#work">See my work →</a>
-        <a class="pill" href="#contact">Hire me</a>
+        <a class="pill solid" href="#contact">Hire me →</a>
       </div>
     </div>
     <div class="hero-art">
@@ -211,32 +209,9 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
   </div>
 
   <svg class="marquee" viewBox="0 0 1200 110" preserveAspectRatio="none" aria-hidden="true">
-    <path d="M0 110 L0 80 C200 50 400 110 600 80 C800 50 1000 110 1200 80 L1200 110 Z" fill="var(--cobalt)"/>
     <path id="wave" d="M-1200 58 C-1000 28 -800 88 -600 58 C-400 28 -200 88 0 58 C200 28 400 88 600 58 C800 28 1000 88 1200 58" fill="none"/>
     <text><textPath id="tp" href="#wave" startOffset="0"><animate attributeName="startOffset" from="0" to="1200" dur="24s" repeatCount="indefinite"/></textPath></text>
   </svg>
-</section>
-
-<!-- ================= WORK ================= -->
-<section id="work" class="band" aria-label="My best works">
-  <div class="wrap">
-    <div class="work-head">
-      <div>
-        <h2>My Best Works</h2>
-      </div>
-      <div class="arrows">
-        <button class="arrow" type="button" id="prev" aria-label="Scroll videos left">←</button>
-        <button class="arrow" type="button" id="next" aria-label="Scroll videos right">→</button>
-      </div>
-    </div>
-    <div class="filters" role="group" aria-label="Filter videos">
-      <button class="chip" type="button" data-f="all" aria-pressed="true">All</button>
-      <button class="chip" type="button" data-f="UGC Ad" aria-pressed="false">UGC Ads</button>
-      <button class="chip" type="button" data-f="Reel" aria-pressed="false">Reels</button>
-      <button class="chip" type="button" data-f="Talking Head" aria-pressed="false">Talking Heads</button>
-    </div>
-    <div class="strip" id="strip" tabindex="0" aria-label="Videos, scroll sideways"></div>
-  </div>
 </section>
 
 <!-- ================= CONTACT ================= -->
@@ -283,30 +258,7 @@ footer .mailto{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
   <div class="wrap wordmark" aria-hidden="true"><div id="wordmark">ARYA</div></div>
 </footer>
 
-<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="m-title">
-  <div class="modal-card">
-    <button class="x" type="button" id="m-close" aria-label="Close">×</button>
-    <h3 id="m-title"></h3>
-    <div id="m-media"></div>
-    <p id="m-desc"></p>
-  </div>
-</div>
-
 <script>
-/* ============================================================
-   YOUR VIDEOS: edit this list.
-   src    : path to an .mp4 (e.g. "videos/skincare-ad.mp4"). It plays on its own, on loop, muted.
-   poster : optional still image shown while the video loads (e.g. "thumbs/skincare.jpg")
-   type   : "UGC Ad" | "Reel" | "Talking Head"  (used by the filter buttons)
-   ============================================================ */
-const VIDEOS = [
-  { title:"Baby hair story", client:"RebelKid", type:"Talking Head", pattern:"pat-gingham", src:"videos/rebelkid-baby-hair.mp4", poster:"videos/posters/rebelkid-baby-hair.jpg", desc:"Hinglish talking head with pop-up text, framed cutaways and a tight story arc." },
-  { title:"Cat allergen spray", client:"Pet care brand", type:"UGC Ad", pattern:"pat-check", src:"videos/cat-allergen-spray.mp4", poster:"videos/posters/cat-allergen-spray.jpg", desc:"Problem-solution demo: cat B-roll covering every jump cut, clean captions throughout." },
-  { title:"October favourites", client:"Lifestyle creator", type:"Talking Head", pattern:"pat-flower", src:"videos/october-favourites.mp4", poster:"videos/posters/october-favourites.jpg", desc:"Monthly favourites list with numbered on-screen titles and product close-ups." },
-  { title:"Outfit switch", client:"Fashion creator", type:"Reel", pattern:"pat-stripe", src:"videos/outfit-switch.mp4", poster:"videos/posters/outfit-switch.jpg", desc:"Outfit transition reel with split-screen text and framed inserts." },
-  { title:"When the cat sheds", client:"Pet care brand", type:"UGC Ad", pattern:"pat-gingham", src:"videos/cat-shedding.mp4", poster:"videos/posters/cat-shedding.jpg", desc:"Talking-head ad cut with spraying demos and home B-roll." }
-];
-
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
@@ -319,61 +271,6 @@ for (let r = 0; r < 4; r++) TICK.forEach(t => {
   tp.insertBefore(a, anim); tp.insertBefore(d, anim);
 });
 if (matchMedia("(prefers-reduced-motion: reduce)").matches) anim.remove();
-
-/* video row */
-const strip = $("#strip");
-/* each video plays on its own, on loop, whenever it is on screen */
-const seen = new IntersectionObserver(es => es.forEach(e => {
-  if (e.isIntersecting) e.target.play().catch(() => {}); else e.target.pause();
-}), { threshold: 0.25 });
-function render(filter){
-  strip.innerHTML = "";
-  VIDEOS.filter(v => filter === "all" || v.type === filter).forEach(v => {
-    const b = document.createElement("button");
-    b.className = "reel"; b.type = "button";
-    b.setAttribute("aria-label", "Watch " + v.title + " with sound");
-    const media = v.src
-      ? `<video src="${esc(v.src)}" ${v.poster ? `poster="${esc(v.poster)}"` : ""} muted loop playsinline preload="metadata"></video><span class="sound">🔊 tap</span>`
-      : (v.poster ? `<img src="${esc(v.poster)}" alt="">` : "") + `<span class="soon">Video coming soon</span>`;
-    b.innerHTML = `<div class="thumb ${v.pattern}">${media}<span class="tag">${esc(v.type)}</span></div>
-      <h3>${esc(v.title)}</h3><div class="meta">${esc(v.client)}</div>`;
-    const vid = b.querySelector("video");
-    if (vid) { vid.muted = true; seen.observe(vid); }
-    b.addEventListener("click", () => openVideo(v));
-    strip.appendChild(b);
-  });
-  strip.scrollLeft = 0;
-}
-const step = () => (strip.querySelector(".reel")?.offsetWidth || 200) + 18;
-$("#prev").addEventListener("click", () => strip.scrollBy({left: -step() * 2, behavior: "smooth"}));
-$("#next").addEventListener("click", () => strip.scrollBy({left: step() * 2, behavior: "smooth"}));
-document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
-  document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c));
-  render(c.dataset.f);
-}));
-
-/* modal: watch with sound */
-const modal = $("#modal");
-let lastFocus = null;
-function openVideo(v){
-  lastFocus = document.activeElement;
-  $("#m-title").textContent = v.title + " · " + v.client;
-  $("#m-desc").textContent = v.desc;
-  $("#m-media").innerHTML = v.src
-    ? `<div class="thumb"><video src="${esc(v.src)}" controls playsinline autoplay loop></video></div>`
-    : `<div class="thumb ${v.pattern}"><span class="tag">${esc(v.type)}</span><span class="soon">Video coming soon</span></div>`;
-  modal.hidden = false;
-  $("#m-close").focus();
-}
-function closeVideo(){
-  const vid = modal.querySelector("video"); if (vid) vid.pause();
-  $("#m-media").innerHTML = "";
-  modal.hidden = true;
-  if (lastFocus) lastFocus.focus();
-}
-$("#m-close").addEventListener("click", closeVideo);
-modal.addEventListener("click", e => { if (e.target === modal) closeVideo(); });
-document.addEventListener("keydown", e => { if (e.key === "Escape" && !modal.hidden) closeVideo(); });
 
 /* highlight the nav tab for the section on screen */
 const tabs = [...document.querySelectorAll(".tab")];
@@ -402,7 +299,6 @@ function fitWordmark(){
 window.addEventListener("resize", fitWordmark);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitWordmark);
 
-render("all");
 fitWordmark();
 setTab("intro");
 </script>
