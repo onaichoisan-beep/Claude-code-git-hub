@@ -50,12 +50,12 @@
       .behind .word.neon { color: #ffe680; text-shadow: 0 0 6px #fff7cf, 0 0 16px #ffdc55, 0 0 34px #ffc400, 0 0 64px #ffab00, 0 0 110px rgba(255,160,0,0.6); }
       #goal-bg { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 9; }
       .burn { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 15; mix-blend-mode: screen; opacity: 0; }
-      #endcard { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 12; }
+      .flash { position: absolute; inset: 0; z-index: 16; opacity: 0; background: radial-gradient(circle at 50% 45%, #fffaf0 0%, #ffd9a0 45%, #ff9a3c 100%); mix-blend-mode: screen; }
       #fade { position: absolute; inset: 0; z-index: 20; background: #000; opacity: 0; pointer-events: none; }
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="32.0" data-width="1080" data-height="1920">
+    <div id="root" data-composition-id="main" data-start="0" data-duration="28.5" data-width="1080" data-height="1920">
       <audio id="voice" data-start="0" data-duration="28.5" data-track-index="0" src="assets/media/voice.m4a" data-volume="1"></audio>
 
       <!-- ===== PART 1 (0 - 11.7s): close-up in a rounded card on black ===== -->
@@ -119,15 +119,15 @@
       <div id="c16" class="clip cap full-mode" data-start="24.86" data-duration="1.38" data-track-index="5"><div class="in"><span class="s">and let's</span><span class="b i" style="font-size:150px">grow</span></div></div>
       <div id="c17" class="clip cap full-mode" data-start="26.24" data-duration="2.26" data-track-index="5"><div class="in"><span class="s">your brand</span><span class="b i">together.</span></div></div>
 
-      <!-- ===== End card (from reference) ===== -->
-      <video id="endcard" data-start="28.5" data-duration="3.5" data-track-index="10" src="assets/media/endcard.mp4" muted playsinline></video>
 
       <!-- ===== Film burns + light whoosh ===== -->
-      <video id="burn1" class="burn" data-start="11.25" data-duration="0.9" data-track-index="11" src="assets/media/burn1.mp4" muted playsinline></video>
-      <video id="burn2" class="burn" data-start="28.05" data-duration="0.9" data-track-index="11" src="assets/media/burn2.mp4" muted playsinline></video>
-      <audio id="whoosh1" data-start="11.25" data-duration="1.6" data-track-index="12" src="assets/media/whoosh.m4a" data-volume="0.55"></audio>
-      <audio id="whoosh2" data-start="28.05" data-duration="1.6" data-track-index="12" src="assets/media/whoosh.m4a" data-volume="0.55"></audio>
+      <video id="burn1" class="burn" data-start="11.167" data-duration="1.2" data-track-index="11" src="assets/media/burn1.mp4" muted playsinline></video>
+      <video id="burn2" class="burn" data-start="21.833" data-duration="1.6" data-track-index="11" src="assets/media/burn2.mp4" muted playsinline></video>
+      <audio id="whoosh1" data-start="11.2" data-duration="2.0" data-track-index="12" src="assets/media/whoosh.m4a" data-volume="0.55"></audio>
+      <audio id="whoosh2" data-start="22.2" data-duration="2.0" data-track-index="12" src="assets/media/whoosh.m4a" data-volume="0.55"></audio>
 
+      <div id="flash1" class="flash"></div>
+      <div id="flash2" class="flash"></div>
       <div id="fade"></div>
     </div>
 
@@ -168,10 +168,18 @@
       tl.fromTo("#inter .l2", { y: 60, opacity: 0, filter: "blur(14px)" }, { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.32, ease: "power3.out" }, 12.15);
       tl.fromTo("#goal-bg", { scale: 1.12 }, { scale: 1.0, duration: 1.3, ease: "power2.out" }, 11.7);
       // film burns: rise, peak on the cut, fall
-      [["#burn1", 11.25], ["#burn2", 28.05]].forEach(([id, t]) => {
-        tl.fromTo(id, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.in" }, t);
-        tl.to(id, { opacity: 0, duration: 0.45, ease: "power2.out" }, t + 0.45);
+      // film burn transitions: burn peaks exactly on the cut, warm flash at the peak
+      tl.fromTo("#burn1", { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "none" }, 11.167);
+      tl.to("#burn1", { opacity: 0, duration: 0.25, ease: "power1.out" }, 12.117);
+      tl.fromTo("#burn2", { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "none" }, 21.833);
+      tl.to("#burn2", { opacity: 0, duration: 0.55, ease: "power2.out" }, 22.833);
+      [["#flash1", 11.7], ["#flash2", 22.733]].forEach(([id, c]) => {
+        tl.fromTo(id, { opacity: 0 }, { opacity: 0.85, duration: 0.1, ease: "power2.in" }, c - 0.1);
+        tl.to(id, { opacity: 0, duration: 0.35, ease: "power2.out" }, c);
       });
+      tl.fromTo("#full-head, #cta-cut, #bh-url", { filter: "brightness(1.6)" }, { filter: "brightness(1)", duration: 0.5, ease: "power2.out" }, 22.733);
+      tl.fromTo("#goal-bg", { filter: "brightness(1.6)" }, { filter: "brightness(1)", duration: 0.5, ease: "power2.out" }, 11.7);
+      tl.to("#fade", { opacity: 1, duration: 0.45, ease: "power1.in" }, 28.05);
 
       // Gentle fade out at the very end
 
