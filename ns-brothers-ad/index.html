@@ -20,6 +20,14 @@
       .shadeTop { position: absolute; left: 0; right: 0; top: 0; height: 460px; background: linear-gradient(to bottom, rgba(0,0,0,.5), rgba(0,0,0,0)); }
       .shadeBot { position: absolute; left: 0; right: 0; bottom: 0; height: 820px; background: linear-gradient(to top, rgba(0,0,0,.6), rgba(0,0,0,0)); }
       .g { position: absolute; opacity: 0; }
+      @font-face { font-family: "BannerSans"; src: url("assets/fonts/LiberationSans-Bold.ttf") format("truetype"); font-weight: 700; }
+      /* shop banner (copy of the real board), bottom of frame for the whole video */
+      #banner { position: absolute; left: 20px; width: 1040px; top: 1676px; height: 166px; background: #fff; padding: 9px 0; box-shadow: 0 14px 34px rgba(0,0,0,.45); }
+      #banner .band { position: relative; height: 148px; background: #c4161c; border-top: 3px solid #8f0d12; border-bottom: 3px solid #8f0d12; }
+      #banner .side { position: absolute; top: 14px; width: 132px; height: 114px; background: #f7e21b; border-radius: 16px; color: #c4161c; font-family: "Baloo2", sans-serif; font-weight: 800; font-size: 40px; line-height: 1.02; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+      #banner .side.l { left: 14px; } #banner .side.r { right: 14px; }
+      #banner .name { position: absolute; left: 160px; right: 160px; top: 6px; text-align: center; font-family: "BannerSans", sans-serif; font-weight: 700; font-size: 78px; line-height: 1; color: #f7e21b; letter-spacing: 4px; -webkit-text-stroke: 1.5px #f7e21b; text-shadow: 2px 3px 0 #7a0a0e; white-space: nowrap; }
+      #banner .info { position: absolute; left: 150px; right: 150px; bottom: 12px; text-align: center; color: #fff; font-family: "Baloo2", sans-serif; font-weight: 700; font-size: 19.5px; line-height: 1; white-space: nowrap; letter-spacing: -.2px; }
       /* logo: whole video, top-right */
       #logo { position: absolute; top: 34px; right: 30px; width: 230px; filter: drop-shadow(0 6px 14px rgba(0,0,0,.55)); }
       /* sticker-style kicker (matches the logo) */
@@ -135,23 +143,23 @@
       </div>
 
       <!-- kickers -->
-      <div class="g kick" id="k1" style="top:300px"><span>सर्दियाँ आ गई हैं!</span><div class="sub">School Shopping की तैयारी</div></div>
-      <div class="g kick y" id="k2" style="top:300px"><span>Winter Uniform?</span><div class="sub">इधर-उधर भटकना बंद!</div></div>
-      <div class="g" id="bigLogo" style="left:330px;top:1330px;width:420px"><img src="assets/brand/logo.png" alt="" style="width:420px;filter:drop-shadow(0 20px 40px rgba(0,0,0,.6))" /></div>
-      <div class="g kick" id="k3" style="top:1060px"><span>School Uniform Collection</span></div>
+      <div class="g kick" id="k1" style="top:1400px"><span>सर्दियाँ आ गई हैं!</span><div class="sub">School Shopping की तैयारी</div></div>
+      <div class="g kick y" id="k2" style="top:1400px"><span>Winter Uniform?</span><div class="sub">इधर-उधर भटकना बंद!</div></div>
+      <div class="g" id="bigLogo" style="left:330px;top:960px;width:420px"><img src="assets/brand/logo.png" alt="" style="width:420px;filter:drop-shadow(0 20px 40px rgba(0,0,0,.6))" /></div>
+      <div class="g kick" id="k3" style="top:1400px"><span>School Uniform Collection</span></div>
       <div class="g tag" id="t1"><b>01</b><i>BLAZERS</i></div>
       <div class="g tag" id="t2"><b>02</b><i>FLEECE TRACKSUITS</i></div>
       <div class="g tag" id="t3"><b>03</b><i>SWEATERS</i></div>
       <div class="g tag" id="t4"><b>04</b><i>WINTER CAPS</i></div>
-      <div class="g kick y" id="k4" style="top:300px"><span>बेहतरीन कलेक्शन</span></div>
-      <div class="g kick" id="k5" style="top:300px"><span>DAV School हो या अन्य</span></div>
-      <div class="g kick y" id="k6" style="top:300px"><span>सब कुछ एक ही जगह!</span></div>
+      <div class="g kick y" id="k4" style="top:1400px"><span>बेहतरीन कलेक्शन</span></div>
+      <div class="g kick" id="k5" style="top:1400px"><span>DAV School हो या अन्य</span></div>
+      <div class="g kick y" id="k6" style="top:1400px"><span>सब कुछ एक ही जगह!</span></div>
       <div class="g check" id="chk" style="top:860px">
         <div class="row" id="c1"><div class="bx"><svg width="56" height="56" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="#111" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tx">बेहतरीन Quality</div></div>
         <div class="row" id="c2"><div class="bx"><svg width="56" height="56" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="#111" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tx">Comfortable Fabric</div></div>
         <div class="row" id="c3"><div class="bx"><svg width="56" height="56" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="#111" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tx">Smart Look</div></div>
       </div>
-      <div class="g kick y" id="k7" style="top:300px"><span>Location बिल्कुल आसान!</span></div>
+      <div class="g kick y" id="k7" style="top:1400px"><span>Location बिल्कुल आसान!</span></div>
       <div class="g addr" id="addr">
         <div class="hd"><svg width="58" height="58" viewBox="0 0 24 24"><path fill="#e30613" stroke="#fff" stroke-width="1.2" d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.6" fill="#fff"/></svg>NS Brothers, Gaya</div>
         <div class="ln" id="a1"><div class="dot"></div>Chandauti More, Gaya</div>
@@ -173,9 +181,9 @@
         <div class="chip" id="p4" style="left:660px;top:770px">Delha</div>
         <div class="chip" id="p5" style="left:60px;top:740px">A.P. Colony</div>
       </div>
-      <div class="g kick y" id="k8" style="top:1140px"><span>आसानी से पहुँचें!</span></div>
-      <div class="g kick" id="k9" style="top:300px"><span>School Shopping बनाइए आसान</span></div>
-      <div class="g kick y" id="k10" style="top:300px"><span>आज ही Visit करें!</span></div>
+      <div class="g kick y" id="k8" style="top:1400px"><span>आसानी से पहुँचें!</span></div>
+      <div class="g kick" id="k9" style="top:1400px"><span>School Shopping बनाइए आसान</span></div>
+      <div class="g kick y" id="k10" style="top:1400px"><span>आज ही Visit करें!</span></div>
       <div class="g addr" id="addr2" style="top:300px">
         <div class="hd"><svg width="58" height="58" viewBox="0 0 24 24"><path fill="#e30613" stroke="#fff" stroke-width="1.2" d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.6" fill="#fff"/></svg>NS Brothers</div>
         <div class="ln" id="b1"><div class="dot"></div>Near Punjab National Bank</div>
@@ -195,6 +203,14 @@
         <div class="tag2" id="oTag">Fashion for Every Generation!</div>
       </div>
 
+      <div id="banner">
+        <div class="band">
+          <div class="side l"><span>स्कूल</span><span>ड्रेस</span></div>
+          <div class="name">N.S. BROTHERS</div>
+          <div class="info">पता-चन्दौती मोड़, गया (पोस्ट ऑफिस के बगल में) &nbsp;Mob.:9470854055,7541854737,8797000468</div>
+          <div class="side r"><span>स्कूल</span><span>ड्रेस</span></div>
+        </div>
+      </div>
       <img id="logo" src="assets/brand/logo.png" alt="NS Brothers" />
       <div id="burn"><div class="l b1"></div><div class="l b2"></div><div class="l b3"></div></div>
       <div id="flash"></div>
@@ -275,6 +291,7 @@
       // ---- logo: whole video, top-right (hidden only during the big-logo outro) ----
       tl.fromTo("#logo", { opacity: 1, scale: 1 }, { opacity: 1, scale: 1, duration: 0.01 }, 0);
       tl.to("#logo", { opacity: 0, duration: 0.25 }, 69.05);
+      tl.fromTo("#banner", { opacity: 1 }, { opacity: 1, duration: 0.01 }, 0);
 
       // ---- P1 / P2 winter opener ----
       tl.fromTo("#k1", { opacity: 1, scale: 1.25 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.8)" }, 0);
