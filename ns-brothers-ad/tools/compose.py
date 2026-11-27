@@ -5,7 +5,7 @@ TOTAL = 72.0
 SRC = {"a1": "assets/ai/a1.mp4", "a2": "assets/ai/a2.mp4", "a3": "assets/ai/a3.mp4", "a4": "assets/ai/a4.mp4",
        "a5": "assets/ai/a5.mp4", "a6": "assets/ai/a6.mp4", "RB": "assets/real/blazer.mp4", "RS": "assets/real/store.mp4",
        "RJ": "assets/real/jacket.mp4", "RF": "assets/real/fleece.mp4", "W": "assets/real/reel.mp4",
-       "I19": "assets/img/blazer.jpg", "I17": "assets/img/fleece.jpg", "PNG": "assets/img/storefront.png", "RW": "assets/real/walk.mp4"}
+       "I19": "assets/img/blazer.jpg", "I17": "assets/img/fleece.jpg", "PNG": "assets/img/storefront.png", "RW": "assets/real/walk.mp4", "a3s": "assets/ai/a3_burst2_slow.mp4", "a5s": "assets/ai/a5_slow.mp4"}
 # (start, end, src, media_in, move)   move: zin | zout | pan | none | crop (reel: hide its burned-in sticker)
 SHOTS = [
     # (start, end, src, media_in, move[, playback_rate])  -- LS = lip-synced to the voiceover
@@ -15,8 +15,8 @@ SHOTS = [
     (5.30, 6.53, "a6", 5.17, "zin"),     # kids walking                     - इधर-उधर जाने की
     (6.53, 8.15, "a6", 6.42, "zin"),     # girl smiling                     - ज़रूरत नहीं
     (8.15, 8.58, "RS", 5.60, "none"),    # REAL: shop front (under burn 1)
-    (8.58, 9.50, "a3", 2.72, "none", 0.95),  # LS presenter                 - क्योंकि NS Brothers
-    (9.50, 10.45, "a4", 2.99, "none", 0.97), # LS presenter at the steps    - लेकर आया है
+    (8.58, 9.50, "a3s", 0.00, "none"),  # LS: his 4.48-5.30 burst      - क्योंकि NS Brothers
+    (9.50, 10.45, "a4", 2.54, "none"),       # LS: his 2.60-3.45 burst      - लेकर आया है
     (10.45, 12.75, "RW", 0.00, "none"),  # REAL: walking in through the door - शानदार School Uniform Collection
     (12.75, 15.15, "GFX", 0, "none"),    # product photo collage            - गर्म और stylish
     (15.15, 16.35, "RB", 1.20, "none"),  # REAL: blazer                     - Blazers
@@ -30,7 +30,8 @@ SHOTS = [
     (26.20, 27.50, "I19", 0, "zin"),     # REAL photo: blazer               - Quality
     (27.50, 28.75, "I17", 0, "zout"),    # REAL photo: fleece               - Comfortable Fabric
     (28.75, 30.25, "RB", 5.00, "none"),  # REAL: blazer front               - Smart Look
-    (30.25, 33.95, "a3", 4.26, "none", 0.93), # LS presenter at the shop     - सबसे खास बात, location आसान [BURN 2]
+    (30.25, 31.50, "a3", 2.36, "none"),      # LS: his 2.40-3.50 burst      - और सबसे खास बात [BURN 2]
+    (31.50, 33.95, "a3", 5.82, "punch"),     # LS: his 5.92-8.3 burst       - NS Brothers की लोकेशन है बिल्कुल आसान
     (33.95, 36.40, "PNG", 0, "zout"),    # REAL photo: storefront           - Chandauti More
     (36.40, 37.60, "W", 14.20, "crop"),  # REAL: shop exterior              - Military Hospital gate
     (37.60, 39.30, "W", 15.35, "crop"),  # REAL: the road                   - Medical College Road
@@ -46,7 +47,7 @@ SHOTS = [
     (59.70, 61.65, "RW", 10.40, "dim"),
     (61.65, 63.70, "RJ", 1.40, "dim"),
     (63.70, 65.75, "RB", 0.00, "dim"),
-    (65.75, 69.05, "a5", 0.52, "none", 1.15), # LS presenters thumbs up      - NS Brothers, Quality Style Trust [BURN 4]
+    (65.75, 69.05, "a5s", 0.00, "none"), # LS: talks 0.0-2.85         - NS Brothers, Quality Style Trust [BURN 4]
     (69.05, 72.00, "OUTRO", 0, "none"),  # logo outro                       - Fashion for Every Generation
 ]
 BURNS = [8.58, 30.25, 47.1, 65.75]
@@ -69,6 +70,8 @@ for k, row in enumerate(SHOTS, 1):
         cam.append(f'      tl.fromTo("#{w}", {{ scale: 1.0 }}, {{ scale: 1.12, duration: {d}, ease: "none" }}, {s});')
     elif mv == "zout":
         cam.append(f'      tl.fromTo("#{w}", {{ scale: 1.14 }}, {{ scale: 1.0, duration: {d}, ease: "none" }}, {s});')
+    elif mv == "punch":
+        cam.append(f'      tl.fromTo("#{w}", {{ scale: 1.16 }}, {{ scale: 1.2, duration: {d}, ease: "none" }}, {s});')
     elif mv == "crop":
         cam.append(f'      tl.fromTo("#{w}", {{ scale: 1.6 }}, {{ scale: 1.7, duration: {d}, ease: "none" }}, {s});')
     elif mv == "dim":
