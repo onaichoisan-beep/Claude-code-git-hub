@@ -5,14 +5,13 @@ TOTAL = 72.0
 SRC = {"a1": "assets/ai/a1.mp4", "a2": "assets/ai/a2.mp4", "a3": "assets/ai/a3.mp4", "a4": "assets/ai/a4.mp4",
        "a5": "assets/ai/a5.mp4", "a6": "assets/ai/a6.mp4", "RB": "assets/real/blazer.mp4", "RS": "assets/real/store.mp4",
        "RJ": "assets/real/jacket.mp4", "RF": "assets/real/fleece.mp4", "W": "assets/real/reel.mp4",
-       "I19": "assets/img/blazer.jpg", "I17": "assets/img/fleece.jpg", "PNG": "assets/img/storefront.png", "RW": "assets/real/walk.mp4", "a3s": "assets/ai/a3_burst2_slow.mp4", "a5s": "assets/ai/a5_slow.mp4"}
+       "I19": "assets/img/blazer.jpg", "I17": "assets/img/fleece.jpg", "PNG": "assets/img/storefront.png", "RW": "assets/real/walk.mp4", "a3s": "assets/ai/a3_burst2_slow.mp4", "a5s": "assets/ai/a5_slow.mp4", "a8s": "assets/ai/a8_opener_synced.mp4"}
 # (start, end, src, media_in, move)   move: zin | zout | pan | none | crop (reel: hide its burned-in sticker)
 SHOTS = [
     # (start, end, src, media_in, move[, playback_rate])  -- LS = lip-synced to the voiceover
-    (0.00, 2.00, "a6", 0.05, "zin"),     # kids in winter uniform           - सर्दियाँ आ गई हैं
-    (2.00, 4.15, "a2", 0.15, "zin"),     # mother puts cap on son           - school shopping की तैयारी
-    (4.15, 5.30, "a6", 3.13, "zout"),    # kids walking                     - लेकिन इस बार winter uniform
-    (5.30, 6.53, "a6", 5.17, "zin"),     # kids walking                     - इधर-उधर जाने की
+    (0.00, 4.15, "a8s", 0.00, "opener"),   # LS opener: presenters walk-and-talk (dead space + repeated line removed)
+    (4.15, 5.30, "a6", 0.05, "zout"),    # kids in winter uniform           - लेकिन इस बार winter uniform
+    (5.30, 6.53, "a2", 0.15, "zin"),     # mother puts cap on son           - इधर-उधर जाने की
     (6.53, 8.15, "a6", 6.42, "zin"),     # girl smiling                     - ज़रूरत नहीं
     (8.15, 8.58, "RS", 5.60, "none"),    # REAL: shop front (under burn 1)
     (8.58, 9.50, "a3s", 0.00, "none"),  # LS: his 4.48-5.30 burst      - क्योंकि NS Brothers
@@ -70,6 +69,8 @@ for k, row in enumerate(SHOTS, 1):
         cam.append(f'      tl.fromTo("#{w}", {{ scale: 1.0 }}, {{ scale: 1.12, duration: {d}, ease: "none" }}, {s});')
     elif mv == "zout":
         cam.append(f'      tl.fromTo("#{w}", {{ scale: 1.14 }}, {{ scale: 1.0, duration: {d}, ease: "none" }}, {s});')
+    elif mv == "opener":   # punch-in exactly where the repeated line was cut out (2.067s)
+        cam.append(f'      tl.set("#{w}", {{ scale: 1.0 }}, {s}); tl.set("#{w}", {{ scale: 1.15 }}, 2.067);')
     elif mv == "punch":
         cam.append(f'      tl.fromTo("#{w}", {{ scale: 1.16 }}, {{ scale: 1.2, duration: {d}, ease: "none" }}, {s});')
     elif mv == "crop":
