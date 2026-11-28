@@ -47,7 +47,8 @@
       #inter .l2 { position: absolute; left: 0; width: 100%; top: 1280px; text-shadow: 0 6px 30px rgba(0,0,0,0.75); text-align: center; color: #fff; font-weight: 800; font-size: 210px; letter-spacing: -0.06em; line-height: 1; }
       #inter .rule { position: absolute; left: 340px; top: 1090px; width: 400px; height: 6px; background: #fff; transform-origin: left center; }
 
-      .behind .word.neon { color: #ffe680; text-shadow: 0 0 6px #fff7cf, 0 0 16px #ffdc55, 0 0 34px #ffc400, 0 0 64px #ffab00, 0 0 110px rgba(255,160,0,0.6); }
+      .behind .word.neon { color: #ffffff; text-shadow: 0 6px 22px rgba(0,0,0,0.45); }
+      .behind .word.neon.w2 { color: #ffd54a; }
       #goal-bg { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 9; }
       .burn { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 15; mix-blend-mode: screen; opacity: 0; }
       .flash { position: absolute; inset: 0; z-index: 16; opacity: 0; background: radial-gradient(circle at 50% 45%, #fffaf0 0%, #ffd9a0 45%, #ff9a3c 100%); mix-blend-mode: screen; }
@@ -194,7 +195,7 @@
       <audio id="sfx-open" data-start="0.0" data-duration="0.9" data-media-start="0.15" data-track-index="12" src="assets/media/sfx/open.mp3" data-volume="0.29"></audio>
       <audio id="sfx-aus" data-start="1.2" data-duration="0.75" data-track-index="12" src="assets/media/sfx/whoosh3.mp3" data-volume="0.34"></audio>
       <audio id="sfx-cut1" data-start="2.45" data-duration="0.38" data-track-index="12" src="assets/media/sfx/click3.mp3" data-volume="0.34"></audio>
-      <audio id="sfx-neon" data-start="5.28" data-duration="1.06" data-track-index="12" src="assets/media/sfx/digital.mp3" data-volume="0.7"></audio>
+      <audio id="sfx-neon" data-start="5.36" data-duration="0.75" data-track-index="12" src="assets/media/sfx/whoosh3.mp3" data-volume="0.35"></audio>
       <audio id="sfx-stand" data-start="7.75" data-duration="0.82" data-track-index="12" src="assets/media/sfx/click4.mp3" data-volume="0.34"></audio>
       <audio id="sfx-edit" data-start="9.1" data-duration="1.75" data-track-index="12" src="assets/media/sfx/interface2.mp3" data-volume="0.22"></audio>
       <audio id="sfx-burn1" data-start="10.7" data-duration="2.33" data-track-index="12" src="assets/media/sfx/whoosh4.mp3" data-volume="0.45"></audio>
@@ -252,11 +253,9 @@
       // Text behind head: rise in, then slow drift (movement behind the head)
       tl.fromTo("#bh-aus .word", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, 1.4);
       tl.fromTo("#bh-aus .word", { x: 60 }, { x: -60, duration: 1.2, ease: "none" }, 1.4);
-      // neon flicker-on
-      [[0,0],[0.04,1],[0.09,0.15],[0.14,1],[0.2,0.35],[0.25,1]].forEach(([dt,o]) => {
-        tl.set("#bh-umm .w1", { opacity: o }, 5.533 + dt);
-        tl.set("#bh-umm .w2", { opacity: o }, 5.583 + dt);
-      });
+      // clean reveal (no glow): lines rise in, staggered
+      tl.fromTo("#bh-umm .w1", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.32, ease: "power3.out" }, 5.533);
+      tl.fromTo("#bh-umm .w2", { y: 70, opacity: 0 }, { y: 0, opacity: 1, duration: 0.34, ease: "power3.out" }, 5.6);
       tl.to("#bh-umm .w1", { x: 30, duration: 1.1, ease: "none" }, 5.83);
       tl.to("#bh-umm .w2", { x: -30, duration: 1.1, ease: "none" }, 5.83);
       tl.fromTo("#bh-url .word", { y: 70, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out", stagger: 0.08 }, 23.1);
