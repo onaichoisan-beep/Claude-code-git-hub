@@ -51,6 +51,21 @@
       #goal-bg { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 9; }
       .burn { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 15; mix-blend-mode: screen; opacity: 0; }
       .flash { position: absolute; inset: 0; z-index: 16; opacity: 0; background: radial-gradient(circle at 50% 45%, #fffaf0 0%, #ffd9a0 45%, #ff9a3c 100%); mix-blend-mode: screen; }
+      /* ---------- Motion graphics ---------- */
+      .mg { position: absolute; z-index: 7; font-family: "Poppins", sans-serif; color: #fff; }
+      .glass { background: rgba(18,18,18,0.42); border: 2px solid rgba(255,255,255,0.32); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 12px 40px rgba(0,0,0,0.35); }
+      .ico { position: absolute; width: 128px; height: 128px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+      .ico svg { width: 60px; height: 60px; }
+      .ring { position: absolute; left: 390px; top: 990px; width: 300px; height: 300px; border-radius: 50%; border: 7px solid #ffd54a; box-shadow: 0 0 30px rgba(255,200,0,0.6); }
+      .pill { display: inline-flex; align-items: center; gap: 18px; padding: 18px 34px 18px 20px; border-radius: 999px; font-weight: 800; font-size: 46px; letter-spacing: -0.03em; white-space: nowrap; }
+      .pill .dot { width: 64px; height: 64px; border-radius: 50%; background: #ffd54a; display: flex; align-items: center; justify-content: center; }
+      .pill .dot svg { width: 38px; height: 38px; }
+      .heart { position: absolute; width: 92px; height: 92px; }
+      .bubble { position: absolute; padding: 20px 30px; border-radius: 34px 34px 34px 8px; font-weight: 800; font-size: 40px; letter-spacing: -0.02em; white-space: nowrap; }
+      .corner { position: absolute; width: 110px; height: 110px; border: 0 solid #fff; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5)); }
+      .rec { position: absolute; display: flex; align-items: center; gap: 14px; font-weight: 800; font-size: 40px; letter-spacing: 0.02em; text-shadow: 0 2px 8px rgba(0,0,0,0.6); }
+      .rec .rdot { width: 30px; height: 30px; border-radius: 50%; background: #ff3b30; box-shadow: 0 0 16px #ff3b30; }
+      #mg-grow svg { position: absolute; inset: 0; }
       #fade { position: absolute; inset: 0; z-index: 20; background: #000; opacity: 0; pointer-events: none; }
     </style>
   </head>
@@ -94,9 +109,46 @@
           <div class="word w2" style="top:292px;font-size:84px;font-style:italic;letter-spacing:-0.03em">visit</div>
         </div>
         <video id="cta-cut" data-start="23.1" data-duration="1.76" data-media-start="0.367" data-track-index="3" src="assets/media/cta-cut.webm" muted playsinline></video>
+        <div id="mg-grow" class="clip behind" data-start="24.86" data-duration="3.64" data-track-index="2">
+          <svg width="1080" height="1920" viewBox="0 0 1080 1920" style="filter:drop-shadow(0 0 14px rgba(255,200,0,0.85)) drop-shadow(0 0 40px rgba(255,170,0,0.5))">
+            <path id="grow-line" d="M60 1010 L300 880 L440 930 L640 650 L790 700 L960 360" fill="none" stroke="#ffd54a" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+            <path id="grow-arrow" d="M960 360 l-82 22 m82 -22 l-12 84" fill="none" stroke="#ffd54a" stroke-width="18" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <video id="cut-grow" data-start="24.86" data-duration="3.64" data-media-start="2.127" data-track-index="3" src="assets/media/cta-cut.webm" muted playsinline style="position:absolute;inset:0;width:1080px;height:1920px;z-index:3"></video>
         <div class="fwrap" id="w-b3"><video id="b3" data-start="15.567" data-duration="1.533" data-track-index="4" src="assets/media/b3-attention.mp4" muted playsinline></video></div>
         <div class="fwrap" id="w-b4"><video id="b4" data-start="17.1" data-duration="1.7" data-track-index="4" src="assets/media/b4-connect.mp4" muted playsinline></video></div>
         <div class="fwrap" id="w-b5"><video id="b5" data-start="21.0" data-duration="1.733" data-track-index="4" src="assets/media/b5-camera.mp4" muted playsinline></video></div>
+      </div>
+
+      <!-- ===== Motion graphics (topic-matched) ===== -->
+      <div id="mg-social" class="clip mg" data-start="4.22" data-duration="1.313" data-track-index="6" style="inset:0">
+        <div class="ico glass" style="left:96px;top:390px"><svg viewBox="0 0 24 24"><path fill="#fff" d="M12 21s-7.2-4.6-9.6-9.1C.7 8.4 2.7 4.5 6.4 4.5c2.2 0 3.6 1.2 4.6 2.7h2c1-1.5 2.4-2.7 4.6-2.7 3.7 0 5.7 3.9 4 7.4C19.2 16.4 12 21 12 21z"/></svg></div>
+        <div class="ico glass" style="left:856px;top:440px"><svg viewBox="0 0 24 24"><path fill="#fff" d="M4 3.5h16a2.5 2.5 0 0 1 2.5 2.5v10a2.5 2.5 0 0 1-2.5 2.5H10l-5.5 4v-4H4A2.5 2.5 0 0 1 1.5 16V6A2.5 2.5 0 0 1 4 3.5z"/></svg></div>
+        <div class="ico glass" style="left:80px;top:760px"><svg viewBox="0 0 24 24"><path fill="#fff" d="M7 4.5v15l13-7.5z"/></svg></div>
+        <div class="ico glass" style="left:870px;top:820px"><svg viewBox="0 0 24 24"><path fill="#fff" d="M2 21.5 23 12 2 2.5v7.4L16.5 12 2 14.1z"/></svg></div>
+      </div>
+      <div id="mg-rings" class="clip mg" data-start="8.0" data-duration="0.78" data-track-index="6" style="inset:0">
+        <div class="ring r1"></div><div class="ring r2"></div>
+      </div>
+      <div id="mg-pro" class="clip mg" data-start="14.2" data-duration="1.367" data-track-index="6" style="left:60px;top:372px">
+        <div class="pill glass" style="font-size:40px;padding:14px 28px 14px 16px"><span class="dot"><svg viewBox="0 0 24 24"><path fill="none" stroke="#111" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Professional</div>
+      </div>
+      <div id="mg-views" class="clip mg" data-start="15.567" data-duration="1.533" data-track-index="6" style="left:0;top:330px;width:1080px;text-align:center">
+        <div class="pill glass"><span class="dot"><svg viewBox="0 0 24 24"><path fill="#111" d="M12 5C6.5 5 2.4 9.6 1.3 12c1.1 2.4 5.2 7 10.7 7s9.6-4.6 10.7-7C21.6 9.6 17.5 5 12 5zm0 11.2a4.2 4.2 0 1 1 0-8.4 4.2 4.2 0 0 1 0 8.4z"/></svg></span><span id="views-n">0</span>&nbsp;views <span style="color:#ffd54a">&#8593;</span></div>
+      </div>
+      <div id="mg-connect" class="clip mg" data-start="17.1" data-duration="1.7" data-track-index="6" style="inset:0">
+        <div class="h" style="position:absolute;left:830px;top:1180px;width:92px;height:92px"><svg class="heart" viewBox="0 0 24 24" style="filter:drop-shadow(0 4px 12px rgba(255,60,90,0.6))"><path fill="#ff3d6e" d="M12 21s-7.2-4.6-9.6-9.1C.7 8.4 2.7 4.5 6.4 4.5c2.2 0 3.6 1.2 4.6 2.7h2c1-1.5 2.4-2.7 4.6-2.7 3.7 0 5.7 3.9 4 7.4C19.2 16.4 12 21 12 21z"/></svg></div><div class="h" style="position:absolute;left:900px;top:1180px;width:92px;height:92px"><svg class="heart" viewBox="0 0 24 24" style="filter:drop-shadow(0 4px 12px rgba(255,60,90,0.6))"><path fill="#ff3d6e" d="M12 21s-7.2-4.6-9.6-9.1C.7 8.4 2.7 4.5 6.4 4.5c2.2 0 3.6 1.2 4.6 2.7h2c1-1.5 2.4-2.7 4.6-2.7 3.7 0 5.7 3.9 4 7.4C19.2 16.4 12 21 12 21z"/></svg></div><div class="h" style="position:absolute;left:790px;top:1180px;width:92px;height:92px"><svg class="heart" viewBox="0 0 24 24" style="filter:drop-shadow(0 4px 12px rgba(255,60,90,0.6))"><path fill="#ff3d6e" d="M12 21s-7.2-4.6-9.6-9.1C.7 8.4 2.7 4.5 6.4 4.5c2.2 0 3.6 1.2 4.6 2.7h2c1-1.5 2.4-2.7 4.6-2.7 3.7 0 5.7 3.9 4 7.4C19.2 16.4 12 21 12 21z"/></svg></div><div class="h" style="position:absolute;left:930px;top:1180px;width:92px;height:92px"><svg class="heart" viewBox="0 0 24 24" style="filter:drop-shadow(0 4px 12px rgba(255,60,90,0.6))"><path fill="#ff3d6e" d="M12 21s-7.2-4.6-9.6-9.1C.7 8.4 2.7 4.5 6.4 4.5c2.2 0 3.6 1.2 4.6 2.7h2c1-1.5 2.4-2.7 4.6-2.7 3.7 0 5.7 3.9 4 7.4C19.2 16.4 12 21 12 21z"/></svg></div><div class="h" style="position:absolute;left:860px;top:1180px;width:92px;height:92px"><svg class="heart" viewBox="0 0 24 24" style="filter:drop-shadow(0 4px 12px rgba(255,60,90,0.6))"><path fill="#ff3d6e" d="M12 21s-7.2-4.6-9.6-9.1C.7 8.4 2.7 4.5 6.4 4.5c2.2 0 3.6 1.2 4.6 2.7h2c1-1.5 2.4-2.7 4.6-2.7 3.7 0 5.7 3.9 4 7.4C19.2 16.4 12 21 12 21z"/></svg></div><div class="h" style="position:absolute;left:820px;top:1180px;width:92px;height:92px"><svg class="heart" viewBox="0 0 24 24" style="filter:drop-shadow(0 4px 12px rgba(255,60,90,0.6))"><path fill="#ff3d6e" d="M12 21s-7.2-4.6-9.6-9.1C.7 8.4 2.7 4.5 6.4 4.5c2.2 0 3.6 1.2 4.6 2.7h2c1-1.5 2.4-2.7 4.6-2.7 3.7 0 5.7 3.9 4 7.4C19.2 16.4 12 21 12 21z"/></svg></div>
+        <div class="bubble glass b1" style="left:80px;top:560px">Love this!</div>
+        <div class="bubble glass b2" style="left:120px;top:720px">Where can I order?</div>
+      </div>
+      <div id="mg-rec" class="clip mg" data-start="21.0" data-duration="1.733" data-track-index="6" style="inset:0">
+        <div class="corner" style="left:72px;top:282px;border-top-width:8px;border-left-width:8px"></div>
+        <div class="corner" style="left:898px;top:282px;border-top-width:8px;border-right-width:8px"></div>
+        <div class="corner" style="left:72px;top:1150px;border-bottom-width:8px;border-left-width:8px"></div>
+        <div class="corner" style="left:898px;top:1150px;border-bottom-width:8px;border-right-width:8px"></div>
+        <div class="rec" style="left:112px;top:322px"><span class="rdot"></span>REC</div>
+        <div class="rec" style="left:690px;top:322px"><span id="rec-tc">00:00:00</span></div>
       </div>
 
       <!-- ===== Captions ===== -->
@@ -151,6 +203,14 @@
       <audio id="sfx-back2" data-start="18.6" data-duration="0.75" data-track-index="14" src="assets/media/sfx/whoosh3.mp3" data-volume="0.4"></audio>
       <audio id="sfx-grow" data-start="24.61" data-duration="0.82" data-track-index="14" src="assets/media/sfx/click4.mp3" data-volume="0.5"></audio>
       <audio id="sfx-together" data-start="26.14" data-duration="1.37" data-track-index="14" src="assets/media/sfx/clickrev.mp3" data-volume="0.45"></audio>
+      <audio id="sfx-soc1" data-start="4.07" data-duration="0.38" data-track-index="17" src="assets/media/sfx/click3all.mp3" data-volume="0.3"></audio>
+      <audio id="sfx-soc2" data-start="4.2" data-duration="0.38" data-track-index="17" src="assets/media/sfx/click3all.mp3" data-volume="0.3"></audio>
+      <audio id="sfx-soc3" data-start="4.33" data-duration="0.38" data-track-index="17" src="assets/media/sfx/click3all.mp3" data-volume="0.3"></audio>
+      <audio id="sfx-soc4" data-start="4.46" data-duration="0.38" data-track-index="17" src="assets/media/sfx/click3all.mp3" data-volume="0.3"></audio>
+      <audio id="sfx-pro-badge" data-start="13.55" data-duration="0.9" data-track-index="17" src="assets/media/sfx/clickshort.mp3" data-volume="0.5"></audio>
+      <audio id="sfx-views" data-start="15.55" data-duration="0.82" data-track-index="17" src="assets/media/sfx/count.mp3" data-volume="0.45"></audio>
+      <audio id="sfx-hearts" data-start="16.95" data-duration="0.9" data-track-index="17" src="assets/media/sfx/open.mp3" data-volume="0.4"></audio>
+      <audio id="sfx-grow-line" data-start="24.46" data-duration="2.02" data-track-index="17" src="assets/media/sfx/granular2.mp3" data-volume="0.35"></audio>
 
       <div id="flash1" class="flash"></div>
       <div id="flash2" class="flash"></div>
@@ -213,6 +273,33 @@
       tl.to("#fade", { opacity: 1, duration: 0.45, ease: "power1.in" }, 28.05);
 
       // Gentle fade out at the very end
+
+      // ---------- Motion graphics ----------
+      tl.fromTo("#mg-social .ico", { scale: 0, rotation: -20 }, { scale: 1, rotation: 0, duration: 0.32, ease: "back.out(2.2)", stagger: 0.13 }, 4.22);
+      tl.to("#mg-social .ico", { y: -24, duration: 1.0, ease: "sine.inOut", stagger: 0.13 }, 4.5);
+      tl.fromTo("#mg-rings .ring", { scale: 0.45, opacity: 1 }, { scale: 1.9, opacity: 0, duration: 0.6, ease: "power2.out", stagger: 0.16 }, 8.0);
+      tl.fromTo("#mg-pro .pill", { x: -90, opacity: 0, scale: 0.9 }, { x: 0, opacity: 1, scale: 1, duration: 0.32, ease: "back.out(1.8)" }, 14.2);
+      tl.fromTo("#mg-pro .dot", { scale: 0 }, { scale: 1, duration: 0.3, ease: "back.out(2.5)" }, 14.32);
+      tl.fromTo("#mg-views .pill", { y: -40, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.3, ease: "back.out(1.8)" }, 15.6);
+      const vn = document.getElementById("views-n"), cnt = { v: 0 };
+      const fmt = (v) => v >= 1e6 ? (v / 1e6).toFixed(1) + "M" : v >= 1e3 ? Math.round(v / 1e3) + "K" : Math.round(v) + "";
+      tl.fromTo(cnt, { v: 0 }, { v: 1.2e6, duration: 1.1, ease: "power2.out", onUpdate: () => { vn.textContent = fmt(cnt.v); } }, 15.7);
+      document.querySelectorAll("#mg-connect .h").forEach((h, i) => {
+        const t0 = 17.15 + i * 0.2;
+        tl.fromTo(h, { y: 0, x: 0, scale: 0.5, opacity: 0 }, { y: -720, x: (i % 2 ? 1 : -1) * 60, scale: 1.15, opacity: 1, duration: 1.3, ease: "power1.out" }, t0);
+        tl.to(h, { opacity: 0, duration: 0.3 }, t0 + 1.0);
+      });
+      tl.fromTo("#mg-connect .b1", { scale: 0, transformOrigin: "0% 100%" }, { scale: 1, duration: 0.3, ease: "back.out(2)" }, 17.25);
+      tl.fromTo("#mg-connect .b2", { scale: 0, transformOrigin: "0% 100%" }, { scale: 1, duration: 0.3, ease: "back.out(2)" }, 17.7);
+      tl.fromTo("#mg-rec .corner", { scale: 1.25, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.28, ease: "power3.out" }, 21.0);
+      tl.fromTo("#mg-rec .rec", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 21.1);
+      for (let k = 0; k < 4; k++) { tl.set("#mg-rec .rdot", { opacity: 0 }, 21.4 + k * 0.4); tl.set("#mg-rec .rdot", { opacity: 1 }, 21.6 + k * 0.4); }
+      const tc = document.getElementById("rec-tc"), clk = { f: 0 };
+      tl.fromTo(clk, { f: 0 }, { f: 52, duration: 1.733, ease: "none", onUpdate: () => { const f = Math.floor(clk.f); tc.textContent = "00:00:" + String(Math.floor(f / 30)).padStart(2, "0") + ":" + String(f % 30).padStart(2, "0"); } }, 21.0);
+      const gl = document.getElementById("grow-line"), L = gl.getTotalLength();
+      gl.style.strokeDasharray = L; gl.style.strokeDashoffset = L;
+      tl.fromTo(gl, { strokeDashoffset: L }, { strokeDashoffset: 0, duration: 1.0, ease: "power2.inOut" }, 24.95);
+      tl.fromTo("#grow-arrow", { opacity: 0, scale: 0.4, transformOrigin: "960px 360px" }, { opacity: 1, scale: 1, duration: 0.25, ease: "back.out(2)" }, 25.9);
 
       window.__timelines["main"] = tl;
       tl.seek(0);
