@@ -82,8 +82,8 @@
       <!-- ===== Interstitial (11.7 - 13.0s): dartboard + kinetic type ===== -->
       <video id="goal-bg" data-start="11.7" data-duration="1.3" data-track-index="8" src="assets/media/goal-bg.mp4" muted playsinline></video>
       <div id="inter" class="clip" data-start="11.7" data-duration="1.3" data-track-index="9">
-        <div class="l1">Our goal</div>
-        <div class="l2">is simple.</div>
+        <div class="l1" data-tw="11.78,0.04">Our goal</div>
+        <div class="l2" data-tw="12.17,0.04">is simple.</div>
       </div>
 
       <!-- ===== PART 2 (13.0 - 28.5s): full frame ===== -->
@@ -114,8 +114,8 @@
       <div id="c11" class="clip cap full-mode" data-start="15.567" data-duration="1.533" data-track-index="5"><div class="in"><span class="s">capture</span><span class="b">attention,</span></div></div>
       <div id="c12" class="clip cap full-mode" data-start="17.1" data-duration="1.7" data-track-index="5"><div class="in"><span class="s">and connect with</span><span class="b" style="font-size:108px">your customer.</span></div></div>
       <div id="c13" class="clip cap full-mode" data-start="18.8" data-duration="2.2" data-track-index="5"><div class="in"><span class="s">You focus on</span><span class="b" style="font-size:108px">your business,</span></div></div>
-      <div id="c14" class="clip cap full-mode" data-start="21.0" data-duration="1.733" data-track-index="5"><div class="in"><span class="s">let us handle</span><span class="b">the content.</span></div></div>
-      <div id="c15" class="clip cap full-mode" data-start="22.733" data-duration="2.127" data-track-index="5"><div class="in"><span class="s" style="font-size:76px">UMMGrowth.com</span></div></div>
+      <div id="c14" class="clip cap full-mode tw" data-start="21.0" data-duration="1.733" data-track-index="5"><div class="in"><span class="s" data-tw="21.04,0.055">let us handle</span><span class="b" data-tw="21.85,0.05">the content.</span></div></div>
+      <div id="c15" class="clip cap full-mode tw" data-start="22.733" data-duration="2.127" data-track-index="5"><div class="in"><span class="s" style="font-size:76px"><span data-tw="23.16,0.075">UMMGrowth</span><span data-tw="24.06,0.08">.com</span></span></div></div>
       <div id="c16" class="clip cap full-mode" data-start="24.86" data-duration="1.38" data-track-index="5"><div class="in"><span class="s">and let's</span><span class="b i" style="font-size:150px">grow</span></div></div>
       <div id="c17" class="clip cap full-mode" data-start="26.24" data-duration="2.26" data-track-index="5"><div class="in"><span class="s">your brand</span><span class="b i">together.</span></div></div>
 
@@ -132,12 +132,13 @@
       <audio id="sfx-stand" data-start="7.75" data-duration="0.82" data-track-index="12" src="assets/media/sfx/click4.mp3" data-volume="0.49"></audio>
       <audio id="sfx-edit" data-start="9.1" data-duration="1.75" data-track-index="12" src="assets/media/sfx/interface2.mp3" data-volume="0.31"></audio>
       <audio id="sfx-burn1" data-start="10.7" data-duration="2.33" data-track-index="12" src="assets/media/sfx/whoosh4.mp3" data-volume="0.6"></audio>
-      <audio id="sfx-simple" data-start="12.05" data-duration="1.37" data-track-index="12" src="assets/media/sfx/clickrev.mp3" data-volume="0.45"></audio>
+      <audio id="sfx-tw-goal" data-start="11.7" data-duration="2.7" data-track-index="15" src="assets/media/sfx/tw-goal.mp3" data-volume="0.7"></audio>
       <audio id="sfx-attn" data-start="15.12" data-duration="0.96" data-track-index="12" src="assets/media/sfx/whoosh2.mp3" data-volume="0.49"></audio>
       <audio id="sfx-hand" data-start="16.6" data-duration="0.96" data-track-index="12" src="assets/media/sfx/whoosh5.mp3" data-volume="0.39"></audio>
       <audio id="sfx-cam" data-start="20.9" data-duration="1.2" data-media-start="1.0" data-track-index="12" src="assets/media/sfx/click2.mp3" data-volume="0.49"></audio>
       <audio id="sfx-burn2" data-start="21.68" data-duration="1.9" data-track-index="12" src="assets/media/sfx/whoosh6.mp3" data-volume="0.6"></audio>
-      <audio id="sfx-url" data-start="22.95" data-duration="1.06" data-track-index="12" src="assets/media/sfx/text4.mp3" data-volume="0.56"></audio>
+      <audio id="sfx-tw-content" data-start="21.0" data-duration="2.35" data-track-index="15" src="assets/media/sfx/tw-content.mp3" data-volume="0.7"></audio>
+      <audio id="sfx-tw-url" data-start="23.0" data-duration="2.28" data-track-index="16" src="assets/media/sfx/tw-url.mp3" data-volume="0.7"></audio>
       <audio id="sfx-boom-neon" data-start="5.533" data-duration="1.4" data-track-index="13" src="assets/media/sfx/boom.mp3" data-volume="0.55"></audio>
       <audio id="sfx-boom1" data-start="11.7" data-duration="1.4" data-track-index="13" src="assets/media/sfx/boom.mp3" data-volume="0.8"></audio>
       <audio id="sfx-boom2" data-start="22.733" data-duration="1.4" data-track-index="13" src="assets/media/sfx/boom.mp3" data-volume="0.8"></audio>
@@ -164,7 +165,7 @@
       tl.fromTo("#card", { y: 40, scale: 0.97, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.45, ease: "power3.out" }, 0);
 
       // Caption pop-ins (bold, quick, premium)
-      document.querySelectorAll(".cap").forEach((el) => {
+      document.querySelectorAll(".cap:not(.tw)").forEach((el) => {
         const t = parseFloat(el.dataset.start);
         const lines = el.querySelectorAll(".s, .b");
         tl.fromTo(lines, { y: 34, opacity: 0, scale: 0.92 }, { y: 0, opacity: 1, scale: 1, duration: 0.22, ease: "power3.out", stagger: 0.06 }, t);
@@ -189,8 +190,15 @@
       });
 
       // Interstitial kinetic type
-      tl.fromTo("#inter .l1", { y: 40, opacity: 0, filter: "blur(10px)" }, { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 11.75);
-      tl.fromTo("#inter .l2", { y: 60, opacity: 0, filter: "blur(14px)" }, { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.32, ease: "power3.out" }, 12.15);
+      // Typewriter reveals: one character per keystroke, synced to the typewriter SFX tracks
+      document.querySelectorAll("[data-tw]").forEach((el) => {
+        const [st, step] = el.dataset.tw.split(",").map(Number);
+        const txt = el.textContent; el.textContent = "";
+        [...txt].forEach((ch, i) => {
+          const c = document.createElement("span"); c.textContent = ch; c.style.opacity = "0"; el.appendChild(c);
+          tl.set(c, { opacity: 1 }, st + i * step);
+        });
+      });
       tl.fromTo("#goal-bg", { scale: 1.12 }, { scale: 1.0, duration: 1.3, ease: "power2.out" }, 11.7);
       // film burns: rise, peak on the cut, fall
       // film burn transitions: burn peaks exactly on the cut, warm flash at the peak
