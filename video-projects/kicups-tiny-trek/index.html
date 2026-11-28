@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="assets/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; }
+      .shot { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 1; }
+      /* Reference (Basil) style: small yellow-green bold italic captions with a dark outline, one fixed spot inside Meta safe area */
+      .cap {
+        position: absolute; z-index: 5; left: 65px; width: 950px; top: 1168px; text-align: center;
+        font-family: "Poppins", Inter, sans-serif; font-weight: 700; font-style: italic; font-size: 50px; line-height: 1.15;
+        letter-spacing: -0.01em; color: #e4f45a;
+        -webkit-text-stroke: 7px #111; paint-order: stroke fill;
+        text-shadow: 0 3px 8px rgba(0,0,0,0.45);
+      }
+      /* Brand wordmark, top-right like the reference logo (placeholder until the real Kicups logo file arrives) */
+      #logo {
+        position: absolute; z-index: 6; right: 70px; top: 282px;
+        font-family: "Poppins", sans-serif; font-weight: 800; font-size: 46px; letter-spacing: -0.03em; color: #fff;
+        text-shadow: 0 2px 6px rgba(0,0,0,0.55), 0 0 2px rgba(0,0,0,0.6);
+      }
+      /* Product callouts like the reference's "600ML" + hand-drawn arrow */
+      .callout { position: absolute; inset: 0; z-index: 4; }
+      .ctext {
+        position: absolute; font-family: "Poppins", sans-serif; font-weight: 800; font-style: italic; font-size: 64px;
+        letter-spacing: -0.02em; color: #fff; white-space: nowrap;
+        -webkit-text-stroke: 6px rgba(0,0,0,0.85); paint-order: stroke fill; text-shadow: 0 3px 10px rgba(0,0,0,0.5);
+      }
+      .carrow { position: absolute; width: 130px; height: 100px; filter: drop-shadow(0 0 3px rgba(0,0,0,0.9)); }
+      .carrow svg { width: 100%; height: 100%; }
+      /* End card like the reference's brand card + SHOP NOW */
+      #endcard { position: absolute; inset: 0; z-index: 8; background: #d7262b; }
+      #endcard .wm { position: absolute; left: 0; width: 1080px; top: 720px; text-align: center; font-family: "Poppins", sans-serif;
+        font-weight: 800; font-size: 150px; letter-spacing: -0.05em; color: #fff; line-height: 1; }
+      #endcard .sub { position: absolute; left: 0; width: 1080px; top: 900px; text-align: center; font-family: "Poppins", sans-serif;
+        font-weight: 600; font-size: 44px; color: #fff; }
+      #endcard .btn { position: absolute; left: 340px; width: 400px; top: 1010px; height: 96px; border-radius: 48px; border: 5px solid #fff;
+        font-family: "Poppins", sans-serif; font-weight: 800; font-size: 40px; line-height: 86px; text-align: center; color: #fff; }
+      #endcard .btn.fill { background: #fff; color: #d7262b; opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="38.6" data-width="1080" data-height="1920">
+      <!-- One mixed audio track: cleaned VO takes + her on-camera sound (IMG_5220, IMG_5226) + upbeat bed -->
+      <audio id="mix" data-start="0" data-duration="38.6" data-track-index="3" src="assets/mix.m4a" data-volume="1"></audio>
+
+      <!-- Shots: straight cuts, one per line (see edit-data/plan.tsv) -->
+      <video id="b01" class="shot" data-start="0.0" data-duration="1.667" data-track-index="1" src="assets/clips/b01.mp4" muted playsinline></video>
+      <video id="b02" class="shot" data-start="1.667" data-duration="2.433" data-track-index="1" src="assets/clips/b02.mp4" muted playsinline></video>
+      <video id="b03" class="shot" data-start="4.1" data-duration="2.567" data-track-index="1" src="assets/clips/b03.mp4" muted playsinline></video>
+      <video id="b04" class="shot" data-start="6.667" data-duration="1.666" data-track-index="1" src="assets/clips/b04.mp4" muted playsinline></video>
+      <video id="b05" class="shot" data-start="8.333" data-duration="1.267" data-track-index="1" src="assets/clips/b05.mp4" muted playsinline></video>
+      <video id="b06" class="shot" data-start="9.6" data-duration="1.400" data-track-index="1" src="assets/clips/b06.mp4" muted playsinline></video>
+      <video id="b07" class="shot" data-start="11.0" data-duration="1.300" data-track-index="1" src="assets/clips/b07.mp4" muted playsinline></video>
+      <video id="b08" class="shot" data-start="12.3" data-duration="1.600" data-track-index="1" src="assets/clips/b08.mp4" muted playsinline></video>
+      <video id="b09" class="shot" data-start="13.9" data-duration="2.467" data-track-index="1" src="assets/clips/b09.mp4" muted playsinline></video>
+      <video id="b10" class="shot" data-start="16.367" data-duration="1.100" data-track-index="1" src="assets/clips/b10.mp4" muted playsinline></video>
+      <video id="b11" class="shot" data-start="17.467" data-duration="2.066" data-track-index="1" src="assets/clips/b11.mp4" muted playsinline></video>
+      <video id="b12" class="shot" data-start="19.533" data-duration="2.400" data-track-index="1" src="assets/clips/b12.mp4" muted playsinline></video>
+      <video id="b13" class="shot" data-start="21.933" data-duration="1.534" data-track-index="1" src="assets/clips/b13.mp4" muted playsinline></video>
+      <video id="b14" class="shot" data-start="23.467" data-duration="1.533" data-track-index="1" src="assets/clips/b14.mp4" muted playsinline></video>
+      <video id="f01" class="shot" data-start="25.0" data-duration="5.000" data-track-index="1" src="assets/clips/f01.mp4" muted playsinline></video>
+      <video id="f02" class="shot" data-start="30.0" data-duration="6.600" data-track-index="1" src="assets/clips/f02.mp4" muted playsinline></video>
+
+      <div id="logo" class="clip" data-start="0" data-duration="36.6" data-track-index="6">kicups</div>
+
+      <div id="co-light" class="clip callout" data-start="6.667" data-duration="1.666" data-track-index="4">
+        <div class="ctext" style="left:90px;top:330px">LIGHTWEIGHT</div>
+        <div class="carrow" style="left:170px;top:410px;transform:scaleX(-1)"><svg viewBox="0 0 120 90"><path d="M10 12 C 60 4, 98 28, 100 74" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/><path d="M84 60 L100 78 L113 56" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+      <div id="co-handle" class="clip callout" data-start="8.333" data-duration="1.267" data-track-index="4">
+        <div class="ctext" style="left:90px;top:300px">EASY HANDLE</div>
+        <div class="carrow" style="left:420px;top:370px;"><svg viewBox="0 0 120 90"><path d="M10 12 C 60 4, 98 28, 100 74" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/><path d="M84 60 L100 78 L113 56" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+      <div id="co-tag" class="clip callout" data-start="21.933" data-duration="1.534" data-track-index="4">
+        <div class="ctext" style="left:90px;top:640px">LUGGAGE TAG</div>
+        <div class="carrow" style="left:330px;top:720px;"><svg viewBox="0 0 120 90"><path d="M10 12 C 60 4, 98 28, 100 74" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/><path d="M84 60 L100 78 L113 56" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+
+      <!-- Captions -->
+      <div id="cap-01" class="clip cap" data-start="0.0" data-duration="1.667" data-track-index="2">Same bag, same goal:</div>
+      <div id="cap-02" class="clip cap" data-start="1.667" data-duration="1.166" data-track-index="2">bina kuch bhoole,</div>
+      <div id="cap-03" class="clip cap" data-start="2.833" data-duration="1.267" data-track-index="2">sab saath le jaana.</div>
+      <div id="cap-04" class="clip cap" data-start="4.1" data-duration="1.167" data-track-index="2">Yeh Kicups Tiny Trek</div>
+      <div id="cap-05" class="clip cap" data-start="5.267" data-duration="1.400" data-track-index="2">carry karna easy hai,</div>
+      <div id="cap-06" class="clip cap" data-start="6.667" data-duration="1.033" data-track-index="2">aur lightweight design</div>
+      <div id="cap-07" class="clip cap" data-start="7.7" data-duration="0.633" data-track-index="2">ke saath</div>
+      <div id="cap-08" class="clip cap" data-start="8.333" data-duration="0.767" data-track-index="2">iska handle</div>
+      <div id="cap-09" class="clip cap" data-start="9.1" data-duration="1.033" data-track-index="2">ise super convenient</div>
+      <div id="cap-10" class="clip cap" data-start="10.133" data-duration="0.867" data-track-index="2">banata hai.</div>
+      <div id="cap-11" class="clip cap" data-start="11.0" data-duration="1.200" data-track-index="2">Aur mere liye bhi,</div>
+      <div id="cap-12" class="clip cap" data-start="12.2" data-duration="1.700" data-track-index="2">wahi Tiny Trek.</div>
+      <div id="cap-13" class="clip cap" data-start="13.9" data-duration="1.133" data-track-index="2">Kyunki apparently,</div>
+      <div id="cap-14" class="clip cap" data-start="15.033" data-duration="1.334" data-track-index="2">mom banke travel,</div>
+      <div id="cap-15" class="clip cap" data-start="16.367" data-duration="1.066" data-track-index="2">picnic ya classes</div>
+      <div id="cap-16" class="clip cap" data-start="17.433" data-duration="0.767" data-track-index="2">ka saaman</div>
+      <div id="cap-17" class="clip cap" data-start="18.2" data-duration="1.333" data-track-index="2">carry karne ke liye</div>
+      <div id="cap-18" class="clip cap" data-start="19.533" data-duration="1.134" data-track-index="2">kaafi jagah</div>
+      <div id="cap-19" class="clip cap" data-start="20.667" data-duration="1.266" data-track-index="2">chahiye hoti hai.</div>
+      <div id="cap-20" class="clip cap" data-start="21.933" data-duration="1.167" data-track-index="2">Upar se iska</div>
+      <div id="cap-21" class="clip cap" data-start="23.1" data-duration="0.700" data-track-index="2">luggage tag bhi</div>
+      <div id="cap-22" class="clip cap" data-start="23.8" data-duration="1.200" data-track-index="2">saath aata hai.</div>
+      <div id="cap-23" class="clip cap" data-start="25.0" data-duration="1.467" data-track-index="2">And you know what guys?</div>
+      <div id="cap-24" class="clip cap" data-start="26.467" data-duration="1.266" data-track-index="2">Maine isko multi-purpose</div>
+      <div id="cap-25" class="clip cap" data-start="27.733" data-duration="0.600" data-track-index="2">claim test pe</div>
+      <div id="cap-26" class="clip cap" data-start="28.333" data-duration="0.600" data-track-index="2">laga diya.</div>
+      <div id="cap-27" class="clip cap" data-start="28.933" data-duration="1.067" data-track-index="2">And it passed!</div>
+      <div id="cap-28" class="clip cap" data-start="30.0" data-duration="1.000" data-track-index="2">Sab kuch fit,</div>
+      <div id="cap-29" class="clip cap" data-start="31.0" data-duration="0.700" data-track-index="2">no mess.</div>
+      <div id="cap-30" class="clip cap" data-start="31.7" data-duration="0.767" data-track-index="2">Bilkul waise,</div>
+      <div id="cap-31" class="clip cap" data-start="32.467" data-duration="1.100" data-track-index="2">jaisa humein chahiye.</div>
+      <div id="cap-32" class="clip cap" data-start="33.567" data-duration="0.966" data-track-index="2">So get yourself</div>
+      <div id="cap-33" class="clip cap" data-start="34.533" data-duration="0.934" data-track-index="2">Kicups Tiny Trek</div>
+      <div id="cap-34" class="clip cap" data-start="35.467" data-duration="1.133" data-track-index="2">bag now!</div>
+
+      <div id="endcard" class="clip" data-start="36.6" data-duration="2.0" data-track-index="7">
+        <div class="wm">kicups</div>
+        <div class="sub">Tiny Trek · sab kuch fit, no mess</div>
+        <div class="btn">SHOP NOW</div>
+        <div class="btn fill" id="btnfill">SHOP NOW</div>
+      </div>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.set("#btnfill", { opacity: 1 }, 37.6);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+node_modules/
+renders/
+.hyperframes/
+assets/broll/
+assets/clips/
+assets/*.mp4
+assets/*.wav
+assets/*.m4a
+assets/*.jpg
