@@ -1,7 +1,7 @@
 # Builds index.html from the shot list + template. Times are voiceover times (seconds).
 import json, pathlib
 P = pathlib.Path(__file__).resolve().parent.parent
-OFFSET = 1.2   # cold open (AC shot + rising music) before the voiceover starts
+OFFSET = 0.0   # cold open (AC shot + rising music) before the voiceover starts
 TOTAL = round(83.4 + OFFSET, 2)
 SYNC = {k: v for k, v in json.load(open(P / "tools/sync_report.json")).items()}
 SRC = {
