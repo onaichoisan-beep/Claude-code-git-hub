@@ -16,7 +16,7 @@ SRC = {
 #   Sx sources are anchor clips already warped to the VO: media_in = start - line VO start (lips stay in sync).
 #   move: zin | zout | none | fill (letterboxed/landscape -> blurred fill behind) | punch
 SHOTS = [
-    (2.62, 3.30, "a3", 2.95, "punch"),   # AI: man shocked at the bill                    - अब बिजली बिल की
+    (2.62, 3.30, "r26", 0.10, "none"),   # REAL: electricity meters                      - अब बिजली बिल की
     (3.30, 4.48, "S2", None, "none"),    # ANCHORS (lip-sync)                            - टेंशन छोड़िए
     (4.48, 5.60, "r27", 3.40, "none"),   # REAL: rooftop panel rows                      - और अपने घर की छत पर
     (5.60, 6.48, "S2", None, "punch"),   # ANCHORS (lip-sync)                            - लगवाइए

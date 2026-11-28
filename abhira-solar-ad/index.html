@@ -87,7 +87,7 @@
   <body>
     <div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="83.4">
       <div class="vw" id="w0"><video id="m0" src="assets/ai/a12_open.mp4" muted playsinline data-start="0" data-duration="2.62" data-media-start="0" data-track-index="0"></video></div>
-      <div class="vw" id="w1"><video id="m1" src="assets/ai/a3.mp4" muted playsinline data-start="2.62" data-duration="0.68" data-media-start="2.95" data-track-index="0"></video></div>
+      <div class="vw" id="w1"><video id="m1" src="assets/real/r26.mp4" muted playsinline data-start="2.62" data-duration="0.68" data-media-start="0.1" data-track-index="0"></video></div>
       <div class="vw" id="w2"><video id="m2" src="assets/ai/S2_a4_synced.mp4" muted playsinline data-start="3.3" data-duration="1.18" data-media-start="0.42" data-track-index="0"></video></div>
       <div class="vw" id="w3"><video id="m3" src="assets/real/r27.mp4" muted playsinline data-start="4.48" data-duration="1.12" data-media-start="3.4" data-track-index="0"></video></div>
       <div class="vw" id="w4"><video id="m4" src="assets/ai/S2_a4_synced.mp4" muted playsinline data-start="5.6" data-duration="0.88" data-media-start="2.72" data-track-index="0"></video></div>
@@ -206,7 +206,7 @@
       const COUNT = (id, to, t, d = 0.7) => { const o = { v: 0 }; tl.to(o, { v: to, duration: d, ease: "power2.out", onUpdate: () => (document.getElementById(id).textContent = Math.round(o.v).toLocaleString("en-IN")) }, t); };
 
       // ---- camera moves (generated) ----
-      tl.fromTo("#w1", { scale: 1.16 }, { scale: 1.2, duration: 0.68, ease: "none" }, 2.62);
+      tl.fromTo("#w1", { scale: 1.0 }, { scale: 1.05, duration: 0.68, ease: "none" }, 2.62);
       tl.fromTo("#w2", { scale: 1.0 }, { scale: 1.05, duration: 1.18, ease: "none" }, 3.3);
       tl.fromTo("#w3", { scale: 1.0 }, { scale: 1.05, duration: 1.12, ease: "none" }, 4.48);
       tl.fromTo("#w4", { scale: 1.16 }, { scale: 1.2, duration: 0.88, ease: "none" }, 5.6);
