@@ -152,12 +152,15 @@
       <div id="burn"><div class="l b1"></div><div class="l b2"></div><div class="l b3"></div></div>
       <div id="flash"></div>
 
-      <audio id="vo" src="assets/audio/vo.mp3" data-start="0" data-duration="82.83" data-track-index="5" data-volume="1"></audio>
-      <audio id="sfx" src="assets/audio/sfx.wav" data-start="0" data-duration="__TOTAL__" data-track-index="6" data-volume="1"></audio>
+      <audio id="vo" src="assets/audio/vo.mp3" data-start="__OFFSET__" data-duration="82.83" data-track-index="5" data-volume="1"></audio>
+      <audio id="bgm" src="assets/audio/bgm.mp3" data-start="0" data-duration="__TOTAL__" data-track-index="7" data-volume="1"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0.0},{"t":0.3,"v":0.7},{"t":1.0,"v":0.7},{"t":1.5,"v":0.13},{"t":83.9,"v":0.13},{"t":84.2,"v":0.6},{"t":__TOTAL__,"v":0.0}]}]}'></audio>
+      <audio id="sfx" src="assets/audio/sfx.wav" data-start="__OFFSET__" data-duration="83.4" data-track-index="6" data-volume="1"></audio>
     </div>
 
     <script>
-      const tl = gsap.timeline({ paused: true });
+      const ROOT = gsap.timeline({ paused: true });
+      const tl = gsap.timeline();   // everything below is in voiceover time; it starts after the cold open
       const IN = (sel, t, from = { y: 60 }, d = 0.4) => tl.fromTo(sel, { opacity: 0, ...from }, { opacity: 1, x: 0, y: 0, scale: 1, duration: d, ease: "back.out(1.7)" }, t);
       const OUT = (sel, t, d = 0.2) => tl.to(sel, { opacity: 0, duration: d, ease: "power2.in" }, t);
       const POP = (sel, t) => IN(sel, t, { scale: 0.55, y: 20 }, 0.42);
@@ -258,7 +261,11 @@
       tl.fromTo("#oTag", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.6)" }, 80.75);
       tl.fromTo("#oTag2", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4 }, 81.3);
 
-      window.__timelines["main"] = tl;
+      // cold open camera move on the new first clip (global time)
+      ROOT.fromTo("#w0", { scale: 1.0 }, { scale: 1.1, duration: __OFFSET__ + 2.62, ease: "none" }, 0);
+      ROOT.add(tl, __OFFSET__);
+      ROOT.to({}, { duration: 0.01 }, __TOTAL__ - 0.01);
+      window.__timelines["main"] = ROOT;
     </script>
   </body>
 </html>

@@ -1,12 +1,13 @@
 # Builds index.html from the shot list + template. Times are voiceover times (seconds).
 import json, pathlib
 P = pathlib.Path(__file__).resolve().parent.parent
-TOTAL = 83.4
+OFFSET = 1.2   # cold open (AC shot + rising music) before the voiceover starts
+TOTAL = round(83.4 + OFFSET, 2)
 SYNC = {k: v for k, v in json.load(open(P / "tools/sync_report.json")).items()}
 SRC = {
     "S1": "assets/ai/S1_a3_synced.mp4", "S2": "assets/ai/S2_a4_synced.mp4", "S3": "assets/ai/S3_a2_synced.mp4",
     "S4": "assets/ai/S4_a1_synced.mp4", "S5": "assets/ai/S5_a8_synced.mp4", "S9": "assets/ai/S9_a9_synced.mp4",
-    "S10": "assets/ai/S10_a11_synced.mp4",
+    "S10": "assets/ai/S10_a11_synced.mp4", "a3": "assets/ai/a3.mp4", "OPEN": "assets/ai/a12_open.mp4",
     "a5": "assets/ai/a5.mp4", "a6": "assets/ai/a6.mp4", "a7": "assets/ai/a7.mp4", "a10": "assets/ai/a10.mp4", "a11": "assets/ai/a11.mp4",
     "r26": "assets/real/r26.mp4", "r27": "assets/real/r27.mp4", "r29": "assets/baked/r29_fill.mp4", "r32": "assets/baked/r32_inv.mp4",
     "p20": "assets/baked/p20_fill.mp4", "p23": "assets/baked/p23_fill.mp4", "INV": "assets/img/inverter.jpg",
@@ -15,8 +16,7 @@ SRC = {
 #   Sx sources are anchor clips already warped to the VO: media_in = start - line VO start (lips stay in sync).
 #   move: zin | zout | none | fill (letterboxed/landscape -> blurred fill behind) | punch
 SHOTS = [
-    (0.00, 2.62, "S1", None, "zin"),     # AI: man shocked at his electricity bill       - हर महीने भारी-भरकम बिजली बिल...
-    (2.62, 3.30, "r26", 0.10, "none"),   # REAL: electricity meters                      - अब बिजली बिल की
+    (2.62, 3.30, "a3", 2.95, "punch"),   # AI: man shocked at the bill                    - अब बिजली बिल की
     (3.30, 4.48, "S2", None, "none"),    # ANCHORS (lip-sync)                            - टेंशन छोड़िए
     (4.48, 5.60, "r27", 3.40, "none"),   # REAL: rooftop panel rows                      - और अपने घर की छत पर
     (5.60, 6.48, "S2", None, "punch"),   # ANCHORS (lip-sync)                            - लगवाइए
@@ -72,8 +72,8 @@ for k, (s, e, src, mi, mv) in enumerate(SHOTS, 1):
     path = SRC[src]; img = path.endswith((".jpg", ".png"))
     def el(idx, extra=""):
         if img:
-            return f'<img id="m{k}{idx}" src="{path}" alt="" data-start="{s}" data-duration="{d}" data-track-index="0"{extra} />'
-        return f'<video id="m{k}{idx}" src="{path}" muted playsinline data-start="{s}" data-duration="{d}" data-media-start="{mi}" data-track-index="0"{extra}></video>'
+            return f'<img id="m{k}{idx}" src="{path}" alt="" data-start="{round(s+OFFSET,3)}" data-duration="{d}" data-track-index="0"{extra} />'
+        return f'<video id="m{k}{idx}" src="{path}" muted playsinline data-start="{round(s+OFFSET,3)}" data-duration="{d}" data-media-start="{mi}" data-track-index="0"{extra}></video>'
     if mv == "fill":  # baked blurred-fill source -> plain clip with a slow push
         mi = 0 if mi is None else mi
         mv = "zin"
@@ -92,8 +92,10 @@ for k, (s, e, src, mi, mv) in enumerate(SHOTS, 1):
     else:
         cam.append(f'      tl.fromTo("#{w}", {{ scale: 1.0 }}, {{ scale: 1.05, duration: {d}, ease: "none" }}, {s});')
 
+# opener (new first clip): global 0 -> OFFSET+2.62, AC cold open then bill + meter synced to line 1
+clips.insert(0, f'      <div class="vw" id="w0"><video id="m0" src="{SRC['OPEN']}" muted playsinline data-start="0" data-duration="{round(OFFSET+2.62,3)}" data-media-start="0" data-track-index="0"></video></div>')
 tpl = (P / "tools" / "template.html").read_text()
 html = (tpl.replace("<!--CLIPS-->", "\n".join(clips)).replace("//CAMERA", "\n".join(cam))
-           .replace("__BURNS__", json.dumps(BURNS)).replace("__TOTAL__", str(TOTAL)))
+           .replace("__BURNS__", json.dumps(BURNS)).replace("__TOTAL__", str(TOTAL)).replace("__OFFSET__", str(OFFSET)))
 (P / "index.html").write_text(html)
 print(len(clips), "clips")

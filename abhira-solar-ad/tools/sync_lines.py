@@ -6,6 +6,7 @@ SR = 16000; HOP = 160
 VO = "assets/audio/vo.mp3"
 # name, clip, VO start, VO end, clip ranges kept (repeats / dead air removed)
 LINES = [
+    ("S0", "a12", 0.00, 2.62, [(1.00, 4.70)]),                # new opener: bill on table -> meter
     ("S1", "a3", 0.00, 2.62, [(2.10, 3.92), (4.42, 5.70)]),   # drop the repeated "बिजली बिल"
     ("S2", "a4", 2.88, 7.36, [(3.05, 8.95)]),
     ("S3", "a2", 7.79, 15.40, [(1.70, 7.70)]),
