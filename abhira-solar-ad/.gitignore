@@ -1,0 +1,11 @@
+assets/real/
+assets/ai/
+assets/audio/
+assets/img/
+assets/baked/
+renders/
+.hyperframes/
+.snap*/
+*.mp4
+*.wav
+*.mp3
